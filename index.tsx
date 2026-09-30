@@ -14,7 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import RenderHTML from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
@@ -102,6 +103,7 @@ const getFeed = async (query = '', startIndex = 1) => {
 };
 
 export default function App() {
+  const { width } = useWindowDimensions();
   const [posts, setPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState('All');
@@ -183,33 +185,30 @@ export default function App() {
           keyExtractor={item => item.id}
           renderItem={() => (
             <View style={styles.detailContent}>
-              {detail.image ? <Image source={{ uri: detail.image }} style={styles.detailImage} /> : null}
-              <Text style={styles.detailLabel}>{detail.label}</Text>
-              <Text style={styles.detailTitle}>{detail.title}</Text>
-              <Text style={styles.detailDate}>{detail.date}</Text>
-              <WebView
-                originWhitelist={['*']}
-                source={{
-                  html: `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>
-                    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#4f4c52;font-size:16px;line-height:1.7;margin:0;padding:0 0 30px}
-                    img{max-width:100%;height:auto}
-                    iframe{max-width:100%}
-                    p{margin:0 0 18px}
-                    h1,h2,h3,h4{color:#202124;line-height:1.3;margin:24px 0 12px}
-                    ul,ol{padding-left:26px;margin:10px 0 20px}
-                    li{margin-bottom:8px}
-                    a{color:#ff5b01}
-                    table{max-width:100%;width:100%;border-collapse:collapse;overflow:auto}
-                    th,td{border:1px solid #ddd;padding:8px;text-align:left}
-                  </style></head><body>${detail.rawContent || detail.content || detail.excerpt}</body></html>`
-                }}
-                style={styles.detailWebView}
-                scrollEnabled={false}
-                onMessage={() => {}}
-              />
-            </View>
-          )}
-          contentContainerStyle={{ paddingBottom: 30 }}
+            <Text style={styles.detailLabel}>{detail.label}</Text>
+            <Text style={styles.detailTitle}>{detail.title}</Text>
+            <Text style={styles.detailDate}>{detail.date}</Text>
+            <RenderHTML
+              contentWidth={Math.max(320, width - 40)}
+              source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
+              tagsStyles={{
+                body: { color: '#4f4c52', fontSize: 15, lineHeight: 26 },
+                p: { marginTop: 0, marginBottom: 16, lineHeight: 26 },
+                h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 18, marginBottom: 12 },
+                h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 18, marginBottom: 10 },
+                h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 16, marginBottom: 8 },
+                li: { marginBottom: 7, lineHeight: 25 },
+                a: { color: ACCENT },
+                strong: { fontWeight: '900' },
+                em: { fontStyle: 'italic' },
+                table: { width: '100%' },
+                th: { padding: 7, fontWeight: '900' },
+                td: { padding: 7 },
+              }}
+            />
+          </View>
+        )}
+        contentContainerStyle={{ paddingBottom: 30 }}
         />
       </SafeAreaView>
     );
@@ -420,7 +419,7 @@ const styles = StyleSheet.create({
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
   detailDate: { color: MUTED, fontSize: 12, marginTop: 7 },
   detailBody: { color: '#4f4c52', fontSize: 15, lineHeight: 26, marginTop: 22, paddingBottom: 12 },
-  detailWebView: { width: '100%', minHeight: 600, backgroundColor: 'transparent' },
+
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 5 },
