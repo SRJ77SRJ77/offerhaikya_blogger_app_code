@@ -201,11 +201,11 @@ export default function App() {
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
               tagsStyles={{
                 body: { color: '#4f4c52', fontSize: 15, lineHeight: 26 },
-                p: { marginTop: 0, marginBottom: 16, lineHeight: 26 },
-                h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 18, marginBottom: 12 },
-                h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 18, marginBottom: 10 },
-                h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 16, marginBottom: 8 },
-                li: { marginBottom: 7, lineHeight: 25 },
+                p: { marginTop: 0, marginBottom: 8, lineHeight: 24 },
+                h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
+                h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
+                h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
+                li: { marginBottom: 3, lineHeight: 24 },
                 a: { color: ACCENT },
                 strong: { fontWeight: '900' },
                 em: { fontStyle: 'italic' },
