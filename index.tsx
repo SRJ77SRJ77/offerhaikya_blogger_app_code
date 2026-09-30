@@ -336,7 +336,7 @@ export default function App() {
                         onPress={() => {
                           setQuery(item.title);
                           setSuggestions([]);
-                          loadPosts(item.title, 1);
+                          setDetail(item);
                         }}
                       >
                         {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
