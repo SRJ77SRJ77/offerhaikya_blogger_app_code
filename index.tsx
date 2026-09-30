@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  ImageBackground,
   RefreshControl,
   ScrollView,
   SafeAreaView,
@@ -175,7 +174,6 @@ export default function App() {
           </TouchableOpacity>
           <Text style={styles.detailHeaderTitle} numberOfLines={1}>{detail.title}</Text>
         </View>
-        <ImageBackground source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }} style={styles.background} resizeMode="cover">
         <FlatList
           data={[detail]}
           keyExtractor={item => item.id}
@@ -190,7 +188,6 @@ export default function App() {
           )}
           contentContainerStyle={{ paddingBottom: 30 }}
         />
-        </ImageBackground>
       </SafeAreaView>
     );
   }
@@ -230,7 +227,6 @@ export default function App() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ImageBackground source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }} style={styles.background} resizeMode="cover">
       {menuOpen && (
         <View style={styles.menuPanel}>
           <Text style={styles.menuTitle}>Categories</Text>
@@ -250,7 +246,6 @@ export default function App() {
       )}
 
       <FlatList
-        style={styles.transparentList}
         data={visiblePosts}
         keyExtractor={item => item.id}
         renderItem={renderPost}
@@ -261,7 +256,12 @@ export default function App() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         ListHeaderComponent={
           <>
-            <View style={styles.hero}>
+            <ImageBackground
+              source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }}
+              style={styles.hero}
+              imageStyle={styles.heroImage}
+            >
+              <View style={styles.heroOverlay}>
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
               <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
@@ -279,7 +279,8 @@ export default function App() {
                   {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
                 </TouchableOpacity>
               </View>
-            </View>
+              </View>
+            </ImageBackground>
 
             <ScrollView
               horizontal
@@ -332,7 +333,6 @@ export default function App() {
           ) : null
         }
       />
-      </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -344,15 +344,15 @@ const styles = StyleSheet.create({
   menuIcon: { fontSize: 22, color: TEXT },
   headerLogo: { position: 'absolute', left: '50%', width: 150, height: 48, marginLeft: -75 },
   headerSpacer: { width: 42 },
-  background: { flex: 1 },
-  transparentList: { backgroundColor: 'transparent' },
   menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
   menuItem: { paddingHorizontal: 16, paddingVertical: 11 },
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
-  content: { paddingBottom: 30, backgroundColor: 'transparent' },
-  hero: { backgroundColor: HERO, paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
+  content: { paddingBottom: 30, backgroundColor: PAGE },
+  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'hidden' },
+  heroImage: { opacity: 1 },
+  heroOverlay: { backgroundColor: 'rgba(108,108,254,0.72)', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
   heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   heroTitle: { color: WHITE, fontSize: 29, lineHeight: 35, fontWeight: '900' },
   heroSubtitle: { color: '#eeeeff', fontSize: 14, lineHeight: 21, marginTop: 8 },
