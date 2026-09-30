@@ -89,7 +89,7 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       label: labels[0] || 'Offers',
-      image: highResImage(entry.media$thumbnail?.url) || firstImage(content),
+      image: firstImage(content) || highResImage(entry.media$thumbnail?.url),
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
       rawContent: content,
