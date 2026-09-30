@@ -103,7 +103,7 @@ const getFeed = async (query = '', startIndex = 1) => {
     'max-results': String(PAGE_SIZE),
     'start-index': String(startIndex),
   });
-  if (query.trim().length >= 3) params.set('q', query.trim());
+  if (query.trim().length >= 1) params.set('q', query.trim());
 
   const response = await fetch(FEED_URL + '?' + params.toString());
   if (!response.ok) throw new Error('Unable to load posts');
@@ -121,6 +121,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<Post[]>([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
@@ -145,11 +147,25 @@ export default function App() {
   }, [loadPosts]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const text = query.trim();
+    const timer = setTimeout(async () => {
       setActiveLabel('All');
-      if (query.trim().length === 0) loadPosts('', 1);
-      else if (query.trim().length >= 3) loadPosts(query, 1);
-    }, 450);
+      if (!text) {
+        setSuggestions([]);
+        loadPosts('', 1);
+        return;
+      }
+
+      try {
+        setSuggestionLoading(true);
+        const result = await getFeed(text, 1);
+        setSuggestions(result.slice(0, 6));
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggestionLoading(false);
+      }
+    }, 300);
     return () => clearTimeout(timer);
   }, [query, loadPosts]);
 
@@ -304,10 +320,37 @@ export default function App() {
                   style={styles.searchInput}
                   returnKeyType="search"
                 />
-                <TouchableOpacity style={styles.searchButton} onPress={() => loadPosts(query.trim(), 1)}>
+                <TouchableOpacity style={styles.searchButton} onPress={() => { loadPosts(query.trim(), 1); setSuggestions([]); }}>
                   {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
                 </TouchableOpacity>
               </View>
+              {query.trim().length > 0 && (
+                <View style={styles.searchDropdown}>
+                  {suggestionLoading ? (
+                    <View style={styles.searchDropdownLoading}><ActivityIndicator size="small" color={ACCENT} /></View>
+                  ) : suggestions.length > 0 ? (
+                    suggestions.map(item => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.searchSuggestion}
+                        onPress={() => {
+                          setQuery(item.title);
+                          setSuggestions([]);
+                          loadPosts(item.title, 1);
+                        }}
+                      >
+                        {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
+                        <View style={styles.searchSuggestionTextWrap}>
+                          <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
+                          <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <Text style={styles.searchNoResult}>No matching offers</Text>
+                  )}
+                </View>
+              )}
             </ImageBackground>
 
             <ScrollView
@@ -388,6 +431,14 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
   searchButton: { width: 42, height: 42, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   searchButtonText: { color: WHITE, fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
+  searchDropdown: { marginTop: 6, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 6, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, maxHeight: 360 },
+  searchDropdownLoading: { paddingVertical: 16, alignItems: 'center' },
+  searchSuggestion: { minHeight: 58, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  searchSuggestionImage: { width: 44, height: 44, borderRadius: 8, backgroundColor: '#eeeeee' },
+  searchSuggestionTextWrap: { flex: 1, marginLeft: 10 },
+  searchSuggestionTitle: { color: TEXT, fontSize: 14, fontWeight: '800' },
+  searchSuggestionLabel: { color: MUTED, fontSize: 11, marginTop: 3 },
+  searchNoResult: { padding: 16, color: MUTED, fontSize: 13 },
   chips: { paddingHorizontal: 16, paddingVertical: 15, gap: 8 },
   chip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: WHITE, borderWidth: 1, borderColor: '#dedde1' },
   activeChip: { backgroundColor: ACCENT, borderColor: ACCENT },
