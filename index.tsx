@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
   searchButton: { width: 42, height: 42, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   searchButtonText: { color: WHITE, fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
-  searchDropdown: { position: 'absolute', top: 58, left: 0, right: 0, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 10, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
+  searchDropdown: { position: 'absolute', top: 76, left: 0, right: 0, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 10, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   searchDropdownScroll: { flex: 1 },
   searchDropdownLoading: { height: 58, alignItems: 'center', justifyContent: 'center' },
   searchSuggestion: { height: 58, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
