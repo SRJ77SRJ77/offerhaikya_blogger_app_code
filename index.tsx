@@ -262,7 +262,6 @@ export default function App() {
               style={styles.hero}
               imageStyle={styles.heroImage}
             >
-              <View style={styles.heroOverlay}>
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
               <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
@@ -279,8 +278,6 @@ export default function App() {
                 <TouchableOpacity style={styles.searchButton} onPress={() => loadPosts(query.trim(), 1)}>
                   {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
                 </TouchableOpacity>
-              </View>
-              </View>
             </ImageBackground>
 
             <ScrollView
@@ -351,9 +348,8 @@ const styles = StyleSheet.create({
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
   content: { paddingBottom: 30, backgroundColor: PAGE },
-  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'hidden' },
+  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
   heroImage: { opacity: 1 },
-  heroOverlay: { backgroundColor: 'rgba(108,108,254,0.72)', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
   heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   heroTitle: { color: WHITE, fontSize: 29, lineHeight: 35, fontWeight: '900' },
   heroSubtitle: { color: '#eeeeff', fontSize: 14, lineHeight: 21, marginTop: 8 },
