@@ -52,6 +52,14 @@ const stripHtml = (value = '') =>
     .replace(/\s+/g, ' ')
     .trim();
 
+const highResImage = (url = '') => {
+  if (!url) return '';
+  return url
+    .replace(/\/s\d+(-c)?\//i, '/s1600/')
+    .replace(/=w\d+(-h\d+)?(-p)?/i, '=s1600')
+    .replace(/\/w\d+(-h\d+)?\//i, '/s1600/');
+};
+
 const firstImage = (html = '') => {
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return match?.[1];
@@ -81,7 +89,7 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       label: labels[0] || 'Offers',
-      image: entry.media$thumbnail?.url || firstImage(content),
+      image: highResImage(entry.media$thumbnail?.url) || firstImage(content),
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
       rawContent: content,
