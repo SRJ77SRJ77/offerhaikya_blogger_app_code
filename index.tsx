@@ -334,7 +334,7 @@ export default function App() {
                         key={item.id}
                         style={styles.searchSuggestion}
                         onPress={() => {
-                          setQuery(item.title);
+                          setQuery('');
                           setSuggestions([]);
                           setDetail(item);
                         }}
