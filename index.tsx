@@ -399,7 +399,7 @@ export default function App() {
             </>
           ) : null
         }
-
+      />
 
       <Animated.View
         pointerEvents={query.trim() ? 'auto' : 'none'}
@@ -453,6 +453,7 @@ export default function App() {
           <Text style={styles.searchNoResult}>No matching offers</Text>
         )}
       </Animated.View>
+
     </SafeAreaView>
   );
 }
