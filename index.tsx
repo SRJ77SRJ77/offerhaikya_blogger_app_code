@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Animated,
   FlatList,
   Image,
   ImageBackground,
@@ -125,7 +124,6 @@ export default function App() {
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
-  const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -171,22 +169,6 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [query, loadPosts]);
 
-  useEffect(() => {
-    const visibleHeight = !query.trim()
-      ? 0
-      : suggestionLoading
-        ? 58
-        : suggestions.length > 0
-          ? Math.min(suggestions.length, 4) * 58
-          : 48;
-
-    Animated.timing(dropdownAnimation, {
-      toValue: visibleHeight,
-      duration: 220,
-      useNativeDriver: false,
-    }).start();
-  }, [query, suggestionLoading, suggestions.length, dropdownAnimation]);
-
   const labels = useMemo(() => {
     const values = posts.map(post => post.label).filter(Boolean);
     return ['All', ...Array.from(new Set(values))];
@@ -227,30 +209,30 @@ export default function App() {
           keyExtractor={item => item.id}
           renderItem={() => (
             <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>{detail.label}</Text>
-              <Text style={styles.detailTitle}>{detail.title}</Text>
-              <Text style={styles.detailDate}>{detail.date}</Text>
-              <RenderHTML
-                contentWidth={Math.max(320, width - 40)}
-                source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
-                tagsStyles={{
-                  body: { color: '#4f4c52', fontSize: 15, lineHeight: 26 },
-                  p: { marginTop: 0, marginBottom: 8, lineHeight: 24 },
-                  h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
-                  h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
-                  h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
-                  li: { marginBottom: 3, lineHeight: 24 },
-                  a: { color: ACCENT },
-                  strong: { fontWeight: '900' },
-                  em: { fontStyle: 'italic' },
-                  table: { width: '100%' },
-                  th: { padding: 7, fontWeight: '900' },
-                  td: { padding: 7 },
-                }}
-              />
-            </View>
-          )}
-          contentContainerStyle={{ paddingBottom: 30 }}
+            <Text style={styles.detailLabel}>{detail.label}</Text>
+            <Text style={styles.detailTitle}>{detail.title}</Text>
+            <Text style={styles.detailDate}>{detail.date}</Text>
+            <RenderHTML
+              contentWidth={Math.max(320, width - 40)}
+              source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
+              tagsStyles={{
+                body: { color: '#4f4c52', fontSize: 15, lineHeight: 26 },
+                p: { marginTop: 0, marginBottom: 8, lineHeight: 24 },
+                h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
+                h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
+                h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
+                li: { marginBottom: 3, lineHeight: 24 },
+                a: { color: ACCENT },
+                strong: { fontWeight: '900' },
+                em: { fontStyle: 'italic' },
+                table: { width: '100%' },
+                th: { padding: 7, fontWeight: '900' },
+                td: { padding: 7 },
+              }}
+            />
+          </View>
+        )}
+        contentContainerStyle={{ paddingBottom: 30 }}
         />
       </SafeAreaView>
     );
@@ -328,25 +310,47 @@ export default function App() {
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
               <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
-
-              <View style={styles.searchArea}>
-                <View style={styles.searchBox}>
-                  <Text style={styles.searchIcon}>⌕</Text>
-                  <TextInput
-                    value={query}
-                    onChangeText={setQuery}
-                    placeholder="Search offers..."
-                    placeholderTextColor="#99969c"
-                    style={styles.searchInput}
-                    returnKeyType="search"
-                  />
-                  <TouchableOpacity style={styles.searchButton} onPress={() => { loadPosts(query.trim(), 1); setSuggestions([]); }}>
-                    {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
-                  </TouchableOpacity>
-                </View>
-
-
+              <View style={styles.searchBox}>
+                <Text style={styles.searchIcon}>⌕</Text>
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Search offers..."
+                  placeholderTextColor="#99969c"
+                  style={styles.searchInput}
+                  returnKeyType="search"
+                />
+                <TouchableOpacity style={styles.searchButton} onPress={() => { loadPosts(query.trim(), 1); setSuggestions([]); }}>
+                  {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
+                </TouchableOpacity>
               </View>
+              {query.trim().length > 0 && (
+                <View style={styles.searchDropdown}>
+                  {suggestionLoading ? (
+                    <View style={styles.searchDropdownLoading}><ActivityIndicator size="small" color={ACCENT} /></View>
+                  ) : suggestions.length > 0 ? (
+                    suggestions.map(item => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.searchSuggestion}
+                        onPress={() => {
+                          setQuery(item.title);
+                          setSuggestions([]);
+                          loadPosts(item.title, 1);
+                        }}
+                      >
+                        {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
+                        <View style={styles.searchSuggestionTextWrap}>
+                          <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
+                          <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <Text style={styles.searchNoResult}>No matching offers</Text>
+                  )}
+                </View>
+              )}
             </ImageBackground>
 
             <ScrollView
@@ -400,60 +404,6 @@ export default function App() {
           ) : null
         }
       />
-
-      <Animated.View
-        pointerEvents={query.trim() ? 'auto' : 'none'}
-        style={[
-          styles.searchDropdown,
-          {
-            height: dropdownAnimation,
-            opacity: dropdownAnimation.interpolate({
-              inputRange: [0, 58, 232],
-              outputRange: [0, 1, 1],
-              extrapolate: 'clamp',
-            }),
-            transform: [{
-              translateY: dropdownAnimation.interpolate({
-      inputRange: [0, 232],
-      outputRange: [-8, 0],
-      extrapolate: 'clamp',
-              }),
-            }],
-          },
-        ]}
-      >
-        {suggestionLoading ? (
-          <View style={styles.searchDropdownLoading}><ActivityIndicator size="small" color={ACCENT} /></View>
-        ) : suggestions.length > 0 ? (
-          <ScrollView
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={suggestions.length > 4}
-            style={styles.searchDropdownScroll}
-          >
-            {suggestions.map(item => (
-              <TouchableOpacity
-      key={item.id}
-      style={styles.searchSuggestion}
-      onPress={() => {
-        setQuery(item.title);
-        setSuggestions([]);
-        loadPosts(item.title, 1);
-      }}
-              >
-      {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
-      <View style={styles.searchSuggestionTextWrap}>
-        <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
-      </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : (
-          <Text style={styles.searchNoResult}>No matching offers</Text>
-        )}
-      </Animated.View>
-
     </SafeAreaView>
   );
 }
@@ -471,21 +421,19 @@ const styles = StyleSheet.create({
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
   content: { paddingBottom: 30, backgroundColor: PAGE },
-  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'visible', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34, zIndex: 100, elevation: 20 },
+  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
   heroImage: { opacity: 1 },
   heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   heroTitle: { color: WHITE, fontSize: 29, lineHeight: 35, fontWeight: '900' },
   heroSubtitle: { color: '#eeeeff', fontSize: 14, lineHeight: 21, marginTop: 8 },
-  searchArea: { position: 'relative', zIndex: 200, elevation: 30 },
   searchBox: { marginTop: 18, backgroundColor: WHITE, minHeight: 52, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 5, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
   searchIcon: { fontSize: 27, color: MUTED, marginRight: 8, marginTop: -3 },
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
   searchButton: { width: 42, height: 42, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   searchButtonText: { color: WHITE, fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
-  searchDropdown: { position: 'absolute', top: 271, left: 20, right: 20, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', zIndex: 300, elevation: 50, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
-  searchDropdownScroll: { flex: 1 },
-  searchDropdownLoading: { height: 58, alignItems: 'center', justifyContent: 'center' },
-  searchSuggestion: { height: 58, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  searchDropdown: { marginTop: 6, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 6, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, maxHeight: 360 },
+  searchDropdownLoading: { paddingVertical: 16, alignItems: 'center' },
+  searchSuggestion: { minHeight: 58, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   searchSuggestionImage: { width: 44, height: 44, borderRadius: 8, backgroundColor: '#eeeeee' },
   searchSuggestionTextWrap: { flex: 1, marginLeft: 10 },
   searchSuggestionTitle: { color: TEXT, fontSize: 14, fontWeight: '800' },
@@ -530,6 +478,7 @@ const styles = StyleSheet.create({
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
   detailDate: { color: MUTED, fontSize: 12, marginTop: 7 },
   detailBody: { color: '#4f4c52', fontSize: 15, lineHeight: 26, marginTop: 22, paddingBottom: 12 },
+
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 5 },
