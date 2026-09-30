@@ -4,6 +4,7 @@ import {
   FlatList,
   Image,
   RefreshControl,
+  ScrollView,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -17,7 +18,7 @@ const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
 const ACCENT = '#ff5b01';
 const HERO = '#6c6cfe';
-const PAGE = '#e4e3e9';
+const PAGE = '#f3f4f6';
 const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
@@ -266,23 +267,26 @@ export default function App() {
                   returnKeyType="search"
                 />
                 <TouchableOpacity style={styles.searchButton} onPress={() => loadPosts(query.trim(), 1)}>
-                  {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>→</Text>}
+                  {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
                 </TouchableOpacity>
               </View>
             </View>
 
-            <FlatList
-              data={labels}
+            <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              keyExtractor={item => item}
               contentContainerStyle={styles.chips}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => setActiveLabel(item)} style={[styles.chip, activeLabel === item && styles.activeChip]}>
+            >
+              {labels.map(item => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => setActiveLabel(item)}
+                  style={[styles.chip, activeLabel === item && styles.activeChip]}
+                >
                   <Text style={[styles.chipText, activeLabel === item && styles.activeChipText]}>{item}</Text>
                 </TouchableOpacity>
-              )}
-            />
+              ))}
+            </ScrollView>
 
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Latest offers</Text>
@@ -325,10 +329,11 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
-  header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
+  header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
   menuButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   menuIcon: { fontSize: 22, color: TEXT },
-  brand: { flex: 1, textAlign: 'center', marginRight: 42, fontSize: 20, fontWeight: '800', color: TEXT },
+  headerLogo: { position: 'absolute', left: '50%', width: 118, height: 44, marginLeft: -59 },
+  headerSpacer: { width: 42 },
   headerDot: { position: 'absolute', right: 18, width: 8, height: 8, borderRadius: 4, backgroundColor: ACCENT },
   menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
@@ -344,7 +349,7 @@ const styles = StyleSheet.create({
   searchIcon: { fontSize: 27, color: MUTED, marginRight: 8, marginTop: -3 },
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
   searchButton: { width: 42, height: 42, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  searchButtonText: { color: WHITE, fontSize: 24, fontWeight: '900' },
+  searchButtonText: { color: WHITE, fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
   chips: { paddingHorizontal: 16, paddingVertical: 15, gap: 8 },
   chip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: WHITE, borderWidth: 1, borderColor: '#dedde1' },
   activeChip: { backgroundColor: ACCENT, borderColor: ACCENT },
@@ -378,12 +383,12 @@ const styles = StyleSheet.create({
   backButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   backText: { color: TEXT, fontSize: 34, lineHeight: 34 },
   detailHeaderTitle: { flex: 1, color: TEXT, fontSize: 16, fontWeight: '800', marginRight: 10 },
-  detailContent: { padding: 16 },
+  detailContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 50 },
   detailImage: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#eeeeee', marginBottom: 16 },
-  detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
+  detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 2 },
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
   detailDate: { color: MUTED, fontSize: 12, marginTop: 7 },
-  detailBody: { color: '#4f4c52', fontSize: 15, lineHeight: 24, marginTop: 18 },
+  detailBody: { color: '#4f4c52', fontSize: 15, lineHeight: 26, marginTop: 22, paddingBottom: 12 },
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 5 },
