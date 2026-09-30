@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  ImageBackground,
   RefreshControl,
   ScrollView,
   SafeAreaView,
