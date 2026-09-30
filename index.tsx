@@ -278,6 +278,7 @@ export default function App() {
                 <TouchableOpacity style={styles.searchButton} onPress={() => loadPosts(query.trim(), 1)}>
                   {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
                 </TouchableOpacity>
+              </View>
             </ImageBackground>
 
             <ScrollView
