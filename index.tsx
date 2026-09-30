@@ -453,7 +453,6 @@ export default function App() {
           <Text style={styles.searchNoResult}>No matching offers</Text>
         )}
       </Animated.View>
-      />
     </SafeAreaView>
   );
 }
