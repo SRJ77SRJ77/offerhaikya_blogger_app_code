@@ -518,7 +518,6 @@ export default function App() {
       },
       privacy: {
         title: 'Privacy Policy',
-        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
         html: `
           <h1>Privacy Policy</h1>
           <p>At OfferHaiKya.com, we respect your privacy and are committed to protecting your personal information.</p>
@@ -530,7 +529,6 @@ export default function App() {
       },
       terms: {
         title: 'Terms and Condition',
-        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
         html: `
           <h1>Terms and Condition</h1>
           <h3>Effective Date: July 2025</h3>
@@ -589,10 +587,12 @@ export default function App() {
           </TouchableOpacity>
         </View>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}>
-          <Image source={{ uri: displayInfoData.image }} style={styles.infoHeroImage} resizeMode="contain" />
+          {displayInfoData.image ? (
+            <Image source={{ uri: displayInfoData.image }} style={styles.infoHeroImage} resizeMode="contain" />
+          ) : null}
           <RenderHTML
             contentWidth={Math.max(320, width - 40)}
-            source={{ html: infoData.html }}
+            source={{ html: displayInfoData.html }}
             tagsStyles={{
               body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
               h1: { color: darkMode ? WHITE : TEXT, fontSize: 29, lineHeight: 36, fontWeight: '900', marginTop: 0, marginBottom: 12 },
