@@ -274,7 +274,7 @@ export default function App() {
       return;
     }
 
-    if (!/^\\d{10}$/.test(contact)) {
+    if (!/^\d{10}$/.test(contact)) {
       setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
@@ -478,23 +478,27 @@ export default function App() {
 
             <TextInput
               value={registrationName}
-              onChangeText={setRegistrationName}
+              onChangeText={value => setRegistrationName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
               placeholder="Name *"
               placeholderTextColor="#99969c"
               style={[styles.registrationInput, darkMode && styles.registrationInputDark]}
               autoCapitalize="words"
+              maxLength={12}
               editable={!registrationSubmitting}
             />
-            <TextInput
-              value={registrationContact}
-              onChangeText={setRegistrationContact}
-              placeholder="Email / Phone *"
-              placeholderTextColor="#99969c"
-              style={[styles.registrationInput, darkMode && styles.registrationInputDark]}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!registrationSubmitting}
-            />
+            <View style={[styles.phoneInputWrap, darkMode && styles.registrationInputDark]}>
+              <Text style={[styles.phonePrefix, darkMode && styles.darkText]}>+91</Text>
+              <TextInput
+                value={registrationContact}
+                onChangeText={value => setRegistrationContact(value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10-digit phone number *"
+                placeholderTextColor="#99969c"
+                style={[styles.phoneInput, darkMode && styles.phoneInputDark]}
+                keyboardType="phone-pad"
+                maxLength={10}
+                editable={!registrationSubmitting}
+              />
+            </View>
 
             {registrationError ? (
               <Text style={styles.registrationError}>{registrationError}</Text>
