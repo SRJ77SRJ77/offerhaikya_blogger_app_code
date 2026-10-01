@@ -207,6 +207,8 @@ export default function App() {
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [infoPagePosts, setInfoPagePosts] = useState<Post[]>([]);
   const [infoPagePostsLoading, setInfoPagePostsLoading] = useState(false);
+  const [detailPagePosts, setDetailPagePosts] = useState<Post[]>([]);
+  const [detailPagePostsLoading, setDetailPagePostsLoading] = useState(false);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -1151,6 +1153,34 @@ export default function App() {
     };
   }, [infoPage]);
 
+  useEffect(() => {
+    if (!detail) {
+      setDetailPagePosts([]);
+      setDetailPagePostsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadDetailPagePosts = async () => {
+      try {
+        if (!cancelled) setDetailPagePostsLoading(true);
+        const latestPosts = await getFeed('', 1);
+        if (!cancelled) setDetailPagePosts(latestPosts);
+      } catch {
+        if (!cancelled) setDetailPagePosts([]);
+      } finally {
+        if (!cancelled) setDetailPagePostsLoading(false);
+      }
+    };
+
+    loadDetailPagePosts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detail]);
+
   if (infoPage) {
     const infoTitles = {
       about: 'About Us',
@@ -1328,6 +1358,14 @@ export default function App() {
 
   if (detail) {
     const mapCoordinates = extractMapCoordinates(detail.rawContent);
+    const detailPostsSource = detailPagePosts.length > 0 ? detailPagePosts : posts;
+    const suggestedDetailPosts = detailPostsSource
+      .filter(post => post.id !== detail.id)
+      .filter(post => post.labels.some(label => detail.labels.includes(label)))
+      .slice(0, 4);
+    const latestDetailPosts = detailPostsSource
+      .filter(post => post.id !== detail.id)
+      .slice(0, 8);
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
         <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#171717' : WHITE} />
@@ -1368,9 +1406,6 @@ export default function App() {
                 td: { padding: 7 },
               }}
             />
-            <Text style={{ color: ACCENT, fontSize: 24, fontWeight: '900', marginTop: 18, marginBottom: 10 }}>
-              Hello World
-            </Text>
             {mapCoordinates ? (
               <View style={styles.mapSection}>
                 <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
@@ -1396,6 +1431,60 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             ) : null}
+
+            <View style={styles.infoBottomRecommendations}>
+              <View style={styles.infoRecommendationSection}>
+                <View style={styles.sectionRow}>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
+                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
+                </View>
+
+                {detailPagePostsLoading && detailPostsSource.length === 0 ? (
+                  <View style={styles.state}>
+                    <ActivityIndicator size="small" color={ACCENT} />
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading suggested posts...</Text>
+                  </View>
+                ) : suggestedDetailPosts.length > 0 ? (
+                  <View>
+                    {Array.from({ length: Math.ceil(suggestedDetailPosts.length / 2) }).map((_, rowIndex) => (
+                      <View style={styles.row} key={'detail-suggested-row-' + rowIndex}>
+                        {suggestedDetailPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.state}>
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No suggested posts available right now.</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.infoRecommendationSection}>
+                <View style={styles.sectionRow}>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
+                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
+                </View>
+
+                {detailPagePostsLoading && detailPostsSource.length === 0 ? (
+                  <View style={styles.state}>
+                    <ActivityIndicator size="small" color={ACCENT} />
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading latest posts...</Text>
+                  </View>
+                ) : latestDetailPosts.length > 0 ? (
+                  <View>
+                    {Array.from({ length: Math.ceil(latestDetailPosts.length / 2) }).map((_, rowIndex) => (
+                      <View style={styles.row} key={'detail-latest-row-' + rowIndex}>
+                        {latestDetailPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.state}>
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No latest posts available right now.</Text>
+                  </View>
+                )}
+              </View>
+            </View>
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 104 }}
