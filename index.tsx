@@ -1154,34 +1154,13 @@ export default function App() {
                 <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Offers</Text>
                 <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
               </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.infoRecommendationRow}
-              >
-                {suggestedInfoPosts.map(item => (
-                  <TouchableOpacity
-                    key={'suggested-' + item.id}
-                    activeOpacity={0.92}
-                    style={[styles.infoRecommendationCard, darkMode && styles.infoRecommendationCardDark]}
-                    onPress={() => openDetail(item)}
-                  >
-                    {item.image ? (
-                      <Image source={{ uri: item.image }} style={styles.infoRecommendationImage} />
-                    ) : (
-                      <View style={[styles.infoRecommendationImage, styles.imageFallback]}>
-                        <Text style={styles.fallbackText}>OfferHaikya</Text>
-                      </View>
-                    )}
-                    <View style={styles.infoRecommendationBody}>
-                      <Text style={styles.label}>{item.label}</Text>
-                      <Text style={[styles.infoRecommendationTitle, darkMode && styles.darkText]} numberOfLines={2}>
-                        {item.title}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+              <View>
+                {Array.from({ length: Math.ceil(suggestedInfoPosts.length / 2) }).map((_, rowIndex) => (
+                  <View style={styles.row} key={'suggested-row-' + rowIndex}>
+                    {suggestedInfoPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                  </View>
                 ))}
-              </ScrollView>
+              </View>
             </View>
           ) : null}
 
@@ -1191,35 +1170,13 @@ export default function App() {
                 <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Blogs</Text>
                 <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
               </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.infoRecommendationRow}
-              >
-                {latestBlogPosts.map(item => (
-                  <TouchableOpacity
-                    key={'latest-blog-' + item.id}
-                    activeOpacity={0.92}
-                    style={[styles.infoRecommendationCard, darkMode && styles.infoRecommendationCardDark]}
-                    onPress={() => openDetail(item)}
-                  >
-                    {item.image ? (
-                      <Image source={{ uri: item.image }} style={styles.infoRecommendationImage} />
-                    ) : (
-                      <View style={[styles.infoRecommendationImage, styles.imageFallback]}>
-                        <Text style={styles.fallbackText}>OfferHaikya</Text>
-                      </View>
-                    )}
-                    <View style={styles.infoRecommendationBody}>
-                      <Text style={styles.label}>{item.label}</Text>
-                      <Text style={[styles.infoRecommendationTitle, darkMode && styles.darkText]} numberOfLines={2}>
-                        {item.title}
-                      </Text>
-                      <Text style={[styles.date, darkMode && styles.darkMutedText]}>{item.date}</Text>
-                    </View>
-                  </TouchableOpacity>
+              <View>
+                {Array.from({ length: Math.ceil(latestBlogPosts.length / 2) }).map((_, rowIndex) => (
+                  <View style={styles.row} key={'latest-blog-row-' + rowIndex}>
+                    {latestBlogPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                  </View>
                 ))}
-              </ScrollView>
+              </View>
             </View>
           ) : null}
         </ScrollView>
@@ -2109,12 +2066,6 @@ const styles = StyleSheet.create({
   infoContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 110 },
   infoHeroImage: { width: '100%', height: 110, marginBottom: 14 },
   infoRecommendationSection: { marginTop: 22 },
-  infoRecommendationRow: { paddingHorizontal: 16, paddingBottom: 4, gap: 12 },
-  infoRecommendationCard: { width: 190, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
-  infoRecommendationCardDark: { backgroundColor: '#222222' },
-  infoRecommendationImage: { width: '100%', height: 118, backgroundColor: '#eeeeee' },
-  infoRecommendationBody: { padding: 10 },
-  infoRecommendationTitle: { color: TEXT, fontSize: 14, lineHeight: 19, fontWeight: '900' },
   detailImage: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#eeeeee', marginBottom: 16 },
   detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 2 },
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
