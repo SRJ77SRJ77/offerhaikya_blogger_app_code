@@ -1342,7 +1342,13 @@ export default function App() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.floatingButton}
-          onPress={requestLocationPermission}
+          onPress={() => {
+            if (locationAutoTimerRef.current) {
+              clearTimeout(locationAutoTimerRef.current);
+              locationAutoTimerRef.current = null;
+            }
+            setLocationPromptOpen(true);
+          }}
           accessibilityLabel="Enable location"
         >
           <Text style={styles.floatingButtonText}>⌖</Text>
