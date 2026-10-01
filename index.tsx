@@ -31,6 +31,7 @@ const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
+const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbx7Apdb0c9ygD-HnuNot8iKnCSAyEzM9UBKLGxjckOpuYNJbbXEHLapvXijaYm2c8Y-/exec';
 
 type Post = {
@@ -601,13 +602,13 @@ export default function App() {
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuList}>
-              {DIRECT_TAGS.map(label => (
+              {CATEGORY_ITEMS.map(label => (
                 <TouchableOpacity
                   key={label}
                   style={[styles.menuItem, activeLabel === label && styles.menuItemActiveBg]}
                   onPress={() => {
                     setActiveLabel(label);
-                    loadPosts(label === 'All' ? '' : label, 1);
+                    loadPosts(label, 1);
                     closeMenu();
                   }}
                 >
