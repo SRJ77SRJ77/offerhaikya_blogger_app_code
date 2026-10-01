@@ -229,7 +229,7 @@ export default function App() {
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
-  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'search' | 'request' | null>(null);
+  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -887,7 +887,7 @@ export default function App() {
     scheduleLocationPromptRetry();
   };
 
-  const activateBottomTabFor5Sec = (tab: 'home' | 'local' | 'search' | 'request') => {
+  const activateBottomTabFor5Sec = (tab: 'home' | 'local' | 'hot' | 'search' | 'request') => {
     setBottomTab(tab);
 
     if (bottomTabResetTimerRef.current) {
@@ -929,7 +929,7 @@ export default function App() {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
-    activateBottomTabFor5Sec('home');
+    activateBottomTabFor5Sec('hot');
     setActiveLabel('Hot Offers');
     setQuery('');
     setSuggestions([]);
@@ -1384,11 +1384,14 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.hotOffersNavItem}
+            style={[styles.bottomNavItem, bottomTab === 'hot' && styles.bottomNavItemActive]}
             onPress={goToHotOffersTab}
             accessibilityLabel="Hot Offers"
           >
-            <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
+            <Text style={[styles.bottomNavPercentIcon, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'hot' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Hot Offers
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -1626,11 +1629,12 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.hotOffersNavItem}
+            style={styles.infoBottomNavItem}
             onPress={goToHotOffersTab}
             accessibilityLabel="Hot Offers"
           >
-            <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
+            <Text style={styles.infoBottomNavPercentIcon}>%</Text>
+            <Text style={styles.infoBottomNavLabel}>Hot Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -2086,11 +2090,14 @@ export default function App() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.hotOffersNavItem}
+          style={[styles.bottomNavItem, bottomTab === 'hot' && styles.bottomNavItemActive]}
           onPress={goToHotOffersTab}
           accessibilityLabel="Hot Offers"
         >
-          <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
+          <Text style={[styles.bottomNavPercentIcon, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
+          <Text style={[styles.bottomNavLabel, bottomTab === 'hot' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            Hot Offers
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -2410,8 +2417,9 @@ const styles = StyleSheet.create({
   bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
   bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
   bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
-  hotOffersNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: ACCENT },
-  hotOffersNavLabel: { color: WHITE, fontSize: 11, fontWeight: '900', marginTop: 4 },
+  bottomNavPercentIcon: { color: TEXT, fontSize: 23, lineHeight: 23, fontWeight: '900' },
+  bottomNavPercentIconActive: { color: ACCENT },
+  infoBottomNavPercentIcon: { color: MUTED, fontSize: 23, lineHeight: 23, fontWeight: '900' },
   infoBottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: 'transparent' },
   infoBottomNavLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavItemActive: { backgroundColor: '#fff3ed' },
