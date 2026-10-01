@@ -118,6 +118,8 @@ export default function App() {
   const [activeLabel, setActiveLabel] = useState('All');
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<Post | null>(null);
+  const [favorites, setFavorites] = useState<Post[]>([]);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -207,6 +209,14 @@ export default function App() {
     [posts, activeLabel],
   );
 
+  const toggleFavorite = (post: Post) => {
+    setFavorites(current => current.some(item => item.id === post.id)
+      ? current.filter(item => item.id !== post.id)
+      : [...current, post]);
+  };
+
+  const isFavorite = (post: Post) => favorites.some(item => item.id === post.id);
+
   const refresh = () => {
     setRefreshing(true);
     loadPosts(query.trim().length >= 3 ? query : '', page);
@@ -221,6 +231,39 @@ export default function App() {
     if (nextPage < 1) return;
     loadPosts(query.trim().length >= 3 ? query : '', nextPage);
   };
+
+  if (wishlistOpen) {
+    return (
+      <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
+        <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
+          <TouchableOpacity onPress={() => setWishlistOpen(false)} style={styles.backButton}>
+            <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
+          </TouchableOpacity>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]}>My Wishlist</Text>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          style={darkMode ? styles.detailListDark : undefined}
+          data={favorites}
+          keyExtractor={item => item.id}
+          renderItem={renderPost}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
+          ListEmptyComponent={
+            <View style={styles.state}>
+              <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No favorites yet</Text>
+              <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Tap the heart on any offer to add it here.</Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+    );
+  }
 
   if (detail) {
     return (
@@ -272,6 +315,9 @@ export default function App() {
 
   const renderPost = ({ item }: { item: Post }) => (
     <TouchableOpacity activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
+      <TouchableOpacity style={styles.cardHeart} onPress={() => toggleFavorite(item)}>
+        <Text style={styles.cardHeartText}>{isFavorite(item) ? '♥' : '♡'}</Text>
+      </TouchableOpacity>
       {item.image ? (
         <Image source={{ uri: item.image }} style={styles.cardImage} />
       ) : (
@@ -471,23 +517,24 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
   darkSafe: { backgroundColor: '#171717' },
   pageWrap: { flex: 1, backgroundColor: PAGE },
-  darkPage: { flex: 1, backgroundColor: '#171717' },
+  darkPage: { flex: 1, backgroundColor: '#000000' },
+  contentDark: { backgroundColor: '#000000' },
   header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
-  headerDark: { backgroundColor: '#171717', borderBottomColor: '#2b2b2b' },
+  headerDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
   headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerIcon: { fontSize: 22, color: TEXT },
   headerIconDark: { color: WHITE },
   headerLogo: { position: 'absolute', left: '50%', width: 138, height: 46, marginLeft: -69 },
   headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
-  listDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
-  detailListDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
+  listDark: { backgroundColor: '#000000' },
+  detailListDark: { backgroundColor: '#000000' },
   menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
   menuItem: { paddingHorizontal: 16, paddingVertical: 11 },
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
-  detailHeaderDark: { backgroundColor: '#171717', borderBottomColor: '#2b2b2b' },
-  detailContentDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
+  detailHeaderDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
+  detailContentDark: { backgroundColor: '#000000' },
   content: { paddingBottom: 30, backgroundColor: PAGE },
   hero: { minHeight: 245, justifyContent: 'center', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 28 },
   heroImage: { opacity: 1 },
@@ -517,8 +564,10 @@ const styles = StyleSheet.create({
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
-  card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
+  card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', position: 'relative', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
+  cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  cardHeartText: { color: '#e31b23', fontSize: 20, lineHeight: 22 },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
   cardBody: { padding: 11 },
