@@ -1197,10 +1197,6 @@ export default function App() {
             </View>
           )}
 
-          <Text style={{ color: ACCENT, fontSize: 24, fontWeight: '900', marginTop: 18, marginBottom: 10 }}>
-            Hello World
-          </Text>
-
           <View style={styles.infoBottomRecommendations}>
 <View style={styles.infoRecommendationSection}>
             <View style={styles.sectionRow}>
@@ -1372,6 +1368,9 @@ export default function App() {
                 td: { padding: 7 },
               }}
             />
+            <Text style={{ color: ACCENT, fontSize: 24, fontWeight: '900', marginTop: 18, marginBottom: 10 }}>
+              Hello World
+            </Text>
             {mapCoordinates ? (
               <View style={styles.mapSection}>
                 <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
