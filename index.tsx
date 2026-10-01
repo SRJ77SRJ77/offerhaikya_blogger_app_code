@@ -140,6 +140,9 @@ export default function App() {
   const [favorites, setFavorites] = useState<Post[]>([]);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
+  const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
+  const [infoPage, setInfoPage] = useState<'about' | 'contact' | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -264,7 +267,14 @@ export default function App() {
 
   const openDetail = (post: Post) => {
     closeMenu();
+    setInfoPage(null);
     setDetail(post);
+  };
+
+  const openInfoPage = (page: 'about' | 'contact') => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(page);
   };
 
   const openMenu = () => {
@@ -422,6 +432,76 @@ export default function App() {
       </View>
     </View>
   )}
+  if (infoPage) {
+    const isAbout = infoPage === 'about';
+    const infoTitle = isAbout ? 'About Us' : 'Contact Us';
+    const infoHtml = isAbout
+      ? `
+        <h1>About Us</h1>
+        <h2>About Offer Hai Kya</h2>
+        <p>Hi, I’m Swastik Jain and yes, Offer Hai Kya? is my daily question too. 😉</p>
+        <p>Ever since I started finding crazy offers online and offline — whether it’s Amazon flash sales, ₹1 loot deals, Meesho coupons, or stock clearance discounts — my friends had one thing to say: “Bhai… Offer Hai Kya?”</p>
+        <p>So I thought why not make it easier for everyone?</p>
+        <p>That’s how OfferHaiKya.com was born: a place where you can find the best offers, deals, vouchers, coupons, price drops, stock clearance discounts, and much more — all in one place.</p>
+        <h3>🎯 What We Do</h3>
+        <ul>
+          <li>Post daily deals from Amazon, Flipkart, Meesho &amp; more</li>
+          <li>Share exclusive coupons &amp; price drops</li>
+          <li>Cover offline store offers &amp; stock clearance updates</li>
+          <li>Help you shop smart and save big</li>
+          <li>Post Daily Local Offers</li>
+        </ul>
+        <h3>📲 Got a Deal You Found?</h3>
+        <p>Share it with us — we love discovering and spreading real offers.</p>
+        <p><strong>📞 Contact:</strong> 72043 87277</p>
+        <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
+        <p><strong>📍 Based in India:</strong> Sharing offers nationwide.</p>
+      `
+      : `
+        <h1>Contact Us</h1>
+        <p>Have a deal, offer, coupon, price drop, stock clearance update, or anything useful to share? We would love to hear from you.</p>
+        <h2>Get in touch</h2>
+        <p><strong>📞 Phone:</strong> 72043 87277</p>
+        <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
+        <p>For deal submissions, local offers, corrections, or general enquiries, contact OfferHaikya using the details above.</p>
+        <h2>About OfferHaikya</h2>
+        <p>OfferHaikya shares online and offline offers, deals, vouchers, coupons, price drops, stock clearance discounts, and local offers across India.</p>
+      `;
+
+    return (
+      <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
+        <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
+          <TouchableOpacity onPress={() => setInfoPage(null)} style={styles.backButton}>
+            <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
+          </TouchableOpacity>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{infoTitle}</Text>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}
+        >
+          <RenderHTML
+            contentWidth={Math.max(320, width - 40)}
+            source={{ html: infoHtml }}
+            tagsStyles={{
+              body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
+              h1: { color: darkMode ? WHITE : TEXT, fontSize: 29, lineHeight: 36, fontWeight: '900', marginTop: 0, marginBottom: 12 },
+              h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 18, marginBottom: 8 },
+              h3: { color: darkMode ? WHITE : TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 16, marginBottom: 7 },
+              p: { marginTop: 0, marginBottom: 10, lineHeight: 25, color: darkMode ? '#eeeeee' : '#4f4c52' },
+              li: { marginBottom: 5, lineHeight: 25 },
+              strong: { fontWeight: '900' },
+            }}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   if (detail) {
     const mapCoordinates = extractMapCoordinates(detail.rawContent);
     return (
@@ -597,47 +677,69 @@ export default function App() {
           <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={closeMenu} />
           <Animated.View style={[styles.menuPanel, { transform: [{ translateX: menuAnim }] }]}>
             <View style={styles.menuHeader}>
-              <Text style={styles.menuTitle}>Categories</Text>
+              <Text style={styles.menuTitle}>Menu</Text>
               <TouchableOpacity style={styles.menuCloseButton} onPress={closeMenu}>
                 <Text style={styles.menuCloseText}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuList}>
-              <Text style={styles.menuSectionTitle}>Categories</Text>
-              {CATEGORY_ITEMS.map(label => (
-                <TouchableOpacity
-                  key={label}
-                  style={[styles.menuItem, activeLabel === label && styles.menuItemActiveBg]}
-                  onPress={() => {
-                    setActiveLabel(label);
-                    loadPosts(label, 1);
-                    closeMenu();
-                  }}
-                >
-                  <Text style={[styles.menuItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
-                  <Text style={[styles.menuArrow, activeLabel === label && styles.menuItemActive]}>›</Text>
-                </TouchableOpacity>
-              ))}
-              <Text style={styles.menuSectionTitle}>Special Deal Categories</Text>
-              {SPECIAL_DEAL_ITEMS.map(label => (
-                <TouchableOpacity
-                  key={label}
-                  style={[styles.menuItem, activeLabel === label && styles.menuItemActiveBg]}
-                  onPress={() => {
-                    setActiveLabel(label);
-                    loadPosts(label, 1);
-                    closeMenu();
-                  }}
-                >
-                  <Text style={[styles.menuItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
-                  <Text style={[styles.menuArrow, activeLabel === label && styles.menuItemActive]}>›</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); Linking.openURL('https://www.offerhaikya.com/p/about-us.html'); }}>
-                <Text style={styles.menuItemText}>About Us</Text><Text style={styles.menuArrow}>›</Text>
+              <TouchableOpacity
+                style={styles.menuMainItem}
+                onPress={() => setMenuCategoriesOpen(value => !value)}
+              >
+                <Text style={styles.menuMainItemText}>Categories</Text>
+                <Text style={styles.menuMainArrow}>{menuCategoriesOpen ? '⌃' : '›'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); Linking.openURL('https://www.offerhaikya.com/p/contact-us.html'); }}>
-                <Text style={styles.menuItemText}>Contact Us</Text><Text style={styles.menuArrow}>›</Text>
+              {menuCategoriesOpen ? (
+                <View style={styles.menuSubList}>
+                  {CATEGORY_ITEMS.map(label => (
+                    <TouchableOpacity
+                      key={label}
+                      style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
+                      onPress={() => {
+                        setActiveLabel(label);
+                        loadPosts(label, 1);
+                        closeMenu();
+                      }}
+                    >
+                      <Text style={[styles.menuSubItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.menuMainItem}
+                onPress={() => setMenuSpecialDealsOpen(value => !value)}
+              >
+                <Text style={styles.menuMainItemText}>Special Deal Categories</Text>
+                <Text style={styles.menuMainArrow}>{menuSpecialDealsOpen ? '⌃' : '›'}</Text>
+              </TouchableOpacity>
+              {menuSpecialDealsOpen ? (
+                <View style={styles.menuSubList}>
+                  {SPECIAL_DEAL_ITEMS.map(label => (
+                    <TouchableOpacity
+                      key={label}
+                      style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
+                      onPress={() => {
+                        setActiveLabel(label);
+                        loadPosts(label, 1);
+                        closeMenu();
+                      }}
+                    >
+                      <Text style={[styles.menuSubItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+
+              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('about')}>
+                <Text style={styles.menuMainItemText}>About Us</Text>
+                <Text style={styles.menuMainArrow}>›</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('contact')}>
+                <Text style={styles.menuMainItemText}>Contact Us</Text>
+                <Text style={styles.menuMainArrow}>›</Text>
               </TouchableOpacity>
             </ScrollView>
           </Animated.View>
@@ -805,10 +907,13 @@ const styles = StyleSheet.create({
   menuCloseButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   menuCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
   menuList: { paddingVertical: 8, paddingBottom: 28 },
-  menuItem: { minHeight: 50, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#f1f1f1' },
+  menuMainItem: { minHeight: 56, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  menuMainItemText: { color: TEXT, fontSize: 16, fontWeight: '900' },
+  menuMainArrow: { color: '#777', fontSize: 24, lineHeight: 24 },
+  menuSubList: { backgroundColor: '#fafafa', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  menuSubItem: { minHeight: 46, paddingHorizontal: 30, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  menuSubItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActiveBg: { backgroundColor: '#fff3ed' },
-  menuItemText: { color: TEXT, fontSize: 15, fontWeight: '700' },
-  menuArrow: { color: '#999', fontSize: 23, lineHeight: 23 },
   menuItemActive: { color: ACCENT },
   detailHeaderDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
   detailContentDark: { backgroundColor: '#000000' },
@@ -872,6 +977,7 @@ const styles = StyleSheet.create({
   backText: { color: TEXT, fontSize: 34, lineHeight: 34 },
   detailHeaderTitle: { flex: 1, color: TEXT, fontSize: 16, fontWeight: '800', marginRight: 10 },
   detailContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 50 },
+  infoContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 50 },
   detailImage: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#eeeeee', marginBottom: 16 },
   detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 2 },
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
