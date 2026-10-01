@@ -142,7 +142,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
-  const [infoPage, setInfoPage] = useState<'about' | 'contact' | null>(null);
+  const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -271,7 +271,7 @@ export default function App() {
     setDetail(post);
   };
 
-  const openInfoPage = (page: 'about' | 'contact') => {
+  const openInfoPage = (page: 'about' | 'contact' | 'privacy' | 'terms') => {
     closeMenu();
     setDetail(null);
     setInfoPage(page);
@@ -433,40 +433,102 @@ export default function App() {
     </View>
   )}
   if (infoPage) {
-    const isAbout = infoPage === 'about';
-    const infoTitle = isAbout ? 'About Us' : 'Contact Us';
-    const infoHtml = isAbout
-      ? `
-        <h1>About Us</h1>
-        <h2>About Offer Hai Kya</h2>
-        <p>Hi, I’m Swastik Jain and yes, Offer Hai Kya? is my daily question too. 😉</p>
-        <p>Ever since I started finding crazy offers online and offline — whether it’s Amazon flash sales, ₹1 loot deals, Meesho coupons, or stock clearance discounts — my friends had one thing to say: “Bhai… Offer Hai Kya?”</p>
-        <p>So I thought why not make it easier for everyone?</p>
-        <p>That’s how OfferHaiKya.com was born: a place where you can find the best offers, deals, vouchers, coupons, price drops, stock clearance discounts, and much more — all in one place.</p>
-        <h3>🎯 What We Do</h3>
-        <ul>
-          <li>Post daily deals from Amazon, Flipkart, Meesho &amp; more</li>
-          <li>Share exclusive coupons &amp; price drops</li>
-          <li>Cover offline store offers &amp; stock clearance updates</li>
-          <li>Help you shop smart and save big</li>
-          <li>Post Daily Local Offers</li>
-        </ul>
-        <h3>📲 Got a Deal You Found?</h3>
-        <p>Share it with us — we love discovering and spreading real offers.</p>
-        <p><strong>📞 Contact:</strong> 72043 87277</p>
-        <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
-        <p><strong>📍 Based in India:</strong> Sharing offers nationwide.</p>
-      `
-      : `
-        <h1>Contact Us</h1>
-        <p>Have a deal, offer, coupon, price drop, stock clearance update, or anything useful to share? We would love to hear from you.</p>
-        <h2>Get in touch</h2>
-        <p><strong>📞 Phone:</strong> 72043 87277</p>
-        <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
-        <p>For deal submissions, local offers, corrections, or general enquiries, contact OfferHaikya using the details above.</p>
-        <h2>About OfferHaikya</h2>
-        <p>OfferHaikya shares online and offline offers, deals, vouchers, coupons, price drops, stock clearance discounts, and local offers across India.</p>
-      `;
+    const infoData = {
+      about: {
+        title: 'About Us',
+        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
+        html: `
+          <h1>About Us</h1>
+          <h2>About Offer Hai Kya</h2>
+          <p>Hi, I’m Swastik Jain and yes, Offer Hai Kya? is my daily question too. Ever since I started finding crazy offers online and offline — whether it’s Amazon flash sales, ₹1 loot deals, Meesho coupons, or stock clearance discounts — my friends had one thing to say: “Bhai… Offer Hai Kya?”</p>
+          <p>So I thought why not make it easier for everyone? That’s how OfferHaiKya.com was born: a place where you can find the best offers, deals, vouchers, coupons, price drops, stock clearance discounts, and much more — all in one place.</p>
+          <h3>🎯 What We Do</h3>
+          <ul>
+            <li>Post daily deals from Amazon, Flipkart, Meesho &amp; more</li>
+            <li>Share exclusive coupons &amp; price drops</li>
+            <li>Cover offline store offers &amp; stock clearance updates</li>
+            <li>Help you shop smart and save big</li>
+            <li>Post Daily Local Offers</li>
+          </ul>
+          <h3>📲 Got a Deal You Found?</h3>
+          <p>Share it with us — we love discovering and spreading real offers.</p>
+          <p><strong>📞 Contact:</strong> 72043 87277</p>
+          <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
+          <p><strong>📍 Based in India:</strong> Sharing offers nationwide.</p>
+        `,
+      },
+      contact: {
+        title: 'Contact Us',
+        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
+        html: `
+          <h1>Contact Us</h1>
+          <p>Have a deal, offer, coupon, price drop, stock clearance update, or anything useful to share? We would love to hear from you.</p>
+          <h2>Get in touch</h2>
+          <p><strong>📞 Phone:</strong> 72043 87277</p>
+          <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
+          <p><strong>🌐 Website:</strong> OfferHaiKya.com</p>
+          <p>For deal submissions, local offers, corrections, or general enquiries, contact OfferHaikya using the details above.</p>
+          <h2>Share a Deal</h2>
+          <p>If you have found a useful online or offline offer, send us the details so we can review and share it with the OfferHaikya community.</p>
+        `,
+      },
+      privacy: {
+        title: 'Privacy Policy',
+        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
+        html: `
+          <h1>Privacy Policy</h1>
+          <p>At OfferHaiKya.com, we respect your privacy and are committed to protecting your personal information.</p>
+          <p>We may collect your name, email, and basic details to provide you with better offers, send updates, and improve your experience.</p>
+          <p>We also use cookies, analytics tools, and Google AdSense to enhance the site and show relevant ads. Your data may be shared with trusted third-party services for support or deals, but we never sell your information.</p>
+          <p>By using this site, you agree to our use of cookies and data as per this policy.</p>
+          <p>For any concerns, feel free to contact us at offerhaikya@gmail.com or 7204387277.</p>
+        `,
+      },
+      terms: {
+        title: 'Terms and Condition',
+        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
+        html: `
+          <h1>Terms and Condition</h1>
+          <h3>Effective Date: July 2025</h3>
+          <p><strong>Last Updated: September 22, 2026</strong></p>
+          <p>Welcome to OfferHaiKya.com. By accessing or using our website, services, forms, offers, notifications, or communication channels, you agree to these Terms &amp; Conditions.</p>
+          <h2>1. About OfferHaiKya</h2>
+          <p>OfferHaiKya.com is an offers and deals discovery platform that helps users discover online and offline deals, discounts, coupons, promotions, and special offers from brands, dealers, merchants, stores, and other businesses.</p>
+          <h2>2. Offers &amp; Deal Information</h2>
+          <p>We make reasonable efforts to provide accurate and useful information about offers and deals. However, offers may expire or change without notice. Prices, discounts, stock, availability, locations, and terms may change at any time. Users should verify important offer details with the merchant before making a purchase.</p>
+          <h2>3. Third-Party Links &amp; Affiliate Disclosure</h2>
+          <p>Some links may redirect you to third-party websites, stores, brands, dealers, merchants, or service providers. We may participate in affiliate programs and may earn a commission when users make eligible purchases through certain links.</p>
+          <h2>4. Use of AI-Generated Content &amp; Images</h2>
+          <p>OfferHaiKya may use AI tools to create, edit, enhance, or assist in producing images, graphics, promotional creatives, written content, descriptions, titles, and other website content. AI-assisted content may occasionally contain errors or inaccuracies.</p>
+          <h2>5. User Data &amp; Personalized Offers</h2>
+          <p>We may collect information such as your name, email address, phone number, WhatsApp number, location information, preferences, interactions with our website, and other information you voluntarily provide, subject to our Privacy Policy.</p>
+          <h2>6. Marketing &amp; Communications</h2>
+          <p>If you provide contact information or consent to communications, we may contact you through email, SMS, WhatsApp, phone calls, website notifications, or other supported channels.</p>
+          <h2>7. User Conduct</h2>
+          <p>You agree not to use OfferHaiKya for illegal activities, submit false or fraudulent information, spam users or merchants, attempt unauthorized access, upload harmful files, scrape our content without permission, abuse offers, or impersonate another person or organization.</p>
+          <h2>8. Local Offers &amp; Merchant Information</h2>
+          <p>OfferHaiKya may publish offers from local shops, dealers, restaurants, service providers, brands, and other businesses. Users should confirm important details directly with the merchant.</p>
+          <h2>9. User-Submitted Content</h2>
+          <p>If you submit reviews, comments, photos, offers, business information, or other content, you confirm that you have the right to submit it and grant OfferHaiKya permission to use, display, reproduce, modify, and distribute it for operating and promoting the platform.</p>
+          <h2>10. Copyright &amp; Intellectual Property</h2>
+          <p>The OfferHaiKya name, logo, website design, original articles, graphics, and other original materials are protected by applicable intellectual-property laws.</p>
+          <h2>11. Advertising</h2>
+          <p>OfferHaiKya may display advertisements from third-party advertising networks, brands, merchants, and other partners.</p>
+          <h2>12. No Guarantee</h2>
+          <p>OfferHaiKya provides deal and offer information on an “as available” basis. We do not guarantee that every deal will remain active, every discount will be available, a merchant will honor an advertised offer, products will remain in stock, or prices will remain unchanged.</p>
+          <h2>13. Limitation of Liability</h2>
+          <p>To the extent permitted by applicable law, OfferHaiKya will not be responsible for losses, damages, or disputes arising from transactions, products, services, offers, or interactions between users and third-party merchants, brands, dealers, or websites.</p>
+          <h2>14. Privacy</h2>
+          <p>Your privacy is important to us. Please read our Privacy Policy to understand how we collect, use, store, and share information.</p>
+          <h2>15. Changes to These Terms</h2>
+          <p>We may modify these Terms &amp; Conditions from time to time. The updated version will be published on the website with a revised “Last Updated” date.</p>
+          <h2>16. Contact Us</h2>
+          <p><strong>📧 Email:</strong> offerhaikya@gmail.com</p>
+          <p><strong>📱 WhatsApp:</strong> 7204387277</p>
+          <p><strong>🌐 Official Website:</strong> OfferHaiKya.com</p>
+        `,
+      },
+    }[infoPage];
 
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
@@ -475,18 +537,16 @@ export default function App() {
           <TouchableOpacity onPress={() => setInfoPage(null)} style={styles.backButton}>
             <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
           </TouchableOpacity>
-          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{infoTitle}</Text>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{infoData.title}</Text>
           <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}
-        >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}>
+          <Image source={{ uri: infoData.image }} style={styles.infoHeroImage} resizeMode="contain" />
           <RenderHTML
             contentWidth={Math.max(320, width - 40)}
-            source={{ html: infoHtml }}
+            source={{ html: infoData.html }}
             tagsStyles={{
               body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
               h1: { color: darkMode ? WHITE : TEXT, fontSize: 29, lineHeight: 36, fontWeight: '900', marginTop: 0, marginBottom: 12 },
@@ -741,6 +801,14 @@ export default function App() {
                 <Text style={styles.menuMainItemText}>Contact Us</Text>
                 <Text style={styles.menuMainArrow}>›</Text>
               </TouchableOpacity>
+              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('privacy')}>
+                <Text style={styles.menuMainItemText}>Privacy Policy</Text>
+                <Text style={styles.menuMainArrow}>›</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('terms')}>
+                <Text style={styles.menuMainItemText}>Terms and Condition</Text>
+                <Text style={styles.menuMainArrow}>›</Text>
+              </TouchableOpacity>
             </ScrollView>
           </Animated.View>
         </View>
@@ -872,7 +940,20 @@ export default function App() {
               </View>
               <View style={styles.footer}>
                 <Text style={styles.footerBrand}>OfferHaikya</Text>
-                <Text style={styles.footerText}>Fresh offers. Simple browsing.</Text>
+                <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
+                <View style={styles.footerLinks}>
+                  <TouchableOpacity onPress={() => openInfoPage('about')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>About Us</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openInfoPage('contact')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Contact Us</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openInfoPage('privacy')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Privacy Policy</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openInfoPage('terms')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Terms and Condition</Text></TouchableOpacity>
+                </View>
+                <View style={styles.socialRow}>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram"><Text style={styles.socialIconText}>◎</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube"><Text style={styles.socialIconText}>▶</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook"><Text style={styles.socialIconText}>f</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.linkedin.com/company/offerhaikya/')} accessibilityLabel="LinkedIn"><Text style={styles.socialIconText}>in</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X"><Text style={styles.socialIconText}>𝕏</Text></TouchableOpacity>
+                </View>
               </View>
             </>
           ) : null
@@ -978,6 +1059,7 @@ const styles = StyleSheet.create({
   detailHeaderTitle: { flex: 1, color: TEXT, fontSize: 16, fontWeight: '800', marginRight: 10 },
   detailContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 50 },
   infoContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 50 },
+  infoHeroImage: { width: '100%', height: 110, marginBottom: 14 },
   detailImage: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#eeeeee', marginBottom: 16 },
   detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 2 },
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
@@ -1029,4 +1111,9 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 16, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
+  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 16, paddingHorizontal: 10 },
+  footerLink: { color: TEXT, fontSize: 12, fontWeight: '800' },
+  socialRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16 },
+  socialIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  socialIconText: { color: WHITE, fontSize: 17, fontWeight: '900' },
 });
