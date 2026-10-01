@@ -224,7 +224,7 @@ export default function App() {
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
-  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request' | null>('home');
+  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request' | null>(null);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -237,6 +237,16 @@ export default function App() {
   const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tagPausedRef = useRef(false);
   const menuAnim = useRef(new Animated.Value(-320)).current;
+  const bottomTabResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (bottomTabResetTimerRef.current) {
+        clearTimeout(bottomTabResetTimerRef.current);
+        bottomTabResetTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -843,11 +853,24 @@ export default function App() {
     scheduleLocationPromptRetry();
   };
 
+  const activateBottomTabFor5Sec = (tab: 'home' | 'local' | 'request') => {
+    setBottomTab(tab);
+
+    if (bottomTabResetTimerRef.current) {
+      clearTimeout(bottomTabResetTimerRef.current);
+    }
+
+    bottomTabResetTimerRef.current = setTimeout(() => {
+      setBottomTab(null);
+      bottomTabResetTimerRef.current = null;
+    }, 5000);
+  };
+
   const goToHomeTab = () => {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
-    setBottomTab('home');
+    activateBottomTabFor5Sec('home');
     setActiveLabel('All');
     setQuery('');
     setSuggestions([]);
@@ -862,7 +885,7 @@ export default function App() {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
-    setBottomTab('local');
+    activateBottomTabFor5Sec('local');
     setActiveLabel('All');
     setQuery('');
     setSuggestions([]);
@@ -875,14 +898,11 @@ export default function App() {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (permission.status === 'granted' && servicesEnabled) {
         setLocationRefreshKey(value => value + 1);
-        setBottomTab('home');
       } else if (permission.canAskAgain !== false || !servicesEnabled) {
         setLocationPromptOpen(true);
-        setBottomTab('home');
       }
     } catch {
       setLocationPromptOpen(true);
-      setBottomTab('home');
     }
   };
 
@@ -890,7 +910,7 @@ export default function App() {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
-    setBottomTab('request');
+    activateBottomTabFor5Sec('request');
     setOfferRequestError('');
     setOfferRequestSuccess(false);
     setOfferRequestOpen(true);
@@ -945,7 +965,6 @@ export default function App() {
 
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(true);
-      setBottomTab(null);
 
       setTimeout(() => {
         setOfferRequestOpen(false);
@@ -1897,7 +1916,6 @@ export default function App() {
         onRequestClose={() => {
           if (!offerRequestSuccess) {
             setOfferRequestOpen(false);
-            setBottomTab(null);
           }
         }}
       >
@@ -1908,7 +1926,6 @@ export default function App() {
             onPress={() => {
               if (!offerRequestSubmitting && !offerRequestSuccess) {
                 setOfferRequestOpen(false);
-                setBottomTab(null);
               }
             }}
           />
