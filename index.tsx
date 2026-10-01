@@ -225,6 +225,7 @@ export default function App() {
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request' | null>('home');
+  const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
@@ -311,6 +312,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
+            setLocalOffersDisabled(true);
           }
           return;
         }
@@ -324,6 +326,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
+            setLocalOffersDisabled(true);
           }
           return;
         }
@@ -412,6 +415,7 @@ export default function App() {
 
         if (!cancelled) {
           setNearbyPosts(matches);
+          setLocalOffersDisabled(matches.length === 0);
           if (bottomTab === 'local') {
             if (matches.length === 0) {
               setLocalOfferEmptyCountdown(5);
@@ -424,6 +428,7 @@ export default function App() {
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
+          setLocalOffersDisabled(true);
           if (bottomTab === 'local') {
             setLocalOfferEmptyCountdown(5);
             setLocalOfferEmptyOpen(true);
@@ -852,6 +857,8 @@ export default function App() {
   };
 
   const goToLocalOffersTab = async () => {
+    if (localOffersDisabled) return;
+
     closeMenu();
     setDetail(null);
     setInfoPage(null);
@@ -868,11 +875,14 @@ export default function App() {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (permission.status === 'granted' && servicesEnabled) {
         setLocationRefreshKey(value => value + 1);
+        setBottomTab('home');
       } else if (permission.canAskAgain !== false || !servicesEnabled) {
         setLocationPromptOpen(true);
+        setBottomTab('home');
       }
     } catch {
       setLocationPromptOpen(true);
+      setBottomTab('home');
     }
   };
 
@@ -1190,7 +1200,7 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={MUTED}
+                stroke={localOffersDisabled ? '#b8b8b8' : MUTED}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1202,14 +1212,15 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.infoBottomNavItem}
+            style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
+            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={MUTED}
+                stroke={localOffersDisabled ? '#b8b8b8' : MUTED}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1220,7 +1231,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
           </TouchableOpacity>
@@ -1346,25 +1357,30 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'local' && styles.bottomNavItemActive]}
+            style={[
+              styles.bottomNavItem,
+              bottomTab === 'local' && styles.bottomNavItemActive,
+              localOffersDisabled && styles.bottomNavItemDisabled,
+            ]}
             onPress={goToLocalOffersTab}
+            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
           </TouchableOpacity>
@@ -2082,6 +2098,8 @@ const styles = StyleSheet.create({
   infoBottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: 'transparent' },
   infoBottomNavLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavItemActive: { backgroundColor: '#fff3ed' },
+  bottomNavItemDisabled: { opacity: 0.5 },
+  bottomNavLabelDisabled: { color: '#b8b8b8' },
   bottomNavLabel: { color: TEXT, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
   bottomNavLabelDark: { color: '#eeeeee' },
