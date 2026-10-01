@@ -856,11 +856,26 @@ export default function App() {
         <TouchableOpacity style={styles.headerIconButton} onPress={() => menuOpen ? closeMenu() : openMenu()}>
           <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>☰</Text>
         </TouchableOpacity>
-        <Image
-          source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
-          style={styles.headerLogo}
-          resizeMode="contain"
-        />
+        <TouchableOpacity
+          activeOpacity={0.82}
+          onPress={() => {
+            closeMenu();
+            setInfoPage(null);
+            setDetail(null);
+            setActiveLabel('All');
+            setQuery('');
+            setSuggestions([]);
+            setPage(1);
+            loadPosts('', 1);
+          }}
+          accessibilityLabel="Go to home"
+        >
+          <Image
+            source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
