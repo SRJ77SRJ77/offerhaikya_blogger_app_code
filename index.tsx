@@ -149,6 +149,27 @@ const getFeed = async (query = '', startIndex = 1) => {
   return parseFeed(await response.json());
 };
 
+const getAllPostsForNearby = async () => {
+  const all: Post[] = [];
+  const batchSize = 500;
+  let startIndex = 1;
+
+  for (let pageIndex = 0; pageIndex < 20; pageIndex += 1) {
+    const response = await fetch(
+      FEED_URL + '?alt=json&max-results=' + batchSize + '&start-index=' + startIndex,
+    );
+    if (!response.ok) throw new Error('Unable to load nearby offers');
+
+    const batch = parseFeed(await response.json());
+    all.push(...batch);
+
+    if (batch.length < batchSize) break;
+    startIndex += batchSize;
+  }
+
+  return all;
+};
+
 export default function App() {
   const { width } = useWindowDimensions();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -247,7 +268,11 @@ export default function App() {
 
       const expanded = raw.flatMap(value => {
         const normalized = normalizeLocationText(value);
-        return [value, ...(locationAliases[normalized] || [])];
+        const aliases = locationAliases[normalized] || [];
+        const belagaviAliases = /belagavi|belgaum|belgaon/i.test(value)
+          ? locationAliases.belagavi
+          : [];
+        return [value, ...aliases, ...belagaviAliases];
       });
 
       return Array.from(new Set(expanded.map(normalizeLocationText).filter(Boolean)));
@@ -297,15 +322,13 @@ export default function App() {
           }
         }
 
-        const response = await fetch(FEED_URL + '?alt=json&max-results=500');
-        if (!response.ok) throw new Error('Unable to load nearby offers');
-        const allPosts = parseFeed(await response.json());
+        const allPosts = await getAllPostsForNearby();
 
         const matches = allPosts
           .map(post => {
             const postLocation = extractMapCoordinates(post.rawContent);
             const searchable = normalizeLocationText(
-              [post.title, post.label, ...post.labels, post.rawContent, post.content, post.excerpt].join(' '),
+              [post.title, post.url, post.label, ...post.labels, post.rawContent, post.content, post.excerpt].join(' '),
             );
 
             const locationMatch = locationTerms.some(term => {
