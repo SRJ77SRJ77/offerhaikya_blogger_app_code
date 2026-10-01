@@ -461,6 +461,7 @@ export default function App() {
           ) : null
         }
       />
+      </View>
     </SafeAreaView>
   );
 }
