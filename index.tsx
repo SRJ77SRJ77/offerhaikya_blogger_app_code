@@ -35,6 +35,7 @@ const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 500;
 const AUTO_SYNC_INTERVAL_MS = 30000;
+const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -208,6 +209,9 @@ export default function App() {
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+  const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locationAutoStartedRef = useRef(false);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -393,6 +397,31 @@ export default function App() {
     loadNearbyOffers();
     return () => { cancelled = true; };
   }, [registrationOpen, posts, locationRefreshKey]);
+
+  useEffect(() => {
+    if (registrationOpen || locationAutoStartedRef.current) return;
+
+    locationAutoStartedRef.current = true;
+
+    const showLocationPromptIfNeeded = async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (permission.status === 'granted' || permission.canAskAgain === false) return;
+        setLocationPromptOpen(true);
+      } catch {
+        // Stay silent if permission state cannot be checked.
+      }
+    };
+
+    showLocationPromptIfNeeded();
+
+    return () => {
+      if (locationAutoTimerRef.current) {
+        clearTimeout(locationAutoTimerRef.current);
+        locationAutoTimerRef.current = null;
+      }
+    };
+  }, [registrationOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -621,6 +650,8 @@ export default function App() {
     }  };
 
   const requestLocationPermission = async () => {
+    setLocationPromptOpen(false);
+
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
 
@@ -638,6 +669,15 @@ export default function App() {
     } catch {
       // Ignore permission errors and keep the normal non-location experience.
     }
+  };
+
+  const postponeLocationPrompt = () => {
+    setLocationPromptOpen(false);
+    if (locationAutoTimerRef.current) clearTimeout(locationAutoTimerRef.current);
+    locationAutoTimerRef.current = setTimeout(() => {
+      locationAutoTimerRef.current = null;
+      setLocationPromptOpen(true);
+    }, LOCATION_RETRY_MS);
   };
 
   const submitOfferRequest = async () => {
@@ -1320,6 +1360,36 @@ export default function App() {
       </View>
 
       <Modal
+        visible={locationPromptOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={postponeLocationPrompt}
+      >
+        <View style={styles.locationPromptOverlay}>
+          <View style={styles.locationPromptPopup}>
+            <Text style={styles.locationPromptTitle}>Find offers near you</Text>
+            <Text style={styles.locationPromptText}>
+              Allow location so we can show nearby Offline Offers, Local Offers, and Local Store deals.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.registrationButton}
+              onPress={requestLocationPermission}
+            >
+              <Text style={styles.registrationButtonText}>Allow Location</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.registrationSkipButton}
+              onPress={postponeLocationPrompt}
+            >
+              <Text style={styles.registrationSkipText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={offerRequestOpen}
         transparent
         animationType="fade"
@@ -1506,6 +1576,10 @@ const styles = StyleSheet.create({
   floatingButtons: { position: 'absolute', right: 14, bottom: 18, zIndex: 140, alignItems: 'center', gap: 10 },
   floatingButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   floatingButtonText: { color: WHITE, fontSize: 22, fontWeight: '900' },
+  locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  locationPromptPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  locationPromptTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
+  locationPromptText: { color: MUTED, fontSize: 13, lineHeight: 20, marginBottom: 16 },
   offerRequestOverlay: { ...StyleSheet.absoluteFill, zIndex: 300, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   offerRequestBackdrop: { ...StyleSheet.absoluteFill },
   offerRequestPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18, zIndex: 2 },
