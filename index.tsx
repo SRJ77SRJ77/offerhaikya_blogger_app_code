@@ -212,6 +212,7 @@ export default function App() {
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationAutoStartedRef = useRef(false);
+  const locationPromptSnoozeUntilRef = useRef(0);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -412,12 +413,13 @@ export default function App() {
         // Everything is ready: do not ask.
         if (permission.status === 'granted' && servicesEnabled) return;
 
+        // If the user has snoozed the prompt, keep checking silently.
+        if (Date.now() < locationPromptSnoozeUntilRef.current) return;
+
         // If the OS will no longer show a permission request and access is not
         // granted, stay quiet until the user explicitly uses the location button.
         if (permission.status !== 'granted' && permission.canAskAgain === false) return;
 
-        // Ask once for this app session. A 5-minute retry is created only when
-        // the user chooses No or the system permission request is denied.
         setLocationPromptOpen(true);
       } catch {
         // Stay silent if location services or permission state cannot be checked.
@@ -426,11 +428,18 @@ export default function App() {
 
     showLocationPromptIfNeeded();
 
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        showLocationPromptIfNeeded();
+      }
+    });
+
     return () => {
       if (locationAutoTimerRef.current) {
         clearTimeout(locationAutoTimerRef.current);
         locationAutoTimerRef.current = null;
       }
+      subscription.remove();
     };
   }, [registrationOpen]);
 
@@ -674,6 +683,9 @@ export default function App() {
       clearTimeout(locationAutoTimerRef.current);
     }
 
+    const snoozeUntil = Date.now() + LOCATION_RETRY_MS;
+    locationPromptSnoozeUntilRef.current = snoozeUntil;
+
     locationAutoTimerRef.current = setTimeout(async () => {
       locationAutoTimerRef.current = null;
 
@@ -683,6 +695,8 @@ export default function App() {
 
         if (permission.status === 'granted' && servicesEnabled) return;
         if (permission.status !== 'granted' && permission.canAskAgain === false) return;
+
+        if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         setLocationPromptOpen(true);
       } catch {
@@ -698,6 +712,8 @@ export default function App() {
       clearTimeout(locationAutoTimerRef.current);
       locationAutoTimerRef.current = null;
     }
+
+    locationPromptSnoozeUntilRef.current = 0;
 
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
