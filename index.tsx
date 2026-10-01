@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -26,6 +26,7 @@ const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
+const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 
 type Post = {
   id: string;
@@ -124,6 +125,10 @@ export default function App() {
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
+  const tagScrollRef = useRef<ScrollView>(null);
+  const tagOffsetRef = useRef(0);
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -168,6 +173,15 @@ export default function App() {
     }, 300);
     return () => clearTimeout(timer);
   }, [query, loadPosts]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const next = tagOffsetRef.current + 110;
+      tagOffsetRef.current = next > 900 ? 0 : next;
+      tagScrollRef.current?.scrollTo({ x: tagOffsetRef.current, animated: true });
+    }, 3200);
+    return () => clearInterval(timer);
+  }, []);
 
   const labels = useMemo(() => {
     const values = posts.map(post => post.label).filter(Boolean);
@@ -261,16 +275,26 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
 
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuOpen(value => !value)}>
-          <Text style={styles.menuIcon}>☰</Text>
+      <View style={[styles.header, darkMode && styles.headerDark]}>
+        <TouchableOpacity style={styles.headerIconButton} onPress={() => setMenuOpen(value => !value)}>
+          <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>☰</Text>
         </TouchableOpacity>
         <Image
           source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
           style={styles.headerLogo}
           resizeMode="contain"
         />
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIconButton}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>♡</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => searchInputRef.current?.focus()}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>⌕</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {menuOpen && (
@@ -292,6 +316,7 @@ export default function App() {
       )}
 
       <FlatList
+        style={darkMode ? styles.listDark : undefined}
         data={visiblePosts}
         keyExtractor={item => item.id}
         renderItem={renderPost}
@@ -313,6 +338,7 @@ export default function App() {
               <View style={styles.searchBox}>
                 <Text style={styles.searchIcon}>⌕</Text>
                 <TextInput
+                  ref={searchInputRef}
                   value={query}
                   onChangeText={setQuery}
                   placeholder="Search offers..."
@@ -353,21 +379,32 @@ export default function App() {
               )}
             </ImageBackground>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chips}
-            >
-              {labels.map(item => (
-                <TouchableOpacity
-                  key={item}
-                  onPress={() => setActiveLabel(item)}
-                  style={[styles.chip, activeLabel === item && styles.activeChip]}
-                >
-                  <Text style={[styles.chipText, activeLabel === item && styles.activeChipText]}>{item}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <View style={styles.tagStrip}>
+              <ScrollView
+                ref={tagScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chips}
+                onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
+                scrollEventThrottle={16}
+              >
+                {DIRECT_TAGS.map(item => (
+                  <TouchableOpacity
+                    key={item}
+                    onPress={() => {
+                      setActiveLabel(item);
+                      loadPosts(item === 'All' ? '' : item, 1);
+                    }}
+                    style={[styles.chip, activeLabel === item && styles.activeChip]}
+                  >
+                    <Text style={styles.chipText}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <View pointerEvents="none" style={styles.scrollHint}>
+                <Text style={styles.scrollHintText}>›</Text>
+              </View>
+            </View>
 
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Latest offers</Text>
@@ -410,22 +447,25 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
-  header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
-  menuButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
-  menuIcon: { fontSize: 22, color: TEXT },
-  headerLogo: { position: 'absolute', left: '50%', width: 150, height: 48, marginLeft: -75 },
-  headerSpacer: { width: 42 },
+  header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
+  headerDark: { backgroundColor: '#171717', borderBottomColor: '#2b2b2b' },
+  headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headerIcon: { fontSize: 22, color: TEXT },
+  headerIconDark: { color: WHITE },
+  headerLogo: { position: 'absolute', left: '50%', width: 138, height: 46, marginLeft: -69 },
+  headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
+  listDark: { backgroundColor: '#171717' },
   menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
   menuItem: { paddingHorizontal: 16, paddingVertical: 11 },
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
   content: { paddingBottom: 30, backgroundColor: PAGE },
-  hero: { minHeight: 245, justifyContent: 'flex-end', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 34 },
+  hero: { minHeight: 245, justifyContent: 'center', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 28 },
   heroImage: { opacity: 1 },
-  heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
-  heroTitle: { color: WHITE, fontSize: 29, lineHeight: 35, fontWeight: '900' },
-  heroSubtitle: { color: '#eeeeff', fontSize: 14, lineHeight: 21, marginTop: 8 },
+  heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8, textAlign: 'center' },
+  heroTitle: { color: WHITE, fontSize: 29, lineHeight: 35, fontWeight: '900', textAlign: 'center' },
+  heroSubtitle: { color: '#eeeeff', fontSize: 14, lineHeight: 21, marginTop: 8, textAlign: 'center' },
   searchBox: { marginTop: 18, backgroundColor: WHITE, minHeight: 52, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 5, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
   searchIcon: { fontSize: 27, color: MUTED, marginRight: 8, marginTop: -3 },
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
@@ -439,16 +479,19 @@ const styles = StyleSheet.create({
   searchSuggestionTitle: { color: TEXT, fontSize: 14, fontWeight: '800' },
   searchSuggestionLabel: { color: MUTED, fontSize: 11, marginTop: 3 },
   searchNoResult: { padding: 16, color: MUTED, fontSize: 13 },
-  chips: { paddingHorizontal: 16, paddingVertical: 15, gap: 8 },
-  chip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: WHITE, borderWidth: 1, borderColor: '#dedde1' },
+  tagStrip: { backgroundColor: '#242424', position: 'relative' },
+  chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 9, backgroundColor: '#3a3a3a', borderWidth: 1, borderColor: '#4a4a4a' },
   activeChip: { backgroundColor: ACCENT, borderColor: ACCENT },
-  chipText: { color: TEXT, fontSize: 13, fontWeight: '700' },
+  chipText: { color: WHITE, fontSize: 12, fontWeight: '800' },
   activeChipText: { color: WHITE },
+  scrollHint: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: '#242424' },
+  scrollHintText: { color: WHITE, fontSize: 25, fontWeight: '900' },
   sectionRow: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
-  card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 14, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
+  card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
