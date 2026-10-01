@@ -271,39 +271,76 @@ export default function App() {
     </TouchableOpacity>
   );
 
-  if (wishlistOpen) {
-    return (
-      <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
-        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
-        <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
-          <TouchableOpacity onPress={() => setWishlistOpen(false)} style={styles.backButton}>
-            <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
-          </TouchableOpacity>
-          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]}>My Wishlist</Text>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
-            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+  {wishlistOpen && (
+    <View style={styles.favoriteOverlay}>
+      <TouchableOpacity
+        style={styles.favoriteOverlayBackdrop}
+        activeOpacity={1}
+        onPress={() => setWishlistOpen(false)}
+      />
+      <View style={[styles.favoritePopup, darkMode && styles.favoritePopupDark]}>
+        <View style={styles.favoritePopupHeader}>
+          <View>
+            <Text style={[styles.favoritePopupTitle, darkMode && styles.darkText]}>My Favorites</Text>
+            <Text style={[styles.favoritePopupCount, darkMode && styles.darkMutedText]}>
+              {favorites.length} {favorites.length === 1 ? 'favorite' : 'favorites'}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.favoriteClose} onPress={() => setWishlistOpen(false)}>
+            <Text style={[styles.favoriteCloseText, darkMode && styles.headerIconDark]}>×</Text>
           </TouchableOpacity>
         </View>
-        <FlatList
-          style={darkMode ? styles.detailListDark : undefined}
-          data={favorites}
-          keyExtractor={item => item.id}
-          renderItem={renderPost}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
-          ListEmptyComponent={
-            <View style={styles.state}>
-              <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No favorites yet</Text>
-              <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Tap the heart on any offer to add it here.</Text>
-            </View>
-          }
-        />
-      </SafeAreaView>
-    );
-  }
 
+        {favorites.length === 0 ? (
+          <View style={styles.favoriteEmpty}>
+            <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No favorites yet</Text>
+            <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>
+              Tap the heart on an offer to add it here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={favorites}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.favoriteList}
+            renderItem={({ item }) => (
+              <View style={[styles.favoriteItem, darkMode && styles.favoriteItemDark]}>
+                <TouchableOpacity
+                  style={styles.favoriteItemMain}
+                  onPress={() => {
+                    setWishlistOpen(false);
+                    openDetail(item);
+                  }}
+                >
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.favoriteItemImage} />
+                  ) : (
+                    <View style={[styles.favoriteItemImage, styles.imageFallback]}>
+                      <Text style={styles.favoriteItemFallback}>Offer</Text>
+                    </View>
+                  )}
+                  <View style={styles.favoriteItemText}>
+                    <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <Text style={styles.favoriteItemLabel}>{item.label}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.favoriteRemove}
+                  onPress={() => toggleFavorite(item)}
+                  accessibilityLabel="Remove favorite"
+                >
+                  <Text style={styles.favoriteRemoveText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </View>
+  )}
   if (detail) {
     const mapCoordinates = extractMapCoordinates(detail.rawContent);
     return (
@@ -395,8 +432,13 @@ export default function App() {
           <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconButton}>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setWishlistOpen(true)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>♡</Text>
+            {favorites.length > 0 ? (
+              <View style={styles.favoriteBadge}>
+                <Text style={styles.favoriteBadgeText}>{favorites.length}</Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconButton} onPress={() => searchInputRef.current?.focus()}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>⌕</Text>
@@ -652,6 +694,29 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
+
+  favoriteOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 100, justifyContent: 'flex-start', alignItems: 'center' },
+  favoriteOverlayBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  favoritePopup: { width: '92%', maxHeight: '72%', marginTop: 72, backgroundColor: WHITE, borderRadius: 16, padding: 16, elevation: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
+  favoritePopupDark: { backgroundColor: '#1b1b1b' },
+  favoritePopupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  favoritePopupTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
+  favoritePopupCount: { color: MUTED, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  favoriteClose: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  favoriteCloseText: { color: TEXT, fontSize: 30, lineHeight: 32, fontWeight: '400' },
+  favoriteList: { paddingBottom: 4 },
+  favoriteItem: { minHeight: 72, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e5e5e5', paddingVertical: 8 },
+  favoriteItemDark: { borderBottomColor: '#333333' },
+  favoriteItemMain: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  favoriteItemImage: { width: 58, height: 58, borderRadius: 9, backgroundColor: '#eeeeee' },
+  favoriteItemFallback: { color: WHITE, fontSize: 12, fontWeight: '900' },
+  favoriteItemText: { flex: 1, marginLeft: 10, paddingRight: 8 },
+  favoriteItemTitle: { color: TEXT, fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  favoriteItemLabel: { color: ACCENT, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', marginTop: 4 },
+  favoriteRemove: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f1f1' },
+  favoriteRemoveText: { color: '#d22', fontSize: 25, lineHeight: 27, fontWeight: '700' },
+  favoriteBadge: { position: 'absolute', top: 1, right: 1, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: WHITE },
+  favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
 
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
