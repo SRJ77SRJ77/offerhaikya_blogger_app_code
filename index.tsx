@@ -950,19 +950,19 @@ export default function App() {
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
                 <View style={styles.socialRow}>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/instagram/FFFFFF' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Crect%20x%3D'3'%20y%3D'3'%20width%3D'18'%20height%3D'18'%20rx%3D'5'%20fill%3D'none'%20stroke%3D'white'%20stroke-width%3D'2'%2F%3E%3Ccircle%20cx%3D'12'%20cy%3D'12'%20r%3D'4'%20fill%3D'none'%20stroke%3D'white'%20stroke-width%3D'2'%2F%3E%3Ccircle%20cx%3D'17.5'%20cy%3D'6.5'%20r%3D'1.2'%20fill%3D'white'%2F%3E%3C%2Fsvg%3E' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/youtube/FFFFFF' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Crect%20x%3D'2'%20y%3D'5'%20width%3D'20'%20height%3D'14'%20rx%3D'4'%20fill%3D'white'%2F%3E%3Cpath%20d%3D'M10%208.5v7l6-3.5z'%20fill%3D'%23ff5b01'%2F%3E%3C%2Fsvg%3E' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/facebook/FFFFFF' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Ccircle%20cx%3D'12'%20cy%3D'12'%20r%3D'10'%20fill%3D'white'%2F%3E%3Cpath%20d%3D'M13.5%2019v-6h2l.4-2.3h-2.4V9.2c0-.7.3-1.2%201.3-1.2H16V5.9c-.5-.1-1.1-.1-1.7-.1-2%200-3.3%201.2-3.3%203.4v1.5H9v2.3h2v6z'%20fill%3D'%23ff5b01'%2F%3E%3C%2Fsvg%3E' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.linkedin.com/company/offerhaikya/')} accessibilityLabel="LinkedIn">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/linkedin/FFFFFF' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Crect%20x%3D'2'%20y%3D'2'%20width%3D'20'%20height%3D'20'%20rx%3D'4'%20fill%3D'white'%2F%3E%3Ccircle%20cx%3D'7'%20cy%3D'8'%20r%3D'1.4'%20fill%3D'%23ff5b01'%2F%3E%3Cpath%20d%3D'M5.7%2010.2h2.6V18H5.7zm4.3%200h2.5v1.1c.7-.9%201.6-1.4%203-1.4%202.5%200%203.8%201.5%203.8%204.5V18h-2.6v-3.3c0-1.4-.5-2.3-1.6-2.3s-1.9.8-1.9%202.3V18H10z'%20fill%3D'%23ff5b01'%2F%3E%3C%2Fsvg%3E' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/x/FFFFFF' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Ccircle%20cx%3D'12'%20cy%3D'12'%20r%3D'10'%20fill%3D'white'%2F%3E%3Cpath%20d%3D'M7%207l4.1%205.1L7.3%2017h1.9l2.8-3.7%203%203.7H17l-4.2-5.3L16.5%207h-1.9l-2.7%203.5L9.1%207z'%20fill%3D'%23ff5b01'%2F%3E%3C%2Fsvg%3E' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.footerLinks}>
