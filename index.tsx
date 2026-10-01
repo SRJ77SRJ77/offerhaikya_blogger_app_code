@@ -9,7 +9,6 @@ import {
   Linking,
   RefreshControl,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import {
 import RenderHTML from 'react-native-render-html';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
