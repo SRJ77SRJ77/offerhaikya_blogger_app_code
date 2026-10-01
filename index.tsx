@@ -269,8 +269,13 @@ export default function App() {
     const name = registrationName.trim();
     const contact = registrationContact.trim();
 
-    if (!name || !contact) {
-      setRegistrationError('Please enter your name and email/phone.');
+    if (!/^[A-Za-z ]{3,12}$/.test(name)) {
+      setRegistrationError('Name must be 3-12 letters.');
+      return;
+    }
+
+    if (!/^\\d{10}$/.test(contact)) {
+      setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
 
@@ -280,7 +285,7 @@ export default function App() {
       const response = await fetch(REGISTRATION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ name, contact }),
+        body: JSON.stringify({ name, contact: '91' + contact }),
       });
 
       if (!response.ok) throw new Error('Registration failed');
