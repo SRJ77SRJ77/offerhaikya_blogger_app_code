@@ -405,11 +405,14 @@ export default function App() {
 
     const showLocationPromptIfNeeded = async () => {
       try {
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) return;
+
         const permission = await Location.getForegroundPermissionsAsync();
         if (permission.status === 'granted' || permission.canAskAgain === false) return;
         setLocationPromptOpen(true);
       } catch {
-        // Stay silent if permission state cannot be checked.
+        // Stay silent if location services or permission state cannot be checked.
       }
     };
 
@@ -658,11 +661,14 @@ export default function App() {
       locationAutoTimerRef.current = null;
 
       try {
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) return;
+
         const permission = await Location.getForegroundPermissionsAsync();
         if (permission.status === 'granted' || permission.canAskAgain === false) return;
         setLocationPromptOpen(true);
       } catch {
-        // Do not reopen the prompt if permission state cannot be checked.
+        // Do not reopen the prompt if location services or permission state cannot be checked.
       }
     }, LOCATION_RETRY_MS);
   };
