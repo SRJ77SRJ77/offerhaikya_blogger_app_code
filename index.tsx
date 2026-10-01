@@ -148,6 +148,7 @@ export default function App() {
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
+  const [skipAvailable, setSkipAvailable] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -175,6 +176,15 @@ export default function App() {
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
+
+  useEffect(() => {
+    if (!registrationOpen) {
+      setSkipAvailable(false);
+      return;
+    }
+    const timer = setTimeout(() => setSkipAvailable(true), 5000);
+    return () => clearTimeout(timer);
+  }, [registrationOpen]);
 
   useEffect(() => {
     const text = query.trim();
@@ -496,6 +506,17 @@ export default function App() {
                 <Text style={styles.registrationButtonText}>Continue</Text>
               )}
             </TouchableOpacity>
+            {skipAvailable ? (
+              <TouchableOpacity
+                style={styles.registrationSkipButton}
+                onPress={() => setRegistrationOpen(false)}
+                disabled={registrationSubmitting}
+              >
+                <Text style={[styles.registrationSkipText, darkMode && styles.darkMutedText]}>Skip for now</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={[styles.registrationWaitText, darkMode && styles.darkMutedText]}>Skip available in 5 seconds</Text>
+            )}
           </View>
         </View>
       )}
@@ -812,6 +833,9 @@ const styles = StyleSheet.create({
   registrationButtonText: { color: WHITE, fontSize: 15, fontWeight: '900' },
   registrationError: { color: '#d22', fontSize: 12, marginBottom: 10, fontWeight: '700' },
 
+  registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '800' },
+  registrationWaitText: { color: MUTED, fontSize: 11, textAlign: 'center', marginTop: 8 },
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 5 },
