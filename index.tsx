@@ -1414,7 +1414,12 @@ export default function App() {
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text
+              style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+            >
               Request Offer
             </Text>
           </TouchableOpacity>
@@ -1657,7 +1662,12 @@ export default function App() {
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            <Text
+              style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+            >
               Request Offer
             </Text>
           </TouchableOpacity>
@@ -2120,7 +2130,12 @@ export default function App() {
               strokeLinejoin="round"
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+          <Text
+            style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.78}
+          >
             Request Offer
           </Text>
         </TouchableOpacity>
