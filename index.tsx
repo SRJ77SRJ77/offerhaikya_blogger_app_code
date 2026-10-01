@@ -4,6 +4,7 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  Linking,
   RefreshControl,
   ScrollView,
   SafeAreaView,
@@ -15,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
+import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
@@ -64,6 +66,18 @@ const highResImage = (url = '') => {
 const firstImage = (html = '') => {
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return match?.[1];
+};
+
+const extractMapCoordinates = (html = ''): { latitude: number; longitude: number } | null => {
+  const coordinateMatch = html.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  if (coordinateMatch) {
+    return { latitude: Number(coordinateMatch[1]), longitude: Number(coordinateMatch[2]) };
+  }
+  const queryMatch = html.match(/[?&](?:q|query)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/i);
+  if (queryMatch) {
+    return { latitude: Number(queryMatch[1]), longitude: Number(queryMatch[2]) };
+  }
+  return null;
 };
 
 const formatDate = (value: string) => {
@@ -266,6 +280,7 @@ export default function App() {
   }
 
   if (detail) {
+    const mapCoordinates = extractMapCoordinates(detail.rawContent);
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
         <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#171717' : WHITE} />
@@ -305,6 +320,31 @@ export default function App() {
                 td: { padding: 7 },
               }}
             />
+            {mapCoordinates ? (
+              <View style={styles.mapSection}>
+                <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
+                <MapView
+                  style={styles.mapView}
+                  initialRegion={{
+                    ...mapCoordinates,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                >
+                  <Marker coordinate={mapCoordinates} title="OfferHaikya location" />
+                </MapView>
+                <TouchableOpacity
+                  style={styles.mapButton}
+                  onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${mapCoordinates.latitude},${mapCoordinates.longitude}`)}
+                >
+                  <Text style={styles.mapButtonText}>Open in Google Maps</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 30 }}
@@ -600,6 +640,11 @@ const styles = StyleSheet.create({
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
   detailDate: { color: MUTED, fontSize: 12, marginTop: 7 },
   detailBody: { color: '#4f4c52', fontSize: 15, lineHeight: 26, marginTop: 22, paddingBottom: 12 },
+  mapSection: { marginTop: 18 },
+  mapTitle: { color: TEXT, fontSize: 18, fontWeight: '900', marginBottom: 10 },
+  mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
+  mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
+  mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
 
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
