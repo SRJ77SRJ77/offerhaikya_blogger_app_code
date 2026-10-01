@@ -1153,8 +1153,9 @@ export default function App() {
       privacy: 'Privacy Policy',
       terms: 'Terms and Condition',
     };
-    const suggestedInfoPosts = infoPagePosts.slice(0, 4);
-    const latestBlogPosts = infoPagePosts.slice(0, 8);
+    const infoPostsSource = infoPagePosts.length > 0 ? infoPagePosts : posts;
+    const suggestedInfoPosts = infoPostsSource.slice(0, 4);
+    const latestBlogPosts = infoPostsSource.slice(0, 8);
 
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
