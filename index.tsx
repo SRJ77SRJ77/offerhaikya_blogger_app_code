@@ -1197,7 +1197,8 @@ export default function App() {
             </View>
           )}
 
-          <View style={styles.infoRecommendationSection}>
+          <View style={styles.infoBottomRecommendations}>
+<View style={styles.infoRecommendationSection}>
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
               <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
@@ -1247,6 +1248,7 @@ export default function App() {
                 <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No latest posts available right now.</Text>
               </View>
             )}
+          </View>
           </View>
         </ScrollView>
 
@@ -2148,6 +2150,7 @@ const styles = StyleSheet.create({
   infoContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 110 },
   infoHeroImage: { width: '100%', height: 110, marginBottom: 14 },
   infoRecommendationSection: { marginTop: 22 },
+  infoBottomRecommendations: { marginTop: 10, paddingTop: 8 },
   detailImage: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#eeeeee', marginBottom: 16 },
   detailLabel: { color: ACCENT, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 2 },
   detailTitle: { color: TEXT, fontSize: 27, lineHeight: 34, fontWeight: '900', marginTop: 7 },
