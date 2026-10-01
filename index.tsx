@@ -309,6 +309,19 @@ export default function App() {
           return;
         }
 
+        // Do not call the location API while device Location Services are OFF.
+        // This prevents Android from showing its own location prompt repeatedly.
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+          if (!cancelled) {
+            setUserLocation(null);
+            setLocationLabel('');
+            setLocationTerms([]);
+            setNearbyPosts([]);
+          }
+          return;
+        }
+
         const current = await Location.getLastKnownPositionAsync({
           maxAge: 5 * 60 * 1000,
           requiredAccuracy: 5000,
