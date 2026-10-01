@@ -312,7 +312,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
-            setLocalOffersDisabled(true);
+            setLocalOffersDisabled(false);
           }
           return;
         }
@@ -326,7 +326,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
-            setLocalOffersDisabled(true);
+            setLocalOffersDisabled(false);
           }
           return;
         }
