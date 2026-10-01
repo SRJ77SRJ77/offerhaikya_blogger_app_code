@@ -208,7 +208,6 @@ export default function App() {
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
-  const locationPermissionPromptedRef = useRef(false);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -622,10 +621,6 @@ export default function App() {
     }  };
 
   const requestLocationPermission = async () => {
-    if (locationPermissionPromptedRef.current) return;
-
-    locationPermissionPromptedRef.current = true;
-
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
 
