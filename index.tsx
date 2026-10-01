@@ -289,7 +289,7 @@ export default function App() {
       setRegistrationName('');
       setRegistrationContact('');
     } catch {
-      setRegistrationError('Could not submit right now. Please try again.');
+      setRegistrationError('');
     } finally {
       setRegistrationSubmitting(false);
     }
@@ -798,45 +798,3 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
-
-  favoriteOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 100, justifyContent: 'flex-start', alignItems: 'center' },
-  favoriteOverlayBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  favoritePopup: { width: '92%', maxHeight: '72%', marginTop: 72, backgroundColor: WHITE, borderRadius: 16, padding: 16, elevation: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
-  favoritePopupDark: { backgroundColor: '#1b1b1b' },
-  favoritePopupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  favoritePopupTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
-  favoritePopupCount: { color: MUTED, fontSize: 12, fontWeight: '700', marginTop: 2 },
-  favoriteClose: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  favoriteCloseText: { color: TEXT, fontSize: 30, lineHeight: 32, fontWeight: '400' },
-  favoriteList: { paddingBottom: 4 },
-  favoriteItem: { minHeight: 72, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e5e5e5', paddingVertical: 8 },
-  favoriteItemDark: { borderBottomColor: '#333333' },
-  favoriteItemMain: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  favoriteItemImage: { width: 58, height: 58, borderRadius: 9, backgroundColor: '#eeeeee' },
-  favoriteItemFallback: { color: WHITE, fontSize: 12, fontWeight: '900' },
-  favoriteItemText: { flex: 1, marginLeft: 10, paddingRight: 8 },
-  favoriteItemTitle: { color: TEXT, fontSize: 13, lineHeight: 18, fontWeight: '800' },
-  favoriteItemLabel: { color: ACCENT, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', marginTop: 4 },
-  favoriteRemove: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f1f1' },
-  favoriteRemoveText: { color: '#d22', fontSize: 25, lineHeight: 27, fontWeight: '700' },
-  favoriteBadge: { position: 'absolute', top: 1, right: 1, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: WHITE },
-  favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
-
-  registrationOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.62)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  registrationPopup: { width: '100%', maxWidth: 420, backgroundColor: WHITE, borderRadius: 18, padding: 20, elevation: 14, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } },
-  registrationPopupDark: { backgroundColor: '#1b1b1b' },
-  registrationTitle: { color: TEXT, fontSize: 22, lineHeight: 28, fontWeight: '900' },
-  registrationSubtitle: { color: MUTED, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 16 },
-  registrationInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
-  registrationInputDark: { borderColor: '#3a3a3a', color: WHITE, backgroundColor: '#252525' },
-  registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', marginTop: 3 },
-  registrationButtonText: { color: WHITE, fontSize: 15, fontWeight: '900' },
-  registrationError: { color: '#d22', fontSize: 12, marginBottom: 10, fontWeight: '700' },
-
-  registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '800' },
-  registrationWaitText: { color: MUTED, fontSize: 11, textAlign: 'center', marginTop: 8 },
-  footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
-  footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
-  footerText: { color: MUTED, fontSize: 12, marginTop: 5 },
-});
