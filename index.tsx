@@ -949,11 +949,21 @@ export default function App() {
                   <TouchableOpacity onPress={() => openInfoPage('terms')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Terms and Condition</Text></TouchableOpacity>
                 </View>
                 <View style={styles.socialRow}>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram"><Text style={styles.socialIconText}>◎</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube"><Text style={styles.socialIconText}>▶</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook"><Text style={styles.socialIconText}>f</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.linkedin.com/company/offerhaikya/')} accessibilityLabel="LinkedIn"><Text style={styles.socialIconText}>in</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X"><Text style={styles.socialIconText}>𝕏</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/instagram/ffffff' }} style={styles.socialLogo} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/youtube/ffffff' }} style={styles.socialLogo} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/facebook/ffffff' }} style={styles.socialLogo} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://cdn.simpleicons.org/linkedin/ffffff')} accessibilityLabel="LinkedIn">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/linkedin/ffffff' }} style={styles.socialLogo} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/x/ffffff' }} style={styles.socialLogo} />
+                  </TouchableOpacity>
                 </View>
               </View>
             </>
@@ -1116,5 +1126,5 @@ const styles = StyleSheet.create({
   footerLink: { color: TEXT, fontSize: 12, fontWeight: '800' },
   socialRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16 },
   socialIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  socialIconText: { color: WHITE, fontSize: 17, fontWeight: '900' },
+  socialLogo: { width: 19, height: 19 },
 });
