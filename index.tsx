@@ -158,7 +158,8 @@ export default function App() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState(5);
-  const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; image?: string; html: string } | null>(null);
+  const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
+  const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -187,6 +188,41 @@ export default function App() {
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBloggerCategories = async () => {
+      try {
+        const response = await fetch(FEED_URL + '?alt=json&max-results=500');
+        if (!response.ok) throw new Error('Unable to load Blogger categories');
+        const data = await response.json();
+        const entries = data?.feed?.entry || [];
+        const seen = new Set<string>();
+        const categories: string[] = [];
+
+        entries.forEach((entry: any) => {
+          (entry.category || []).forEach((item: any) => {
+            const label = String(item?.term || '').trim();
+            if (!label || label === 'All') return;
+            if (!seen.has(label)) {
+              seen.add(label);
+              categories.push(label);
+            }
+          });
+        });
+
+        if (!cancelled && categories.length > 0) {
+          setBloggerCategories(categories);
+        }
+      } catch {
+        // Keep the existing menu categories as a safe fallback.
+      }
+    };
+
+    loadBloggerCategories();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!registrationOpen || registrationCompleted) return;
@@ -710,7 +746,7 @@ export default function App() {
               </TouchableOpacity>
               {menuCategoriesOpen ? (
                 <View style={styles.menuSubList}>
-                  {CATEGORY_ITEMS.map(label => (
+                  {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(label => (
                     <TouchableOpacity
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
