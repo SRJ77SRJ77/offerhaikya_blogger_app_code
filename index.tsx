@@ -179,6 +179,7 @@ const getAllPostsForNearby = async () => {
 export default function App() {
   const { width } = useWindowDimensions();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState('All');
   const [page, setPage] = useState(1);
@@ -667,9 +668,38 @@ export default function App() {
   }, [posts]);
 
   const visiblePosts = useMemo(
-    () => activeLabel === 'All' ? posts : posts.filter(post => post.label === activeLabel),
-    [posts, activeLabel],
+    () => activeLabel === 'Hot Offers'
+      ? hotOffersPosts
+      : activeLabel === 'All'
+        ? posts
+        : posts.filter(post => post.label === activeLabel),
+    [posts, hotOffersPosts, activeLabel],
   );
+
+  const loadHotOffers = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      const allPosts = await getAllPostsForNearby();
+      const hotOffers = allPosts.filter(post =>
+        post.labels.some(label => {
+          const normalized = label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+          return normalized === 'online offers'
+            || normalized === 'online offer'
+            || normalized === 'offline offers'
+            || normalized === 'offline offer';
+        }),
+      );
+      setHotOffersPosts(hotOffers);
+    } catch {
+      setHotOffersPosts([]);
+      setError('Could not load hot offers. Please try again.');
+    } finally {
+      setLoading(false);
+      setSearching(false);
+      setRefreshing(false);
+    }
+  };
 
   const toggleFavorite = (post: Post) => {
     setFavorites(current => current.some(item => item.id === post.id)
@@ -1818,16 +1848,29 @@ export default function App() {
             onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
-            {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
+            {[['Hot Offers', ...(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)], ['Hot Offers', ...(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)]].flat().map((item, index) => (
               <TouchableOpacity
                 key={item + '-' + index}
                 onPress={() => {
                   pauseTagAutoScroll();
                   setActiveLabel(item);
-                  loadPosts(item === 'All' ? '' : item, 1);                }}
-                style={[styles.chip, activeLabel === item && styles.activeChip]}
+                  setQuery('');
+                  setSuggestions([]);
+                  if (item === 'Hot Offers') {
+                    loadHotOffers();
+                  } else {
+                    loadPosts(item === 'All' ? '' : item, 1);
+                  }
+                }}
+                style={[
+                  styles.chip,
+                  item === 'Hot Offers' && styles.hotOffersChip,
+                  activeLabel === item && styles.activeChip,
+                ]}
               >
-                <Text style={styles.chipText}>{item}</Text>
+                <Text style={[styles.chipText, item === 'Hot Offers' && styles.hotOffersChipText]}>
+                  {item}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -2286,6 +2329,8 @@ const styles = StyleSheet.create({
   chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
   chip: { paddingHorizontal: 5, paddingVertical: 8, backgroundColor: 'transparent' },
   activeChip: { backgroundColor: 'transparent' },
+  hotOffersChip: { backgroundColor: ACCENT, borderRadius: 9, paddingHorizontal: 12, marginVertical: 2 },
+  hotOffersChipText: { color: WHITE, fontWeight: '900' },
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
     sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
