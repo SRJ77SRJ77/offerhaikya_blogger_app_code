@@ -1146,9 +1146,9 @@ export default function App() {
                   <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
                 </View>
                 <View>
-                  {nearbyPosts.map(item => (
-                    <View style={styles.row} key={'nearby-row-' + item.id}>
-                      {renderPost({ item })}
+                  {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
+                    <View style={styles.row} key={'nearby-row-' + rowIndex}>
+                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
                     </View>
                   ))}
                 </View>
