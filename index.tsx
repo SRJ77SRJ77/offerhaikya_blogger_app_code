@@ -149,6 +149,7 @@ export default function App() {
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [skipAvailable, setSkipAvailable] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
@@ -292,9 +293,10 @@ export default function App() {
       if (!response.ok) throw new Error('Registration failed');
 
       setRegistrationSuccess(true);
+      setRegistrationCompleted(true);
       setRegistrationName('');
       setRegistrationContact('');
-      setTimeout(() => setRegistrationOpen(false), 1800);
+      setRegistrationOpen(false);
     } catch {
       setRegistrationError('');
     } finally {
