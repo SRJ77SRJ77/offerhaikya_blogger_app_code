@@ -224,7 +224,7 @@ export default function App() {
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
-  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request'>('home');
+  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request' | null>('home');
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
@@ -675,6 +675,7 @@ export default function App() {
     closeMenu();
     setMenuOpen(false);
     setDetail(null);
+    setBottomTab(null);
     setInfoPage(page);
   };
 
