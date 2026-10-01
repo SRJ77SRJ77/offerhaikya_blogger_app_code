@@ -158,6 +158,7 @@ export default function App() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState(5);
+  const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; image?: string; html: string } | null>(null);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -435,6 +436,46 @@ export default function App() {
       </View>
     </View>
   ) : null;
+  useEffect(() => {
+    if (!infoPage) {
+      setBloggerInfoData(null);
+      return;
+    }
+
+    let cancelled = false;
+    const slugs: Record<string, string> = {
+      about: 'about-us',
+      contact: 'contact-us',
+      privacy: 'privacy-policy',
+      terms: 'terms-and-condition',
+    };
+
+    const loadBloggerInfoPage = async () => {
+      try {
+        const response = await fetch(BLOG_URL + '/p/' + slugs[infoPage] + '.html');
+        if (!response.ok) throw new Error('Unable to load Blogger page');
+        const html = await response.text();
+        const bodyMatch = html.match(/<div[^>]*class=["'][^"']*post-body[^"']*["'][^>]*>([\\s\\S]*?)(?:<div[^>]*class=["'][^"']*post-footer|<\\/article|<\\/main)/i);
+        const pageHtml = (bodyMatch?.[1] || '').trim();
+        if (!pageHtml) return;
+        const imageMatch = pageHtml.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i);
+        const image = imageMatch?.[1]?.replace(/&amp;/g, '&');
+        if (!cancelled) {
+          setBloggerInfoData({
+            title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms and Condition',
+            ...(infoPage === 'about' || infoPage === 'contact') && image ? { image } : {},
+            html: pageHtml,
+          });
+        }
+      } catch {
+        if (!cancelled) setBloggerInfoData(null);
+      }
+    };
+
+    loadBloggerInfoPage();
+    return () => { cancelled = true; };
+  }, [infoPage]);
+
   if (infoPage) {
     const infoData = {
       about: {
@@ -533,6 +574,8 @@ export default function App() {
       },
     }[infoPage];
 
+    const displayInfoData = bloggerInfoData || infoData;
+
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
         <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
@@ -540,13 +583,13 @@ export default function App() {
           <TouchableOpacity onPress={() => { closeMenu(); setMenuOpen(false); setInfoPage(null); }} style={styles.backButton}>
             <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
           </TouchableOpacity>
-          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{infoData.title}</Text>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{displayInfoData.title}</Text>
           <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
           </TouchableOpacity>
         </View>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}>
-          <Image source={{ uri: infoData.image }} style={styles.infoHeroImage} resizeMode="contain" />
+          <Image source={{ uri: displayInfoData.image }} style={styles.infoHeroImage} resizeMode="contain" />
           <RenderHTML
             contentWidth={Math.max(320, width - 40)}
             source={{ html: infoData.html }}
