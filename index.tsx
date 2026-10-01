@@ -367,7 +367,8 @@ export default function App() {
             if (a.locationMatch !== b.locationMatch) return a.locationMatch ? -1 : 1;
             return a.distance - b.distance;
           })
-          .map(item => item.post);
+          .map(item => item.post)
+          .slice(0, 1);
 
         if (!cancelled) setNearbyPosts(matches);
       } catch {
@@ -1103,14 +1104,10 @@ export default function App() {
                   </Text>
                   <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
                 </View>
-                <View style={styles.nearbyGrid}>
-                  {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
-                    <View style={styles.row} key={'nearby-row-' + rowIndex}>
-                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => (
-                        <View style={styles.nearbyGridItem} key={'nearby-' + item.id}>
-                          {renderPost({ item })}
-                        </View>
-                      ))}
+                <View>
+                  {nearbyPosts.map(item => (
+                    <View style={styles.row} key={'nearby-row-' + item.id}>
+                      {renderPost({ item })}
                     </View>
                   ))}
                 </View>
@@ -1243,8 +1240,6 @@ const styles = StyleSheet.create({
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
-  nearbyGrid: { width: '100%' },
-  nearbyGridItem: { width: '50%' },
 
   card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', position: 'relative', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
