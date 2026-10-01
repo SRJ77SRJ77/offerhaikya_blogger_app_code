@@ -208,9 +208,6 @@ export default function App() {
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
-  const locationRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const locationInitialRequestRef = useRef(false);
-  const locationUserActionRef = useRef(false);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -247,45 +244,6 @@ export default function App() {
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
-
-  useEffect(() => {
-    if (registrationOpen || locationInitialRequestRef.current || locationUserActionRef.current) return;
-
-    locationInitialRequestRef.current = true;
-    let cancelled = false;
-
-    const requestInitialLocationOnce = async () => {
-      try {
-        const permission = await Location.getForegroundPermissionsAsync();
-        if (permission.status === 'granted' || permission.canAskAgain === false) return;
-
-        const response = await Location.requestForegroundPermissionsAsync();
-        if (cancelled || response.status === 'granted' || response.canAskAgain === false) return;
-
-        locationRetryTimerRef.current = setTimeout(async () => {
-          locationRetryTimerRef.current = null;
-          try {
-            const retryPermission = await Location.getForegroundPermissionsAsync();
-            if (retryPermission.status === 'granted' || retryPermission.canAskAgain === false) return;
-            const retryResponse = await Location.requestForegroundPermissionsAsync();
-            if (!cancelled && retryResponse.status === 'granted') {
-              setLocationRefreshKey(value => value + 1);
-            }
-          } catch {
-            // Stay silent after the single five-minute retry.
-          }
-        }, 5 * 60 * 1000);
-      } catch {
-        // Stay silent if the initial permission check/request fails.
-      }
-    };
-
-    requestInitialLocationOnce();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [registrationOpen]);
 
   useEffect(() => {
     if (registrationOpen) return;
@@ -663,13 +621,6 @@ export default function App() {
     }  };
 
   const requestLocationPermission = async () => {
-    locationUserActionRef.current = true;
-
-    if (locationRetryTimerRef.current) {
-      clearTimeout(locationRetryTimerRef.current);
-      locationRetryTimerRef.current = null;
-    }
-
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
 
@@ -683,25 +634,6 @@ export default function App() {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status === 'granted') {
         setLocationRefreshKey(value => value + 1);
-        return;
-      }
-
-      if (permission.canAskAgain !== false) {
-        locationRetryTimerRef.current = setTimeout(async () => {
-          locationRetryTimerRef.current = null;
-          try {
-            const retryPermission = await Location.getForegroundPermissionsAsync();
-            if (retryPermission.status === 'granted') {
-              setLocationRefreshKey(value => value + 1);
-              return;
-            }
-            if (retryPermission.canAskAgain === false) return;
-            await Location.requestForegroundPermissionsAsync();
-            setLocationRefreshKey(value => value + 1);
-          } catch {
-            // Stay silent after the retry.
-          }
-        }, 5 * 60 * 1000);
       }
     } catch {
       // Ignore permission errors and keep the normal non-location experience.
