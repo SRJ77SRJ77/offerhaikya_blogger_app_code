@@ -341,33 +341,30 @@ export default function App() {
 
         const matches = allPosts
           .map(post => {
-            const postLocation = extractMapCoordinates(post.rawContent);
-            const searchable = normalizeLocationText(
-              [post.title, post.url, post.label, ...post.labels, post.rawContent, post.content, post.excerpt].join(' '),
+            const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
+            const isOfflineOffer = normalizedLabels.some(label =>
+              label === 'offline offers' || label === 'offline offer',
             );
+
+            if (!isOfflineOffer) return null;
+
+            const titleText = normalizeLocationText(post.title);
+            const tagText = normalizedLabels.join(' ');
 
             const locationMatch = detectedLocationTerms.some(term => {
               const normalizedTerm = normalizeLocationText(term);
-              return normalizedTerm && searchable.includes(normalizedTerm);
+              if (!normalizedTerm) return false;
+
+              const matchesTitle = titleText.includes(normalizedTerm);
+              const matchesTags = tagText.includes(normalizedTerm);
+              return matchesTitle || matchesTags;
             });
 
-            const distance = postLocation ? distanceKm(coords, postLocation) : Infinity;
-            const withinRadius = distance <= NEARBY_RADIUS_KM;
+            if (!locationMatch) return null;
 
-            if (!withinRadius && !locationMatch) return null;
-
-            return {
-              post,
-              distance,
-              locationMatch,
-            };
+            return post;
           })
-          .filter((item): item is { post: Post; distance: number; locationMatch: boolean } => Boolean(item))
-          .sort((a, b) => {
-            if (a.locationMatch !== b.locationMatch) return a.locationMatch ? -1 : 1;
-            return a.distance - b.distance;
-          })
-          .map(item => item.post)
+          .filter((post): post is Post => Boolean(post))
           .slice(0, 1);
 
         if (!cancelled) setNearbyPosts(matches);
