@@ -297,8 +297,7 @@ export default function App() {
       setRegistrationError('');
     } finally {
       setRegistrationSubmitting(false);
-    }
-  };
+    }  };
 
   const renderPost = ({ item }: { item: Post }) => (
     <TouchableOpacity activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
@@ -597,8 +596,7 @@ export default function App() {
                 onPress={() => {
                   pauseTagAutoScroll();
                   setActiveLabel(item);
-                  loadPosts(item === 'All' ? '' : item, 1);
-                }}
+                  loadPosts(item === 'All' ? '' : item, 1);                }}
                 style={[styles.chip, activeLabel === item && styles.activeChip]}
               >
                 <Text style={styles.chipText}>{item}</Text>
@@ -847,3 +845,4 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 16, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
+});
