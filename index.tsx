@@ -294,6 +294,7 @@ export default function App() {
       setRegistrationSuccess(true);
       setRegistrationName('');
       setRegistrationContact('');
+      setTimeout(() => setRegistrationOpen(false), 1800);
     } catch {
       setRegistrationError('');
     } finally {
