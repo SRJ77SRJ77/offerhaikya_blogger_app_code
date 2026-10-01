@@ -224,31 +224,35 @@ export default function App() {
 
   if (detail) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
-        <View style={styles.detailHeader}>
+      <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#171717' : WHITE} />
+        <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
           <TouchableOpacity onPress={() => setDetail(null)} style={styles.backButton}>
-            <Text style={styles.backText}>‹</Text>
+            <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.detailHeaderTitle} numberOfLines={1}>{detail.title}</Text>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{detail.title}</Text>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+          </TouchableOpacity>
         </View>
         <FlatList
+          style={darkMode ? styles.detailListDark : undefined}
           data={[detail]}
           keyExtractor={item => item.id}
           renderItem={() => (
-            <View style={styles.detailContent}>
+            <View style={[styles.detailContent, darkMode && styles.detailContentDark]}>
             <Text style={styles.detailLabel}>{detail.label}</Text>
-            <Text style={styles.detailTitle}>{detail.title}</Text>
-            <Text style={styles.detailDate}>{detail.date}</Text>
+            <Text style={[styles.detailTitle, darkMode && styles.darkText]}>{detail.title}</Text>
+            <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
             <RenderHTML
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
               tagsStyles={{
-                body: { color: '#4f4c52', fontSize: 15, lineHeight: 26 },
-                p: { marginTop: 0, marginBottom: 8, lineHeight: 24 },
-                h1: { color: TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
-                h2: { color: TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
-                h3: { color: TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
+                body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
+                p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
+                h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
+                h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
+                h3: { color: darkMode ? WHITE : TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
                 li: { marginBottom: 3, lineHeight: 24 },
                 a: { color: ACCENT },
                 strong: { fontWeight: '900' },
@@ -465,6 +469,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
+  darkSafe: { backgroundColor: '#171717' },
   pageWrap: { flex: 1, backgroundColor: PAGE },
   darkPage: { flex: 1, backgroundColor: '#171717' },
   header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
@@ -474,12 +479,15 @@ const styles = StyleSheet.create({
   headerIconDark: { color: WHITE },
   headerLogo: { position: 'absolute', left: '50%', width: 138, height: 46, marginLeft: -69 },
   headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
-  listDark: { backgroundColor: '#171717' },
+  listDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
+  detailListDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
   menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
   menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
   menuItem: { paddingHorizontal: 16, paddingVertical: 11 },
   menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
   menuItemActive: { color: ACCENT },
+  detailHeaderDark: { backgroundColor: '#171717', borderBottomColor: '#2b2b2b' },
+  detailContentDark: { backgroundColor: 'rgba(0,0,0,0.5)' },
   content: { paddingBottom: 30, backgroundColor: PAGE },
   hero: { minHeight: 245, justifyContent: 'center', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 28 },
   heroImage: { opacity: 1 },
