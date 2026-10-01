@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: 'transparent' },
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
-    sectionRow: { paddingHorizontal: 16, paddingBottom: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
