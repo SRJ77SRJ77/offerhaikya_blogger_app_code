@@ -130,6 +130,7 @@ export default function App() {
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
   const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tagPausedRef = useRef(false);
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -175,17 +176,17 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [query, loadPosts]);
 
+  const pauseTagAutoScroll = useCallback(() => {
+    tagPausedRef.current = true;
+    if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
+    tagPauseRef.current = setTimeout(() => {
+      tagPausedRef.current = false;
+    }, 4500);
+  }, []);
+
   useEffect(() => {
-    let paused = false;
-    const pauseAutoScroll = () => {
-      paused = true;
-      if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
-      tagPauseRef.current = setTimeout(() => {
-        paused = false;
-      }, 4500);
-    };
     const timer = setInterval(() => {
-      if (paused) return;
+      if (tagPausedRef.current) return;
       const next = tagOffsetRef.current + 110;
       tagOffsetRef.current = next > 900 ? 0 : next;
       tagScrollRef.current?.scrollTo({ x: tagOffsetRef.current, animated: true });
@@ -266,7 +267,7 @@ export default function App() {
   }
 
   const renderPost = ({ item }: { item: Post }) => (
-    <TouchableOpacity activeOpacity={0.92} style={styles.card} onPress={() => openDetail(item)}>
+    <TouchableOpacity activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
       {item.image ? (
         <Image source={{ uri: item.image }} style={styles.cardImage} />
       ) : (
@@ -274,11 +275,11 @@ export default function App() {
           <Text style={styles.fallbackText}>OfferHaikya</Text>
         </View>
       )}
-      <View style={styles.cardBody}>
+      <View style={[styles.cardBody, darkMode && styles.cardBodyDark]}>
         <Text style={styles.label}>{item.label}</Text>
-        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+        <Text style={[styles.title, darkMode && styles.darkText]} numberOfLines={2}>{item.title}</Text>
         <Text style={styles.date}>{item.date}</Text>
-        <Text style={styles.excerpt} numberOfLines={3}>{item.excerpt}</Text>
+        <Text style={[styles.excerpt, darkMode && styles.darkMutedText]} numberOfLines={3}>{item.excerpt}</Text>
         <Text style={styles.readText}>Read more ›</Text>
       </View>
     </TouchableOpacity>
@@ -336,10 +337,9 @@ export default function App() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips}
             onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
-            onTouchStart={() => {
-              if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
-              tagPauseRef.current = setTimeout(() => {}, 4500);
-            }}
+            onTouchStart={pauseTagAutoScroll}
+            onMomentumScrollBegin={pauseTagAutoScroll}
+            onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
             {DIRECT_TAGS.map(item => (
@@ -427,8 +427,8 @@ export default function App() {
 
 
             <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>Latest offers</Text>
-              <Text style={styles.pageText}>Page {page}</Text>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest offers</Text>
+              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Page {page}</Text>
             </View>
           </>
         }
@@ -518,6 +518,10 @@ const styles = StyleSheet.create({
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
   cardBody: { padding: 11 },
+  cardDark: { backgroundColor: '#222222' },
+  cardBodyDark: { backgroundColor: '#222222' },
+  darkText: { color: WHITE },
+  darkMutedText: { color: '#b8b8b8' },
   label: { color: ACCENT, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', marginBottom: 5 },
   title: { color: TEXT, fontSize: 15, lineHeight: 19, fontWeight: '900' },
   date: { color: MUTED, fontSize: 10, marginTop: 5 },
