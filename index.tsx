@@ -273,6 +273,7 @@ export default function App() {
 
   const openInfoPage = (page: 'about' | 'contact' | 'privacy' | 'terms') => {
     closeMenu();
+    setMenuOpen(false);
     setDetail(null);
     setInfoPage(page);
   };
@@ -534,7 +535,7 @@ export default function App() {
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
         <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
         <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
-          <TouchableOpacity onPress={() => setInfoPage(null)} style={styles.backButton}>
+          <TouchableOpacity onPress={() => { closeMenu(); setMenuOpen(false); setInfoPage(null); }} style={styles.backButton}>
             <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
           </TouchableOpacity>
           <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{infoData.title}</Text>
