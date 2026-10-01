@@ -1401,23 +1401,23 @@ export default function App() {
       >
         <View style={styles.locationPromptOverlay}>
           <View style={styles.locationPromptPopup}>
-            <Text style={styles.locationPromptTitle}>Do you want local & offline offers near you?</Text>
+            <Text style={styles.locationPromptTitle}>OfferHaikya needs your location</Text>
             <Text style={styles.locationPromptText}>
-              Turn on location to find nearby Offline Offers, Local Offers, and Local Store deals. We only use your location while using the app.
+              Please turn on location to see the best local and trending offers near you.
             </Text>
 
             <TouchableOpacity
               style={styles.registrationButton}
               onPress={requestLocationPermission}
             >
-              <Text style={styles.registrationButtonText}>Yes, turn on location</Text>
+              <Text style={styles.registrationButtonText}>Yes</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.registrationSkipButton}
               onPress={postponeLocationPrompt}
             >
-              <Text style={styles.registrationSkipText}>No thanks</Text>
+              <Text style={styles.registrationSkipText}>No</Text>
             </TouchableOpacity>
           </View>
         </View>
