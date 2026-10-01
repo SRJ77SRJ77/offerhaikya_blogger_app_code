@@ -454,6 +454,7 @@ export default function App() {
 
       <FlatList
         style={darkMode ? styles.listDark : undefined}
+        extraData={darkMode}
         data={visiblePosts}
         keyExtractor={item => item.id}
         renderItem={renderPost}
@@ -461,6 +462,7 @@ export default function App() {
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
+        ListHeaderComponentStyle={darkMode ? styles.contentDark : undefined}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         ListHeaderComponent={
           <>
