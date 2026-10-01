@@ -157,7 +157,7 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
-  const [skipAvailable, setSkipAvailable] = useState(false);
+  const [skipCountdown, setSkipCountdown] = useState(5);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -188,13 +188,19 @@ export default function App() {
   }, [loadPosts]);
 
   useEffect(() => {
-    if (!registrationOpen) {
-      setSkipAvailable(false);
-      return;
-    }
-    const timer = setTimeout(() => setSkipAvailable(true), 5000);
-    return () => clearTimeout(timer);
-  }, [registrationOpen]);
+    if (!registrationOpen || registrationCompleted) return;
+    setSkipCountdown(5);
+    const timer = setInterval(() => {
+      setSkipCountdown(current => {
+        if (current <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [registrationOpen, registrationCompleted]);
 
   useEffect(() => {
     const text = query.trim();
@@ -689,7 +695,9 @@ export default function App() {
                 <Text style={styles.registrationButtonText}>Continue</Text>
               )}
             </TouchableOpacity>
-            {skipAvailable ? (
+            {skipCountdown > 0 ? (
+              <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
+            ) : (
               <TouchableOpacity
                 style={styles.registrationSkipButton}
                 onPress={() => setRegistrationOpen(false)}
@@ -697,8 +705,6 @@ export default function App() {
               >
                 <Text style={styles.registrationSkipText}>Skip for now</Text>
               </TouchableOpacity>
-            ) : (
-              <Text style={styles.registrationWaitText}>Skip available in 5 seconds</Text>
             )}
           </View>
         </View>
@@ -944,19 +950,19 @@ export default function App() {
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
                 <View style={styles.socialRow}>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/instagram/ffffff' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/instagram/FFFFFF' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/youtube/ffffff' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/youtube/FFFFFF' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/facebook/ffffff' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/facebook/FFFFFF' }} style={styles.socialLogo} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://cdn.simpleicons.org/linkedin/ffffff')} accessibilityLabel="LinkedIn">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/linkedin/ffffff' }} style={styles.socialLogo} />
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.linkedin.com/company/offerhaikya/')} accessibilityLabel="LinkedIn">
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/linkedin/FFFFFF' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X">
-                    <Image source={{ uri: 'https://cdn.simpleicons.org/x/ffffff' }} style={styles.socialLogo} />
+                    <Image source={{ uri: 'https://cdn.simpleicons.org/x/FFFFFF' }} style={styles.socialLogo} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.footerLinks}>
