@@ -1280,7 +1280,7 @@ const styles = StyleSheet.create({
     sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
-  row: { paddingHorizontal: 10, justifyContent: 'space-between' },
+  row: { flexDirection: 'row', paddingHorizontal: 10, justifyContent: 'space-between' },
 
   card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', position: 'relative', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
