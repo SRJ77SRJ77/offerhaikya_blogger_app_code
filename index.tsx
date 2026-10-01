@@ -35,7 +35,7 @@ const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 500;
 const AUTO_SYNC_INTERVAL_MS = 30000;
-const LOCATION_RETRY_MS = 5 * 60 * 1000;
+const LOCATION_RETRY_MS = 10 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -649,26 +649,54 @@ export default function App() {
       setRegistrationSubmitting(false);
     }  };
 
+  const scheduleLocationPromptRetry = () => {
+    if (locationAutoTimerRef.current) clearTimeout(locationAutoTimerRef.current);
+    locationAutoTimerRef.current = setTimeout(() => {
+      locationAutoTimerRef.current = null;
+      setLocationPromptOpen(true);
+    }, LOCATION_RETRY_MS);
+  };
+
   const requestLocationPermission = async () => {
     setLocationPromptOpen(false);
+
+    if (locationAutoTimerRef.current) {
+      clearTimeout(locationAutoTimerRef.current);
+      locationAutoTimerRef.current = null;
+    }
 
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
 
       if (currentPermission.status === 'granted') {
-        setLocationRefreshKey(value => value + 1);
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+          await Linking.openSettings();
+        } else {
+          setLocationRefreshKey(value => value + 1);
+        }
         return;
       }
 
-      if (currentPermission.canAskAgain === false) return;
+      if (currentPermission.canAskAgain === false) {
+        await Linking.openSettings();
+        return;
+      }
 
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status === 'granted') {
         setLocationRefreshKey(value => value + 1);
+      } else {
+        scheduleLocationPromptRetry();
       }
     } catch {
-      // Ignore permission errors and keep the normal non-location experience.
+      scheduleLocationPromptRetry();
     }
+  };
+
+  const postponeLocationPrompt = () => {
+    setLocationPromptOpen(false);
+    scheduleLocationPromptRetry();
   };
 
   const postponeLocationPrompt = () => {
@@ -1373,16 +1401,16 @@ export default function App() {
       >
         <View style={styles.locationPromptOverlay}>
           <View style={styles.locationPromptPopup}>
-            <Text style={styles.locationPromptTitle}>Find offers near you</Text>
+            <Text style={styles.locationPromptTitle}>Do you want local & offline offers near you?</Text>
             <Text style={styles.locationPromptText}>
-              Allow location so we can show nearby Offline Offers, Local Offers, and Local Store deals.
+              Turn on location to find nearby Offline Offers, Local Offers, and Local Store deals. We only use your location while using the app.
             </Text>
 
             <TouchableOpacity
               style={styles.registrationButton}
               onPress={requestLocationPermission}
             >
-              <Text style={styles.registrationButtonText}>Allow Location</Text>
+              <Text style={styles.registrationButtonText}>Yes, turn on location</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
