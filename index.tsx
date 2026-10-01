@@ -641,7 +641,7 @@ export default function App() {
     try {
       setRegistrationSubmitting(true);
       setRegistrationError('');
-      const response = await fetch(REGISTRATION_URL, {
+      await fetch(REGISTRATION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -651,8 +651,6 @@ export default function App() {
           submittedAt: new Date().toISOString(),
         }),
       });
-
-      if (!response.ok) throw new Error('Registration failed');
 
       setRegistrationSuccess(true);
       setRegistrationCompleted(true);
