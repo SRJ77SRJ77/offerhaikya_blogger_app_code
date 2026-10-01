@@ -751,22 +751,6 @@ export default function App() {
                 </View>
               ) : null}
 
-              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('about')}>
-                <Text style={styles.menuMainItemText}>About Us</Text>
-                <Text style={styles.menuMainArrow}>›</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('contact')}>
-                <Text style={styles.menuMainItemText}>Contact Us</Text>
-                <Text style={styles.menuMainArrow}>›</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('privacy')}>
-                <Text style={styles.menuMainItemText}>Privacy Policy</Text>
-                <Text style={styles.menuMainArrow}>›</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuMainItem} onPress={() => openInfoPage('terms')}>
-                <Text style={styles.menuMainItemText}>Terms and Condition</Text>
-                <Text style={styles.menuMainArrow}>›</Text>
-              </TouchableOpacity>
             </ScrollView>
           </Animated.View>
         </View>
