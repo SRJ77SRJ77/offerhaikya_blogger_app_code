@@ -213,6 +213,7 @@ export default function App() {
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
+  const locationPermissionRequestActiveRef = useRef(false);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -407,6 +408,10 @@ export default function App() {
 
     const showLocationPromptIfNeeded = async () => {
       try {
+        // Do not check or reopen the custom location prompt while the Android
+        // permission dialog is currently open.
+        if (locationPermissionRequestActiveRef.current) return;
+
         const permission = await Location.getForegroundPermissionsAsync();
         const servicesEnabled = await Location.hasServicesEnabledAsync();
 
@@ -416,7 +421,7 @@ export default function App() {
           return;
         }
 
-        // User chose "No": stay silent for 5 minutes.
+        // User chose "No" or denied the Android permission: stay silent for 5 minutes.
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         // Permission was permanently denied. Let the user use the location
@@ -744,13 +749,20 @@ export default function App() {
         return;
       }
 
+      locationPermissionRequestActiveRef.current = true;
+
       const permission = await Location.requestForegroundPermissionsAsync();
+
+      locationPermissionRequestActiveRef.current = false;
+
       if (permission.status === 'granted') {
+        locationPromptSnoozeUntilRef.current = 0;
         setLocationRefreshKey(value => value + 1);
       } else {
         scheduleLocationPromptRetry();
       }
     } catch {
+      locationPermissionRequestActiveRef.current = false;
       scheduleLocationPromptRetry();
     }
   };
