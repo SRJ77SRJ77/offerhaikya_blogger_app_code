@@ -1091,6 +1091,10 @@ export default function App() {
       return;
     }
 
+    if (posts.length === 0) {
+      loadPosts('', 1);
+    }
+
     let cancelled = false;
     const slugs: Record<string, string> = {
       about: 'about-us',
@@ -1131,7 +1135,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [infoPage]);
+  }, [infoPage, posts.length, loadPosts]);
 
   if (infoPage) {
     const infoTitles = {
@@ -1181,7 +1185,7 @@ export default function App() {
           {suggestedInfoPosts.length > 0 ? (
             <View style={styles.infoRecommendationSection}>
               <View style={styles.sectionRow}>
-                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Offers</Text>
+                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
                 <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
               </View>
               <View>
@@ -1197,7 +1201,7 @@ export default function App() {
           {latestBlogPosts.length > 0 ? (
             <View style={styles.infoRecommendationSection}>
               <View style={styles.sectionRow}>
-                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Blogs</Text>
+                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
                 <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
               </View>
               <View>
