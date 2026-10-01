@@ -183,6 +183,7 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -217,6 +218,41 @@ export default function App() {
 
     let cancelled = false;
 
+    const locationAliases: Record<string, string[]> = {
+      belagavi: ['belagavi', 'belgaum', 'belgaon', 'belagavi district', 'belgaum district'],
+      belgaum: ['belagavi', 'belgaum', 'belgaon', 'belagavi district', 'belgaum district'],
+      bangalore: ['bengaluru', 'bangalore'],
+      bengaluru: ['bengaluru', 'bangalore'],
+      bombay: ['mumbai', 'bombay'],
+      mumbai: ['mumbai', 'bombay'],
+      calcutta: ['kolkata', 'calcutta'],
+      kolkata: ['kolkata', 'calcutta'],
+      madras: ['chennai', 'madras'],
+      chennai: ['chennai', 'madras'],
+    };
+
+    const normalizeLocationText = (value = '') =>
+      value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const buildLocationTerms = (place: any) => {
+      const raw = [
+        place?.city,
+        place?.district,
+        place?.subregion,
+        place?.region,
+        place?.name,
+      ]
+        .map(value => String(value || '').trim())
+        .filter(Boolean);
+
+      const expanded = raw.flatMap(value => {
+        const normalized = normalizeLocationText(value);
+        return [value, ...(locationAliases[normalized] || [])];
+      });
+
+      return Array.from(new Set(expanded.map(normalizeLocationText).filter(Boolean)));
+    };
+
     const loadNearbyOffers = async () => {
       try {
         const permission = await Location.requestForegroundPermissionsAsync();
@@ -224,6 +260,7 @@ export default function App() {
           if (!cancelled) {
             setUserLocation(null);
             setLocationLabel('');
+            setLocationTerms([]);
             setNearbyPosts([]);
           }
           return;
@@ -248,28 +285,50 @@ export default function App() {
           const places = await Location.reverseGeocodeAsync(coords);
           const place = places?.[0];
           const label = place?.city || place?.district || place?.subregion || '';
-          if (!cancelled) setLocationLabel(label);
+          const terms = buildLocationTerms(place);
+          if (!cancelled) {
+            setLocationLabel(label);
+            setLocationTerms(terms);
+          }
         } catch {
-          if (!cancelled) setLocationLabel('');
+          if (!cancelled) {
+            setLocationLabel('');
+            setLocationTerms([]);
+          }
         }
 
-        const response = await fetch(FEED_URL + '?alt=json&max-results=100');
+        const response = await fetch(FEED_URL + '?alt=json&max-results=500');
         if (!response.ok) throw new Error('Unable to load nearby offers');
         const allPosts = parseFeed(await response.json());
 
         const matches = allPosts
           .map(post => {
             const postLocation = extractMapCoordinates(post.rawContent);
-            if (!postLocation) return null;
+            const searchable = normalizeLocationText(
+              [post.title, post.label, ...post.labels, post.rawContent, post.content, post.excerpt].join(' '),
+            );
+
+            const locationMatch = locationTerms.some(term => {
+              const normalizedTerm = normalizeLocationText(term);
+              return normalizedTerm && searchable.includes(normalizedTerm);
+            });
+
+            const distance = postLocation ? distanceKm(coords, postLocation) : Infinity;
+            const withinRadius = distance <= NEARBY_RADIUS_KM;
+
+            if (!withinRadius && !locationMatch) return null;
+
             return {
               post,
-              distance: distanceKm(coords, postLocation),
+              distance,
+              locationMatch,
             };
           })
-          .filter((item): item is { post: Post; distance: number } =>
-            Boolean(item) && item.distance <= NEARBY_RADIUS_KM,
-          )
-          .sort((a, b) => a.distance - b.distance)
+          .filter((item): item is { post: Post; distance: number; locationMatch: boolean } => Boolean(item))
+          .sort((a, b) => {
+            if (a.locationMatch !== b.locationMatch) return a.locationMatch ? -1 : 1;
+            return a.distance - b.distance;
+          })
           .map(item => item.post);
 
         if (!cancelled) setNearbyPosts(matches);
