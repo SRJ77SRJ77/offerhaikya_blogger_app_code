@@ -1286,8 +1286,77 @@ export default function App() {
             ) : null}
           </View>
         )}
-        contentContainerStyle={{ paddingBottom: 30 }}
+        contentContainerStyle={{ paddingBottom: 104 }}
         />
+        <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
+            onPress={goToHomeTab}
+            accessibilityLabel="Home"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
+                stroke={bottomTab === 'home' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'local' && styles.bottomNavItemActive]}
+            onPress={goToLocalOffersTab}
+            accessibilityLabel="Local offers"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Local Offers
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
+            onPress={openOfferRequestTab}
+            accessibilityLabel="Request offer"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4 5.5H20V18.5H4V5.5Z"
+                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M4.5 6L12 12L19.5 6"
+                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Request Offer
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
