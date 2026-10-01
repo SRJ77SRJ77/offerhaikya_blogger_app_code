@@ -218,13 +218,13 @@ export default function App() {
   const locationPermissionRequestActiveRef = useRef(false);
   const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
-  const [showTopButton, setShowTopButton] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
   const [offerRequestText, setOfferRequestText] = useState('');
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
+  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request'>('home');
   const mainListRef = useRef<FlatList<Post>>(null);
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
@@ -819,6 +819,54 @@ export default function App() {
     scheduleLocationPromptRetry();
   };
 
+  const goToHomeTab = () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
+    setBottomTab('home');
+    setActiveLabel('All');
+    setQuery('');
+    setSuggestions([]);
+    setPage(1);
+    loadPosts('', 1);
+    mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const goToLocalOffersTab = async () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
+    setBottomTab('local');
+    setActiveLabel('All');
+    setQuery('');
+    setSuggestions([]);
+    setPage(1);
+    loadPosts('', 1);
+    mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+
+    try {
+      const permission = await Location.getForegroundPermissionsAsync();
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (permission.status === 'granted' && servicesEnabled) {
+        setLocationRefreshKey(value => value + 1);
+      } else if (permission.canAskAgain !== false || !servicesEnabled) {
+        setLocationPromptOpen(true);
+      }
+    } catch {
+      setLocationPromptOpen(true);
+    }
+  };
+
+  const openOfferRequestTab = () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
+    setBottomTab('request');
+    setOfferRequestError('');
+    setOfferRequestSuccess(false);
+    setOfferRequestOpen(true);
+  };
+
 
 
   const submitOfferRequest = async () => {
@@ -1346,9 +1394,6 @@ export default function App() {
         data={visiblePosts}
         keyExtractor={item => item.id}
         keyboardShouldPersistTaps="handled"
-        onScroll={event => {
-          setShowTopButton(event.nativeEvent.contentOffset.y > 250);
-        }}
         scrollEventThrottle={16}
         renderItem={renderPost}
         numColumns={2}
@@ -1489,86 +1534,74 @@ export default function App() {
         }
       />
       </View>
-      <View pointerEvents="box-none" style={styles.floatingButtons}>
-        {showTopButton ? (
-          <View style={styles.floatingButtonRow}>
-            <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Top</Text>
-            <TouchableOpacity
-              style={styles.floatingButton}
-              onPress={() => mainListRef.current?.scrollToOffset({ offset: 0, animated: true })}
-              accessibilityLabel="Scroll to top"
-            >
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M6 14L12 8L18 14M12 8V20"
-                  stroke={WHITE}
-                  strokeWidth={2.4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </TouchableOpacity>
-          </View>
-        ) : null}
+      <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
+        <TouchableOpacity
+          style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
+          onPress={goToHomeTab}
+          accessibilityLabel="Home"
+        >
+          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
+              stroke={bottomTab === 'home' ? ACCENT : TEXT}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+          <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            Home
+          </Text>
+        </TouchableOpacity>
 
-        <View style={styles.floatingButtonRow}>
-          <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Location</Text>
-          <TouchableOpacity
-            style={styles.floatingButton}
-            onPress={() => {
-              if (locationAutoTimerRef.current) {
-                clearTimeout(locationAutoTimerRef.current);
-                locationAutoTimerRef.current = null;
-              }
-              setLocationPromptOpen(true);
-            }}
-            accessibilityLabel="Enable location"
-          >
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={WHITE}
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={WHITE}
-                strokeWidth={2.2}
-              />
-            </Svg>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.bottomNavItem, bottomTab === 'local' && styles.bottomNavItemActive]}
+          onPress={goToLocalOffersTab}
+          accessibilityLabel="Local offers"
+        >
+          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+              stroke={bottomTab === 'local' ? ACCENT : TEXT}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+              stroke={bottomTab === 'local' ? ACCENT : TEXT}
+              strokeWidth={2}
+            />
+          </Svg>
+          <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            Local Offers
+          </Text>
+        </TouchableOpacity>
 
-        <View style={styles.floatingButtonRow}>
-          <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Request</Text>
-          <TouchableOpacity
-            style={styles.floatingButton}
-            onPress={() => {
-              setOfferRequestError('');
-              setOfferRequestSuccess(false);
-              setOfferRequestOpen(true);
-            }}
-            accessibilityLabel="Send offer request"
-          >
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={WHITE}
-                strokeWidth={2.2}
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M4.5 6L12 12L19.5 6"
-                stroke={WHITE}
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
+          onPress={openOfferRequestTab}
+          accessibilityLabel="Request offer"
+        >
+          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M4 5.5H20V18.5H4V5.5Z"
+              stroke={bottomTab === 'request' ? ACCENT : TEXT}
+              strokeWidth={2}
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M4.5 6L12 12L19.5 6"
+              stroke={bottomTab === 'request' ? ACCENT : TEXT}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+          <Text style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            Request Offer
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <Modal
@@ -1730,7 +1763,7 @@ const styles = StyleSheet.create({
   menuItemActive: { color: ACCENT },
   detailHeaderDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
   detailContentDark: { backgroundColor: '#000000' },
-  content: { paddingBottom: 30, backgroundColor: PAGE },
+  content: { paddingBottom: 104, backgroundColor: PAGE },
   hero: { minHeight: 245, justifyContent: 'center', overflow: 'hidden', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 28 },
   heroImage: { opacity: 1 },
   heroSmall: { color: WHITE, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8, textAlign: 'center' },
@@ -1803,12 +1836,13 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
-  floatingButtons: { position: 'absolute', right: 14, bottom: 18, zIndex: 140, alignItems: 'flex-end', gap: 10 },
-  floatingButtonRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8 },
-  floatingButtonLabel: { backgroundColor: WHITE, color: TEXT, fontSize: 13, fontWeight: '900', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 9, elevation: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
-  floatingButtonLabelDark: { backgroundColor: '#222222', color: WHITE },
-  floatingButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  floatingButtonText: { color: WHITE, fontSize: 22, fontWeight: '900' },
+  bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
+  bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
+  bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
+  bottomNavItemActive: { backgroundColor: '#fff3ed' },
+  bottomNavLabel: { color: TEXT, fontSize: 11, fontWeight: '800', marginTop: 4 },
+  bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
+  bottomNavLabelDark: { color: '#eeeeee' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   locationPromptPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   locationPromptTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
