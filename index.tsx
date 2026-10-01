@@ -405,11 +405,18 @@ export default function App() {
 
     const showLocationPromptIfNeeded = async () => {
       try {
-        const servicesEnabled = await Location.hasServicesEnabledAsync();
-        if (!servicesEnabled) return;
-
         const permission = await Location.getForegroundPermissionsAsync();
-        if (permission.status === 'granted' || permission.canAskAgain === false) return;
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+        // Everything is ready: do not ask.
+        if (permission.status === 'granted' && servicesEnabled) return;
+
+        // If the OS will no longer show a permission request and access is not
+        // granted, stay quiet until the user explicitly uses the location button.
+        if (permission.status !== 'granted' && permission.canAskAgain === false) return;
+
+        // Ask once for this app session. A 5-minute retry is created only when
+        // the user chooses No or the system permission request is denied.
         setLocationPromptOpen(true);
       } catch {
         // Stay silent if location services or permission state cannot be checked.
@@ -661,11 +668,12 @@ export default function App() {
       locationAutoTimerRef.current = null;
 
       try {
-        const servicesEnabled = await Location.hasServicesEnabledAsync();
-        if (!servicesEnabled) return;
-
         const permission = await Location.getForegroundPermissionsAsync();
-        if (permission.status === 'granted' || permission.canAskAgain === false) return;
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+        if (permission.status === 'granted' && servicesEnabled) return;
+        if (permission.status !== 'granted' && permission.canAskAgain === false) return;
+
         setLocationPromptOpen(true);
       } catch {
         // Do not reopen the prompt if location services or permission state cannot be checked.
@@ -683,14 +691,21 @@ export default function App() {
 
     try {
       const currentPermission = await Location.getForegroundPermissionsAsync();
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
 
       if (currentPermission.status === 'granted') {
-        const servicesEnabled = await Location.hasServicesEnabledAsync();
         if (!servicesEnabled) {
           await Linking.openSettings();
         } else {
           setLocationRefreshKey(value => value + 1);
         }
+        return;
+      }
+
+      // If device Location is OFF, guide the user to Settings instead of
+      // repeatedly triggering the OS permission dialog.
+      if (!servicesEnabled) {
+        await Linking.openSettings();
         return;
       }
 
