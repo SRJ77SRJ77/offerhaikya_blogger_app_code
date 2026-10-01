@@ -225,6 +225,8 @@ export default function App() {
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request'>('home');
+  const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
+  const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
@@ -408,15 +410,31 @@ export default function App() {
           })
           .filter((post): post is Post => Boolean(post));
 
-        if (!cancelled) setNearbyPosts(matches);
+        if (!cancelled) {
+          setNearbyPosts(matches);
+          if (bottomTab === 'local') {
+            if (matches.length === 0) {
+              setLocalOfferEmptyCountdown(5);
+              setLocalOfferEmptyOpen(true);
+            } else {
+              setLocalOfferEmptyOpen(false);
+            }
+          }
+        }
       } catch {
-        if (!cancelled) setNearbyPosts([]);
+        if (!cancelled) {
+          setNearbyPosts([]);
+          if (bottomTab === 'local') {
+            setLocalOfferEmptyCountdown(5);
+            setLocalOfferEmptyOpen(true);
+          }
+        }
       }
     };
 
     loadNearbyOffers();
     return () => { cancelled = true; };
-  }, [registrationOpen, posts, locationRefreshKey]);
+  }, [registrationOpen, posts, locationRefreshKey, bottomTab]);
 
   useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
@@ -868,6 +886,11 @@ export default function App() {
   };
 
 
+  const closeLocalOfferEmptyPopup = () => {
+    setLocalOfferEmptyOpen(false);
+    setLocalOfferEmptyCountdown(5);
+  };
+
 
   const submitOfferRequest = async () => {
     const name = offerRequestName.trim();
@@ -1013,6 +1036,24 @@ export default function App() {
       </View>
     </View>
   ) : null;
+  useEffect(() => {
+    if (!localOfferEmptyOpen) return;
+
+    setLocalOfferEmptyCountdown(5);
+    const timer = setInterval(() => {
+      setLocalOfferEmptyCountdown(current => {
+        if (current <= 1) {
+          clearInterval(timer);
+          setLocalOfferEmptyOpen(false);
+          return 5;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [localOfferEmptyOpen]);
+
   useEffect(() => {
     if (!infoPage) {
       setBloggerInfoData(null);
@@ -1605,6 +1646,28 @@ export default function App() {
       </View>
 
       <Modal
+        visible={localOfferEmptyOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeLocalOfferEmptyPopup}
+      >
+        <View style={styles.localOfferEmptyOverlay}>
+          <View style={styles.localOfferEmptyPopup}>
+            <Text style={styles.localOfferEmptyTitle}>No offer found nearby</Text>
+            <Text style={styles.localOfferEmptyText}>
+              No local offers found in your nearby area right now. Please check again later.
+            </Text>
+            <TouchableOpacity
+              style={styles.registrationButton}
+              onPress={closeLocalOfferEmptyPopup}
+            >
+              <Text style={styles.registrationButtonText}>Close ({localOfferEmptyCountdown})</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={locationPromptOpen}
         transparent
         animationType="fade"
@@ -1844,6 +1907,10 @@ const styles = StyleSheet.create({
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
   bottomNavLabelDark: { color: '#eeeeee' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  localOfferEmptyOverlay: { ...StyleSheet.absoluteFill, zIndex: 290, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  localOfferEmptyPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  localOfferEmptyTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
+  localOfferEmptyText: { color: MUTED, fontSize: 13, lineHeight: 20, marginBottom: 16 },
   locationPromptPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   locationPromptTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
   locationPromptText: { color: MUTED, fontSize: 13, lineHeight: 20, marginBottom: 16 },
