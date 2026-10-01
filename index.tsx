@@ -460,7 +460,7 @@ export default function App() {
         numColumns={2}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         ListHeaderComponent={
           <>
