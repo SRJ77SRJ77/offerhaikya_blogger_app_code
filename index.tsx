@@ -369,8 +369,7 @@ export default function App() {
 
             return post;
           })
-          .filter((post): post is Post => Boolean(post))
-          .slice(0, 1);
+          .filter((post): post is Post => Boolean(post));
 
         if (!cancelled) setNearbyPosts(matches);
       } catch {
