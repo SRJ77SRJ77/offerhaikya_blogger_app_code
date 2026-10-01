@@ -306,14 +306,29 @@ export default function App() {
         };
         setUserLocation(coords);
 
+        let detectedLocationTerms: string[] = [];
+        let detectedLocationLabel = '';
+
         try {
           const places = await Location.reverseGeocodeAsync(coords);
           const place = places?.[0];
-          const label = place?.city || place?.district || place?.subregion || '';
-          const terms = buildLocationTerms(place);
+          detectedLocationLabel = place?.district || place?.city || place?.subregion || place?.region || '';
+          detectedLocationTerms = buildLocationTerms(place);
+
+          if (detectedLocationLabel && /belagavi|belgaum|belgaon/i.test(detectedLocationLabel)) {
+            detectedLocationTerms = Array.from(new Set([
+              ...detectedLocationTerms,
+              'belagavi',
+              'belgaum',
+              'belgaon',
+              'belagavi district',
+              'belgaum district',
+            ]));
+          }
+
           if (!cancelled) {
-            setLocationLabel(label);
-            setLocationTerms(terms);
+            setLocationLabel(detectedLocationLabel);
+            setLocationTerms(detectedLocationTerms);
           }
         } catch {
           if (!cancelled) {
@@ -331,7 +346,7 @@ export default function App() {
               [post.title, post.url, post.label, ...post.labels, post.rawContent, post.content, post.excerpt].join(' '),
             );
 
-            const locationMatch = locationTerms.some(term => {
+            const locationMatch = detectedLocationTerms.some(term => {
               const normalizedTerm = normalizeLocationText(term);
               return normalizedTerm && searchable.includes(normalizedTerm);
             });
@@ -1088,10 +1103,14 @@ export default function App() {
                   </Text>
                   <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
                 </View>
-                <View>
+                <View style={styles.nearbyGrid}>
                   {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
                     <View style={styles.row} key={'nearby-row-' + rowIndex}>
-                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => (
+                        <View style={styles.nearbyGridItem} key={'nearby-' + item.id}>
+                          {renderPost({ item })}
+                        </View>
+                      ))}
                     </View>
                   ))}
                 </View>
@@ -1224,6 +1243,9 @@ const styles = StyleSheet.create({
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
+  nearbyGrid: { width: '100%' },
+  nearbyGridItem: { width: '50%' },
+
   card: { width: '47.5%', marginHorizontal: 6, marginBottom: 14, backgroundColor: WHITE, borderRadius: 8, overflow: 'hidden', position: 'relative', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
