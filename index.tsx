@@ -35,7 +35,7 @@ const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 500;
 const AUTO_SYNC_INTERVAL_MS = 30000;
-const LOCATION_RETRY_MS = 10 * 60 * 1000;
+const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -699,14 +699,7 @@ export default function App() {
     scheduleLocationPromptRetry();
   };
 
-  const postponeLocationPrompt = () => {
-    setLocationPromptOpen(false);
-    if (locationAutoTimerRef.current) clearTimeout(locationAutoTimerRef.current);
-    locationAutoTimerRef.current = setTimeout(() => {
-      locationAutoTimerRef.current = null;
-      setLocationPromptOpen(true);
-    }, LOCATION_RETRY_MS);
-  };
+
 
   const submitOfferRequest = async () => {
     const name = offerRequestName.trim();
