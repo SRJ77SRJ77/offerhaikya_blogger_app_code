@@ -2030,16 +2030,16 @@ export default function App() {
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
                     <View style={styles.instagramLogo}><View style={styles.instagramLens} /><View style={styles.instagramDot} /></View>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.youtube.com/@offerhaikya')} accessibilityLabel="YouTube">
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="YouTube">
                     <View style={styles.youtubeLogo}><View style={styles.youtubePlay} /></View>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.facebook.com/offerhaikya/')} accessibilityLabel="Facebook">
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Facebook">
                     <Text style={styles.facebookLogo}>f</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.linkedin.com/company/offerhaikya/')} accessibilityLabel="LinkedIn">
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="LinkedIn">
                     <Text style={styles.linkedinLogo}>in</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://x.com/offerhaikya')} accessibilityLabel="X">
+                  <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="X">
                     <Text style={styles.xLogo}>𝕏</Text>
                   </TouchableOpacity>
                 </View>
