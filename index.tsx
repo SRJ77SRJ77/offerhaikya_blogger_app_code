@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
+import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
+const NEARBY_RADIUS_KM = 30;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -41,6 +43,7 @@ type Post = {
   url: string;
   date: string;
   label: string;
+  labels: string[];
   image?: string;
   excerpt: string;
   content: string;
@@ -95,6 +98,21 @@ const formatDate = (value: string) => {
   });
 };
 
+const distanceKm = (
+  first: { latitude: number; longitude: number },
+  second: { latitude: number; longitude: number },
+) => {
+  const earthRadiusKm = 6371;
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const dLat = toRadians(second.latitude - first.latitude);
+  const dLon = toRadians(second.longitude - first.longitude);
+  const lat1 = toRadians(first.latitude);
+  const lat2 = toRadians(second.latitude);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
+};
+
 const parseFeed = (data: any): Post[] => {
   const entries = data?.feed?.entry || [];
   return entries.map((entry: any, index: number) => {
@@ -109,6 +127,7 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       label: labels[0] || 'Offers',
+      labels,
       image: firstImage(content) || highResImage(entry.media$thumbnail?.url),
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
@@ -161,6 +180,9 @@ export default function App() {
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationLabel, setLocationLabel] = useState('');
+  const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -189,6 +211,76 @@ export default function App() {
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
+
+  useEffect(() => {
+    if (registrationOpen) return;
+
+    let cancelled = false;
+
+    const loadNearbyOffers = async () => {
+      try {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status !== 'granted') {
+          if (!cancelled) {
+            setUserLocation(null);
+            setLocationLabel('');
+            setNearbyPosts([]);
+          }
+          return;
+        }
+
+        const current = await Location.getLastKnownPositionAsync({
+          maxAge: 5 * 60 * 1000,
+          requiredAccuracy: 5000,
+        }) || await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (cancelled) return;
+
+        const coords = {
+          latitude: current.coords.latitude,
+          longitude: current.coords.longitude,
+        };
+        setUserLocation(coords);
+
+        try {
+          const places = await Location.reverseGeocodeAsync(coords);
+          const place = places?.[0];
+          const label = place?.city || place?.district || place?.subregion || '';
+          if (!cancelled) setLocationLabel(label);
+        } catch {
+          if (!cancelled) setLocationLabel('');
+        }
+
+        const response = await fetch(FEED_URL + '?alt=json&max-results=100');
+        if (!response.ok) throw new Error('Unable to load nearby offers');
+        const allPosts = parseFeed(await response.json());
+
+        const matches = allPosts
+          .map(post => {
+            const postLocation = extractMapCoordinates(post.rawContent);
+            if (!postLocation) return null;
+            return {
+              post,
+              distance: distanceKm(coords, postLocation),
+            };
+          })
+          .filter((item): item is { post: Post; distance: number } =>
+            Boolean(item) && item.distance <= NEARBY_RADIUS_KM,
+          )
+          .sort((a, b) => a.distance - b.distance)
+          .map(item => item.post);
+
+        if (!cancelled) setNearbyPosts(matches);
+      } catch {
+        if (!cancelled) setNearbyPosts([]);
+      }
+    };
+
+    loadNearbyOffers();
+    return () => { cancelled = true; };
+  }, [registrationOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -387,7 +479,7 @@ export default function App() {
     }  };
 
   const renderPost = ({ item }: { item: Post }) => (
-    <TouchableOpacity activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
+    <TouchableOpacity key={item.id} activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
       <TouchableOpacity style={styles.cardHeart} onPress={() => toggleFavorite(item)}>
         <Text style={styles.cardHeartText}>{isFavorite(item) ? '♥' : '♡'}</Text>
       </TouchableOpacity>
@@ -890,6 +982,24 @@ export default function App() {
             </ImageBackground>
 
 
+
+            {userLocation && nearbyPosts.length > 0 ? (
+              <>
+                <View style={styles.sectionRow}>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
+                    Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
+                  </Text>
+                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
+                </View>
+                <View>
+                  {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
+                    <View style={styles.row} key={'nearby-row-' + rowIndex}>
+                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                    </View>
+                  ))}
+                </View>
+              </>
+            ) : null}
 
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers</Text>
