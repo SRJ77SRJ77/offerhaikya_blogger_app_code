@@ -355,9 +355,6 @@ export default function App() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <View pointerEvents="none" style={styles.scrollHint}>
-            <Text style={styles.scrollHintText}>›</Text>
-          </View>
         </View>
 
       <FlatList
@@ -504,13 +501,11 @@ const styles = StyleSheet.create({
   searchNoResult: { padding: 16, color: MUTED, fontSize: 13 },
   tagStrip: { backgroundColor: ACCENT, position: 'relative' },
   chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 9, backgroundColor: '#3a3a3a', borderWidth: 1, borderColor: '#4a4a4a' },
-  activeChip: { backgroundColor: ACCENT, borderColor: ACCENT },
+  chip: { paddingHorizontal: 5, paddingVertical: 8, backgroundColor: 'transparent' },
+  activeChip: { backgroundColor: 'transparent' },
   chipText: { color: WHITE, fontSize: 12, fontWeight: '800' },
   activeChipText: { color: WHITE },
-  scrollHint: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: ACCENT },
-  scrollHintText: { color: WHITE, fontSize: 25, fontWeight: '900' },
-  sectionRow: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    sectionRow: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { paddingHorizontal: 10, justifyContent: 'space-between' },
