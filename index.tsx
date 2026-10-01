@@ -31,7 +31,7 @@ const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
-const NEARBY_RADIUS_KM = 30;
+const NEARBY_RADIUS_KM = 500;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -360,7 +360,10 @@ export default function App() {
               return matchesTitle || matchesTags;
             });
 
-            if (!locationMatch) return null;
+            const postLocation = extractMapCoordinates(post.rawContent);
+            const distanceMatch = postLocation ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM : false;
+
+            if (!locationMatch && !distanceMatch) return null;
 
             return post;
           })
