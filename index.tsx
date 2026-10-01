@@ -129,6 +129,7 @@ export default function App() {
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
+  const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -175,12 +176,24 @@ export default function App() {
   }, [query, loadPosts]);
 
   useEffect(() => {
+    let paused = false;
+    const pauseAutoScroll = () => {
+      paused = true;
+      if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
+      tagPauseRef.current = setTimeout(() => {
+        paused = false;
+      }, 4500);
+    };
     const timer = setInterval(() => {
+      if (paused) return;
       const next = tagOffsetRef.current + 110;
       tagOffsetRef.current = next > 900 ? 0 : next;
       tagScrollRef.current?.scrollTo({ x: tagOffsetRef.current, animated: true });
     }, 3200);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
+    };
   }, []);
 
   const labels = useMemo(() => {
@@ -315,6 +328,38 @@ export default function App() {
         </View>
       )}
 
+      <View style={darkMode ? styles.darkPage : styles.pageWrap}>
+        <View style={styles.tagStrip}>
+          <ScrollView
+            ref={tagScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chips}
+            onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
+            onTouchStart={() => {
+              if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
+              tagPauseRef.current = setTimeout(() => {}, 4500);
+            }}
+            scrollEventThrottle={16}
+          >
+            {DIRECT_TAGS.map(item => (
+              <TouchableOpacity
+                key={item}
+                onPress={() => {
+                  setActiveLabel(item);
+                  loadPosts(item === 'All' ? '' : item, 1);
+                }}
+                style={[styles.chip, activeLabel === item && styles.activeChip]}
+              >
+                <Text style={styles.chipText}>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <View pointerEvents="none" style={styles.scrollHint}>
+            <Text style={styles.scrollHintText}>›</Text>
+          </View>
+        </View>
+
       <FlatList
         style={darkMode ? styles.listDark : undefined}
         data={visiblePosts}
@@ -379,32 +424,7 @@ export default function App() {
               )}
             </ImageBackground>
 
-            <View style={styles.tagStrip}>
-              <ScrollView
-                ref={tagScrollRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chips}
-                onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
-                scrollEventThrottle={16}
-              >
-                {DIRECT_TAGS.map(item => (
-                  <TouchableOpacity
-                    key={item}
-                    onPress={() => {
-                      setActiveLabel(item);
-                      loadPosts(item === 'All' ? '' : item, 1);
-                    }}
-                    style={[styles.chip, activeLabel === item && styles.activeChip]}
-                  >
-                    <Text style={styles.chipText}>{item}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <View pointerEvents="none" style={styles.scrollHint}>
-                <Text style={styles.scrollHintText}>›</Text>
-              </View>
-            </View>
+
 
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Latest offers</Text>
@@ -447,6 +467,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
+  pageWrap: { flex: 1, backgroundColor: PAGE },
+  darkPage: { flex: 1, backgroundColor: '#171717' },
   header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
   headerDark: { backgroundColor: '#171717', borderBottomColor: '#2b2b2b' },
   headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -479,13 +501,13 @@ const styles = StyleSheet.create({
   searchSuggestionTitle: { color: TEXT, fontSize: 14, fontWeight: '800' },
   searchSuggestionLabel: { color: MUTED, fontSize: 11, marginTop: 3 },
   searchNoResult: { padding: 16, color: MUTED, fontSize: 13 },
-  tagStrip: { backgroundColor: '#242424', position: 'relative' },
+  tagStrip: { backgroundColor: ACCENT, position: 'relative' },
   chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 9, backgroundColor: '#3a3a3a', borderWidth: 1, borderColor: '#4a4a4a' },
   activeChip: { backgroundColor: ACCENT, borderColor: ACCENT },
   chipText: { color: WHITE, fontSize: 12, fontWeight: '800' },
   activeChipText: { color: WHITE },
-  scrollHint: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: '#242424' },
+  scrollHint: { position: 'absolute', right: 0, top: 0, bottom: 0, width: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: ACCENT },
   scrollHintText: { color: WHITE, fontSize: 25, fontWeight: '900' },
   sectionRow: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
