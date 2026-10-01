@@ -8,6 +8,7 @@ import {
   Image,
   ImageBackground,
   Linking,
+  Modal,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -206,6 +207,14 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [locationRefreshKey, setLocationRefreshKey] = useState(0);
+  const [offerRequestOpen, setOfferRequestOpen] = useState(false);
+  const [offerRequestName, setOfferRequestName] = useState('');
+  const [offerRequestContact, setOfferRequestContact] = useState('');
+  const [offerRequestText, setOfferRequestText] = useState('');
+  const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
+  const [offerRequestError, setOfferRequestError] = useState('');
+  const mainListRef = useRef<FlatList<Post>>(null);
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
@@ -383,7 +392,7 @@ export default function App() {
 
     loadNearbyOffers();
     return () => { cancelled = true; };
-  }, [registrationOpen, posts]);
+  }, [registrationOpen, posts, locationRefreshKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -610,6 +619,62 @@ export default function App() {
     } finally {
       setRegistrationSubmitting(false);
     }  };
+
+  const requestLocationPermission = async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status === 'granted') {
+        setLocationRefreshKey(value => value + 1);
+      }
+    } catch {
+      // Ignore permission errors and keep the normal non-location experience.
+    }
+  };
+
+  const submitOfferRequest = async () => {
+    const name = offerRequestName.trim();
+    const contact = offerRequestContact.trim();
+    const request = offerRequestText.trim();
+
+    if (!/^[A-Za-z ]{3,12}$/.test(name)) {
+      setOfferRequestError('Name must be 3-12 letters.');
+      return;
+    }
+    if (!/^\d{10}$/.test(contact)) {
+      setOfferRequestError('Enter a valid 10-digit Indian phone number.');
+      return;
+    }
+    if (request.length < 5) {
+      setOfferRequestError('Please describe the offer you are looking for.');
+      return;
+    }
+
+    try {
+      setOfferRequestSubmitting(true);
+      setOfferRequestError('');
+      const response = await fetch(REGISTRATION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          type: 'offer_request',
+          name,
+          contact: '91' + contact,
+          offerRequest: request,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Request failed');
+
+      setOfferRequestOpen(false);
+      setOfferRequestName('');
+      setOfferRequestContact('');
+      setOfferRequestText('');
+    } catch {
+      setOfferRequestError('Could not send the request. Please try again.');
+    } finally {
+      setOfferRequestSubmitting(false);
+    }
+  };
 
   const renderPost = ({ item }: { item: Post }) => (
     <TouchableOpacity key={item.id} activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
@@ -1074,6 +1139,7 @@ export default function App() {
         </View>
 
       <FlatList
+        ref={mainListRef}
         style={darkMode ? styles.listDark : undefined}
         extraData={darkMode}
         data={visiblePosts}
@@ -1217,6 +1283,105 @@ export default function App() {
         }
       />
       </View>
+      <View pointerEvents="box-none" style={styles.floatingButtons}>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => mainListRef.current?.scrollToOffset({ offset: 0, animated: true })}
+          accessibilityLabel="Scroll to top"
+        >
+          <Text style={styles.floatingButtonText}>↑</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={requestLocationPermission}
+          accessibilityLabel="Enable location"
+        >
+          <Text style={styles.floatingButtonText}>⌖</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => {
+            setOfferRequestError('');
+            setOfferRequestOpen(true);
+          }}
+          accessibilityLabel="Send offer request"
+        >
+          <Text style={styles.floatingButtonText}>✉</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        visible={offerRequestOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOfferRequestOpen(false)}
+      >
+        <View style={styles.offerRequestOverlay}>
+          <TouchableOpacity
+            style={styles.offerRequestBackdrop}
+            activeOpacity={1}
+            onPress={() => setOfferRequestOpen(false)}
+          />
+          <View style={styles.offerRequestPopup}>
+            <View style={styles.offerRequestHeader}>
+              <Text style={styles.offerRequestTitle}>User Offers Requests</Text>
+              <TouchableOpacity onPress={() => setOfferRequestOpen(false)} style={styles.offerRequestClose}>
+                <Text style={styles.offerRequestCloseText}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              value={offerRequestName}
+              onChangeText={value => setOfferRequestName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
+              placeholder="Name *"
+              placeholderTextColor="#99969c"
+              style={styles.registrationInput}
+              autoCapitalize="words"
+              maxLength={12}
+              editable={!offerRequestSubmitting}
+            />
+            <View style={styles.phoneInputWrap}>
+              <Text style={styles.phonePrefix}>+91</Text>
+              <TextInput
+                value={offerRequestContact}
+                onChangeText={value => setOfferRequestContact(value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10-digit phone number *"
+                placeholderTextColor="#99969c"
+                style={styles.phoneInput}
+                keyboardType="phone-pad"
+                maxLength={10}
+                editable={!offerRequestSubmitting}
+              />
+            </View>
+            <TextInput
+              value={offerRequestText}
+              onChangeText={setOfferRequestText}
+              placeholder="Offer request *"
+              placeholderTextColor="#99969c"
+              style={[styles.offerRequestInput, styles.offerRequestInputMultiline]}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              editable={!offerRequestSubmitting}
+            />
+
+            {offerRequestError ? <Text style={styles.registrationError}>{offerRequestError}</Text> : null}
+
+            <TouchableOpacity
+              style={[styles.registrationButton, offerRequestSubmitting && styles.disabledButton]}
+              onPress={submitOfferRequest}
+              disabled={offerRequestSubmitting}
+            >
+              {offerRequestSubmitting ? (
+                <ActivityIndicator size="small" color={WHITE} />
+              ) : (
+                <Text style={styles.registrationButtonText}>Send Request</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     {favoritePopup}
     </SafeAreaView>
   );
@@ -1329,6 +1494,18 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
+  floatingButtons: { position: 'absolute', right: 14, bottom: 18, zIndex: 140, alignItems: 'center', gap: 10 },
+  floatingButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  floatingButtonText: { color: WHITE, fontSize: 22, fontWeight: '900' },
+  offerRequestOverlay: { ...StyleSheet.absoluteFill, zIndex: 300, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  offerRequestBackdrop: { ...StyleSheet.absoluteFill },
+  offerRequestPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18, zIndex: 2 },
+  offerRequestHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  offerRequestTitle: { color: TEXT, fontSize: 20, fontWeight: '900', flex: 1 },
+  offerRequestClose: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  offerRequestCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
+  offerRequestInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 12, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
+  offerRequestInputMultiline: { minHeight: 110 },
   favoriteOverlay: { ...StyleSheet.absoluteFill, zIndex: 150, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   favoriteOverlayBackdrop: { ...StyleSheet.absoluteFill },
   favoritePopup: { width: '100%', maxHeight: '62%', backgroundColor: WHITE, borderRadius: 16, padding: 12, zIndex: 2 },
