@@ -21,6 +21,7 @@ import {
 import RenderHTML from 'react-native-render-html';
 import * as Location from 'expo-location';
 import * as IntentLauncher from 'expo-intent-launcher';
+import Svg, { Path } from 'react-native-svg';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -217,6 +218,7 @@ export default function App() {
   const locationPermissionRequestActiveRef = useRef(false);
   const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
+  const [showTopButton, setShowTopButton] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
   const [offerRequestText, setOfferRequestText] = useState('');
@@ -1344,6 +1346,10 @@ export default function App() {
         data={visiblePosts}
         keyExtractor={item => item.id}
         keyboardShouldPersistTaps="handled"
+        onScroll={event => {
+          setShowTopButton(event.nativeEvent.contentOffset.y > 250);
+        }}
+        scrollEventThrottle={16}
         renderItem={renderPost}
         numColumns={2}
         columnWrapperStyle={styles.row}
@@ -1484,37 +1490,85 @@ export default function App() {
       />
       </View>
       <View pointerEvents="box-none" style={styles.floatingButtons}>
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => mainListRef.current?.scrollToOffset({ offset: 0, animated: true })}
-          accessibilityLabel="Scroll to top"
-        >
-          <Text style={styles.floatingButtonText}>↑</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => {
-            if (locationAutoTimerRef.current) {
-              clearTimeout(locationAutoTimerRef.current);
-              locationAutoTimerRef.current = null;
-            }
-            setLocationPromptOpen(true);
-          }}
-          accessibilityLabel="Enable location"
-        >
-          <Text style={styles.floatingButtonText}>⌖</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => {
-            setOfferRequestError('');
-            setOfferRequestSuccess(false);
-            setOfferRequestOpen(true);
-          }}
-          accessibilityLabel="Send offer request"
-        >
-          <Text style={styles.floatingButtonText}>✉</Text>
-        </TouchableOpacity>
+        {showTopButton ? (
+          <View style={styles.floatingButtonRow}>
+            <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Top</Text>
+            <TouchableOpacity
+              style={styles.floatingButton}
+              onPress={() => mainListRef.current?.scrollToOffset({ offset: 0, animated: true })}
+              accessibilityLabel="Scroll to top"
+            >
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M6 14L12 8L18 14M12 8V20"
+                  stroke={WHITE}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <View style={styles.floatingButtonRow}>
+          <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Location</Text>
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => {
+              if (locationAutoTimerRef.current) {
+                clearTimeout(locationAutoTimerRef.current);
+                locationAutoTimerRef.current = null;
+              }
+              setLocationPromptOpen(true);
+            }}
+            accessibilityLabel="Enable location"
+          >
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+                stroke={WHITE}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+                stroke={WHITE}
+                strokeWidth={2.2}
+              />
+            </Svg>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.floatingButtonRow}>
+          <Text style={[styles.floatingButtonLabel, darkMode && styles.floatingButtonLabelDark]}>Request</Text>
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => {
+              setOfferRequestError('');
+              setOfferRequestSuccess(false);
+              setOfferRequestOpen(true);
+            }}
+            accessibilityLabel="Send offer request"
+          >
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4 5.5H20V18.5H4V5.5Z"
+                stroke={WHITE}
+                strokeWidth={2.2}
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M4.5 6L12 12L19.5 6"
+                stroke={WHITE}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Modal
@@ -1749,7 +1803,10 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
-  floatingButtons: { position: 'absolute', right: 14, bottom: 18, zIndex: 140, alignItems: 'center', gap: 10 },
+  floatingButtons: { position: 'absolute', right: 14, bottom: 18, zIndex: 140, alignItems: 'flex-end', gap: 10 },
+  floatingButtonRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8 },
+  floatingButtonLabel: { backgroundColor: WHITE, color: TEXT, fontSize: 13, fontWeight: '900', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 9, elevation: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
+  floatingButtonLabelDark: { backgroundColor: '#222222', color: WHITE },
   floatingButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   floatingButtonText: { color: WHITE, fontSize: 22, fontWeight: '900' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
