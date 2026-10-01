@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
   headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerIcon: { fontSize: 22, color: TEXT },
   headerIconDark: { color: WHITE },
-  headerLogo: { width: 170, height: 54, marginLeft: 2 },
+  headerLogo: { width: 170, height: 54, marginLeft: 10 },
   headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
   listDark: { backgroundColor: '#000000' },
   detailListDark: { backgroundColor: '#000000' },
