@@ -344,11 +344,15 @@ export default function App() {
         const matches = allPosts
           .map(post => {
             const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
-            const isOfflineOffer = normalizedLabels.some(label =>
-              label === 'offline offers' || label === 'offline offer',
+            const isLocalOffer = normalizedLabels.some(label =>
+              label === 'offline offers'
+              || label === 'offline offer'
+              || label === 'local offers'
+              || label === 'local offer'
+              || label === 'local store',
             );
 
-            if (!isOfflineOffer) return null;
+            if (!isLocalOffer) return null;
 
             const titleText = normalizeLocationText(post.title);
             const tagText = normalizedLabels.join(' ');
