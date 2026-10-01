@@ -29,6 +29,7 @@ const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
+const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbx7Apdb0c9ygD-HnuNot8iKnCSAyEzM9UBKLGxjckOpuYNJbbXEHLapvXijaYm2c8Y-/exec';
 
 type Post = {
   id: string;
@@ -142,6 +143,11 @@ export default function App() {
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [registrationName, setRegistrationName] = useState('');
+  const [registrationContact, setRegistrationContact] = useState('');
+  const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
+  const [registrationError, setRegistrationError] = useState('');
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -247,6 +253,36 @@ export default function App() {
   const goToPage = (nextPage: number) => {
     if (nextPage < 1) return;
     loadPosts(query.trim().length >= 3 ? query : '', nextPage);
+  };
+
+  const submitRegistration = async () => {
+    const name = registrationName.trim();
+    const contact = registrationContact.trim();
+
+    if (!name || !contact) {
+      setRegistrationError('Please enter your name and email/phone.');
+      return;
+    }
+
+    try {
+      setRegistrationSubmitting(true);
+      setRegistrationError('');
+      const response = await fetch(REGISTRATION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name, contact }),
+      });
+
+      if (!response.ok) throw new Error('Registration failed');
+
+      setRegistrationOpen(false);
+      setRegistrationName('');
+      setRegistrationContact('');
+    } catch {
+      setRegistrationError('Could not submit right now. Please try again.');
+    } finally {
+      setRegistrationSubmitting(false);
+    }
   };
 
   const renderPost = ({ item }: { item: Post }) => (
@@ -417,6 +453,53 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+      {registrationOpen && (
+        <View style={styles.registrationOverlay}>
+          <View style={[styles.registrationPopup, darkMode && styles.registrationPopupDark]}>
+            <Text style={[styles.registrationTitle, darkMode && styles.darkText]}>Welcome to OfferHaikya 👋</Text>
+            <Text style={[styles.registrationSubtitle, darkMode && styles.darkMutedText]}>
+              Enter your details to continue.
+            </Text>
+
+            <TextInput
+              value={registrationName}
+              onChangeText={setRegistrationName}
+              placeholder="Name *"
+              placeholderTextColor="#99969c"
+              style={[styles.registrationInput, darkMode && styles.registrationInputDark]}
+              autoCapitalize="words"
+              editable={!registrationSubmitting}
+            />
+            <TextInput
+              value={registrationContact}
+              onChangeText={setRegistrationContact}
+              placeholder="Email / Phone *"
+              placeholderTextColor="#99969c"
+              style={[styles.registrationInput, darkMode && styles.registrationInputDark]}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!registrationSubmitting}
+            />
+
+            {registrationError ? (
+              <Text style={styles.registrationError}>{registrationError}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+              onPress={submitRegistration}
+              disabled={registrationSubmitting}
+            >
+              {registrationSubmitting ? (
+                <ActivityIndicator size="small" color={WHITE} />
+              ) : (
+                <Text style={styles.registrationButtonText}>Continue</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
 
       <View style={[styles.header, darkMode && styles.headerDark]}>
@@ -717,6 +800,17 @@ const styles = StyleSheet.create({
   favoriteRemoveText: { color: '#d22', fontSize: 25, lineHeight: 27, fontWeight: '700' },
   favoriteBadge: { position: 'absolute', top: 1, right: 1, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: WHITE },
   favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
+
+  registrationOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.62)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  registrationPopup: { width: '100%', maxWidth: 420, backgroundColor: WHITE, borderRadius: 18, padding: 20, elevation: 14, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } },
+  registrationPopupDark: { backgroundColor: '#1b1b1b' },
+  registrationTitle: { color: TEXT, fontSize: 22, lineHeight: 28, fontWeight: '900' },
+  registrationSubtitle: { color: MUTED, fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 16 },
+  registrationInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
+  registrationInputDark: { borderColor: '#3a3a3a', color: WHITE, backgroundColor: '#252525' },
+  registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', marginTop: 3 },
+  registrationButtonText: { color: WHITE, fontSize: 15, fontWeight: '900' },
+  registrationError: { color: '#d22', fontSize: 12, marginBottom: 10, fontWeight: '700' },
 
   footer: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 18, fontWeight: '900' },
