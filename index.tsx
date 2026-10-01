@@ -385,10 +385,11 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
-    const loadBloggerCategories = async () => {
+    const syncBloggerCategories = async () => {
       try {
         const response = await fetch(FEED_URL + '?alt=json&max-results=500');
         if (!response.ok) throw new Error('Unable to load Blogger categories');
+
         const data = await response.json();
         const entries = data?.feed?.entry || [];
         const seen = new Set<string>();
@@ -405,17 +406,27 @@ export default function App() {
           });
         });
 
-        if (!cancelled && categories.length > 0) {
+        if (!cancelled) {
           setBloggerCategories(categories);
           setBloggerTags(categories);
         }
       } catch {
-        // Keep the existing menu categories as a safe fallback.
+        // Keep fallback categories/tags when Blogger is temporarily unavailable.
       }
     };
 
-    loadBloggerCategories();
-    return () => { cancelled = true; };
+    syncBloggerCategories();
+
+    const interval = setInterval(syncBloggerCategories, AUTO_SYNC_INTERVAL_MS);
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') syncBloggerCategories();
+    });
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -720,7 +731,17 @@ export default function App() {
     };
 
     loadBloggerInfoPage();
-    return () => { cancelled = true; };
+
+    const interval = setInterval(loadBloggerInfoPage, AUTO_SYNC_INTERVAL_MS);
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') loadBloggerInfoPage();
+    });
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, [infoPage]);
 
   if (infoPage) {
