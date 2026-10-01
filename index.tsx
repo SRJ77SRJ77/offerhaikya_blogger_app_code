@@ -410,19 +410,23 @@ export default function App() {
         const permission = await Location.getForegroundPermissionsAsync();
         const servicesEnabled = await Location.hasServicesEnabledAsync();
 
-        // Everything is ready: do not ask.
-        if (permission.status === 'granted' && servicesEnabled) return;
+        // Location is fully ready: refresh nearby offers and do not ask.
+        if (permission.status === 'granted' && servicesEnabled) {
+          setLocationRefreshKey(value => value + 1);
+          return;
+        }
 
-        // If the user has snoozed the prompt, keep checking silently.
+        // User chose "No": stay silent for 5 minutes.
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
-        // If the OS will no longer show a permission request and access is not
-        // granted, stay quiet until the user explicitly uses the location button.
+        // Permission was permanently denied. Let the user use the location
+        // button to open Settings instead of repeatedly showing this prompt.
         if (permission.status !== 'granted' && permission.canAskAgain === false) return;
 
+        // Location is off or permission is not granted: show our existing box.
         setLocationPromptOpen(true);
       } catch {
-        // Stay silent if location services or permission state cannot be checked.
+        // Stay silent if location state cannot be checked.
       }
     };
 
