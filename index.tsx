@@ -945,6 +945,7 @@ export default function App() {
 
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(true);
+      setBottomTab(null);
 
       setTimeout(() => {
         setOfferRequestOpen(false);
@@ -1894,7 +1895,10 @@ export default function App() {
         transparent
         animationType="fade"
         onRequestClose={() => {
-          if (!offerRequestSuccess) setOfferRequestOpen(false);
+          if (!offerRequestSuccess) {
+            setOfferRequestOpen(false);
+            setBottomTab(null);
+          }
         }}
       >
         <View style={styles.offerRequestOverlay}>
@@ -1902,7 +1906,10 @@ export default function App() {
             style={styles.offerRequestBackdrop}
             activeOpacity={1}
             onPress={() => {
-              if (!offerRequestSubmitting && !offerRequestSuccess) setOfferRequestOpen(false);
+              if (!offerRequestSubmitting && !offerRequestSuccess) {
+                setOfferRequestOpen(false);
+                setBottomTab(null);
+              }
             }}
           />
           <View style={styles.offerRequestPopup}>
@@ -1910,7 +1917,10 @@ export default function App() {
               <Text style={styles.offerRequestTitle}>User Offers Requests</Text>
               <TouchableOpacity
                 onPress={() => {
-                  if (!offerRequestSubmitting && !offerRequestSuccess) setOfferRequestOpen(false);
+                  if (!offerRequestSubmitting && !offerRequestSuccess) {
+                    setOfferRequestOpen(false);
+                    setBottomTab(null);
+                  }
                 }}
                 style={styles.offerRequestClose}
                 disabled={offerRequestSubmitting || offerRequestSuccess}
