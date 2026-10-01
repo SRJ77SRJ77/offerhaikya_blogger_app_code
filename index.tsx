@@ -32,6 +32,7 @@ const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
+const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbx7Apdb0c9ygD-HnuNot8iKnCSAyEzM9UBKLGxjckOpuYNJbbXEHLapvXijaYm2c8Y-/exec';
 
 type Post = {
@@ -602,6 +603,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuList}>
+              <Text style={styles.menuSectionTitle}>Categories</Text>
               {CATEGORY_ITEMS.map(label => (
                 <TouchableOpacity
                   key={label}
@@ -616,6 +618,27 @@ export default function App() {
                   <Text style={[styles.menuArrow, activeLabel === label && styles.menuItemActive]}>›</Text>
                 </TouchableOpacity>
               ))}
+              <Text style={styles.menuSectionTitle}>Special Deal Categories</Text>
+              {SPECIAL_DEAL_ITEMS.map(label => (
+                <TouchableOpacity
+                  key={label}
+                  style={[styles.menuItem, activeLabel === label && styles.menuItemActiveBg]}
+                  onPress={() => {
+                    setActiveLabel(label);
+                    loadPosts(label, 1);
+                    closeMenu();
+                  }}
+                >
+                  <Text style={[styles.menuItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
+                  <Text style={[styles.menuArrow, activeLabel === label && styles.menuItemActive]}>›</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); Linking.openURL('https://www.offerhaikya.com/p/about-us.html'); }}>
+                <Text style={styles.menuItemText}>About Us</Text><Text style={styles.menuArrow}>›</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { closeMenu(); Linking.openURL('https://www.offerhaikya.com/p/contact-us.html'); }}>
+                <Text style={styles.menuItemText}>Contact Us</Text><Text style={styles.menuArrow}>›</Text>
+              </TouchableOpacity>
             </ScrollView>
           </Animated.View>
         </View>
@@ -778,6 +801,7 @@ const styles = StyleSheet.create({
   menuPanel: { width: 300, maxWidth: '82%', height: '100%', backgroundColor: WHITE, elevation: 14, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 5, height: 0 } },
   menuHeader: { minHeight: 72, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   menuTitle: { fontSize: 20, fontWeight: '900', color: TEXT },
+  menuSectionTitle: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, color: TEXT, fontSize: 13, fontWeight: '900' },
   menuCloseButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   menuCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
   menuList: { paddingVertical: 8, paddingBottom: 28 },
