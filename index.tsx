@@ -228,7 +228,7 @@ export default function App() {
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
-  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'request' | null>(null);
+  const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'search' | 'request' | null>(null);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -857,7 +857,7 @@ export default function App() {
     scheduleLocationPromptRetry();
   };
 
-  const activateBottomTabFor5Sec = (tab: 'home' | 'local' | 'request') => {
+  const activateBottomTabFor5Sec = (tab: 'home' | 'local' | 'search' | 'request') => {
     setBottomTab(tab);
 
     if (bottomTabResetTimerRef.current) {
@@ -881,6 +881,18 @@ export default function App() {
     setPage(1);
     loadPosts('', 1);
     mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const goToSearchTab = () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
+    activateBottomTabFor5Sec('search');
+
+    setTimeout(() => {
+      mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      searchInputRef.current?.focus();
+    }, 300);
   };
 
   const goToLocalOffersTab = async () => {
@@ -1303,6 +1315,27 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={styles.infoBottomNavItem}
+            onPress={goToSearchTab}
+            accessibilityLabel="Search"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={TEXT}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <Text style={styles.infoBottomNavLabel}>Search</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
             disabled={localOffersDisabled}
@@ -1506,6 +1539,29 @@ export default function App() {
             </Svg>
             <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
               Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+            onPress={goToSearchTab}
+            accessibilityLabel="Search"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Search
             </Text>
           </TouchableOpacity>
 
@@ -1937,6 +1993,29 @@ export default function App() {
           </Svg>
           <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
             Home
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+          onPress={goToSearchTab}
+          accessibilityLabel="Search"
+        >
+          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+              stroke={bottomTab === 'search' ? ACCENT : TEXT}
+              strokeWidth={2}
+            />
+            <Path
+              d="M16.5 16.5L21 21"
+              stroke={bottomTab === 'search' ? ACCENT : TEXT}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          </Svg>
+          <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            Search
           </Text>
         </TouchableOpacity>
 
