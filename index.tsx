@@ -828,6 +828,7 @@ export default function App() {
         extraData={darkMode}
         data={visiblePosts}
         keyExtractor={item => item.id}
+        keyboardShouldPersistTaps="handled"
         renderItem={renderPost}
         numColumns={2}
         columnWrapperStyle={styles.row}
@@ -870,7 +871,6 @@ export default function App() {
                         key={item.id}
                         style={styles.searchSuggestion}
                         onPress={() => {
-                          setQuery('');
                           setSuggestions([]);
                           setDetail(item);
                         }}
