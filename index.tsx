@@ -413,7 +413,10 @@ export default function App() {
     };
 
     loadNearbyOffers();
-    return () => { cancelled = true;   useEffect((): void | (() => void) => {
+    return () => { cancelled = true; };
+  }, [registrationOpen, posts, locationRefreshKey]);
+
+  useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
       return;
     }
