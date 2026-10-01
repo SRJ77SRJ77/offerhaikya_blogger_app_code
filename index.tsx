@@ -470,9 +470,9 @@ export default function App() {
     <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
       {registrationOpen && (
         <View style={styles.registrationOverlay}>
-          <View style={[styles.registrationPopup, darkMode && styles.registrationPopupDark]}>
-            <Text style={[styles.registrationTitle, darkMode && styles.darkText]}>Welcome to OfferHaikya 👋</Text>
-            <Text style={[styles.registrationSubtitle, darkMode && styles.darkMutedText]}>
+          <View style={styles.registrationPopup}>
+            <Text style={styles.registrationTitle}>Welcome to OfferHaikya 👋</Text>
+            <Text style={styles.registrationSubtitle}>
               Enter your details to continue.
             </Text>
 
@@ -481,19 +481,19 @@ export default function App() {
               onChangeText={value => setRegistrationName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
               placeholder="Name *"
               placeholderTextColor="#99969c"
-              style={[styles.registrationInput, darkMode && styles.registrationInputDark]}
+              style={styles.registrationInput}
               autoCapitalize="words"
               maxLength={12}
               editable={!registrationSubmitting}
             />
-            <View style={[styles.phoneInputWrap, darkMode && styles.registrationInputDark]}>
-              <Text style={[styles.phonePrefix, darkMode && styles.darkText]}>+91</Text>
+            <View style={styles.phoneInputWrap}>
+              <Text style={styles.phonePrefix}>+91</Text>
               <TextInput
                 value={registrationContact}
                 onChangeText={value => setRegistrationContact(value.replace(/\D/g, '').slice(0, 10))}
                 placeholder="10-digit phone number *"
                 placeholderTextColor="#99969c"
-                style={[styles.phoneInput, darkMode && styles.phoneInputDark]}
+                style={styles.phoneInput}
                 keyboardType="phone-pad"
                 maxLength={10}
                 editable={!registrationSubmitting}
@@ -521,10 +521,10 @@ export default function App() {
                 onPress={() => setRegistrationOpen(false)}
                 disabled={registrationSubmitting}
               >
-                <Text style={[styles.registrationSkipText, darkMode && styles.darkMutedText]}>Skip for now</Text>
+                <Text style={styles.registrationSkipText}>Skip for now</Text>
               </TouchableOpacity>
             ) : (
-              <Text style={[styles.registrationWaitText, darkMode && styles.darkMutedText]}>Skip available in 5 seconds</Text>
+              <Text style={styles.registrationWaitText}>Skip available in 5 seconds</Text>
             )}
           </View>
         </View>
@@ -807,3 +807,43 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
+  favoriteOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 150, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  favoriteOverlayBackdrop: { ...StyleSheet.absoluteFillObject },
+  favoritePopup: { width: '100%', maxHeight: '78%', backgroundColor: WHITE, borderRadius: 16, padding: 16, zIndex: 2 },
+  favoritePopupDark: { backgroundColor: '#222222' },
+  favoritePopupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  favoritePopupTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
+  favoritePopupCount: { color: MUTED, fontSize: 12, marginTop: 3 },
+  favoriteClose: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  favoriteCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
+  favoriteEmpty: { alignItems: 'center', paddingVertical: 36, paddingHorizontal: 16 },
+  favoriteList: { paddingBottom: 4 },
+  favoriteItem: { minHeight: 76, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee', paddingVertical: 9 },
+  favoriteItemDark: { borderBottomColor: '#333333' },
+  favoriteItemMain: { flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 },
+  favoriteItemImage: { width: 58, height: 58, borderRadius: 9, backgroundColor: '#eeeeee' },
+  favoriteItemFallback: { color: WHITE, fontSize: 12, fontWeight: '900' },
+  favoriteItemText: { flex: 1, marginLeft: 10, minWidth: 0 },
+  favoriteItemTitle: { color: TEXT, fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  favoriteItemLabel: { color: ACCENT, fontSize: 10, fontWeight: '800', marginTop: 4 },
+  favoriteRemove: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  favoriteRemoveText: { color: '#e31b23', fontSize: 24, lineHeight: 24 },
+  favoriteBadge: { position: 'absolute', top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#e31b23', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
+  registrationOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  registrationPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  registrationTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 5 },
+  registrationSubtitle: { color: MUTED, fontSize: 13, lineHeight: 19, marginBottom: 15 },
+  registrationInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
+  phoneInputWrap: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', marginBottom: 11, backgroundColor: WHITE },
+  phonePrefix: { color: TEXT, fontSize: 15, fontWeight: '800', marginRight: 8 },
+  phoneInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 0 },
+  registrationError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
+  registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  registrationButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
+  registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
+  registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
+  footer: { alignItems: 'center', paddingVertical: 24 },
+  footerBrand: { color: TEXT, fontSize: 16, fontWeight: '900' },
+  footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
