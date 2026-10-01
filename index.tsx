@@ -379,10 +379,7 @@ export default function App() {
       <View style={[styles.favoritePopup, darkMode && styles.favoritePopupDark]}>
         <View style={styles.favoritePopupHeader}>
           <View>
-            <Text style={[styles.favoritePopupTitle, darkMode && styles.darkText]}>My Favorites</Text>
-            <Text style={[styles.favoritePopupCount, darkMode && styles.darkMutedText]}>
-              {favorites.length} {favorites.length === 1 ? 'favorite' : 'favorites'}
-            </Text>
+            <Text style={[styles.favoritePopupTitle, darkMode && styles.darkText]}>Favorites</Text>
           </View>
           <TouchableOpacity style={styles.favoriteClose} onPress={() => setWishlistOpen(false)}>
             <Text style={[styles.favoriteCloseText, darkMode && styles.headerIconDark]}>×</Text>
@@ -422,7 +419,6 @@ export default function App() {
                     <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
                       {item.title}
                     </Text>
-                    <Text style={styles.favoriteItemLabel}>{item.label}</Text>
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1088,19 +1084,19 @@ const styles = StyleSheet.create({
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
   favoriteOverlay: { ...StyleSheet.absoluteFill, zIndex: 150, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   favoriteOverlayBackdrop: { ...StyleSheet.absoluteFill },
-  favoritePopup: { width: '100%', maxHeight: '78%', backgroundColor: WHITE, borderRadius: 16, padding: 16, zIndex: 2 },
+  favoritePopup: { width: '100%', maxHeight: '62%', backgroundColor: WHITE, borderRadius: 16, padding: 12, zIndex: 2 },
   favoritePopupDark: { backgroundColor: '#222222' },
-  favoritePopupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  favoritePopupHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   favoritePopupTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   favoritePopupCount: { color: MUTED, fontSize: 12, marginTop: 3 },
   favoriteClose: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   favoriteCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
   favoriteEmpty: { alignItems: 'center', paddingVertical: 36, paddingHorizontal: 16 },
   favoriteList: { paddingBottom: 4 },
-  favoriteItem: { minHeight: 76, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee', paddingVertical: 9 },
+  favoriteItem: { minHeight: 64, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee', paddingVertical: 6 },
   favoriteItemDark: { borderBottomColor: '#333333' },
   favoriteItemMain: { flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 },
-  favoriteItemImage: { width: 58, height: 58, borderRadius: 9, backgroundColor: '#eeeeee' },
+  favoriteItemImage: { width: 52, height: 52, borderRadius: 8, backgroundColor: '#eeeeee' },
   favoriteItemFallback: { color: WHITE, fontSize: 12, fontWeight: '900' },
   favoriteItemText: { flex: 1, marginLeft: 10, minWidth: 0 },
   favoriteItemTitle: { color: TEXT, fontSize: 13, lineHeight: 18, fontWeight: '800' },
