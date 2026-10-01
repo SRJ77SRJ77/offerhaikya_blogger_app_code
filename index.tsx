@@ -1126,6 +1126,7 @@ export default function App() {
         <ScrollView style={darkMode ? styles.detailListDark : undefined} contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}>
           {bloggerInfoData ? (
             <RenderHTML
+              ignoredDomTags={['iframe']}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: bloggerInfoData.html }}
               tagsStyles={{
@@ -1243,6 +1244,7 @@ export default function App() {
             <Text style={[styles.detailTitle, darkMode && styles.darkText]}>{detail.title}</Text>
             <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
             <RenderHTML
+              ignoredDomTags={['iframe']}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
               tagsStyles={{
