@@ -215,6 +215,7 @@ export default function App() {
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
   const locationPermissionRequestActiveRef = useRef(false);
+  const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
   const [offerRequestContact, setOfferRequestContact] = useState('');
@@ -412,10 +413,7 @@ export default function App() {
     };
 
     loadNearbyOffers();
-    return () => { cancelled = true; };
-  }, [registrationOpen, posts, locationRefreshKey]);
-
-  useEffect(() => {
+    return () => { cancelled = true;   useEffect(() => {
     if (registrationOpen || locationAutoStartedRef.current) return;
 
     locationAutoStartedRef.current = true;
@@ -428,22 +426,35 @@ export default function App() {
 
         const permission = await Location.getForegroundPermissionsAsync();
         const servicesEnabled = await Location.hasServicesEnabledAsync();
+        const locationReady =
+          permission.status === 'granted' && servicesEnabled;
 
-        // Location is fully ready: refresh nearby offers and do not ask.
-        if (permission.status === 'granted' && servicesEnabled) {
-          setLocationRefreshKey(value => value + 1);
+        // Refresh Nearby Offers only once when Location becomes ready.
+        if (locationReady) {
+          if (locationReadyRef.current !== true) {
+            locationReadyRef.current = true;
+            setLocationRefreshKey(value => value + 1);
+          }
           return;
         }
 
-        // User chose "No" or denied the Android permission: stay silent for 5 minutes.
+        locationReadyRef.current = false;
+
+        // User chose "No": stay silent for 5 minutes.
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         // Permission was permanently denied. Let the user use the location
         // button to open Settings instead of repeatedly showing this prompt.
-        if (permission.status !== 'granted' && permission.canAskAgain === false) return;
+        if (
+          permission.status !== 'granted' &&
+          permission.canAskAgain === false
+        ) {
+          return;
+        }
 
-        // Location is off or permission is not granted: show our existing box.
-        setLocationPromptOpen(true);
+        // Location was turned OFF while the app is open: show the existing
+        // custom location box.
+        setLocationPromptOpen(current => current ? current : true);
       } catch {
         // Stay silent if location state cannot be checked.
       }
@@ -457,11 +468,19 @@ export default function App() {
       }
     });
 
+    // Keep checking silently while the app remains open so turning Location
+    // OFF is detected without requiring the user to leave and reopen the app.
+    const locationCheckInterval = setInterval(
+      showLocationPromptIfNeeded,
+      1000
+    );
+
     return () => {
       if (locationAutoTimerRef.current) {
         clearTimeout(locationAutoTimerRef.current);
         locationAutoTimerRef.current = null;
       }
+      clearInterval(locationCheckInterval);
       subscription.remove();
     };
   }, [registrationOpen]);
