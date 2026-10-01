@@ -458,17 +458,13 @@ export default function App() {
         const bodyMatch = html.match(new RegExp('<div[^>]*class=["\\\'][^"\\\']*post-body[^"\\\']*["\\\'][^>]*>([\\\\s\\\\S]*?)(?:<div[^>]*class=["\\\'][^"\\\']*post-footer|</article|</main)', 'i'));
         const pageHtml = (bodyMatch?.[1] || '').trim();
         if (!pageHtml) return;
-        const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-          || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
         const allImages = [...pageHtml.matchAll(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/gi)]
           .map(match => match[1].replace(/&amp;/g, '&').trim())
           .filter(Boolean);
-        const image = (ogImageMatch?.[1]?.replace(/&amp;/g, '&').trim())
-          || allImages.find(url =>
-            !url.includes('Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png')
-            && !url.includes('offerhaikya_blogger_code')
-          )
-          || allImages.find(url => !url.includes('Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png'));
+        const image = allImages.find(url =>
+          !url.includes('Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png')
+          && !url.includes('offerhaikya_blogger_code')
+        ) || allImages[0];
         if (!cancelled) {
           setBloggerInfoData({
             title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms and Condition',
@@ -489,7 +485,6 @@ export default function App() {
     const infoData = {
       about: {
         title: 'About Us',
-        image: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png',
         html: `
           <h1>About Us</h1>
           <h2>About Offer Hai Kya</h2>
