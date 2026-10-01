@@ -160,6 +160,7 @@ export default function App() {
   const [skipCountdown, setSkipCountdown] = useState(5);
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
+  const [bloggerTags, setBloggerTags] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
@@ -214,6 +215,7 @@ export default function App() {
 
         if (!cancelled && categories.length > 0) {
           setBloggerCategories(categories);
+          setBloggerTags(categories);
         }
       } catch {
         // Keep the existing menu categories as a safe fallback.
@@ -806,7 +808,7 @@ export default function App() {
             onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
-            {[...DIRECT_TAGS, ...DIRECT_TAGS].map((item, index) => (
+            {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
               <TouchableOpacity
                 key={item + '-' + index}
                 onPress={() => {
