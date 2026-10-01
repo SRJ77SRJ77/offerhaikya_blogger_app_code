@@ -205,6 +205,7 @@ export default function App() {
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState(5);
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
+  const [infoPagePosts, setInfoPagePosts] = useState<Post[]>([]);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -1088,14 +1089,22 @@ export default function App() {
   useEffect(() => {
     if (!infoPage) {
       setBloggerInfoData(null);
+      setInfoPagePosts([]);
       return;
     }
 
-    if (posts.length === 0) {
-      loadPosts('', 1);
-    }
-
     let cancelled = false;
+
+    const loadInfoPagePosts = async () => {
+      try {
+        const latestPosts = await getFeed('', 1);
+        if (!cancelled) setInfoPagePosts(latestPosts);
+      } catch {
+        if (!cancelled) setInfoPagePosts([]);
+      }
+    };
+
+    loadInfoPagePosts();
     const slugs: Record<string, string> = {
       about: 'about-us',
       contact: 'contact-us',
@@ -1135,7 +1144,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [infoPage, posts.length, loadPosts]);
+  }, [infoPage]);
 
   if (infoPage) {
     const infoTitles = {
@@ -1144,8 +1153,8 @@ export default function App() {
       privacy: 'Privacy Policy',
       terms: 'Terms and Condition',
     };
-    const suggestedInfoPosts = posts.slice(0, 4);
-    const latestBlogPosts = posts.slice(0, 8);
+    const suggestedInfoPosts = infoPagePosts.slice(0, 4);
+    const latestBlogPosts = infoPagePosts.slice(0, 8);
 
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
