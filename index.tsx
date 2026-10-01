@@ -291,7 +291,7 @@ export default function App() {
 
     const loadNearbyOffers = async () => {
       try {
-        const permission = await Location.requestForegroundPermissionsAsync();
+        const permission = await Location.getForegroundPermissionsAsync();
         if (permission.status !== 'granted') {
           if (!cancelled) {
             setUserLocation(null);
