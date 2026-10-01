@@ -1149,69 +1149,69 @@ export default function App() {
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
           <TouchableOpacity
-            style={styles.bottomNavItem}
+            style={styles.infoBottomNavItem}
             onPress={goToHomeTab}
             accessibilityLabel="Home"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={TEXT}
+                stroke={MUTED}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
               Home
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.bottomNavItem}
+            style={styles.infoBottomNavItem}
             onPress={goToLocalOffersTab}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={TEXT}
+                stroke={MUTED}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={TEXT}
+                stroke={MUTED}
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.bottomNavItem}
+            style={styles.infoBottomNavItem}
             onPress={openOfferRequestTab}
             accessibilityLabel="Request offer"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={TEXT}
+                stroke={MUTED}
                 strokeWidth={2}
                 strokeLinejoin="round"
               />
               <Path
                 d="M4.5 6L12 12L19.5 6"
-                stroke={TEXT}
+                stroke={MUTED}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
               Request Offer
             </Text>
           </TouchableOpacity>
@@ -2044,6 +2044,8 @@ const styles = StyleSheet.create({
   bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
   bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
   bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
+  infoBottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: 'transparent' },
+  infoBottomNavLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavItemActive: { backgroundColor: '#fff3ed' },
   bottomNavLabel: { color: TEXT, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
