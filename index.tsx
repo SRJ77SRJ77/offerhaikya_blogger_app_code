@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
   chip: { paddingHorizontal: 5, paddingVertical: 8, backgroundColor: 'transparent' },
   activeChip: { backgroundColor: 'transparent' },
-  chipText: { color: WHITE, fontSize: 12, fontWeight: '800' },
+  chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
     sectionRow: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
