@@ -925,6 +925,20 @@ export default function App() {
     }, 300);
   };
 
+  const goToHotOffersTab = () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
+    activateBottomTabFor5Sec('home');
+    setActiveLabel('Hot Offers');
+    setQuery('');
+    setSuggestions([]);
+    loadHotOffers();
+    setTimeout(() => {
+      mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, 150);
+  };
+
   const goToLocalOffersTab = async () => {
     if (localOffersDisabled) return;
 
@@ -1370,6 +1384,14 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={styles.hotOffersNavItem}
+            onPress={goToHotOffersTab}
+            accessibilityLabel="Hot Offers"
+          >
+            <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.infoBottomNavItem}
             onPress={openOfferRequestTab}
             accessibilityLabel="Request offer"
@@ -1601,6 +1623,14 @@ export default function App() {
             <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.hotOffersNavItem}
+            onPress={goToHotOffersTab}
+            accessibilityLabel="Hot Offers"
+          >
+            <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -1848,29 +1878,17 @@ export default function App() {
             onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
-            {[['Hot Offers', ...(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)], ['Hot Offers', ...(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)]].flat().map((item, index) => (
+            {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
               <TouchableOpacity
                 key={item + '-' + index}
                 onPress={() => {
                   pauseTagAutoScroll();
                   setActiveLabel(item);
-                  setQuery('');
-                  setSuggestions([]);
-                  if (item === 'Hot Offers') {
-                    loadHotOffers();
-                  } else {
-                    loadPosts(item === 'All' ? '' : item, 1);
-                  }
+                  loadPosts(item === 'All' ? '' : item, 1);
                 }}
-                style={[
-                  styles.chip,
-                  item === 'Hot Offers' && styles.hotOffersChip,
-                  activeLabel === item && styles.activeChip,
-                ]}
+                style={[styles.chip, activeLabel === item && styles.activeChip]}
               >
-                <Text style={[styles.chipText, item === 'Hot Offers' && styles.hotOffersChipText]}>
-                  {item}
-                </Text>
+                <Text style={styles.chipText}>{item}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -2065,6 +2083,14 @@ export default function App() {
           <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
             Local Offers
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.hotOffersNavItem}
+          onPress={goToHotOffersTab}
+          accessibilityLabel="Hot Offers"
+        >
+          <Text style={styles.hotOffersNavLabel}>Hot Offers</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -2329,8 +2355,6 @@ const styles = StyleSheet.create({
   chips: { paddingHorizontal: 14, paddingVertical: 11, paddingRight: 42, gap: 8 },
   chip: { paddingHorizontal: 5, paddingVertical: 8, backgroundColor: 'transparent' },
   activeChip: { backgroundColor: 'transparent' },
-  hotOffersChip: { backgroundColor: ACCENT, borderRadius: 9, paddingHorizontal: 12, marginVertical: 2 },
-  hotOffersChipText: { color: WHITE, fontWeight: '900' },
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
     sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -2386,6 +2410,8 @@ const styles = StyleSheet.create({
   bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
   bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
   bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
+  hotOffersNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: ACCENT },
+  hotOffersNavLabel: { color: WHITE, fontSize: 11, fontWeight: '900', marginTop: 4 },
   infoBottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: 'transparent' },
   infoBottomNavLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginTop: 4 },
   bottomNavItemActive: { backgroundColor: '#fff3ed' },
