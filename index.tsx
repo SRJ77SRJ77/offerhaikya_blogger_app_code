@@ -217,6 +217,7 @@ export default function App() {
   const [offerRequestContact, setOfferRequestContact] = useState('');
   const [offerRequestText, setOfferRequestText] = useState('');
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
+  const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
   const mainListRef = useRef<FlatList<Post>>(null);
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
@@ -643,7 +644,12 @@ export default function App() {
       const response = await fetch(REGISTRATION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ name, contact: '91' + contact }),
+        body: JSON.stringify({
+          type: 'registration',
+          name,
+          contact: '91' + contact,
+          submittedAt: new Date().toISOString(),
+        }),
       });
 
       if (!response.ok) throw new Error('Registration failed');
@@ -749,9 +755,14 @@ export default function App() {
       setOfferRequestError('Please describe the offer you are looking for.');
       return;
     }
+    if (request.length > 50) {
+      setOfferRequestError('Offer request must be 50 characters or less.');
+      return;
+    }
 
     try {
       setOfferRequestSubmitting(true);
+      setOfferRequestSuccess(false);
       setOfferRequestError('');
       const response = await fetch(REGISTRATION_URL, {
         method: 'POST',
@@ -761,18 +772,24 @@ export default function App() {
           name,
           contact: '91' + contact,
           offerRequest: request,
+          submittedAt: new Date().toISOString(),
         }),
       });
 
       if (!response.ok) throw new Error('Request failed');
 
-      setOfferRequestOpen(false);
-      setOfferRequestName('');
-      setOfferRequestContact('');
-      setOfferRequestText('');
+      setOfferRequestSubmitting(false);
+      setOfferRequestSuccess(true);
+
+      setTimeout(() => {
+        setOfferRequestOpen(false);
+        setOfferRequestSuccess(false);
+        setOfferRequestName('');
+        setOfferRequestContact('');
+        setOfferRequestText('');
+      }, 900);
     } catch {
       setOfferRequestError('Could not send the request. Please try again.');
-    } finally {
       setOfferRequestSubmitting(false);
     }
   };
@@ -1409,6 +1426,7 @@ export default function App() {
           style={styles.floatingButton}
           onPress={() => {
             setOfferRequestError('');
+            setOfferRequestSuccess(false);
             setOfferRequestOpen(true);
           }}
           accessibilityLabel="Send offer request"
@@ -1451,18 +1469,28 @@ export default function App() {
         visible={offerRequestOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setOfferRequestOpen(false)}
+        onRequestClose={() => {
+          if (!offerRequestSuccess) setOfferRequestOpen(false);
+        }}
       >
         <View style={styles.offerRequestOverlay}>
           <TouchableOpacity
             style={styles.offerRequestBackdrop}
             activeOpacity={1}
-            onPress={() => setOfferRequestOpen(false)}
+            onPress={() => {
+              if (!offerRequestSubmitting && !offerRequestSuccess) setOfferRequestOpen(false);
+            }}
           />
           <View style={styles.offerRequestPopup}>
             <View style={styles.offerRequestHeader}>
               <Text style={styles.offerRequestTitle}>User Offers Requests</Text>
-              <TouchableOpacity onPress={() => setOfferRequestOpen(false)} style={styles.offerRequestClose}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!offerRequestSubmitting && !offerRequestSuccess) setOfferRequestOpen(false);
+                }}
+                style={styles.offerRequestClose}
+                disabled={offerRequestSubmitting || offerRequestSuccess}
+              >
                 <Text style={styles.offerRequestCloseText}>×</Text>
               </TouchableOpacity>
             </View>
@@ -1492,25 +1520,33 @@ export default function App() {
             </View>
             <TextInput
               value={offerRequestText}
-              onChangeText={setOfferRequestText}
+              onChangeText={value => setOfferRequestText(value.slice(0, 50))}
               placeholder="Offer request *"
               placeholderTextColor="#99969c"
               style={[styles.offerRequestInput, styles.offerRequestInputMultiline]}
               multiline
               numberOfLines={4}
+              maxLength={50}
               textAlignVertical="top"
-              editable={!offerRequestSubmitting}
+              editable={!offerRequestSubmitting && !offerRequestSuccess}
             />
+            <Text style={styles.offerRequestCounter}>{offerRequestText.length}/50</Text>
 
             {offerRequestError ? <Text style={styles.registrationError}>{offerRequestError}</Text> : null}
+            {offerRequestSuccess ? <Text style={styles.offerRequestSuccess}>Request sent ✓</Text> : null}
 
             <TouchableOpacity
-              style={[styles.registrationButton, offerRequestSubmitting && styles.disabledButton]}
+              style={[
+                styles.registrationButton,
+                (offerRequestSubmitting || offerRequestSuccess) && styles.disabledButton,
+              ]}
               onPress={submitOfferRequest}
-              disabled={offerRequestSubmitting}
+              disabled={offerRequestSubmitting || offerRequestSuccess}
             >
               {offerRequestSubmitting ? (
                 <ActivityIndicator size="small" color={WHITE} />
+              ) : offerRequestSuccess ? (
+                <Text style={styles.registrationButtonText}>Request sent ✓</Text>
               ) : (
                 <Text style={styles.registrationButtonText}>Send Request</Text>
               )}
@@ -1647,6 +1683,8 @@ const styles = StyleSheet.create({
   offerRequestCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
   offerRequestInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 12, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
   offerRequestInputMultiline: { minHeight: 110 },
+  offerRequestCounter: { color: MUTED, fontSize: 11, textAlign: 'right', marginTop: -6, marginBottom: 10 },
+  offerRequestSuccess: { color: '#168a3a', fontSize: 13, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   favoriteOverlay: { ...StyleSheet.absoluteFill, zIndex: 150, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   favoriteOverlayBackdrop: { ...StyleSheet.absoluteFill },
   favoritePopup: { width: '100%', maxHeight: '62%', backgroundColor: WHITE, borderRadius: 16, padding: 12, zIndex: 2 },
