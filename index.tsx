@@ -455,7 +455,7 @@ export default function App() {
         const response = await fetch(BLOG_URL + '/p/' + slugs[infoPage] + '.html');
         if (!response.ok) throw new Error('Unable to load Blogger page');
         const html = await response.text();
-        const bodyMatch = html.match(new RegExp('<div[^>]*class=["\\\'][^"\\\']*post-body[^"\\\']*["\\\'][^>]*>([\\\\s\\\\S]*?)(?:<div[^>]*class=["\\\'][^"\\\']*post-footer|</article|</main)', 'i'));
+        const bodyMatch = html.match(/<div[^>]*class=["'][^"']*post-body[^"']*["'][^>]*>([\\s\\S]*?)(?:<div[^>]*class=["'][^"']*post-footer|<\\/article|<\\/main)/i);
         const pageHtml = (bodyMatch?.[1] || '').trim();
         if (!pageHtml) return;
         const cleanPageHtml = pageHtml.replace(/<img\b[^>]*>/gi, '');
