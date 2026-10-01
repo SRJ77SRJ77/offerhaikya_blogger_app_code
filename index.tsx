@@ -650,10 +650,20 @@ export default function App() {
     }  };
 
   const scheduleLocationPromptRetry = () => {
-    if (locationAutoTimerRef.current) clearTimeout(locationAutoTimerRef.current);
-    locationAutoTimerRef.current = setTimeout(() => {
+    if (locationAutoTimerRef.current) {
+      clearTimeout(locationAutoTimerRef.current);
+    }
+
+    locationAutoTimerRef.current = setTimeout(async () => {
       locationAutoTimerRef.current = null;
-      setLocationPromptOpen(true);
+
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (permission.status === 'granted' || permission.canAskAgain === false) return;
+        setLocationPromptOpen(true);
+      } catch {
+        // Do not reopen the prompt if permission state cannot be checked.
+      }
     }, LOCATION_RETRY_MS);
   };
 
