@@ -436,8 +436,11 @@ export default function App() {
 
         // Refresh Nearby Offers only once when Location becomes ready.
         if (locationReady) {
+          locationReadyRef.current = true;
+          setLocationPromptOpen(false);
+          locationPromptSnoozeUntilRef.current = 0;
+
           if (locationReadyRef.current !== true) {
-            locationReadyRef.current = true;
             setLocationRefreshKey(value => value + 1);
           }
           return;
