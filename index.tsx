@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Location from 'expo-location';
+import * as IntentLauncher from 'expo-intent-launcher';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -743,7 +744,9 @@ export default function App() {
 
       if (currentPermission.status === 'granted') {
         if (!servicesEnabled) {
-          await Linking.openSettings();
+          await IntentLauncher.startActivityAsync(
+            IntentLauncher.ActivityAction.LOCATION_SOURCE_SETTINGS
+          );
         } else {
           setLocationRefreshKey(value => value + 1);
         }
