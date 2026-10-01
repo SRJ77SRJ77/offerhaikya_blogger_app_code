@@ -863,7 +863,7 @@ export default function App() {
     bottomTabResetTimerRef.current = setTimeout(() => {
       setBottomTab(null);
       bottomTabResetTimerRef.current = null;
-    }, 5000);
+    }, 3000);
   };
 
   const goToHomeTab = () => {
