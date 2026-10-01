@@ -206,6 +206,7 @@ export default function App() {
   const [skipCountdown, setSkipCountdown] = useState(5);
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [infoPagePosts, setInfoPagePosts] = useState<Post[]>([]);
+  const [infoPagePostsLoading, setInfoPagePostsLoading] = useState(false);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -1090,6 +1091,7 @@ export default function App() {
     if (!infoPage) {
       setBloggerInfoData(null);
       setInfoPagePosts([]);
+      setInfoPagePostsLoading(false);
       return;
     }
 
@@ -1097,10 +1099,13 @@ export default function App() {
 
     const loadInfoPagePosts = async () => {
       try {
+        if (!cancelled) setInfoPagePostsLoading(true);
         const latestPosts = await getFeed('', 1);
         if (!cancelled) setInfoPagePosts(latestPosts);
       } catch {
         if (!cancelled) setInfoPagePosts([]);
+      } finally {
+        if (!cancelled) setInfoPagePostsLoading(false);
       }
     };
 
@@ -1192,12 +1197,18 @@ export default function App() {
             </View>
           )}
 
-          {suggestedInfoPosts.length > 0 ? (
-            <View style={styles.infoRecommendationSection}>
-              <View style={styles.sectionRow}>
-                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
-                <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
+          <View style={styles.infoRecommendationSection}>
+            <View style={styles.sectionRow}>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
+              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
+            </View>
+
+            {infoPagePostsLoading && infoPostsSource.length === 0 ? (
+              <View style={styles.state}>
+                <ActivityIndicator size="small" color={ACCENT} />
+                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading suggested posts...</Text>
               </View>
+            ) : infoPostsSource.length > 0 ? (
               <View>
                 {Array.from({ length: Math.ceil(suggestedInfoPosts.length / 2) }).map((_, rowIndex) => (
                   <View style={styles.row} key={'suggested-row-' + rowIndex}>
@@ -1205,15 +1216,25 @@ export default function App() {
                   </View>
                 ))}
               </View>
-            </View>
-          ) : null}
-
-          {latestBlogPosts.length > 0 ? (
-            <View style={styles.infoRecommendationSection}>
-              <View style={styles.sectionRow}>
-                <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
-                <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
+            ) : (
+              <View style={styles.state}>
+                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No suggested posts available right now.</Text>
               </View>
+            )}
+          </View>
+
+          <View style={styles.infoRecommendationSection}>
+            <View style={styles.sectionRow}>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
+              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
+            </View>
+
+            {infoPagePostsLoading && infoPostsSource.length === 0 ? (
+              <View style={styles.state}>
+                <ActivityIndicator size="small" color={ACCENT} />
+                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading latest posts...</Text>
+              </View>
+            ) : infoPostsSource.length > 0 ? (
               <View>
                 {Array.from({ length: Math.ceil(latestBlogPosts.length / 2) }).map((_, rowIndex) => (
                   <View style={styles.row} key={'latest-blog-row-' + rowIndex}>
@@ -1221,8 +1242,12 @@ export default function App() {
                   </View>
                 ))}
               </View>
-            </View>
-          ) : null}
+            ) : (
+              <View style={styles.state}>
+                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No latest posts available right now.</Text>
+              </View>
+            )}
+          </View>
         </ScrollView>
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
