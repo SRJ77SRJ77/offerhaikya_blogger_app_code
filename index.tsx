@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   Image,
   ImageBackground,
@@ -157,6 +159,7 @@ export default function App() {
   const tagContentWidthRef = useRef(0);
   const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tagPausedRef = useRef(false);
+  const menuAnim = useRef(new Animated.Value(-320)).current;
 
   const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
     try {
@@ -258,8 +261,30 @@ export default function App() {
   };
 
   const openDetail = (post: Post) => {
-    setMenuOpen(false);
+    closeMenu();
     setDetail(post);
+  };
+
+  const openMenu = () => {
+    setMenuOpen(true);
+    menuAnim.setValue(-320);
+    Animated.timing(menuAnim, {
+      toValue: 0,
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeMenu = () => {
+    Animated.timing(menuAnim, {
+      toValue: -320,
+      duration: 180,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) setMenuOpen(false);
+    });
   };
 
   const goToPage = (nextPage: number) => {
@@ -539,7 +564,7 @@ export default function App() {
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
 
       <View style={[styles.header, darkMode && styles.headerDark]}>
-        <TouchableOpacity style={styles.headerIconButton} onPress={() => setMenuOpen(value => !value)}>
+        <TouchableOpacity style={styles.headerIconButton} onPress={() => menuOpen ? closeMenu() : openMenu()}>
           <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>☰</Text>
         </TouchableOpacity>
         <Image
@@ -566,20 +591,32 @@ export default function App() {
       </View>
 
       {menuOpen && (
-        <View style={styles.menuPanel}>
-          <Text style={styles.menuTitle}>Categories</Text>
-          {labels.map(label => (
-            <TouchableOpacity
-              key={label}
-              style={styles.menuItem}
-              onPress={() => {
-                setActiveLabel(label);
-                setMenuOpen(false);
-              }}
-            >
-              <Text style={[styles.menuItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.menuOverlay}>
+          <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={closeMenu} />
+          <Animated.View style={[styles.menuPanel, { transform: [{ translateX: menuAnim }] }]}>
+            <View style={styles.menuHeader}>
+              <Text style={styles.menuTitle}>Categories</Text>
+              <TouchableOpacity style={styles.menuCloseButton} onPress={closeMenu}>
+                <Text style={styles.menuCloseText}>×</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.menuList}>
+              {DIRECT_TAGS.map(label => (
+                <TouchableOpacity
+                  key={label}
+                  style={[styles.menuItem, activeLabel === label && styles.menuItemActiveBg]}
+                  onPress={() => {
+                    setActiveLabel(label);
+                    loadPosts(label === 'All' ? '' : label, 1);
+                    closeMenu();
+                  }}
+                >
+                  <Text style={[styles.menuItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
+                  <Text style={[styles.menuArrow, activeLabel === label && styles.menuItemActive]}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
         </View>
       )}
 
@@ -735,10 +772,18 @@ const styles = StyleSheet.create({
   headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
   listDark: { backgroundColor: '#000000' },
   detailListDark: { backgroundColor: '#000000' },
-  menuPanel: { position: 'absolute', zIndex: 20, top: 60, left: 12, width: 230, backgroundColor: WHITE, borderRadius: 12, paddingVertical: 8, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
-  menuTitle: { fontSize: 15, fontWeight: '900', color: TEXT, paddingHorizontal: 16, paddingVertical: 10 },
-  menuItem: { paddingHorizontal: 16, paddingVertical: 11 },
-  menuItemText: { color: TEXT, fontSize: 14, fontWeight: '700' },
+  menuOverlay: { ...StyleSheet.absoluteFill, zIndex: 100, flexDirection: 'row' },
+  menuBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.42)' },
+  menuPanel: { width: 300, maxWidth: '82%', height: '100%', backgroundColor: WHITE, elevation: 14, shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 5, height: 0 } },
+  menuHeader: { minHeight: 72, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  menuTitle: { fontSize: 20, fontWeight: '900', color: TEXT },
+  menuCloseButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
+  menuCloseText: { color: TEXT, fontSize: 30, lineHeight: 30 },
+  menuList: { paddingVertical: 8, paddingBottom: 28 },
+  menuItem: { minHeight: 50, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#f1f1f1' },
+  menuItemActiveBg: { backgroundColor: '#fff3ed' },
+  menuItemText: { color: TEXT, fontSize: 15, fontWeight: '700' },
+  menuArrow: { color: '#999', fontSize: 23, lineHeight: 23 },
   menuItemActive: { color: ACCENT },
   detailHeaderDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
   detailContentDark: { backgroundColor: '#000000' },
