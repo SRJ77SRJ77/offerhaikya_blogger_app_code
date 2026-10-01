@@ -369,7 +369,7 @@ export default function App() {
     </TouchableOpacity>
   );
 
-  {wishlistOpen && (
+  const favoritePopup = wishlistOpen ? (
     <View style={styles.favoriteOverlay}>
       <TouchableOpacity
         style={styles.favoriteOverlayBackdrop}
@@ -434,7 +434,7 @@ export default function App() {
         )}
       </View>
     </View>
-  )}
+  ) : null;
   if (infoPage) {
     const infoData = {
       about: {
@@ -972,6 +972,7 @@ export default function App() {
         }
       />
       </View>
+    {favoritePopup}
     </SafeAreaView>
   );
 }
