@@ -17,7 +17,6 @@ import {
   View,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
-import { WebView } from 'react-native-webview';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -459,18 +458,11 @@ export default function App() {
         const bodyMatch = html.match(new RegExp('<div[^>]*class=["\\\'][^"\\\']*post-body[^"\\\']*["\\\'][^>]*>([\\\\s\\\\S]*?)(?:<div[^>]*class=["\\\'][^"\\\']*post-footer|</article|</main)', 'i'));
         const pageHtml = (bodyMatch?.[1] || '').trim();
         if (!pageHtml) return;
-        const allImages = [...pageHtml.matchAll(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/gi)]
-          .map(match => match[1].replace(/&amp;/g, '&').trim())
-          .filter(Boolean);
-        const image = allImages.find(url =>
-          !url.includes('Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png')
-          && !url.includes('offerhaikya_blogger_code')
-        ) || allImages[0];
+        const cleanPageHtml = pageHtml.replace(/<img\b[^>]*>/gi, '');
         if (!cancelled) {
           setBloggerInfoData({
             title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms and Condition',
-            ...(infoPage === 'about' || infoPage === 'contact') && image ? { image } : {},
-            html: pageHtml,
+            html: cleanPageHtml,
           });
         }
       } catch {
@@ -483,13 +475,6 @@ export default function App() {
   }, [infoPage]);
 
   if (infoPage) {
-    const infoUrls = {
-      about: BLOG_URL + '/p/about-us.html',
-      contact: BLOG_URL + '/p/contact-us.html',
-      privacy: BLOG_URL + '/p/privacy-policy.html',
-      terms: BLOG_URL + '/p/terms-and-condition.html',
-    };
-
     const infoTitles = {
       about: 'About Us',
       contact: 'Contact Us',
@@ -509,20 +494,28 @@ export default function App() {
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
           </TouchableOpacity>
         </View>
-        <WebView
-          source={{ uri: infoUrls[infoPage] }}
-          style={{ flex: 1, backgroundColor: darkMode ? '#000000' : WHITE }}
-          originWhitelist={['*']}
-          javaScriptEnabled
-          domStorageEnabled
-          startInLoadingState
-          renderLoading={() => (
+        <ScrollView style={darkMode ? styles.detailListDark : undefined} contentContainerStyle={[styles.infoContent, darkMode && styles.detailContentDark]}>
+          {bloggerInfoData ? (
+            <RenderHTML
+              contentWidth={Math.max(320, width - 40)}
+              source={{ html: bloggerInfoData.html }}
+              tagsStyles={{
+                body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
+                p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
+                h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 8, marginBottom: 8 },
+                h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
+                h3: { color: darkMode ? WHITE : TEXT, fontSize: 19, lineHeight: 27, fontWeight: '900', marginTop: 10, marginBottom: 6 },
+                li: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 24 },
+                a: { color: ACCENT },
+              }}
+            />
+          ) : (
             <View style={styles.state}>
               <ActivityIndicator size="large" color={ACCENT} />
-              <Text style={styles.stateText}>Loading page...</Text>
+              <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading page...</Text>
             </View>
           )}
-        />
+        </ScrollView>
       </SafeAreaView>
     );
   }
