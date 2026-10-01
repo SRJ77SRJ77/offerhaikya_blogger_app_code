@@ -145,6 +145,7 @@ export default function App() {
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
   const tagOffsetRef = useRef(0);
+  const tagContentWidthRef = useRef(0);
   const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tagPausedRef = useRef(false);
 
@@ -202,11 +203,13 @@ export default function App() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (tagPausedRef.current) return;
-      const next = tagOffsetRef.current + 110;
-      tagOffsetRef.current = next > 900 ? 0 : next;
-      tagScrollRef.current?.scrollTo({ x: tagOffsetRef.current, animated: true });
-    }, 3200);
+      if (tagPausedRef.current || !tagContentWidthRef.current) return;
+      const loopWidth = tagContentWidthRef.current / 2;
+      let next = tagOffsetRef.current + 1;
+      if (next >= loopWidth) next = 0;
+      tagOffsetRef.current = next;
+      tagScrollRef.current?.scrollTo({ x: next, animated: false });
+    }, 28);
     return () => {
       clearInterval(timer);
       if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
@@ -426,16 +429,18 @@ export default function App() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips}
+            onContentSizeChange={width => { tagContentWidthRef.current = width; }}
             onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
             onTouchStart={pauseTagAutoScroll}
             onMomentumScrollBegin={pauseTagAutoScroll}
             onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
-            {DIRECT_TAGS.map(item => (
+            {[...DIRECT_TAGS, ...DIRECT_TAGS].map((item, index) => (
               <TouchableOpacity
-                key={item}
+                key={item + '-' + index}
                 onPress={() => {
+                  pauseTagAutoScroll();
                   setActiveLabel(item);
                   loadPosts(item === 'All' ? '' : item, 1);
                 }}
