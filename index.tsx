@@ -148,6 +148,7 @@ export default function App() {
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [skipAvailable, setSkipAvailable] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
@@ -290,7 +291,7 @@ export default function App() {
 
       if (!response.ok) throw new Error('Registration failed');
 
-      setRegistrationOpen(false);
+      setRegistrationSuccess(true);
       setRegistrationName('');
       setRegistrationContact('');
     } catch {
@@ -502,11 +503,14 @@ export default function App() {
             {registrationError ? (
               <Text style={styles.registrationError}>{registrationError}</Text>
             ) : null}
+            {registrationSuccess ? (
+              <Text style={styles.registrationSuccess}>Form received successfully ✓</Text>
+            ) : null}
 
             <TouchableOpacity
               style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
               onPress={submitRegistration}
-              disabled={registrationSubmitting}
+              disabled={registrationSubmitting || registrationSuccess}
             >
               {registrationSubmitting ? (
                 <ActivityIndicator size="small" color={WHITE} />
@@ -837,6 +841,7 @@ const styles = StyleSheet.create({
   phonePrefix: { color: TEXT, fontSize: 15, fontWeight: '800', marginRight: 8 },
   phoneInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 0 },
   registrationError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
+  registrationSuccess: { color: '#168a3a', fontSize: 13, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   registrationButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
