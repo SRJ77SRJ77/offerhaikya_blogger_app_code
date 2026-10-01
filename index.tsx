@@ -379,8 +379,8 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
+    <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+      <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
 
       <View style={[styles.header, darkMode && styles.headerDark]}>
         <TouchableOpacity style={styles.headerIconButton} onPress={() => setMenuOpen(value => !value)}>
@@ -560,7 +560,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE },
-  darkSafe: { backgroundColor: '#171717' },
+  darkSafe: { backgroundColor: '#000000' },
   pageWrap: { flex: 1, backgroundColor: PAGE },
   darkPage: { flex: 1, backgroundColor: '#000000' },
   contentDark: { backgroundColor: '#000000' },
