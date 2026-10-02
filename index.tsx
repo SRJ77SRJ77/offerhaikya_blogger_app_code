@@ -1072,7 +1072,7 @@ export default function App() {
   };
 
   const renderPost = ({ item }: { item: Post }) => (
-    <TouchableOpacity key={item.id} activeOpacity={0.92} style={[styles.card, darkMode && styles.cardDark]} onPress={() => openDetail(item)}>
+    <View key={item.id} style={[styles.card, darkMode && styles.cardDark]}>
       <TouchableOpacity style={styles.cardHeart} onPress={() => toggleFavorite(item)}>
         <Text style={styles.cardHeartText}>{isFavorite(item) ? '♥' : '♡'}</Text>
       </TouchableOpacity>
@@ -1097,21 +1097,26 @@ export default function App() {
           />
         </Svg>
       </TouchableOpacity>
-      {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.cardImage} />
-      ) : (
-        <View style={[styles.cardImage, styles.imageFallback]}>
-          <Text style={styles.fallbackText}>OfferHaikya</Text>
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={() => openDetail(item)}
+      >
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={styles.cardImage} />
+        ) : (
+          <View style={[styles.cardImage, styles.imageFallback]}>
+            <Text style={styles.fallbackText}>OfferHaikya</Text>
+          </View>
+        )}
+        <View style={[styles.cardBody, darkMode && styles.cardBodyDark]}>
+          <Text style={styles.label}>{item.label}</Text>
+          <Text style={[styles.title, darkMode && styles.darkText]} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.date}>{item.date}</Text>
+          <Text style={[styles.excerpt, darkMode && styles.darkMutedText]} numberOfLines={3}>{item.excerpt}</Text>
+          <Text style={styles.readText}>Read more ›</Text>
         </View>
-      )}
-      <View style={[styles.cardBody, darkMode && styles.cardBodyDark]}>
-        <Text style={styles.label}>{item.label}</Text>
-        <Text style={[styles.title, darkMode && styles.darkText]} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.date}>{item.date}</Text>
-        <Text style={[styles.excerpt, darkMode && styles.darkMutedText]} numberOfLines={3}>{item.excerpt}</Text>
-        <Text style={styles.readText}>Read more ›</Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 
   const favoritePopup = wishlistOpen ? (
