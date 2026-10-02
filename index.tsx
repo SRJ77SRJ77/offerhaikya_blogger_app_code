@@ -503,13 +503,7 @@ export default function App() {
         .map(label => normalizeLocationText(label))
         .filter(Boolean);
       const nearbyLocalTags = new Set([
-        'local store',
-        'local stores',
-        'store',
-        'stores',
         'offline offer',
-        'offer offers',
-        'local offers',
         'local offer',
       ]);
       const hasLocalOfferTag = normalizedLabels.some(label =>
