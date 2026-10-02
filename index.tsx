@@ -56,6 +56,7 @@ type Post = {
   url: string;
   date: string;
   publishedAt: string;
+  updatedAt: string;
   label: string;
   labels: string[];
   image?: string;
@@ -143,6 +144,7 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       publishedAt: entry.published?.$t || entry.updated?.$t || '',
+      updatedAt: entry.updated?.$t || entry.published?.$t || '',
       label: labels[0] || 'Offers',
       labels,
       image: highResImage(firstImage(content) || entry.media$thumbnail?.url),
@@ -755,33 +757,47 @@ export default function App() {
         if (cancelled) return;
 
         const currentNearbyPosts = nearbyCacheRef.current?.posts || nearbyPosts;
+        const latestById = new Map(latestPosts.map(post => [post.id, post]));
         const existingIds = new Set(currentNearbyPosts.map(post => post.id));
 
-        const newMatches = latestPosts.filter(post => {
-          if (existingIds.has(post.id)) return false;
+        const changedPosts = currentNearbyPosts
+          .map(post => {
+            const latest = latestById.get(post.id);
+            if (!latest || latest.updatedAt === post.updatedAt) return post;
+            return matchesNearbyOfferForPolling(latest, userLocation, locationTerms)
+              ? latest
+              : null;
+          })
+          .filter((post): post is Post => post !== null);
 
-          return matchesNearbyOfferForPolling(post, userLocation, locationTerms);
-        });
+        const newMatches = latestPosts.filter(post =>
+          !existingIds.has(post.id) &&
+          matchesNearbyOfferForPolling(post, userLocation, locationTerms)
+        );
 
-        if (!newMatches.length || cancelled) return;
+        if (!newMatches.length && changedPosts.length === currentNearbyPosts.length) return;
 
         setNearbyPosts(current => {
-          const ids = new Set(current.map(post => post.id));
-          const additions = newMatches.filter(post => !ids.has(post.id));
-          if (!additions.length) return current;
+          const latestCurrentById = new Map(current.map(post => [post.id, post]));
+          const mergedChanged = changedPosts.map(post => latestCurrentById.has(post.id) ? post : post);
+          const changedIds = new Set(mergedChanged.map(post => post.id));
+          const additions = newMatches.filter(post => !changedIds.has(post.id));
+          const merged = [...additions, ...mergedChanged];
 
-          const merged = [...additions, ...current];
           const cached = nearbyCacheRef.current;
-
           if (cached) {
             nearbyCacheRef.current = {
               ...cached,
               posts: merged,
+              savedAt: Date.now(),
             };
           }
 
-          setLocalOffersDisabled(false);
-          setLocalOfferEmptyOpen(false);
+          setLocalOffersDisabled(merged.length === 0);
+          if (merged.length > 0) {
+            setLocalOfferEmptyOpen(false);
+          }
+
           return merged;
         });
       } catch {
