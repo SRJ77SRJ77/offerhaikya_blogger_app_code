@@ -1062,11 +1062,17 @@ export default function App() {
       >
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
           <Path
-            d="M4 12C8 12 10.5 10 13 8.5C15 7.3 16.5 7 19 7M14 3L19 7L14 11"
+            d="M4 12L20 4L14 20L10 14L4 12Z"
             stroke={TEXT}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+          <Path
+            d="M10 14L20 4"
+            stroke={TEXT}
+            strokeWidth={2}
+            strokeLinecap="round"
           />
         </Svg>
       </TouchableOpacity>
