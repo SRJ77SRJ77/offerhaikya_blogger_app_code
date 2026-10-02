@@ -517,10 +517,13 @@ export default function App() {
 
       if (!hasLocalOfferTag) return false;
 
-      const contentText = normalizeLocationText(post.content || post.rawContent || '');
+      const contentText = normalizeLocationText(post.content || '');
+      const rawContentText = normalizeLocationText(post.rawContent || '');
       const titleText = normalizeLocationText(post.title);
       const tagText = normalizedLabels.join(' ');
-      const offerText = [titleText, contentText, tagText].join(' ');
+      // Check location against both visible post text and the original Blogger HTML,
+      // so map/location text hidden inside embeds is also considered.
+      const offerText = [titleText, contentText, rawContentText, tagText].join(' ');
 
       const locationMatch = detectedLocationTerms.some(term => {
         const normalizedTerm = normalizeLocationText(term);
@@ -709,10 +712,12 @@ export default function App() {
 
       if (!hasLocalOfferTag) return false;
 
-      const contentText = normalizeLocationTextForPolling(post.content || post.rawContent || '');
+      const contentText = normalizeLocationTextForPolling(post.content || '');
+      const rawContentText = normalizeLocationTextForPolling(post.rawContent || '');
       const titleText = normalizeLocationTextForPolling(post.title);
       const tagText = normalizedLabels.join(' ');
-      const offerText = [titleText, contentText, tagText].join(' ');
+      // Check both visible text and original Blogger HTML for location terms.
+      const offerText = [titleText, contentText, rawContentText, tagText].join(' ');
 
       const locationMatch = detectedLocationTerms.some(term => {
         const normalizedTerm = normalizeLocationTextForPolling(term);
