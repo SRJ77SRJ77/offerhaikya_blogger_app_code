@@ -830,20 +830,24 @@ export default function App() {
       setRegistrationSuccess(false);
       setRegistrationError('');
 
+      const registrationData = {
+        type: 'registration',
+        name,
+        contact: contact ? '91' + contact : '',
+        email,
+        interestedCategories: interests,
+        submittedAt: new Date().toISOString(),
+      };
+
       const response = await fetch(REGISTRATION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          type: 'registration',
-          name,
-          contact: contact ? '91' + contact : '',
-          email,
-          interestedCategories: interests,
-          submittedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(registrationData),
       });
 
-      if (!response.ok) throw new Error('Registration failed');
+      if (!response.ok) {
+        throw new Error('Registration failed');
+      }
 
       setRegistrationSubmitting(false);
       setRegistrationSuccess(true);
