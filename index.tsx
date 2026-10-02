@@ -503,10 +503,8 @@ export default function App() {
       const contentText = normalizeLocationText(post.content || '');
       const rawContentText = normalizeLocationText(post.rawContent || '');
       const titleText = normalizeLocationText(post.title);
-      const tagText = normalizedLabels.join(' ');
-      // Check location against both visible post text and the original Blogger HTML,
-      // so map/location text hidden inside embeds is also considered.
-      const offerText = [titleText, contentText, rawContentText, tagText].join(' ');
+      // Check location against both visible post text and the original Blogger HTML.
+      const offerText = [titleText, contentText, rawContentText].join(' ');
 
       const locationMatch = detectedLocationTerms.some(term => {
         const normalizedTerm = normalizeLocationText(term);
@@ -694,47 +692,11 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ) => {
-      const normalizedLabels = [...post.labels, post.label].map(label =>
-        normalizeLocationTextForPolling(label),
-      );
-      // Always lowercase/normalize Blogger tags before checking Nearby location tags.
-      const nearbyLocalTags = [
-        'local store',
-        'local stores',
-        'store',
-        'stores',
-        'offline offer',
-        'offer offers',
-        'local offers',
-        'local offer',
-      ];
-      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
-        normalizedLabels.includes(tag),
-      );
-      const isNearbyDebugPost =
-        /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
-
-      if (!hasLocalOfferTag) {
-        if (isNearbyDebugPost) {
-          console.log('[Nearby debug]', {
-            title: post.title,
-            labels: post.labels,
-            normalizedLabels,
-            hasLocalOfferTag,
-            locationTerms: detectedLocationTerms,
-            result: false,
-            reason: 'local-offer-tag-missing',
-          });
-        }
-        return false;
-      }
-
       const contentText = normalizeLocationTextForPolling(post.content || '');
       const rawContentText = normalizeLocationTextForPolling(post.rawContent || '');
       const titleText = normalizeLocationTextForPolling(post.title);
-      const tagText = normalizedLabels.join(' ');
       // Check both visible text and original Blogger HTML for location terms.
-      const offerText = [titleText, contentText, rawContentText, tagText].join(' ');
+      const offerText = [titleText, contentText, rawContentText].join(' ');
 
       const locationMatch = detectedLocationTerms.some(term => {
         const normalizedTerm = normalizeLocationTextForPolling(term);
@@ -754,8 +716,6 @@ export default function App() {
         console.log('[Nearby debug]', {
           title: post.title,
           labels: post.labels,
-          normalizedLabels,
-          hasLocalOfferTag,
           locationTerms: detectedLocationTerms,
           locationMatch,
           postLocation,
