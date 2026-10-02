@@ -856,6 +856,14 @@ export default function App() {
         throw new Error('Registration failed');
       }
 
+      const responseData = await response.json();
+
+      if (!responseData?.success) {
+        throw new Error(
+          responseData?.error || 'Registration failed'
+        );
+      }
+
       setRegistrationSubmitting(false);
       setRegistrationSuccess(true);
       setRegistrationCompleted(true);
