@@ -795,32 +795,34 @@ export default function App() {
   };
 
   const submitRegistration = async () => {
-    const name = registrationName.trim();
-    const contact = registrationContact.trim();
-    const email = registrationEmail.trim().toLowerCase();
-    const interests = registrationCategories.join(', ');
+    const registration = {
+      name: registrationName.trim(),
+      phone: registrationContact.trim(),
+      email: registrationEmail.trim().toLowerCase(),
+      categories: [...registrationCategories],
+    };
 
-    if (!/^[A-Za-z ]{3,12}$/.test(name)) {
+    if (!/^[A-Za-z ]{3,12}$/.test(registration.name)) {
       setRegistrationError('Name must be 3-12 letters.');
       return;
     }
 
-    if (contact && !/^\d{10}$/.test(contact)) {
+    if (registration.phone && !/^\d{10}$/.test(registration.phone)) {
       setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (registration.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email)) {
       setRegistrationError('Enter a valid email address.');
       return;
     }
 
-    if (!contact && !email) {
+    if (!registration.phone && !registration.email) {
       setRegistrationError('Please enter a phone number or email address.');
       return;
     }
 
-    if (registrationCategories.length === 0) {
+    if (registration.categories.length === 0) {
       setRegistrationError('Please select at least one interested category.');
       return;
     }
@@ -832,10 +834,10 @@ export default function App() {
 
       const registrationData = {
         type: 'registration',
-        name,
-        contact: contact ? '91' + contact : '',
-        email,
-        interestedCategories: interests,
+        name: registration.name,
+        contact: registration.phone ? '91' + registration.phone : '',
+        email: registration.email,
+        interestedCategories: registration.categories.join(', '),
         submittedAt: new Date().toISOString(),
       };
 
