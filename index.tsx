@@ -210,6 +210,10 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  const registrationNameRef = useRef('');
+  const registrationContactRef = useRef('');
+  const registrationEmailRef = useRef('');
+  const registrationCategoriesRef = useRef<string[]>([]);
   const [skipCountdown, setSkipCountdown] = useState(5);
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [infoPagePosts, setInfoPagePosts] = useState<Post[]>([]);
@@ -791,10 +795,10 @@ export default function App() {
   };
 
   const submitRegistration = async () => {
-    const name = registrationName.trim();
-    const contact = registrationContact.trim();
-    const email = registrationEmail.trim().toLowerCase();
-    const interests = registrationCategories.join(', ');
+    const name = registrationNameRef.current.trim();
+    const contact = registrationContactRef.current.trim();
+    const email = registrationEmailRef.current.trim().toLowerCase();
+    const interests = registrationCategoriesRef.current.join(', ');
 
     if (!/^[A-Za-z ]{3,12}$/.test(name)) {
       setRegistrationError('Name must be 3-12 letters.');
@@ -816,7 +820,7 @@ export default function App() {
       return;
     }
 
-    if (registrationCategories.length === 0) {
+    if (registrationCategoriesRef.current.length === 0) {
       setRegistrationError('Please select at least one interested category.');
       return;
     }
@@ -862,19 +866,25 @@ export default function App() {
       setRegistrationContact('');
       setRegistrationEmail('');
       setRegistrationCategories([]);
+      registrationNameRef.current = '';
+      registrationContactRef.current = '';
+      registrationEmailRef.current = '';
+      registrationCategoriesRef.current = [];
       setRegistrationCategoriesOpen(false);
       setRegistrationError('');
 
-      // Keep the popup visible long enough for the user to see the success message.
       setTimeout(() => {
         setRegistrationOpen(false);
         setRegistrationSuccess(false);
       }, 1600);
-    } catch {
-      setRegistrationError('Could not submit registration. Please try again.');
+    } catch (error: any) {
+      setRegistrationError(
+        error?.message || 'Could not submit registration. Please try again.'
+      );
     } finally {
       setRegistrationSubmitting(false);
-    }  };
+    }
+  };
 
   const scheduleLocationPromptRetry = () => {
     if (locationAutoTimerRef.current) {
@@ -1874,7 +1884,11 @@ export default function App() {
 
               <TextInput
                 value={registrationName}
-              onChangeText={value => setRegistrationName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
+              onChangeText={value => {
+                const nameValue = value.replace(/[^A-Za-z ]/g, '').slice(0, 12);
+                registrationNameRef.current = nameValue;
+                setRegistrationName(nameValue);
+              }}
               placeholder="Name *"
               placeholderTextColor="#99969c"
               style={styles.registrationInput}
@@ -1888,6 +1902,7 @@ export default function App() {
                 value={registrationContact}
                 onChangeText={value => {
                   const digits = value.replace(/\D/g, '').slice(0, 10);
+                  registrationContactRef.current = digits;
                   setRegistrationContact(digits);
                 }}
                 placeholder="10-digit phone number *"
@@ -1906,7 +1921,8 @@ export default function App() {
             <TextInput
               value={registrationEmail}
               onChangeText={value => {
-                const emailValue = value.trim().slice(0, 80);
+                const emailValue = value.slice(0, 80);
+                registrationEmailRef.current = emailValue;
                 setRegistrationEmail(emailValue);
               }}
               placeholder="Email Address"
@@ -1956,11 +1972,13 @@ export default function App() {
                         key={category}
                         style={styles.registrationCategoryDropdownItem}
                         onPress={() => {
-                          setRegistrationCategories(current =>
-                            selected
+                          setRegistrationCategories(current => {
+                            const next = selected
                               ? current.filter(item => item !== category)
-                              : [...current, category],
-                          );
+                              : [...current, category];
+                            registrationCategoriesRef.current = next;
+                            return next;
+                          });
                         }}
                         disabled={registrationSubmitting}
                       >
