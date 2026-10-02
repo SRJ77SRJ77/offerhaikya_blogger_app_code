@@ -279,7 +279,6 @@ export default function App() {
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
-  const [locationServicesEnabled, setLocationServicesEnabled] = useState<boolean | null>(null);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
@@ -771,7 +770,6 @@ export default function App() {
 
         const permission = await Location.getForegroundPermissionsAsync();
         const servicesEnabled = await Location.hasServicesEnabledAsync();
-        setLocationServicesEnabled(servicesEnabled);
         const locationReady =
           permission.status === 'granted' && servicesEnabled;
 
@@ -2685,18 +2683,16 @@ export default function App() {
             {nearbyPosts.length > 0 ? (
               <>
                 <View style={styles.sectionRow}>
-                  <View style={styles.nearbySectionTitleWrap}>
-                    <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                      Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
-                    </Text>
-                    {locationServicesEnabled === false ? (
-                      <Image
-                        source={{ uri: 'https://cdn-icons-png.flaticon.com/128/12638/12638441.png' }}
-                        style={styles.nearbyLocationOffIcon}
-                      />
-                    ) : null}
-                  </View>
-                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
+                    Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.nearbyRefreshButton}
+                    onPress={() => setLocationPromptOpen(true)}
+                    accessibilityLabel="Refresh Nearby location"
+                  >
+                    <Text style={[styles.nearbyRefreshText, darkMode && styles.darkText]}>↻</Text>
+                  </TouchableOpacity>
                 </View>
                 <View>
                   {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
@@ -2948,44 +2944,11 @@ export default function App() {
       {nearbyPreloaderOpen ? (
         <View style={styles.nearbyPreloaderOverlay}>
           <View style={styles.nearbyPreloaderCircle}>
-            <Animated.View
-              style={{
-                transform: [{
-                  rotate: nearbyPreloaderSpin.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '360deg'],
-                  }),
-                }],
-              }}
-            >
-              <Svg width={72} height={72} viewBox="0 0 72 72" fill="none">
-                <Path
-                  d="M22 12H50C55.523 12 60 16.477 60 22V50C60 55.523 55.523 60 50 60H22C16.477 60 12 55.523 12 50V22C12 16.477 16.477 12 22 12Z"
-                  stroke={ACCENT}
-                  strokeWidth={4}
-                  strokeDasharray="7 5"
-                />
-                <Path
-                  d="M27 45L45 27"
-                  stroke={TEXT}
-                  strokeWidth={4}
-                  strokeLinecap="round"
-                />
-                <Path
-                  d="M30 31C30 29.343 31.343 28 33 28C34.657 28 36 29.343 36 31C36 32.657 34.657 34 33 34C31.343 34 30 32.657 30 31Z"
-                  stroke={TEXT}
-                  strokeWidth={3}
-                />
-                <Path
-                  d="M36 41C36 39.343 37.343 38 39 38C40.657 38 42 39.343 42 41C42 42.657 40.657 44 39 44C37.343 44 36 42.657 36 41Z"
-                  stroke={TEXT}
-                  strokeWidth={3}
-                />
-              </Svg>
-            </Animated.View>
-            {nearbyPreloaderProgress === 100 ? (
-              <Text style={styles.nearbyPreloaderPercent}>100%</Text>
-            ) : null}
+            <Image
+              source={require('./SS/Offer.gif')}
+              style={styles.nearbyPreloaderGif}
+              resizeMode="contain"
+            />
           </View>
         </View>
       ) : null}
@@ -3183,8 +3146,8 @@ const styles = StyleSheet.create({
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
     sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  nearbySectionTitleWrap: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  nearbyLocationOffIcon: { width: 20, height: 20, marginLeft: 7 },
+  nearbyRefreshButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  nearbyRefreshText: { color: ACCENT, fontSize: 27, lineHeight: 30, fontWeight: '900' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { flexDirection: 'row', paddingHorizontal: 10, justifyContent: 'space-between' },
@@ -3257,7 +3220,7 @@ const styles = StyleSheet.create({
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   nearbyPreloaderOverlay: { ...StyleSheet.absoluteFill, zIndex: 275, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   nearbyPreloaderCircle: { width: 118, height: 118, borderRadius: 59, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 4 } },
-  nearbyPreloaderPercent: { color: ACCENT, fontSize: 28, fontWeight: '900' },
+  nearbyPreloaderGif: { width: 92, height: 92 },
   localOfferEmptyOverlay: { ...StyleSheet.absoluteFill, zIndex: 290, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   localOfferEmptyPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   localOfferEmptyTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
