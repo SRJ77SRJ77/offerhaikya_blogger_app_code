@@ -682,8 +682,8 @@ export default function App() {
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
-          setLocalOffersDisabled(true);
-          setLocalOfferEmptyOpen(true);
+          setLocalOffersDisabled(false);
+          setLocalOfferEmptyOpen(false);
         }
 
         finishNearbyPreloader();
@@ -1486,6 +1486,10 @@ export default function App() {
     setQuery('');
     setSuggestions([]);
     setPage(1);
+    setLocalOfferEmptyOpen(false);
+    setLocalOffersDisabled(false);
+    nearbyCacheRef.current = null;
+    startNearbyPreloader();
     loadPosts('', 1);
     mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
