@@ -44,7 +44,7 @@ const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
-const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbxmZ1gpWj7g8K6Tstfrwz9tuAuCF9RNBkrvcVIy-piajLk8MtMeIsIYB-LvbL50Cm3x/exec';
+const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbz5vpLk5xVZpyxAGEQ91N7eWcNN-NxV4ADGXlMw7aNjvD4r4KudTwOjzNyKOgOaDhk/exec';
 
 type Post = {
   id: string;
