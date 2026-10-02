@@ -210,14 +210,6 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
-  const [registrationTestOpen, setRegistrationTestOpen] = useState(false);
-  const [registrationTestData, setRegistrationTestData] = useState<{
-    dateTime: string;
-    name: string;
-    phone: string;
-    email: string;
-    categories: string;
-  } | null>(null);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -862,28 +854,9 @@ export default function App() {
       setRegistrationSuccess(true);
       setRegistrationCompleted(true);
 
-      setRegistrationTestData({
-        dateTime: new Date().toLocaleString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        }),
-        name: registrationData.name,
-        phone: registrationData.contact,
-        email: registrationData.email,
-        categories: registrationData.interestedCategories,
-      });
-      setRegistrationTestOpen(true);
-
       setTimeout(() => {
         setRegistrationOpen(false);
         setRegistrationSuccess(false);
-        setRegistrationTestOpen(false);
         setRegistrationName('');
         setRegistrationContact('');
         setRegistrationEmail('');
@@ -2050,49 +2023,6 @@ export default function App() {
         </View>
       )}
 
-      {registrationTestOpen && registrationTestData && (
-        <View style={styles.registrationTestOverlay}>
-          <View style={styles.registrationTestPopup}>
-            <Text style={styles.registrationTestTitle}>Registration Test Data</Text>
-            <Text style={styles.registrationTestSubtitle}>
-              This is exactly what the form captured when you pressed Continue.
-            </Text>
-
-            <View style={styles.registrationTestRow}>
-              <Text style={styles.registrationTestLabel}>Date / Time</Text>
-              <Text style={styles.registrationTestValue}>{registrationTestData.dateTime}</Text>
-            </View>
-
-            <View style={styles.registrationTestRow}>
-              <Text style={styles.registrationTestLabel}>Name</Text>
-              <Text style={styles.registrationTestValue}>{registrationTestData.name || '(blank)'}</Text>
-            </View>
-
-            <View style={styles.registrationTestRow}>
-              <Text style={styles.registrationTestLabel}>Phone</Text>
-              <Text style={styles.registrationTestValue}>{registrationTestData.phone || '(blank)'}</Text>
-            </View>
-
-            <View style={styles.registrationTestRow}>
-              <Text style={styles.registrationTestLabel}>Email</Text>
-              <Text style={styles.registrationTestValue}>{registrationTestData.email || '(blank)'}</Text>
-            </View>
-
-            <View style={styles.registrationTestRow}>
-              <Text style={styles.registrationTestLabel}>Categories</Text>
-              <Text style={styles.registrationTestValue}>{registrationTestData.categories || '(blank)'}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.registrationTestCloseButton}
-              onPress={() => setRegistrationTestOpen(false)}
-            >
-              <Text style={styles.registrationTestCloseText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
 
       <View style={[styles.header, darkMode && styles.headerDark]}>
@@ -2870,14 +2800,6 @@ const styles = StyleSheet.create({
   favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
   registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  registrationTestPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
-  registrationTestTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 5 },
-  registrationTestSubtitle: { color: MUTED, fontSize: 12, lineHeight: 18, marginBottom: 12 },
-  registrationTestRow: { borderBottomWidth: 1, borderBottomColor: '#eeeeee', paddingVertical: 10 },
-  registrationTestLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginBottom: 3 },
-  registrationTestValue: { color: TEXT, fontSize: 14, fontWeight: '700' },
-  registrationTestCloseButton: { minHeight: 46, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', marginTop: 14 },
-  registrationTestCloseText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   registrationFormContent: { paddingBottom: 2 },
   registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
