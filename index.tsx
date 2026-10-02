@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
   ToastAndroid,
+  Share,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
@@ -232,6 +233,7 @@ export default function App() {
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
+  const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -718,6 +720,25 @@ export default function App() {
     }
   };
 
+  const openShareOptions = (url: string) => {
+    setSharePostUrl(url);
+  };
+
+  const sharePost = async () => {
+    if (!sharePostUrl) return;
+
+    try {
+      await Share.share({
+        message: sharePostUrl,
+        title: 'Share OfferHaikya post',
+      });
+    } catch {
+      ToastAndroid.show('Could not open share options', ToastAndroid.SHORT);
+    } finally {
+      setSharePostUrl(null);
+    }
+  };
+
   const isFavorite = (post: Post) => favorites.some(item => item.id === post.id);
 
   const refresh = () => {
@@ -1057,8 +1078,8 @@ export default function App() {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.cardShare}
-        onPress={() => copyPostLink(item.url)}
-        accessibilityLabel="Copy post link"
+        onPress={() => openShareOptions(item.url)}
+        accessibilityLabel="Share post"
       >
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
           <Path
@@ -1516,7 +1537,7 @@ export default function App() {
             <View style={styles.detailTitleRow}>
               <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
               <TouchableOpacity
-                onPress={() => copyPostLink(detail.url)}
+                onPress={() => openShareOptions(detail.url)}
                 accessibilityLabel="Share post"
               >
                 <Text style={styles.detailShareText}>(Share)</Text>
@@ -2207,6 +2228,51 @@ export default function App() {
       </View>
 
       <Modal
+        visible={sharePostUrl !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSharePostUrl(null)}
+      >
+        <View style={styles.shareOverlay}>
+          <TouchableOpacity
+            style={styles.shareBackdrop}
+            activeOpacity={1}
+            onPress={() => setSharePostUrl(null)}
+          />
+          <View style={[styles.sharePopup, darkMode && styles.favoritePopupDark]}>
+            <Text style={[styles.sharePopupTitle, darkMode && styles.darkText]}>Share Offer</Text>
+
+            <TouchableOpacity style={styles.shareOption} onPress={sharePost}>
+              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Share</Text>
+              <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                WhatsApp, Instagram, Facebook, Telegram and other installed apps
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareOption}
+              onPress={() => {
+                if (sharePostUrl) copyPostLink(sharePostUrl);
+                setSharePostUrl(null);
+              }}
+            >
+              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Copy Link</Text>
+              <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                Copy the OfferHaikya post link to your clipboard
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareCancelButton}
+              onPress={() => setSharePostUrl(null)}
+            >
+              <Text style={styles.shareCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={localOfferEmptyOpen}
         transparent
         animationType="fade"
@@ -2506,6 +2572,15 @@ const styles = StyleSheet.create({
   offerRequestCounter: { color: MUTED, fontSize: 11, textAlign: 'right', marginTop: -6, marginBottom: 10 },
   offerRequestSuccess: { color: '#168a3a', fontSize: 13, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   favoriteOverlay: { ...StyleSheet.absoluteFill, zIndex: 150, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  shareOverlay: { ...StyleSheet.absoluteFill, zIndex: 310, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  shareBackdrop: { ...StyleSheet.absoluteFill },
+  sharePopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  sharePopupTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 8 },
+  shareOption: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  shareOptionTitle: { color: TEXT, fontSize: 16, fontWeight: '900' },
+  shareOptionText: { color: MUTED, fontSize: 12, lineHeight: 18, marginTop: 3 },
+  shareCancelButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  shareCancelText: { color: ACCENT, fontSize: 14, fontWeight: '900' },
   favoriteOverlayBackdrop: { ...StyleSheet.absoluteFill },
   favoritePopup: { width: '100%', maxHeight: '62%', backgroundColor: WHITE, borderRadius: 16, padding: 12, zIndex: 2 },
   favoritePopupDark: { backgroundColor: '#222222' },
