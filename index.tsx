@@ -2070,7 +2070,7 @@ export default function App() {
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
               tagsStyles={{
-                body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26 },
+                body: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 26, flex: 1, borderRadius: 0, padding: 0, borderWidth: 0 },
                 p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
                 h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
                 h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
