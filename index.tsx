@@ -1547,21 +1547,6 @@ export default function App() {
                 accessibilityLabel="Share post"
               >
                 <Text style={styles.detailShareText}>Share</Text>
-                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={styles.detailShareIcon}>
-                  <Path
-                    d="M4 12L20 4L14 20L10 14L4 12Z"
-                    stroke={darkMode ? WHITE : TEXT}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <Path
-                    d="M10 14L20 4"
-                    stroke={darkMode ? WHITE : TEXT}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
-                </Svg>
               </TouchableOpacity>
             </View>
             <RenderHTML
@@ -2562,8 +2547,7 @@ const styles = StyleSheet.create({
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailShareRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 8 },
-  detailShareText: { color: ACCENT, fontSize: 12, fontWeight: '900' },
-  detailShareIcon: { marginLeft: 5 },
+  detailShareText: { color: ACCENT, fontSize: 16, fontWeight: '900' },
   cardHeartText: { color: '#e31b23', fontSize: 20, lineHeight: 22 },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
