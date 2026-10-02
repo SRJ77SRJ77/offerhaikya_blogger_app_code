@@ -297,7 +297,6 @@ export default function App() {
   const [expiryNow, setExpiryNow] = useState(() => Date.now());
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
-  const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
   const nearbyPreloaderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1516,7 +1515,6 @@ export default function App() {
 
   const closeLocalOfferEmptyPopup = () => {
     setLocalOfferEmptyOpen(false);
-    setLocalOfferEmptyCountdown(5);
   };
 
 
@@ -1697,24 +1695,6 @@ export default function App() {
       </View>
     </View>
   ) : null;
-  useEffect(() => {
-    if (!localOfferEmptyOpen) return;
-
-    setLocalOfferEmptyCountdown(5);
-    const timer = setInterval(() => {
-      setLocalOfferEmptyCountdown(current => {
-        if (current <= 1) {
-          clearInterval(timer);
-          setLocalOfferEmptyOpen(false);
-          return 5;
-        }
-        return current - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [localOfferEmptyOpen]);
-
   useEffect(() => {
     if (!infoPage) {
       setBloggerInfoData(null);
@@ -2985,7 +2965,7 @@ export default function App() {
               style={styles.registrationButton}
               onPress={closeLocalOfferEmptyPopup}
             >
-              <Text style={styles.registrationButtonText}>Close ({localOfferEmptyCountdown})</Text>
+              <Text style={styles.registrationButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
