@@ -499,6 +499,24 @@ export default function App() {
     ) => {
       const isNearbyDebugPost =
         /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
+      const normalizedLabels = [...post.labels, post.label].map(label =>
+        normalizeLocationText(label),
+      );
+      const nearbyLocalTags = [
+        'local store',
+        'local stores',
+        'store',
+        'stores',
+        'offline offer',
+        'offer offers',
+        'local offers',
+        'local offer',
+      ];
+      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
+        normalizedLabels.includes(tag),
+      );
+
+      if (!hasLocalOfferTag) return false;
 
       const contentText = normalizeLocationText(post.content || '');
       const rawContentText = normalizeLocationText(post.rawContent || '');
