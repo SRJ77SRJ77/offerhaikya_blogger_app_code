@@ -1841,14 +1841,14 @@ export default function App() {
               ignoredDomTags={['iframe']}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: bloggerInfoData.html }}
-              tagsStyles={{
+              tagsStyles={({
                 p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
                 h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 8, marginBottom: 8 },
                 h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
                 h3: { color: darkMode ? WHITE : TEXT, fontSize: 19, lineHeight: 27, fontWeight: '900', marginTop: 10, marginBottom: 6 },
                 li: { color: darkMode ? '#eeeeee' : '#4f4c52', fontSize: 15, lineHeight: 24 },
                 a: { color: ACCENT },
-              }}
+              } as any)}
             />
           ) : (
             <View style={styles.state}>
@@ -2068,7 +2068,7 @@ export default function App() {
               ignoredDomTags={['iframe']}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
-              tagsStyles={{
+              tagsStyles={({
                 p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
                 h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
                 h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
@@ -2080,7 +2080,7 @@ export default function App() {
                 table: { width: '100%' },
                 th: { padding: 7, fontWeight: '900' },
                 td: { padding: 7 },
-              }}
+              } as any)}
             />
             {mapCoordinates ? (
               <View style={styles.mapSection}>
