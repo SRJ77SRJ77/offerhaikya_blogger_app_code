@@ -824,32 +824,36 @@ export default function App() {
     try {
       setRegistrationSubmitting(true);
       setRegistrationError('');
-      const registrationParams = new URLSearchParams();
-      registrationParams.append('type', 'registration');
-      registrationParams.append('name', name);
-      registrationParams.append('contact', contact ? '91' + contact : '');
-      registrationParams.append('email', email);
-      registrationParams.append('interestedCategories', interests);
-      registrationParams.append('submittedAt', new Date().toISOString());
 
-      const response = await fetch(
-        REGISTRATION_URL + '?' + registrationParams.toString(),
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            type: 'registration',
-            name,
-            contact: contact ? '91' + contact : '',
-            email,
-            interestedCategories: interests,
-            submittedAt: new Date().toISOString(),
-          }),
-        },
-      );
+      const registrationData = {
+        type: 'registration',
+        name: name,
+        contact: contact ? '91' + contact : '',
+        email: email,
+        interestedCategories: interests,
+        submittedAt: new Date().toISOString(),
+      };
 
-      if (!response) {
-        throw new Error('Registration request failed. Please try again.');
+      const response = await fetch(REGISTRATION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(registrationData),
+      });
+
+      const responseText = await response.text();
+      let responseData: any = null;
+
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = null;
+      }
+
+      if (!responseData?.success) {
+        throw new Error(
+          responseData?.error ||
+          'Registration was not confirmed by the server. Please try again.'
+        );
       }
 
       setRegistrationSuccess(true);
