@@ -497,18 +497,22 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ) => {
-      const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
-      // Nearby location-post tags: local store, local stores, store, stores,
-      // offline offer, offer offers, local offers, and local offer.
-      const hasLocalOfferTag = normalizedLabels.some(label =>
-        label === 'local store'
-        || label === 'local stores'
-        || label === 'store'
-        || label === 'stores'
-        || label === 'offline offer'
-        || label === 'offer offers'
-        || label === 'local offers'
-        || label === 'local offer',
+      const normalizedLabels = [...post.labels, post.label].map(label =>
+        normalizeLocationText(label),
+      );
+      // Always lowercase/normalize Blogger tags before checking Nearby location tags.
+      const nearbyLocalTags = [
+        'local store',
+        'local stores',
+        'store',
+        'stores',
+        'offline offer',
+        'offer offers',
+        'local offers',
+        'local offer',
+      ];
+      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
+        normalizedLabels.includes(tag),
       );
 
       if (!hasLocalOfferTag) return false;
@@ -685,18 +689,22 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ) => {
-      const normalizedLabels = post.labels.map(label => normalizeLocationTextForPolling(label));
-      // Nearby location-post tags: local store, local stores, store, stores,
-      // offline offer, offer offers, local offers, and local offer.
-      const hasLocalOfferTag = normalizedLabels.some(label =>
-        label === 'local store'
-        || label === 'local stores'
-        || label === 'store'
-        || label === 'stores'
-        || label === 'offline offer'
-        || label === 'offer offers'
-        || label === 'local offers'
-        || label === 'local offer',
+      const normalizedLabels = [...post.labels, post.label].map(label =>
+        normalizeLocationTextForPolling(label),
+      );
+      // Always lowercase/normalize Blogger tags before checking Nearby location tags.
+      const nearbyLocalTags = [
+        'local store',
+        'local stores',
+        'store',
+        'stores',
+        'offline offer',
+        'offer offers',
+        'local offers',
+        'local offer',
+      ];
+      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
+        normalizedLabels.includes(tag),
       );
 
       if (!hasLocalOfferTag) return false;
