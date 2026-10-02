@@ -2850,7 +2850,7 @@ const styles = StyleSheet.create({
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  cardExpiry: { position: 'absolute', top: 87, right: 7, zIndex: 3, maxWidth: '72%', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)' },
+  cardExpiry: { position: 'absolute', top: 8, left: 8, zIndex: 3, maxWidth: '62%', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)' },
   cardExpiryText: { color: ACCENT, fontSize: 9, fontWeight: '900' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailShareRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 8 },
