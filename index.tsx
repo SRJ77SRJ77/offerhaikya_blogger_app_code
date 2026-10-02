@@ -278,6 +278,7 @@ export default function App() {
   const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
+  const [locationServicesEnabled, setLocationServicesEnabled] = useState(true);
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationAutoStartedRef = useRef(false);
@@ -541,6 +542,7 @@ export default function App() {
         // Do not call the location API while device Location Services are OFF.
         // This prevents Android from showing its own location prompt repeatedly.
         const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!cancelled) setLocationServicesEnabled(servicesEnabled);
         if (!servicesEnabled) {
           if (!cancelled) {
             setUserLocation(null);
@@ -2686,13 +2688,15 @@ export default function App() {
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
                     Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
                   </Text>
-                  <TouchableOpacity
-                    style={styles.nearbyRefreshButton}
-                    onPress={() => setLocationPromptOpen(true)}
-                    accessibilityLabel="Refresh Nearby location"
-                  >
-                    <Text style={[styles.nearbyRefreshText, darkMode && styles.darkText]}>↻</Text>
-                  </TouchableOpacity>
+                  {!locationServicesEnabled ? (
+                    <TouchableOpacity
+                      style={styles.nearbyRefreshButton}
+                      onPress={() => setLocationPromptOpen(true)}
+                      accessibilityLabel="Refresh Nearby location"
+                    >
+                      <Text style={[styles.nearbyRefreshText, darkMode && styles.darkText]}>↻</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
                 <View>
                   {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
