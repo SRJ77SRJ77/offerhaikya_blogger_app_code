@@ -51,6 +51,7 @@ type Post = {
   title: string;
   url: string;
   date: string;
+  publishedAt: string;
   label: string;
   labels: string[];
   image?: string;
@@ -135,6 +136,7 @@ const parseFeed = (data: any): Post[] => {
       title: entry.title?.$t || 'Untitled post',
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
+      publishedAt: entry.published?.$t || entry.updated?.$t || '',
       label: labels[0] || 'Offers',
       labels,
       image: firstImage(content) || highResImage(entry.media$thumbnail?.url),
@@ -241,6 +243,7 @@ export default function App() {
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
+  const [expiryNow, setExpiryNow] = useState(() => Date.now());
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -254,6 +257,14 @@ export default function App() {
   const tagPausedRef = useRef(false);
   const menuAnim = useRef(new Animated.Value(-320)).current;
   const bottomTabResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setExpiryNow(Date.now());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -817,6 +828,53 @@ export default function App() {
 
   const isFavorite = (post: Post) => favorites.some(item => item.id === post.id);
 
+  const getExpiryLabel = (post: Post) => {
+    const expiryTag = post.labels.find(label => /^E\d+$/i.test(label.trim()));
+
+    if (!expiryTag || !post.publishedAt) {
+      return '';
+    }
+
+    const days = Number(expiryTag.trim().slice(1));
+
+    if (!Number.isFinite(days) || days <= 0) {
+      return '';
+    }
+
+    const publishedTime = new Date(post.publishedAt).getTime();
+
+    if (Number.isNaN(publishedTime)) {
+      return '';
+    }
+
+    const expiryTime = publishedTime + days * 24 * 60 * 60 * 1000;
+    const remainingMs = expiryTime - expiryNow;
+
+    if (remainingMs <= 0) {
+      return 'Expired';
+    }
+
+    const totalMinutes = Math.ceil(remainingMs / (60 * 1000));
+    const totalHours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const remainingDays = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+
+    if (remainingDays > 0) {
+      return hours > 0
+        ? `Expires in ${remainingDays}d ${hours}h`
+        : `Expires in ${remainingDays}d`;
+    }
+
+    if (totalHours > 0) {
+      return minutes > 0
+        ? `Expires in ${totalHours}h ${minutes}m`
+        : `Expires in ${totalHours}h`;
+    }
+
+    return `Expires in ${minutes}m`;
+  };
+
   const refresh = () => {
     setRefreshing(true);
     loadPosts(query.trim().length >= 3 ? query : '', page);
@@ -1217,6 +1275,13 @@ export default function App() {
           />
         </Svg>
       </TouchableOpacity>
+      {getExpiryLabel(item) ? (
+        <View style={styles.cardExpiry}>
+          <Text style={styles.cardExpiryText} numberOfLines={1}>
+            {getExpiryLabel(item)}
+          </Text>
+        </View>
+      ) : null}
       <TouchableOpacity
         activeOpacity={0.92}
         onPress={() => openDetail(item)}
@@ -2785,6 +2850,8 @@ const styles = StyleSheet.create({
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  cardExpiry: { position: 'absolute', top: 87, right: 7, zIndex: 3, maxWidth: '72%', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)' },
+  cardExpiryText: { color: ACCENT, fontSize: 9, fontWeight: '900' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailShareRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 8 },
   detailShareText: { color: ACCENT, fontSize: 16, fontWeight: '900' },
