@@ -795,10 +795,10 @@ export default function App() {
   };
 
   const submitRegistration = async () => {
-    const name = registrationNameRef.current.trim();
-    const contact = registrationContactRef.current.trim();
-    const email = registrationEmailRef.current.trim().toLowerCase();
-    const interests = registrationCategoriesRef.current.join(', ');
+    const name = registrationName.trim();
+    const contact = registrationContact.trim();
+    const email = registrationEmail.trim().toLowerCase();
+    const interests = registrationCategories.join(', ');
 
     if (!/^[A-Za-z ]{3,12}$/.test(name)) {
       setRegistrationError('Name must be 3-12 letters.');
@@ -820,68 +820,46 @@ export default function App() {
       return;
     }
 
-    if (registrationCategoriesRef.current.length === 0) {
+    if (registrationCategories.length === 0) {
       setRegistrationError('Please select at least one interested category.');
       return;
     }
 
     try {
       setRegistrationSubmitting(true);
+      setRegistrationSuccess(false);
       setRegistrationError('');
-
-      const registrationData = {
-        type: 'registration',
-        name: name,
-        contact: contact ? '91' + contact : '',
-        email: email,
-        interestedCategories: interests,
-        submittedAt: new Date().toISOString(),
-      };
 
       const response = await fetch(REGISTRATION_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(registrationData),
+        body: JSON.stringify({
+          type: 'registration',
+          name,
+          contact: contact ? '91' + contact : '',
+          email,
+          interestedCategories: interests,
+          submittedAt: new Date().toISOString(),
+        }),
       });
 
-      const responseText = await response.text();
-      let responseData: any = null;
+      if (!response.ok) throw new Error('Registration failed');
 
-      try {
-        responseData = JSON.parse(responseText);
-      } catch {
-        responseData = null;
-      }
-
-      if (!responseData?.success) {
-        throw new Error(
-          responseData?.error ||
-          'Registration was not confirmed by the server. Please try again.'
-        );
-      }
-
+      setRegistrationSubmitting(false);
       setRegistrationSuccess(true);
       setRegistrationCompleted(true);
-      setRegistrationName('');
-      setRegistrationContact('');
-      setRegistrationEmail('');
-      setRegistrationCategories([]);
-      registrationNameRef.current = '';
-      registrationContactRef.current = '';
-      registrationEmailRef.current = '';
-      registrationCategoriesRef.current = [];
-      setRegistrationCategoriesOpen(false);
-      setRegistrationError('');
 
       setTimeout(() => {
         setRegistrationOpen(false);
         setRegistrationSuccess(false);
-      }, 1600);
-    } catch (error: any) {
-      setRegistrationError(
-        error?.message || 'Could not submit registration. Please try again.'
-      );
-    } finally {
+        setRegistrationName('');
+        setRegistrationContact('');
+        setRegistrationEmail('');
+        setRegistrationCategories([]);
+        setRegistrationCategoriesOpen(false);
+      }, 900);
+    } catch {
+      setRegistrationError('Could not submit registration. Please try again.');
       setRegistrationSubmitting(false);
     }
   };
