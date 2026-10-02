@@ -3222,7 +3222,7 @@ const styles = StyleSheet.create({
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
   bottomNavLabelDark: { color: '#eeeeee' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  nearbyPreloaderOverlay: { ...StyleSheet.absoluteFill, zIndex: 275, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
+  nearbyPreloaderOverlay: { ...StyleSheet.absoluteFill, zIndex: 275, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   nearbyPreloaderCircle: { width: 118, height: 118, alignItems: 'center', justifyContent: 'center' },
   nearbyPreloaderGif: { width: 92, height: 92 },
   localOfferEmptyOverlay: { ...StyleSheet.absoluteFill, zIndex: 290, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
