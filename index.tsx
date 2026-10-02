@@ -3222,6 +3222,7 @@ const styles = StyleSheet.create({
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
   bottomNavLabelDark: { color: '#eeeeee' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  // Nearby loading/slow-data fallback: show the Offer.gif over a 60% black full-screen background so the user gets clear loading feedback.
   nearbyPreloaderOverlay: { ...StyleSheet.absoluteFill, zIndex: 275, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   nearbyPreloaderCircle: { width: 118, height: 118, alignItems: 'center', justifyContent: 'center' },
   nearbyPreloaderGif: { width: 92, height: 92 },
