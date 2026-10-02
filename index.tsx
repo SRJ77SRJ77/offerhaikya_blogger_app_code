@@ -840,7 +840,15 @@ export default function App() {
       setRegistrationSuccess(false);
       setRegistrationError('');
 
-      const response = await fetch(REGISTRATION_URL, {
+      const registrationUrl =
+        REGISTRATION_URL +
+        '?type=' + encodeURIComponent(registrationData.type) +
+        '&name=' + encodeURIComponent(registrationData.name) +
+        '&contact=' + encodeURIComponent(registrationData.contact) +
+        '&email=' + encodeURIComponent(registrationData.email) +
+        '&interestedCategories=' + encodeURIComponent(registrationData.interestedCategories);
+
+      const response = await fetch(registrationUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(registrationData),
