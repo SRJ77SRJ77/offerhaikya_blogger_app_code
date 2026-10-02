@@ -2297,25 +2297,32 @@ export default function App() {
                   {suggestionLoading ? (
                     <View style={styles.searchDropdownLoading}><ActivityIndicator size="small" color={ACCENT} /></View>
                   ) : suggestions.length > 0 ? (
-                    suggestions.map(item => (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={styles.searchSuggestion}
-                        onPress={() => {
-                          setSuggestions([]);
-                          setDetail(item);
-                        }}
-                      >
-                        {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
-                        <View style={styles.searchSuggestionTextWrap}>
-                          <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
-                          <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))
+                    <ScrollView
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={suggestions.length > 3}
+                      style={styles.searchSuggestionScroll}
+                      keyboardShouldPersistTaps="handled"
+                    >
+                      {suggestions.map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={styles.searchSuggestion}
+                          onPress={() => {
+                            setSuggestions([]);
+                            setDetail(item);
+                          }}
+                        >
+                          {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
+                          <View style={styles.searchSuggestionTextWrap}>
+                            <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
+                            <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
                   ) : (
                     <Text style={styles.searchNoResult}>No matching offers</Text>
-                  )}
+                  )
                 </View>
               )}
             </ImageBackground>
@@ -2754,7 +2761,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 12 },
   searchButton: { width: 42, height: 42, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   searchButtonText: { color: WHITE, fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
-  searchDropdown: { marginTop: 6, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 6, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, maxHeight: 360 },
+  searchDropdown: { marginTop: 6, backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden', elevation: 6, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, maxHeight: 180 },
+  searchSuggestionScroll: { maxHeight: 180 },
   searchDropdownLoading: { paddingVertical: 16, alignItems: 'center' },
   searchSuggestion: { minHeight: 58, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   searchSuggestionImage: { width: 44, height: 44, borderRadius: 8, backgroundColor: '#eeeeee' },
