@@ -1062,7 +1062,7 @@ export default function App() {
       >
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
           <Path
-            d="M4 12H19M14 7L19 12L14 17"
+            d="M4 12C8 12 10.5 10 13 8.5C15 7.3 16.5 7 19 7M14 3L19 7L14 11"
             stroke={TEXT}
             strokeWidth={2}
             strokeLinecap="round"
