@@ -646,12 +646,10 @@ export default function App() {
           if (!cancelled) {
             setNearbyPosts(cachedNearby.posts);
             setLocalOffersDisabled(cachedNearby.posts.length === 0);
-            if (bottomTabRef.current === 'local') {
-              if (cachedNearby.posts.length === 0) {
-                setLocalOfferEmptyOpen(true);
-              } else {
-                setLocalOfferEmptyOpen(false);
-              }
+            if (cachedNearby.posts.length === 0) {
+              setLocalOfferEmptyOpen(true);
+            } else {
+              setLocalOfferEmptyOpen(false);
             }
           }
           finishNearbyPreloader();
@@ -673,12 +671,10 @@ export default function App() {
         if (!cancelled) {
           setNearbyPosts(matches);
           setLocalOffersDisabled(matches.length === 0);
-          if (bottomTabRef.current === 'local') {
-            if (matches.length === 0) {
-              setLocalOfferEmptyOpen(true);
-            } else {
-              setLocalOfferEmptyOpen(false);
-            }
+          if (matches.length === 0) {
+            setLocalOfferEmptyOpen(true);
+          } else {
+            setLocalOfferEmptyOpen(false);
           }
         }
 
@@ -687,9 +683,7 @@ export default function App() {
         if (!cancelled) {
           setNearbyPosts([]);
           setLocalOffersDisabled(true);
-          if (bottomTabRef.current === 'local') {
-            setLocalOfferEmptyOpen(true);
-          }
+          setLocalOfferEmptyOpen(true);
         }
 
         finishNearbyPreloader();
