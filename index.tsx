@@ -275,6 +275,8 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
+  const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -297,6 +299,11 @@ export default function App() {
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
+  const nearbyPreloaderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nearbyPreloaderFinishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nearbyPreloaderOpenRef = useRef(false);
+  const nearbyPreloaderTimedOutRef = useRef(false);
+  const nearbyPreloaderSpin = useRef(new Animated.Value(0)).current;
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
@@ -306,6 +313,78 @@ export default function App() {
   const tagPausedRef = useRef(false);
   const menuAnim = useRef(new Animated.Value(-320)).current;
   const bottomTabResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startNearbyPreloader = useCallback(() => {
+    if (nearbyPreloaderTimerRef.current) clearTimeout(nearbyPreloaderTimerRef.current);
+    if (nearbyPreloaderFinishTimerRef.current) clearTimeout(nearbyPreloaderFinishTimerRef.current);
+
+    nearbyPreloaderOpenRef.current = true;
+    nearbyPreloaderTimedOutRef.current = false;
+    setNearbyPreloaderProgress(0);
+    setNearbyPreloaderOpen(true);
+
+    nearbyPreloaderTimerRef.current = setTimeout(() => {
+      nearbyPreloaderTimedOutRef.current = true;
+      nearbyPreloaderOpenRef.current = false;
+      setNearbyPreloaderOpen(false);
+      setNearbyPreloaderProgress(0);
+      nearbyPreloaderTimerRef.current = null;
+    }, 5000);
+  }, []);
+
+  const finishNearbyPreloader = useCallback(() => {
+    if (
+      !nearbyPreloaderOpenRef.current ||
+      nearbyPreloaderTimedOutRef.current
+    ) {
+      return;
+    }
+
+    if (nearbyPreloaderTimerRef.current) {
+      clearTimeout(nearbyPreloaderTimerRef.current);
+      nearbyPreloaderTimerRef.current = null;
+    }
+
+    setNearbyPreloaderProgress(100);
+
+    if (nearbyPreloaderFinishTimerRef.current) {
+      clearTimeout(nearbyPreloaderFinishTimerRef.current);
+    }
+
+    nearbyPreloaderFinishTimerRef.current = setTimeout(() => {
+      nearbyPreloaderOpenRef.current = false;
+      setNearbyPreloaderOpen(false);
+      setNearbyPreloaderProgress(0);
+      nearbyPreloaderFinishTimerRef.current = null;
+    }, 350);
+  }, []);
+
+  useEffect(() => {
+    if (!nearbyPreloaderOpen) return;
+
+    nearbyPreloaderSpin.setValue(0);
+    const animation = Animated.loop(
+      Animated.timing(nearbyPreloaderSpin, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [nearbyPreloaderOpen, nearbyPreloaderSpin]);
+
+  useEffect(() => {
+    return () => {
+      if (nearbyPreloaderTimerRef.current) clearTimeout(nearbyPreloaderTimerRef.current);
+      if (nearbyPreloaderFinishTimerRef.current) clearTimeout(nearbyPreloaderFinishTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -502,6 +581,7 @@ export default function App() {
             setNearbyPosts(cachedNearby.posts);
             setLocalOffersDisabled(cachedNearby.posts.length === 0);
           }
+          finishNearbyPreloader();
           return;
         }
 
@@ -559,6 +639,8 @@ export default function App() {
             }
           }
         }
+
+        finishNearbyPreloader();
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
@@ -568,12 +650,14 @@ export default function App() {
             setLocalOfferEmptyOpen(true);
           }
         }
+
+        finishNearbyPreloader();
       }
     };
 
     loadNearbyOffers();
     return () => { cancelled = true; };
-  }, [registrationOpen, locationRefreshKey, bottomTab]);
+  }, [registrationOpen, locationRefreshKey, bottomTab, finishNearbyPreloader]);
 
   useEffect(() => {
     if (registrationOpen || bottomTab !== 'local' || !userLocation) return;
@@ -1264,6 +1348,7 @@ export default function App() {
 
       if (permission.status === 'granted') {
         locationPromptSnoozeUntilRef.current = 0;
+        startNearbyPreloader();
         setLocationRefreshKey(value => value + 1);
       } else {
         scheduleLocationPromptRetry();
@@ -2838,6 +2923,51 @@ export default function App() {
         </View>
       </Modal>
 
+      {nearbyPreloaderOpen ? (
+        <View style={styles.nearbyPreloaderOverlay}>
+          <View style={styles.nearbyPreloaderCircle}>
+            <Animated.View
+              style={{
+                transform: [{
+                  rotate: nearbyPreloaderSpin.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg'],
+                  }),
+                }],
+              }}
+            >
+              <Svg width={72} height={72} viewBox="0 0 72 72" fill="none">
+                <Path
+                  d="M22 12H50C55.523 12 60 16.477 60 22V50C60 55.523 55.523 60 50 60H22C16.477 60 12 55.523 12 50V22C12 16.477 16.477 12 22 12Z"
+                  stroke={ACCENT}
+                  strokeWidth={4}
+                  strokeDasharray="7 5"
+                />
+                <Path
+                  d="M27 45L45 27"
+                  stroke={TEXT}
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                />
+                <Path
+                  d="M30 31C30 29.343 31.343 28 33 28C34.657 28 36 29.343 36 31C36 32.657 34.657 34 33 34C31.343 34 30 32.657 30 31Z"
+                  stroke={TEXT}
+                  strokeWidth={3}
+                />
+                <Path
+                  d="M36 41C36 39.343 37.343 38 39 38C40.657 38 42 39.343 42 41C42 42.657 40.657 44 39 44C37.343 44 36 42.657 36 41Z"
+                  stroke={TEXT}
+                  strokeWidth={3}
+                />
+              </Svg>
+            </Animated.View>
+            {nearbyPreloaderProgress === 100 ? (
+              <Text style={styles.nearbyPreloaderPercent}>100%</Text>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
       <Modal
         visible={locationPromptOpen}
         transparent
@@ -3101,6 +3231,9 @@ const styles = StyleSheet.create({
   bottomNavLabelActive: { color: ACCENT, fontWeight: '900' },
   bottomNavLabelDark: { color: '#eeeeee' },
   locationPromptOverlay: { ...StyleSheet.absoluteFill, zIndex: 280, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  nearbyPreloaderOverlay: { ...StyleSheet.absoluteFill, zIndex: 275, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
+  nearbyPreloaderCircle: { width: 118, height: 118, borderRadius: 59, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 4 } },
+  nearbyPreloaderPercent: { color: ACCENT, fontSize: 28, fontWeight: '900' },
   localOfferEmptyOverlay: { ...StyleSheet.absoluteFill, zIndex: 290, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   localOfferEmptyPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   localOfferEmptyTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 7 },
