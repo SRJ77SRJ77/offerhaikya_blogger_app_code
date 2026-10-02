@@ -1886,9 +1886,6 @@ export default function App() {
                 onChangeText={value => {
                   const digits = value.replace(/\D/g, '').slice(0, 10);
                   setRegistrationContact(digits);
-                  if (digits.length > 0) {
-                    setRegistrationEmail('');
-                  }
                 }}
                 placeholder="10-digit phone number *"
                 placeholderTextColor="#99969c"
@@ -1908,9 +1905,6 @@ export default function App() {
               onChangeText={value => {
                 const emailValue = value.trim().slice(0, 80);
                 setRegistrationEmail(emailValue);
-                if (emailValue.length > 0) {
-                  setRegistrationContact('');
-                }
               }}
               placeholder="Email Address"
               placeholderTextColor="#99969c"
