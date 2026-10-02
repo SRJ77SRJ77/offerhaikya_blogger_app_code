@@ -2309,9 +2309,9 @@ export default function App() {
             <Text style={[styles.sharePopupTitle, darkMode && styles.darkText]}>Share Offer</Text>
 
             <TouchableOpacity style={styles.shareOption} onPress={sharePost}>
-              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Share</Text>
+              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Share with</Text>
               <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
-                WhatsApp, Instagram, Facebook, Telegram and other installed apps
+                WhatsApp, Instagram, Facebook & Other Apps
               </Text>
             </TouchableOpacity>
 
@@ -2324,7 +2324,7 @@ export default function App() {
             >
               <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
               <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
-                Copy the OfferHaikya post link to your clipboard
+                The OfferHaikya post link
               </Text>
             </TouchableOpacity>
 
