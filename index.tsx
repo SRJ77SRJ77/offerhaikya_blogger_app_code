@@ -447,7 +447,7 @@ export default function App() {
   }, [loadPosts]);
 
   useEffect(() => {
-    if (registrationOpen || bottomTab !== 'local') return;
+    if (registrationOpen) return;
 
     let cancelled = false;
 
@@ -661,10 +661,10 @@ export default function App() {
 
     loadNearbyOffers();
     return () => { cancelled = true; };
-  }, [registrationOpen, locationRefreshKey, bottomTab, finishNearbyPreloader]);
+  }, [registrationOpen, locationRefreshKey, finishNearbyPreloader]);
 
   useEffect(() => {
-    if (registrationOpen || bottomTab !== 'local' || !userLocation) return;
+    if (registrationOpen || !userLocation) return;
 
     let cancelled = false;
 
@@ -753,7 +753,7 @@ export default function App() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [registrationOpen, bottomTab, userLocation, locationTerms, nearbyPosts]);
+  }, [registrationOpen, userLocation, locationTerms, nearbyPosts]);
 
   useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
@@ -782,6 +782,7 @@ export default function App() {
           locationPromptSnoozeUntilRef.current = 0;
 
           if (!wasLocationReady) {
+            startNearbyPreloader();
             setLocationRefreshKey(value => value + 1);
           }
           return;
@@ -832,7 +833,7 @@ export default function App() {
       clearInterval(locationCheckInterval);
       subscription.remove();
     };
-  }, [registrationOpen]);
+  }, [registrationOpen, startNearbyPreloader]);
 
   useEffect(() => {
     let cancelled = false;
