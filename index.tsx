@@ -802,60 +802,98 @@ export default function App() {
     loadPosts(query.trim().length >= 3 ? query : '', nextPage);
   };
 
-  const submitRegistration = () => {
-    const registration = {
+  const submitRegistration = async () => {
+    const registrationData = {
+      type: 'registration',
       name: registrationName.trim(),
-      phone: registrationContact.trim(),
+      contact: registrationContact.trim() ? '91' + registrationContact.trim() : '',
       email: registrationEmail.trim().toLowerCase(),
-      categories: [...registrationCategories],
+      interestedCategories: registrationCategories.join(', '),
+      submittedAt: new Date().toISOString(),
     };
 
-    if (!/^[A-Za-z ]{3,12}$/.test(registration.name)) {
+    if (!/^[A-Za-z ]{3,12}$/.test(registrationData.name)) {
       setRegistrationError('Name must be 3-12 letters.');
       return;
     }
 
-    if (registration.phone && !/^\d{10}$/.test(registration.phone)) {
+    if (
+      registrationData.contact &&
+      !/^91\d{10}$/.test(registrationData.contact)
+    ) {
       setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
 
-    if (registration.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email)) {
+    if (
+      registrationData.email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registrationData.email)
+    ) {
       setRegistrationError('Enter a valid email address.');
       return;
     }
 
-    if (!registration.phone && !registration.email) {
+    if (!registrationData.contact && !registrationData.email) {
       setRegistrationError('Please enter a phone number or email address.');
       return;
     }
 
-    if (registration.categories.length === 0) {
+    if (!registrationData.interestedCategories) {
       setRegistrationError('Please select at least one interested category.');
       return;
     }
 
-    const dateTime = new Date().toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
+    try {
+      setRegistrationSubmitting(true);
+      setRegistrationSuccess(false);
+      setRegistrationError('');
 
-    setRegistrationTestData({
-      dateTime,
-      name: registration.name,
-      phone: registration.phone ? '91' + registration.phone : '',
-      email: registration.email,
-      categories: registration.categories.join(', '),
-    });
+      const response = await fetch(REGISTRATION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(registrationData),
+      });
 
-    setRegistrationError('');
-    setRegistrationTestOpen(true);
+      if (!response.ok) {
+        throw new Error('Registration failed');
+      }
+
+      setRegistrationSubmitting(false);
+      setRegistrationSuccess(true);
+      setRegistrationCompleted(true);
+
+      setRegistrationTestData({
+        dateTime: new Date().toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }),
+        name: registrationData.name,
+        phone: registrationData.contact,
+        email: registrationData.email,
+        categories: registrationData.interestedCategories,
+      });
+      setRegistrationTestOpen(true);
+
+      setTimeout(() => {
+        setRegistrationOpen(false);
+        setRegistrationSuccess(false);
+        setRegistrationTestOpen(false);
+        setRegistrationName('');
+        setRegistrationContact('');
+        setRegistrationEmail('');
+        setRegistrationCategories([]);
+        setRegistrationCategoriesOpen(false);
+      }, 1600);
+    } catch {
+      setRegistrationError('Could not submit registration. Please try again.');
+      setRegistrationSubmitting(false);
+    }
   };
 
   const scheduleLocationPromptRetry = () => {
