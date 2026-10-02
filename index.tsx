@@ -629,26 +629,95 @@ export default function App() {
 
   useEffect(() => {
     const text = query.trim();
+    const normalizedQuery = text.toLowerCase().replace(/\s+/g, ' ').trim();
+
     const timer = setTimeout(async () => {
       setActiveLabel('All');
-      if (!text) {
+
+      if (!normalizedQuery) {
         setSuggestions([]);
         loadPosts('', 1);
         return;
       }
 
+      if (normalizedQuery.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      const scoreSuggestion = (post: Post) => {
+        const title = post.title.toLowerCase();
+        const label = post.label.toLowerCase();
+        const labels = post.labels.join(' ').toLowerCase();
+        const content = post.content.toLowerCase();
+
+        let score = 0;
+
+        if (title === normalizedQuery) score += 1000;
+        if (title.startsWith(normalizedQuery)) score += 500;
+        if (title.includes(normalizedQuery)) score += 300;
+        if (label === normalizedQuery) score += 250;
+        if (label.includes(normalizedQuery)) score += 180;
+        if (labels.includes(normalizedQuery)) score += 140;
+        if (content.includes(normalizedQuery)) score += 80;
+
+        const words = normalizedQuery.split(' ').filter(Boolean);
+        const matchedWords = words.filter(word =>
+          title.includes(word) ||
+          label.includes(word) ||
+          labels.includes(word) ||
+          content.includes(word)
+        );
+
+        score += matchedWords.length * 35;
+
+        return score;
+      };
+
       try {
         setSuggestionLoading(true);
-        const result = await getFeed(text, 1);
-        setSuggestions(result.slice(0, 6));
+
+        const localMatches = posts
+          .filter(post => scoreSuggestion(post) > 0)
+          .sort((a, b) => scoreSuggestion(b) - scoreSuggestion(a));
+
+        let combined = localMatches;
+
+        if (combined.length < 6) {
+          try {
+            const remoteResults = await getFeed(text, 1);
+            const existingIds = new Set(combined.map(post => post.id));
+
+            for (const post of remoteResults) {
+              if (!existingIds.has(post.id)) {
+                combined.push(post);
+                existingIds.add(post.id);
+              }
+            }
+          } catch {
+            // Keep local suggestions when Blogger search is unavailable.
+          }
+        }
+
+        const ranked = combined
+          .map(post => ({
+            post,
+            score: scoreSuggestion(post),
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 6)
+          .map(item => item.post);
+
+        setSuggestions(ranked);
       } catch {
         setSuggestions([]);
       } finally {
         setSuggestionLoading(false);
       }
-    }, 300);
+    }, 250);
+
     return () => clearTimeout(timer);
-  }, [query, loadPosts]);
+  }, [query, posts, loadPosts]);
 
   const pauseTagAutoScroll = useCallback(() => {
     tagPausedRef.current = true;
@@ -2212,6 +2281,12 @@ export default function App() {
                   placeholderTextColor="#99969c"
                   style={styles.searchInput}
                   returnKeyType="search"
+                  onSubmitEditing={() => {
+                    const text = query.trim();
+                    if (!text) return;
+                    loadPosts(text, 1);
+                    setSuggestions([]);
+                  }}
                 />
                 <TouchableOpacity style={styles.searchButton} onPress={() => { loadPosts(query.trim(), 1); setSuggestions([]); }}>
                   {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
