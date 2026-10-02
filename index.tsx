@@ -295,7 +295,6 @@ export default function App() {
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
   const [expiryNow, setExpiryNow] = useState(() => Date.now());
-  const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
