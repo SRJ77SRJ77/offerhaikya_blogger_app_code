@@ -1514,29 +1514,12 @@ export default function App() {
             <Text style={styles.detailLabel}>{detail.label}</Text>
             <Text style={[styles.detailTitle, darkMode && styles.darkText]}>{detail.title}</Text>
             <View style={styles.detailTitleRow}>
-              <View style={styles.detailTitleTextWrap}>
-                <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
-              </View>
+              <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
               <TouchableOpacity
-                style={styles.detailShareButton}
                 onPress={() => copyPostLink(detail.url)}
-                accessibilityLabel="Copy post link"
+                accessibilityLabel="Share post"
               >
-                <Svg width={21} height={21} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d="M12 16V4M7 9L12 4L17 9"
-                    stroke={darkMode ? WHITE : TEXT}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <Path
-                    d="M5 12V19C5 20.105 5.895 21 7 21H17C18.105 21 19 20.105 19 19V12"
-                    stroke={darkMode ? WHITE : TEXT}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
-                </Svg>
+                <Text style={styles.detailShareText}>(Share)</Text>
               </TouchableOpacity>
             </View>
             <RenderHTML
@@ -2446,8 +2429,7 @@ const styles = StyleSheet.create({
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  detailTitleTextWrap: { flex: 1 },
-  detailShareButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', marginLeft: 12, marginTop: 6 },
+  detailShareText: { color: ACCENT, fontSize: 12, fontWeight: '900' },
   cardHeartText: { color: '#e31b23', fontSize: 20, lineHeight: 22 },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
