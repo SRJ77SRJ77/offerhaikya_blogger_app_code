@@ -455,8 +455,8 @@ export default function App() {
     let cancelled = false;
 
     const locationAliases: Record<string, string[]> = {
-      belagavi: ['belagavi', 'belgaum', 'belgaon', 'belagavi district', 'belgaum district'],
-      belgaum: ['belagavi', 'belgaum', 'belgaon', 'belagavi district', 'belgaum district'],
+      belagavi: ['belagavi', 'belgavi', 'belgaum', 'belgaon', 'belagavi district', 'belgavi district', 'belgaum district'],
+      belgaum: ['belagavi', 'belgavi', 'belgaum', 'belgaon', 'belagavi district', 'belgavi district', 'belgaum district'],
       bangalore: ['bengaluru', 'bangalore'],
       bengaluru: ['bengaluru', 'bangalore'],
       bombay: ['mumbai', 'bombay'],
