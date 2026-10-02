@@ -2949,9 +2949,7 @@ export default function App() {
         <View style={styles.nearbyPreloaderOverlay}>
           <View style={styles.nearbyPreloaderCircle}>
             <Image
-              source={{
-                uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Offer.gif',
-              }}
+              source={require('./assets/Offer.gif')}
               style={styles.nearbyPreloaderGif}
               resizeMode="contain"
             />
