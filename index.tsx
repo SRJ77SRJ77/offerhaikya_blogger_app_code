@@ -38,7 +38,7 @@ const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
-const NEARBY_RADIUS_KM = 500;
+const NEARBY_RADIUS_KM = 200;
 const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const METADATA_AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
@@ -469,9 +469,10 @@ export default function App() {
 
     const buildLocationTerms = (place: any) => {
       const raw = [
-        place?.city,
+        place?.street,
         place?.district,
         place?.subregion,
+        place?.city,
         place?.region,
         place?.name,
       ]
@@ -488,6 +489,39 @@ export default function App() {
       });
 
       return Array.from(new Set(expanded.map(normalizeLocationText).filter(Boolean)));
+    };
+
+    const matchesNearbyOffer = (
+      post: Post,
+      coords: { latitude: number; longitude: number },
+      detectedLocationTerms: string[],
+    ) => {
+      const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
+      const hasLocalOfferTag = normalizedLabels.some(label =>
+        label.includes('local offers')
+        || label.includes('stores')
+        || label.includes('offline offer'),
+      );
+
+      if (!hasLocalOfferTag) return false;
+
+      const contentText = normalizeLocationText(post.content || post.rawContent || '');
+      const titleText = normalizeLocationText(post.title);
+      const tagText = normalizedLabels.join(' ');
+      const offerText = [titleText, contentText, tagText].join(' ');
+
+      const locationMatch = detectedLocationTerms.some(term => {
+        const normalizedTerm = normalizeLocationText(term);
+        if (!normalizedTerm) return false;
+        return offerText.includes(normalizedTerm);
+      });
+
+      const postLocation = extractMapCoordinates(post.rawContent);
+      const distanceMatch = postLocation
+        ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM
+        : false;
+
+      return locationMatch || distanceMatch;
     };
 
     const loadNearbyOffers = async () => {
@@ -587,39 +621,9 @@ export default function App() {
 
         const allPosts = await getAllPostsForNearby();
 
-        const matches = allPosts
-          .map(post => {
-            const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
-            const isLocalOffer = normalizedLabels.some(label =>
-              label === 'offline offers'
-              || label === 'offline offer'
-              || label === 'local offers'
-              || label === 'local offer'
-              || label === 'local store',
-            );
-
-            if (!isLocalOffer) return null;
-
-            const titleText = normalizeLocationText(post.title);
-            const tagText = normalizedLabels.join(' ');
-
-            const locationMatch = detectedLocationTerms.some(term => {
-              const normalizedTerm = normalizeLocationText(term);
-              if (!normalizedTerm) return false;
-
-              const matchesTitle = titleText.includes(normalizedTerm);
-              const matchesTags = tagText.includes(normalizedTerm);
-              return matchesTitle || matchesTags;
-            });
-
-            const postLocation = extractMapCoordinates(post.rawContent);
-            const distanceMatch = postLocation ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM : false;
-
-            if (!locationMatch && !distanceMatch) return null;
-
-            return post;
-          })
-          .filter((post): post is Post => Boolean(post));
+        const matches = allPosts.filter(post =>
+          matchesNearbyOffer(post, coords, detectedLocationTerms)
+        );
 
         nearbyCacheRef.current = {
           key: nearbyCacheKey,
@@ -667,6 +671,39 @@ export default function App() {
     const normalizeLocationTextForPolling = (value = '') =>
       value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 
+    const matchesNearbyOfferForPolling = (
+      post: Post,
+      coords: { latitude: number; longitude: number },
+      detectedLocationTerms: string[],
+    ) => {
+      const normalizedLabels = post.labels.map(label => normalizeLocationTextForPolling(label));
+      const hasLocalOfferTag = normalizedLabels.some(label =>
+        label.includes('local offers')
+        || label.includes('stores')
+        || label.includes('offline offer'),
+      );
+
+      if (!hasLocalOfferTag) return false;
+
+      const contentText = normalizeLocationTextForPolling(post.content || post.rawContent || '');
+      const titleText = normalizeLocationTextForPolling(post.title);
+      const tagText = normalizedLabels.join(' ');
+      const offerText = [titleText, contentText, tagText].join(' ');
+
+      const locationMatch = detectedLocationTerms.some(term => {
+        const normalizedTerm = normalizeLocationTextForPolling(term);
+        if (!normalizedTerm) return false;
+        return offerText.includes(normalizedTerm);
+      });
+
+      const postLocation = extractMapCoordinates(post.rawContent);
+      const distanceMatch = postLocation
+        ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM
+        : false;
+
+      return locationMatch || distanceMatch;
+    };
+
     const checkForNewNearbyPosts = async () => {
       try {
         const latestPosts = await fetchFeedFromNetwork('', 1);
@@ -678,33 +715,7 @@ export default function App() {
         const newMatches = latestPosts.filter(post => {
           if (existingIds.has(post.id)) return false;
 
-          const normalizedLabels = post.labels.map(label => normalizeLocationTextForPolling(label));
-          const isLocalOffer = normalizedLabels.some(label =>
-            label === 'offline offers'
-            || label === 'offline offer'
-            || label === 'local offers'
-            || label === 'local offer'
-            || label === 'local store',
-          );
-
-          if (!isLocalOffer) return false;
-
-          const titleText = normalizeLocationTextForPolling(post.title);
-          const tagText = normalizedLabels.join(' ');
-
-          const locationMatch = locationTerms.some(term => {
-            const normalizedTerm = normalizeLocationTextForPolling(term);
-            if (!normalizedTerm) return false;
-
-            return titleText.includes(normalizedTerm) || tagText.includes(normalizedTerm);
-          });
-
-          const postLocation = extractMapCoordinates(post.rawContent);
-          const distanceMatch = postLocation
-            ? distanceKm(userLocation, postLocation) <= NEARBY_RADIUS_KM
-            : false;
-
-          return locationMatch || distanceMatch;
+          return matchesNearbyOfferForPolling(post, userLocation, locationTerms);
         });
 
         if (!newMatches.length || cancelled) return;
