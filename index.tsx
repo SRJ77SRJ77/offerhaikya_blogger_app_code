@@ -2256,7 +2256,7 @@ export default function App() {
                 setSharePostUrl(null);
               }}
             >
-              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Copy Link</Text>
+              <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
               <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
                 Copy the OfferHaikya post link to your clipboard
               </Text>
