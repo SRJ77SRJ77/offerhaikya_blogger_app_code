@@ -43,6 +43,7 @@ const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const METADATA_AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
+const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
@@ -573,6 +574,91 @@ export default function App() {
     loadNearbyOffers();
     return () => { cancelled = true; };
   }, [registrationOpen, locationRefreshKey, bottomTab]);
+
+  useEffect(() => {
+    if (registrationOpen || bottomTab !== 'local' || !userLocation) return;
+
+    let cancelled = false;
+
+    const normalizeLocationTextForPolling = (value = '') =>
+      value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const checkForNewNearbyPosts = async () => {
+      try {
+        const latestPosts = await fetchFeedFromNetwork('', 1);
+        if (cancelled) return;
+
+        const currentNearbyPosts = nearbyCacheRef.current?.posts || nearbyPosts;
+        const existingIds = new Set(currentNearbyPosts.map(post => post.id));
+
+        const newMatches = latestPosts.filter(post => {
+          if (existingIds.has(post.id)) return false;
+
+          const normalizedLabels = post.labels.map(label => normalizeLocationTextForPolling(label));
+          const isLocalOffer = normalizedLabels.some(label =>
+            label === 'offline offers'
+            || label === 'offline offer'
+            || label === 'local offers'
+            || label === 'local offer'
+            || label === 'local store',
+          );
+
+          if (!isLocalOffer) return false;
+
+          const titleText = normalizeLocationTextForPolling(post.title);
+          const tagText = normalizedLabels.join(' ');
+
+          const locationMatch = locationTerms.some(term => {
+            const normalizedTerm = normalizeLocationTextForPolling(term);
+            if (!normalizedTerm) return false;
+
+            return titleText.includes(normalizedTerm) || tagText.includes(normalizedTerm);
+          });
+
+          const postLocation = extractMapCoordinates(post.rawContent);
+          const distanceMatch = postLocation
+            ? distanceKm(userLocation, postLocation) <= NEARBY_RADIUS_KM
+            : false;
+
+          return locationMatch || distanceMatch;
+        });
+
+        if (!newMatches.length || cancelled) return;
+
+        setNearbyPosts(current => {
+          const ids = new Set(current.map(post => post.id));
+          const additions = newMatches.filter(post => !ids.has(post.id));
+          if (!additions.length) return current;
+
+          const merged = [...additions, ...current];
+          const cached = nearbyCacheRef.current;
+
+          if (cached) {
+            nearbyCacheRef.current = {
+              ...cached,
+              posts: merged,
+            };
+          }
+
+          setLocalOffersDisabled(false);
+          setLocalOfferEmptyOpen(false);
+          return merged;
+        });
+      } catch {
+        // New-post polling is best-effort and must never interrupt the UI.
+      }
+    };
+
+    const interval = setInterval(
+      checkForNewNearbyPosts,
+      NEARBY_NEW_POST_CHECK_INTERVAL_MS,
+    );
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [registrationOpen, bottomTab, userLocation, locationTerms, nearbyPosts]);
 
   useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
