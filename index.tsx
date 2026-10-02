@@ -2322,7 +2322,7 @@ export default function App() {
                     </ScrollView>
                   ) : (
                     <Text style={styles.searchNoResult}>No matching offers</Text>
-                  )
+                  )}
                 </View>
               )}
             </ImageBackground>
