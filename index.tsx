@@ -531,7 +531,10 @@ export default function App() {
         : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-      const nearbyMatch = locationMatch || distanceMatch;
+
+      // Nearby is primarily distance-based: any matching local/offline offer
+      // within 200 km should be shown, regardless of city name.
+      const nearbyMatch = distanceMatch || (!postLocation && locationMatch);
 
       if (isNearbyDebugPost) {
         console.log('[Nearby debug]', {
