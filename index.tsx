@@ -279,6 +279,7 @@ export default function App() {
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+  const [locationServicesEnabled, setLocationServicesEnabled] = useState<boolean | null>(null);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
@@ -770,6 +771,7 @@ export default function App() {
 
         const permission = await Location.getForegroundPermissionsAsync();
         const servicesEnabled = await Location.hasServicesEnabledAsync();
+        setLocationServicesEnabled(servicesEnabled);
         const locationReady =
           permission.status === 'granted' && servicesEnabled;
 
@@ -2680,12 +2682,20 @@ export default function App() {
 
 
 
-            {userLocation && nearbyPosts.length > 0 ? (
+            {nearbyPosts.length > 0 ? (
               <>
                 <View style={styles.sectionRow}>
-                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
-                  </Text>
+                  <View style={styles.nearbySectionTitleWrap}>
+                    <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
+                      Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
+                    </Text>
+                    {locationServicesEnabled === false ? (
+                      <Image
+                        source={{ uri: 'https://cdn-icons-png.flaticon.com/128/12638/12638441.png' }}
+                        style={styles.nearbyLocationOffIcon}
+                      />
+                    ) : null}
+                  </View>
                   <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Nearby</Text>
                 </View>
                 <View>
@@ -3173,6 +3183,8 @@ const styles = StyleSheet.create({
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
     sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  nearbySectionTitleWrap: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  nearbyLocationOffIcon: { width: 20, height: 20, marginLeft: 7 },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { flexDirection: 'row', paddingHorizontal: 10, justifyContent: 'space-between' },
