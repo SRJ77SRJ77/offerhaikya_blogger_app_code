@@ -514,8 +514,23 @@ export default function App() {
       const hasLocalOfferTag = nearbyLocalTags.some(tag =>
         normalizedLabels.includes(tag),
       );
+      const isNearbyDebugPost =
+        /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
 
-      if (!hasLocalOfferTag) return false;
+      if (!hasLocalOfferTag) {
+        if (isNearbyDebugPost) {
+          console.log('[Nearby debug]', {
+            title: post.title,
+            labels: post.labels,
+            normalizedLabels,
+            hasLocalOfferTag,
+            locationTerms: detectedLocationTerms,
+            result: false,
+            reason: 'local-offer-tag-missing',
+          });
+        }
+        return false;
+      }
 
       const contentText = normalizeLocationText(post.content || '');
       const rawContentText = normalizeLocationText(post.rawContent || '');
@@ -532,11 +547,30 @@ export default function App() {
       });
 
       const postLocation = extractMapCoordinates(post.rawContent);
-      const distanceMatch = postLocation
-        ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM
-        : false;
+      const distanceKmValue = postLocation
+        ? distanceKm(coords, postLocation)
+        : null;
+      const distanceMatch =
+        distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
+      const nearbyMatch = locationMatch || distanceMatch;
 
-      return locationMatch || distanceMatch;
+      if (isNearbyDebugPost) {
+        console.log('[Nearby debug]', {
+          title: post.title,
+          labels: post.labels,
+          normalizedLabels,
+          hasLocalOfferTag,
+          locationTerms: detectedLocationTerms,
+          locationMatch,
+          postLocation,
+          userLocation: coords,
+          distanceKm: distanceKmValue,
+          distanceMatch,
+          result: nearbyMatch,
+        });
+      }
+
+      return nearbyMatch;
     };
 
     const loadNearbyOffers = async () => {
@@ -709,8 +743,23 @@ export default function App() {
       const hasLocalOfferTag = nearbyLocalTags.some(tag =>
         normalizedLabels.includes(tag),
       );
+      const isNearbyDebugPost =
+        /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
 
-      if (!hasLocalOfferTag) return false;
+      if (!hasLocalOfferTag) {
+        if (isNearbyDebugPost) {
+          console.log('[Nearby debug]', {
+            title: post.title,
+            labels: post.labels,
+            normalizedLabels,
+            hasLocalOfferTag,
+            locationTerms: detectedLocationTerms,
+            result: false,
+            reason: 'local-offer-tag-missing',
+          });
+        }
+        return false;
+      }
 
       const contentText = normalizeLocationTextForPolling(post.content || '');
       const rawContentText = normalizeLocationTextForPolling(post.rawContent || '');
@@ -726,11 +775,30 @@ export default function App() {
       });
 
       const postLocation = extractMapCoordinates(post.rawContent);
-      const distanceMatch = postLocation
-        ? distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM
-        : false;
+      const distanceKmValue = postLocation
+        ? distanceKm(coords, postLocation)
+        : null;
+      const distanceMatch =
+        distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
+      const nearbyMatch = locationMatch || distanceMatch;
 
-      return locationMatch || distanceMatch;
+      if (isNearbyDebugPost) {
+        console.log('[Nearby debug]', {
+          title: post.title,
+          labels: post.labels,
+          normalizedLabels,
+          hasLocalOfferTag,
+          locationTerms: detectedLocationTerms,
+          locationMatch,
+          postLocation,
+          userLocation: coords,
+          distanceKm: distanceKmValue,
+          distanceMatch,
+          result: nearbyMatch,
+        });
+      }
+
+      return nearbyMatch;
     };
 
     const checkForNewNearbyPosts = async () => {
