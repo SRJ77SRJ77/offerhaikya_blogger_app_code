@@ -498,10 +498,17 @@ export default function App() {
       detectedLocationTerms: string[],
     ) => {
       const normalizedLabels = post.labels.map(label => normalizeLocationText(label));
+      // Nearby location-post tags: local store, local stores, store, stores,
+      // offline offer, offer offers, local offers, and local offer.
       const hasLocalOfferTag = normalizedLabels.some(label =>
-        label.includes('local offers')
-        || label.includes('stores')
-        || label.includes('offline offer'),
+        label === 'local store'
+        || label === 'local stores'
+        || label === 'store'
+        || label === 'stores'
+        || label === 'offline offer'
+        || label === 'offer offers'
+        || label === 'local offers'
+        || label === 'local offer',
       );
 
       if (!hasLocalOfferTag) return false;
@@ -679,10 +686,17 @@ export default function App() {
       detectedLocationTerms: string[],
     ) => {
       const normalizedLabels = post.labels.map(label => normalizeLocationTextForPolling(label));
+      // Nearby location-post tags: local store, local stores, store, stores,
+      // offline offer, offer offers, local offers, and local offer.
       const hasLocalOfferTag = normalizedLabels.some(label =>
-        label.includes('local offers')
-        || label.includes('stores')
-        || label.includes('offline offer'),
+        label === 'local store'
+        || label === 'local stores'
+        || label === 'store'
+        || label === 'stores'
+        || label === 'offline offer'
+        || label === 'offer offers'
+        || label === 'local offers'
+        || label === 'local offer',
       );
 
       if (!hasLocalOfferTag) return false;
