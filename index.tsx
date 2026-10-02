@@ -502,12 +502,13 @@ export default function App() {
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationText(label))
         .filter(Boolean);
-      const nearbyLocalTags = new Set([
+      const nearbyLocalTags = [
         'offline offer',
         'local offer',
-      ]);
-      const hasLocalOfferTag = normalizedLabels.some(label =>
-        nearbyLocalTags.has(label),
+      ];
+      const allTagText = normalizedLabels.join(' ');
+      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
+        allTagText.includes(tag),
       );
 
       if (!hasLocalOfferTag) return false;
@@ -706,8 +707,9 @@ export default function App() {
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationTextForPolling(label))
         .filter(Boolean);
-      const nearbyLocalTags = new Set(['offline offer', 'local offer']);
-      const hasLocalOfferTag = normalizedLabels.some(label => nearbyLocalTags.has(label));
+      const nearbyLocalTags = ['offline offer', 'local offer'];
+      const allTagText = normalizedLabels.join(' ');
+      const hasLocalOfferTag = nearbyLocalTags.some(tag => allTagText.includes(tag));
       if (!hasLocalOfferTag) return false;
 
       const contentText = normalizeLocationTextForPolling(post.content || '');
