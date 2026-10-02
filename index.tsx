@@ -1897,6 +1897,10 @@ export default function App() {
               />
             </View>
 
+            <Text style={{ color: MUTED, fontSize: 13, fontWeight: '800', textAlign: 'center', marginTop: -3, marginBottom: 8 }}>
+              OR
+            </Text>
+
             <TextInput
               value={registrationEmail}
               onChangeText={value => {
