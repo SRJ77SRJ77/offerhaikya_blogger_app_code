@@ -205,6 +205,7 @@ export default function App() {
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationEmail, setRegistrationEmail] = useState('');
   const [registrationCategories, setRegistrationCategories] = useState<string[]>([]);
+  const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -842,6 +843,7 @@ export default function App() {
       setRegistrationContact('');
       setRegistrationEmail('');
       setRegistrationCategories([]);
+      setRegistrationCategoriesOpen(false);
       setRegistrationError('');
 
       // Keep the popup visible long enough for the user to see the success message.
@@ -1888,30 +1890,80 @@ export default function App() {
               editable={!registrationSubmitting}
             />
 
-            <Text style={styles.registrationCategoryTitle}>Your interested categories *</Text>
-            <View style={styles.registrationCategoryWrap}>
-              {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
-                const selected = registrationCategories.includes(category);
-                return (
-                  <TouchableOpacity
-                    key={category}
-                    style={[styles.registrationCategoryChip, selected && styles.registrationCategoryChipSelected]}
-                    onPress={() => {
-                      setRegistrationCategories(current =>
-                        selected
-                          ? current.filter(item => item !== category)
-                          : [...current, category],
-                      );
-                    }}
-                    disabled={registrationSubmitting}
-                  >
-                    <Text style={[styles.registrationCategoryText, selected && styles.registrationCategoryTextSelected]}>
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <Text style={styles.registrationCategoryTitle}>Interested Categories *</Text>
+            <TouchableOpacity
+              style={styles.registrationCategoryDropdown}
+              onPress={() => setRegistrationCategoriesOpen(value => !value)}
+              disabled={registrationSubmitting}
+              accessibilityLabel="Interested categories"
+            >
+              <Text
+                style={[
+                  styles.registrationCategoryDropdownText,
+                  registrationCategories.length > 0 && styles.registrationCategoryDropdownTextSelected,
+                ]}
+                numberOfLines={1}
+              >
+                {registrationCategories.length > 0
+                  ? `${registrationCategories.length} selected: ${registrationCategories.slice(0, 2).join(', ')}${registrationCategories.length > 2 ? ', …' : ''}`
+                  : 'Select interested categories'}
+              </Text>
+              <Text style={styles.registrationCategoryDropdownArrow}>
+                {registrationCategoriesOpen ? '⌃' : '⌄'}
+              </Text>
+            </TouchableOpacity>
+
+            {registrationCategoriesOpen ? (
+              <View style={styles.registrationCategoryDropdownMenu}>
+                <ScrollView
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={true}
+                  style={styles.registrationCategoryDropdownScroll}
+                >
+                  {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
+                    const selected = registrationCategories.includes(category);
+                    return (
+                      <TouchableOpacity
+                        key={category}
+                        style={styles.registrationCategoryDropdownItem}
+                        onPress={() => {
+                          setRegistrationCategories(current =>
+                            selected
+                              ? current.filter(item => item !== category)
+                              : [...current, category],
+                          );
+                        }}
+                        disabled={registrationSubmitting}
+                      >
+                        <View
+                          style={[
+                            styles.registrationCategoryCheckbox,
+                            selected && styles.registrationCategoryCheckboxSelected,
+                          ]}
+                        >
+                          {selected ? <Text style={styles.registrationCategoryCheck}>✓</Text> : null}
+                        </View>
+                        <Text
+                          style={[
+                            styles.registrationCategoryDropdownItemText,
+                            selected && styles.registrationCategoryDropdownItemTextSelected,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {category}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+                <TouchableOpacity
+                  style={styles.registrationCategoryDoneButton}
+                  onPress={() => setRegistrationCategoriesOpen(false)}
+                >
+                  <Text style={styles.registrationCategoryDoneText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
 
             {registrationError ? (
               <Text style={styles.registrationError}>{registrationError}</Text>
@@ -2726,11 +2778,20 @@ const styles = StyleSheet.create({
   registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   registrationFormContent: { paddingBottom: 2 },
   registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
-  registrationCategoryWrap: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
-  registrationCategoryChip: { paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, borderWidth: 1, borderColor: '#dddddd', backgroundColor: WHITE, marginRight: 7, marginBottom: 7 },
-  registrationCategoryChipSelected: { backgroundColor: '#fff3ed', borderColor: ACCENT },
-  registrationCategoryText: { color: TEXT, fontSize: 12, fontWeight: '700' },
-  registrationCategoryTextSelected: { color: ACCENT, fontWeight: '900' },
+  registrationCategoryDropdown: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: WHITE, marginBottom: 8 },
+  registrationCategoryDropdownText: { flex: 1, color: MUTED, fontSize: 14 },
+  registrationCategoryDropdownTextSelected: { color: TEXT, fontWeight: '700' },
+  registrationCategoryDropdownArrow: { color: MUTED, fontSize: 20, marginLeft: 8 },
+  registrationCategoryDropdownMenu: { borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, marginBottom: 12, overflow: 'hidden' },
+  registrationCategoryDropdownScroll: { maxHeight: 210 },
+  registrationCategoryDropdownItem: { minHeight: 46, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  registrationCategoryCheckbox: { width: 21, height: 21, borderWidth: 1.5, borderColor: '#bbbbbb', borderRadius: 5, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  registrationCategoryCheckboxSelected: { backgroundColor: ACCENT, borderColor: ACCENT },
+  registrationCategoryCheck: { color: WHITE, fontSize: 14, fontWeight: '900', lineHeight: 16 },
+  registrationCategoryDropdownItemText: { flex: 1, color: TEXT, fontSize: 13 },
+  registrationCategoryDropdownItemTextSelected: { color: ACCENT, fontWeight: '800' },
+  registrationCategoryDoneButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', borderTopWidth: 1, borderTopColor: '#eeeeee' },
+  registrationCategoryDoneText: { color: ACCENT, fontSize: 14, fontWeight: '900' },
   registrationTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 5 },
   registrationSubtitle: { color: MUTED, fontSize: 13, lineHeight: 19, marginBottom: 15 },
   registrationInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
