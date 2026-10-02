@@ -846,8 +846,11 @@ export default function App() {
         responseData = null;
       }
 
-      if (responseData?.success === false) {
-        throw new Error(responseData.error || 'Registration failed');
+      if (!responseData?.success) {
+        throw new Error(
+          responseData?.error ||
+          'Registration was not confirmed by the server. Please try again.'
+        );
       }
 
       setRegistrationSuccess(true);
