@@ -297,7 +297,6 @@ export default function App() {
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
   const [expiryNow, setExpiryNow] = useState(() => Date.now());
-  const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const mainListRef = useRef<FlatList<Post>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
@@ -563,7 +562,6 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
-            setLocalOffersDisabled(false);
           }
           return;
         }
@@ -578,7 +576,6 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
-            setLocalOffersDisabled(false);
           }
           return;
         }
@@ -644,7 +641,13 @@ export default function App() {
         ) {
           if (!cancelled) {
             setNearbyPosts(cachedNearby.posts);
-            setLocalOffersDisabled(cachedNearby.posts.length === 0);
+            if (bottomTab === 'local') {
+              if (cachedNearby.posts.length === 0) {
+                setLocalOfferEmptyOpen(true);
+              } else {
+                setLocalOfferEmptyOpen(false);
+              }
+            }
           }
           finishNearbyPreloader();
           return;
@@ -664,7 +667,6 @@ export default function App() {
 
         if (!cancelled) {
           setNearbyPosts(matches);
-          setLocalOffersDisabled(matches.length === 0);
           if (bottomTab === 'local') {
             if (matches.length === 0) {
               setLocalOfferEmptyOpen(true);
@@ -678,7 +680,6 @@ export default function App() {
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
-          setLocalOffersDisabled(true);
           if (bottomTab === 'local') {
             setLocalOfferEmptyOpen(true);
           }
@@ -1490,8 +1491,6 @@ export default function App() {
   };
 
   const goToLocalOffersTab = async () => {
-    if (localOffersDisabled) return;
-
     closeMenu();
     setDetail(null);
     setInfoPage(null);
@@ -2223,30 +2222,25 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.bottomNavItem,
-              bottomTab === 'local' && styles.bottomNavItemActive,
-              localOffersDisabled && styles.bottomNavItemDisabled,
-            ]}
+            style={[styles.bottomNavItem, bottomTab === 'local' && styles.bottomNavItemActive]}
             onPress={goToLocalOffersTab}
-            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
           </TouchableOpacity>
