@@ -673,7 +673,6 @@ export default function App() {
           setLocalOffersDisabled(matches.length === 0);
           if (bottomTab === 'local') {
             if (matches.length === 0) {
-              setLocalOfferEmptyCountdown(5);
               setLocalOfferEmptyOpen(true);
             } else {
               setLocalOfferEmptyOpen(false);
@@ -687,7 +686,6 @@ export default function App() {
           setNearbyPosts([]);
           setLocalOffersDisabled(true);
           if (bottomTab === 'local') {
-            setLocalOfferEmptyCountdown(5);
             setLocalOfferEmptyOpen(true);
           }
         }
@@ -1521,7 +1519,6 @@ export default function App() {
 
   const closeLocalOfferEmptyPopup = () => {
     setLocalOfferEmptyOpen(false);
-    setLocalOfferEmptyCountdown(5);
   };
 
 
@@ -1702,24 +1699,6 @@ export default function App() {
       </View>
     </View>
   ) : null;
-  useEffect(() => {
-    if (!localOfferEmptyOpen) return;
-
-    setLocalOfferEmptyCountdown(5);
-    const timer = setInterval(() => {
-      setLocalOfferEmptyCountdown(current => {
-        if (current <= 1) {
-          clearInterval(timer);
-          setLocalOfferEmptyOpen(false);
-          return 5;
-        }
-        return current - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [localOfferEmptyOpen]);
-
   useEffect(() => {
     if (!infoPage) {
       setBloggerInfoData(null);
