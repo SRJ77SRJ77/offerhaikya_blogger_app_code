@@ -849,9 +849,7 @@ export default function App() {
         '&interestedCategories=' + encodeURIComponent(registrationData.interestedCategories);
 
       const response = await fetch(registrationUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(registrationData),
+        method: 'GET',
       });
 
       if (!response.ok) {
