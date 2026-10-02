@@ -1537,10 +1537,26 @@ export default function App() {
             <View style={styles.detailTitleRow}>
               <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
               <TouchableOpacity
+                style={styles.detailShareRow}
                 onPress={() => openShareOptions(detail.url)}
                 accessibilityLabel="Share post"
               >
-                <Text style={styles.detailShareText}>(Share)</Text>
+                <Text style={styles.detailShareText}>Share</Text>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={styles.detailShareIcon}>
+                  <Path
+                    d="M4 12L20 4L14 20L10 14L4 12Z"
+                    stroke={darkMode ? WHITE : TEXT}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <Path
+                    d="M10 14L20 4"
+                    stroke={darkMode ? WHITE : TEXT}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  />
+                </Svg>
               </TouchableOpacity>
             </View>
             <RenderHTML
@@ -1645,6 +1661,51 @@ export default function App() {
         )}
         contentContainerStyle={{ paddingBottom: 104 }}
         />
+        <Modal
+          visible={sharePostUrl !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSharePostUrl(null)}
+        >
+          <View style={styles.shareOverlay}>
+            <TouchableOpacity
+              style={styles.shareBackdrop}
+              activeOpacity={1}
+              onPress={() => setSharePostUrl(null)}
+            />
+            <View style={[styles.sharePopup, darkMode && styles.favoritePopupDark]}>
+              <Text style={[styles.sharePopupTitle, darkMode && styles.darkText]}>Share Offer</Text>
+
+              <TouchableOpacity style={styles.shareOption} onPress={sharePost}>
+                <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Share</Text>
+                <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                  WhatsApp, Instagram, Facebook, Telegram and other installed apps
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.shareOption}
+                onPress={() => {
+                  if (sharePostUrl) copyPostLink(sharePostUrl);
+                  setSharePostUrl(null);
+                }}
+              >
+                <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
+                <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                  Copy the OfferHaikya post link to your clipboard
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.shareCancelButton}
+                onPress={() => setSharePostUrl(null)}
+              >
+                <Text style={styles.shareCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
           <TouchableOpacity
             style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
@@ -2495,7 +2556,9 @@ const styles = StyleSheet.create({
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  detailShareRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 8 },
   detailShareText: { color: ACCENT, fontSize: 12, fontWeight: '900' },
+  detailShareIcon: { marginLeft: 5 },
   cardHeartText: { color: '#e31b23', fontSize: 20, lineHeight: 22 },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
