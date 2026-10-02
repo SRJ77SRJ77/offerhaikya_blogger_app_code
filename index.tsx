@@ -39,7 +39,10 @@ const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 500;
-const AUTO_SYNC_INTERVAL_MS = 30000;
+const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
+const METADATA_AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1000;
+const FEED_CACHE_TTL_MS = 60 * 1000;
+const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
@@ -60,6 +63,8 @@ type Post = {
   rawContent: string;
 };
 
+const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
+
 const stripHtml = (value = '') =>
   value
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -76,9 +81,9 @@ const stripHtml = (value = '') =>
 const highResImage = (url = '') => {
   if (!url) return '';
   return url
-    .replace(/\/s\d+(-c)?\//i, '/s1600/')
-    .replace(/=w\d+(-h\d+)?(-p)?/i, '=s1600')
-    .replace(/\/w\d+(-h\d+)?\//i, '/s1600/');
+    .replace(/\/s\d+(-c)?\//i, '/s800/')
+    .replace(/=w\d+(-h\d+)?(-p)?/i, '=s800')
+    .replace(/\/w\d+(-h\d+)?\//i, '/s800/');
 };
 
 const firstImage = (html = '') => {
@@ -139,7 +144,7 @@ const parseFeed = (data: any): Post[] => {
       publishedAt: entry.published?.$t || entry.updated?.$t || '',
       label: labels[0] || 'Offers',
       labels,
-      image: firstImage(content) || highResImage(entry.media$thumbnail?.url),
+      image: highResImage(firstImage(content) || entry.media$thumbnail?.url),
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
       rawContent: content,
@@ -147,17 +152,59 @@ const parseFeed = (data: any): Post[] => {
   });
 };
 
-const getFeed = async (query = '', startIndex = 1) => {
+const getFeedCacheKey = (query = '', startIndex = 1) =>
+  query.trim().toLowerCase() + '::' + startIndex;
+
+const fetchFeedFromNetwork = async (query = '', startIndex = 1) => {
   const params = new URLSearchParams({
     alt: 'json',
     'max-results': String(PAGE_SIZE),
     'start-index': String(startIndex),
   });
-  if (query.trim().length >= 1) params.set('q', query.trim());
+
+  if (query.trim().length >= 1) {
+    params.set('q', query.trim());
+  }
 
   const response = await fetch(FEED_URL + '?' + params.toString());
   if (!response.ok) throw new Error('Unable to load posts');
-  return parseFeed(await response.json());
+
+  const posts = parseFeed(await response.json());
+  feedCache.set(getFeedCacheKey(query, startIndex), {
+    posts,
+    savedAt: Date.now(),
+  });
+
+  return posts;
+};
+
+const getCachedFeed = (query = '', startIndex = 1) => {
+  const cacheKey = getFeedCacheKey(query, startIndex);
+  const cached = feedCache.get(cacheKey);
+  if (!cached) return null;
+
+  if (Date.now() - cached.savedAt > FEED_CACHE_TTL_MS) {
+    feedCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.posts;
+};
+
+const getFeed = async (query = '', startIndex = 1) => {
+  const cached = getCachedFeed(query, startIndex);
+  if (cached) return cached;
+  return fetchFeedFromNetwork(query, startIndex);
+};
+
+const prefetchFeed = async (query = '', startIndex = 1) => {
+  if (getCachedFeed(query, startIndex)) return;
+
+  try {
+    await fetchFeedFromNetwork(query, startIndex);
+  } catch {
+    // Prefetch is best-effort and must never block the UI.
+  }
 };
 
 const getAllPostsForNearby = async () => {
@@ -248,6 +295,7 @@ export default function App() {
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
+  const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
   const tagScrollRef = useRef<ScrollView>(null);
@@ -280,9 +328,31 @@ export default function App() {
       setError('');
       if (!search) setLoading(true);
       else setSearching(true);
-      const result = await getFeed(search, (pageNumber - 1) * PAGE_SIZE + 1);
+      const startIndex = (pageNumber - 1) * PAGE_SIZE + 1;
+      const cached = getCachedFeed(search, startIndex);
+
+      if (cached) {
+        setPosts(cached);
+        setPage(pageNumber);
+        setLoading(false);
+        setSearching(false);
+        setRefreshing(false);
+
+        void fetchFeedFromNetwork(search, startIndex).catch(() => {});
+
+        if (cached.length === PAGE_SIZE) {
+          void prefetchFeed(search, pageNumber + 1);
+        }
+        return;
+      }
+
+      const result = await fetchFeedFromNetwork(search, startIndex);
       setPosts(result);
       setPage(pageNumber);
+
+      if (result.length === PAGE_SIZE) {
+        void prefetchFeed(search, pageNumber + 1);
+      }
     } catch {
       setError('Could not load the latest offers. Please try again.');
     } finally {
@@ -297,7 +367,7 @@ export default function App() {
   }, [loadPosts]);
 
   useEffect(() => {
-    if (registrationOpen) return;
+    if (registrationOpen || bottomTab !== 'local') return;
 
     let cancelled = false;
 
@@ -414,6 +484,26 @@ export default function App() {
           }
         }
 
+        const nearbyCacheKey =
+          coords.latitude.toFixed(2) +
+          ',' +
+          coords.longitude.toFixed(2) +
+          '|' +
+          detectedLocationTerms.slice().sort().join('|');
+
+        const cachedNearby = nearbyCacheRef.current;
+        if (
+          cachedNearby &&
+          cachedNearby.key === nearbyCacheKey &&
+          Date.now() - cachedNearby.savedAt <= NEARBY_CACHE_TTL_MS
+        ) {
+          if (!cancelled) {
+            setNearbyPosts(cachedNearby.posts);
+            setLocalOffersDisabled(cachedNearby.posts.length === 0);
+          }
+          return;
+        }
+
         const allPosts = await getAllPostsForNearby();
 
         const matches = allPosts
@@ -450,6 +540,12 @@ export default function App() {
           })
           .filter((post): post is Post => Boolean(post));
 
+        nearbyCacheRef.current = {
+          key: nearbyCacheKey,
+          savedAt: Date.now(),
+          posts: matches,
+        };
+
         if (!cancelled) {
           setNearbyPosts(matches);
           setLocalOffersDisabled(matches.length === 0);
@@ -476,7 +572,7 @@ export default function App() {
 
     loadNearbyOffers();
     return () => { cancelled = true; };
-  }, [registrationOpen, posts, locationRefreshKey, bottomTab]);
+  }, [registrationOpen, locationRefreshKey, bottomTab]);
 
   useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
@@ -592,7 +688,7 @@ export default function App() {
 
     syncBloggerCategories();
 
-    const interval = setInterval(syncBloggerCategories, AUTO_SYNC_INTERVAL_MS);
+    const interval = setInterval(syncBloggerCategories, METADATA_AUTO_SYNC_INTERVAL_MS);
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') syncBloggerCategories();
     });
@@ -612,7 +708,7 @@ export default function App() {
       loadPosts(activeSearch, page);
     };
 
-    const interval = setInterval(syncNow, AUTO_SYNC_INTERVAL_MS);
+    const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') syncNow();
     });
@@ -1440,7 +1536,7 @@ export default function App() {
 
     loadBloggerInfoPage();
 
-    const interval = setInterval(loadBloggerInfoPage, AUTO_SYNC_INTERVAL_MS);
+    const interval = setInterval(loadBloggerInfoPage, METADATA_AUTO_SYNC_INTERVAL_MS);
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') loadBloggerInfoPage();
     });
@@ -2326,6 +2422,13 @@ export default function App() {
         contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
         ListHeaderComponentStyle={darkMode ? styles.contentDark : undefined}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+        onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          const activeSearch = query.trim().length >= 3 ? query.trim() : '';
+          if (posts.length === PAGE_SIZE) {
+            void prefetchFeed(activeSearch, page + 1);
+          }
+        }}
         ListHeaderComponent={
           <>
             <ImageBackground
