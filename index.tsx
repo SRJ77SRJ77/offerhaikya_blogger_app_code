@@ -816,11 +816,6 @@ export default function App() {
         const locationReady =
           permission.status === 'granted' && servicesEnabled;
 
-        // Clear any previous "No" snooze as soon as Location Services are back on.
-        if (servicesEnabled) {
-          locationPromptSnoozeUntilRef.current = 0;
-        }
-
         // Refresh Nearby Offers only once when Location becomes ready.
         if (locationReady) {
           const wasLocationReady = locationReadyRef.current === true;
