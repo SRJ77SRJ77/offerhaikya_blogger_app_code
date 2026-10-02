@@ -702,6 +702,14 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ) => {
+      const isNearbyDebugPost = /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
+      const normalizedLabels = [...post.labels, post.label]
+        .map(label => normalizeLocationTextForPolling(label))
+        .filter(Boolean);
+      const nearbyLocalTags = new Set(['offline offer', 'local offer']);
+      const hasLocalOfferTag = normalizedLabels.some(label => nearbyLocalTags.has(label));
+      if (!hasLocalOfferTag) return false;
+
       const contentText = normalizeLocationTextForPolling(post.content || '');
       const rawContentText = normalizeLocationTextForPolling(post.rawContent || '');
       const titleText = normalizeLocationTextForPolling(post.title);
