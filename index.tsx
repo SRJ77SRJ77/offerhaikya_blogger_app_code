@@ -1985,12 +1985,6 @@ export default function App() {
                     );
                   })}
                 </ScrollView>
-                <TouchableOpacity
-                  style={styles.registrationCategoryDoneButton}
-                  onPress={() => setRegistrationCategoriesOpen(false)}
-                >
-                  <Text style={styles.registrationCategoryDoneText}>Done</Text>
-                </TouchableOpacity>
               </View>
             ) : null}
 
