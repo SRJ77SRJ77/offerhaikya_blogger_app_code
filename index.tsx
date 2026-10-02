@@ -499,10 +499,10 @@ export default function App() {
     ) => {
       const isNearbyDebugPost =
         /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
-      const normalizedLabels = [...post.labels, post.label].map(label =>
-        normalizeLocationText(label),
-      );
-      const nearbyLocalTags = [
+      const normalizedLabels = [...post.labels, post.label]
+        .map(label => normalizeLocationText(label))
+        .filter(Boolean);
+      const nearbyLocalTags = new Set([
         'local store',
         'local stores',
         'store',
@@ -511,9 +511,9 @@ export default function App() {
         'offer offers',
         'local offers',
         'local offer',
-      ];
-      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
-        normalizedLabels.includes(tag),
+      ]);
+      const hasLocalOfferTag = normalizedLabels.some(label =>
+        nearbyLocalTags.has(label),
       );
 
       if (!hasLocalOfferTag) return false;
