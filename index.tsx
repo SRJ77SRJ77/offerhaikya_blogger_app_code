@@ -56,7 +56,6 @@ type Post = {
   url: string;
   date: string;
   publishedAt: string;
-  updatedAt: string;
   label: string;
   labels: string[];
   image?: string;
@@ -144,7 +143,6 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       publishedAt: entry.published?.$t || entry.updated?.$t || '',
-      updatedAt: entry.updated?.$t || entry.published?.$t || '',
       label: labels[0] || 'Offers',
       labels,
       image: highResImage(firstImage(content) || entry.media$thumbnail?.url),
@@ -297,7 +295,10 @@ export default function App() {
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
   const [expiryNow, setExpiryNow] = useState(() => Date.now());
+  const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
+  const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
+  const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
   const nearbyPreloaderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -562,6 +563,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
+            setLocalOffersDisabled(false);
           }
           return;
         }
@@ -576,6 +578,7 @@ export default function App() {
             setLocationLabel('');
             setLocationTerms([]);
             setNearbyPosts([]);
+            setLocalOffersDisabled(false);
           }
           return;
         }
@@ -641,6 +644,7 @@ export default function App() {
         ) {
           if (!cancelled) {
             setNearbyPosts(cachedNearby.posts);
+            setLocalOffersDisabled(cachedNearby.posts.length === 0);
             if (bottomTab === 'local') {
               if (cachedNearby.posts.length === 0) {
                 setLocalOfferEmptyOpen(true);
@@ -667,8 +671,10 @@ export default function App() {
 
         if (!cancelled) {
           setNearbyPosts(matches);
+          setLocalOffersDisabled(matches.length === 0);
           if (bottomTab === 'local') {
             if (matches.length === 0) {
+              setLocalOfferEmptyCountdown(5);
               setLocalOfferEmptyOpen(true);
             } else {
               setLocalOfferEmptyOpen(false);
@@ -680,7 +686,9 @@ export default function App() {
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
+          setLocalOffersDisabled(true);
           if (bottomTab === 'local') {
+            setLocalOfferEmptyCountdown(5);
             setLocalOfferEmptyOpen(true);
           }
         }
@@ -758,47 +766,33 @@ export default function App() {
         if (cancelled) return;
 
         const currentNearbyPosts = nearbyCacheRef.current?.posts || nearbyPosts;
-        const latestById = new Map(latestPosts.map(post => [post.id, post]));
         const existingIds = new Set(currentNearbyPosts.map(post => post.id));
 
-        const changedPosts = currentNearbyPosts
-          .map(post => {
-            const latest = latestById.get(post.id);
-            if (!latest || latest.updatedAt === post.updatedAt) return post;
-            return matchesNearbyOfferForPolling(latest, userLocation, locationTerms)
-              ? latest
-              : null;
-          })
-          .filter((post): post is Post => post !== null);
+        const newMatches = latestPosts.filter(post => {
+          if (existingIds.has(post.id)) return false;
 
-        const newMatches = latestPosts.filter(post =>
-          !existingIds.has(post.id) &&
-          matchesNearbyOfferForPolling(post, userLocation, locationTerms)
-        );
+          return matchesNearbyOfferForPolling(post, userLocation, locationTerms);
+        });
 
-        if (!newMatches.length && changedPosts.length === currentNearbyPosts.length) return;
+        if (!newMatches.length || cancelled) return;
 
         setNearbyPosts(current => {
-          const latestCurrentById = new Map(current.map(post => [post.id, post]));
-          const mergedChanged = changedPosts.map(post => latestCurrentById.has(post.id) ? post : post);
-          const changedIds = new Set(mergedChanged.map(post => post.id));
-          const additions = newMatches.filter(post => !changedIds.has(post.id));
-          const merged = [...additions, ...mergedChanged];
+          const ids = new Set(current.map(post => post.id));
+          const additions = newMatches.filter(post => !ids.has(post.id));
+          if (!additions.length) return current;
 
+          const merged = [...additions, ...current];
           const cached = nearbyCacheRef.current;
+
           if (cached) {
             nearbyCacheRef.current = {
               ...cached,
               posts: merged,
-              savedAt: Date.now(),
             };
           }
 
-          setLocalOffersDisabled(merged.length === 0);
-          if (merged.length > 0) {
-            setLocalOfferEmptyOpen(false);
-          }
-
+          setLocalOffersDisabled(false);
+          setLocalOfferEmptyOpen(false);
           return merged;
         });
       } catch {
@@ -1528,6 +1522,7 @@ export default function App() {
 
   const closeLocalOfferEmptyPopup = () => {
     setLocalOfferEmptyOpen(false);
+    setLocalOfferEmptyCountdown(5);
   };
 
 
@@ -1708,6 +1703,24 @@ export default function App() {
       </View>
     </View>
   ) : null;
+  useEffect(() => {
+    if (!localOfferEmptyOpen) return;
+
+    setLocalOfferEmptyCountdown(5);
+    const timer = setInterval(() => {
+      setLocalOfferEmptyCountdown(current => {
+        if (current <= 1) {
+          clearInterval(timer);
+          setLocalOfferEmptyOpen(false);
+          return 5;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [localOfferEmptyOpen]);
+
   useEffect(() => {
     if (!infoPage) {
       setBloggerInfoData(null);
@@ -1924,7 +1937,6 @@ export default function App() {
           <TouchableOpacity
             style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
-            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
@@ -2222,25 +2234,30 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'local' && styles.bottomNavItemActive]}
+            style={[
+              styles.bottomNavItem,
+              bottomTab === 'local' && styles.bottomNavItemActive,
+              localOffersDisabled && styles.bottomNavItemDisabled,
+            ]}
             onPress={goToLocalOffersTab}
+            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={bottomTab === 'local' ? ACCENT : TEXT}
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTab === 'local' ? ACCENT : TEXT}
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
               Local Offers
             </Text>
           </TouchableOpacity>
@@ -2973,7 +2990,7 @@ export default function App() {
               style={styles.registrationButton}
               onPress={closeLocalOfferEmptyPopup}
             >
-              <Text style={styles.registrationButtonText}>Close</Text>
+              <Text style={styles.registrationButtonText}>Close ({localOfferEmptyCountdown})</Text>
             </TouchableOpacity>
           </View>
         </View>
