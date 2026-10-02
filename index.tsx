@@ -497,40 +497,8 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ) => {
-      const normalizedLabels = [...post.labels, post.label].map(label =>
-        normalizeLocationText(label),
-      );
-      // Always lowercase/normalize Blogger tags before checking Nearby location tags.
-      const nearbyLocalTags = [
-        'local store',
-        'local stores',
-        'store',
-        'stores',
-        'offline offer',
-        'offer offers',
-        'local offers',
-        'local offer',
-      ];
-      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
-        normalizedLabels.includes(tag),
-      );
       const isNearbyDebugPost =
         /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
-
-      if (!hasLocalOfferTag) {
-        if (isNearbyDebugPost) {
-          console.log('[Nearby debug]', {
-            title: post.title,
-            labels: post.labels,
-            normalizedLabels,
-            hasLocalOfferTag,
-            locationTerms: detectedLocationTerms,
-            result: false,
-            reason: 'local-offer-tag-missing',
-          });
-        }
-        return false;
-      }
 
       const contentText = normalizeLocationText(post.content || '');
       const rawContentText = normalizeLocationText(post.rawContent || '');
