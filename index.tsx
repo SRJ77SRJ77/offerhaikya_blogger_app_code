@@ -2949,8 +2949,9 @@ export default function App() {
         <View style={styles.nearbyPreloaderOverlay}>
           <View style={styles.nearbyPreloaderCircle}>
             <Image
-              // @ts-ignore - local GIF asset is provided by the Expo/Metro bundler.
-              source={require('./SS/Offer.gif')}
+              source={{
+                uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Offer.gif',
+              }}
               style={styles.nearbyPreloaderGif}
               resizeMode="contain"
             />
