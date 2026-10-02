@@ -203,6 +203,8 @@ export default function App() {
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [registrationName, setRegistrationName] = useState('');
   const [registrationContact, setRegistrationContact] = useState('');
+  const [registrationEmail, setRegistrationEmail] = useState('');
+  const [registrationCategories, setRegistrationCategories] = useState<string[]>([]);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -790,14 +792,31 @@ export default function App() {
   const submitRegistration = async () => {
     const name = registrationName.trim();
     const contact = registrationContact.trim();
+    const email = registrationEmail.trim().toLowerCase();
+    const interests = registrationCategories.join(', ');
 
     if (!/^[A-Za-z ]{3,12}$/.test(name)) {
       setRegistrationError('Name must be 3-12 letters.');
       return;
     }
 
-    if (!/^\d{10}$/.test(contact)) {
+    if (contact && !/^\d{10}$/.test(contact)) {
       setRegistrationError('Enter a valid 10-digit Indian phone number.');
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRegistrationError('Enter a valid email address.');
+      return;
+    }
+
+    if (!contact && !email) {
+      setRegistrationError('Please enter a phone number or email address.');
+      return;
+    }
+
+    if (registrationCategories.length === 0) {
+      setRegistrationError('Please select at least one interested category.');
       return;
     }
 
@@ -810,7 +829,9 @@ export default function App() {
         body: JSON.stringify({
           type: 'registration',
           name,
-          contact: '91' + contact,
+          contact: contact ? '91' + contact : '',
+          email,
+          interestedCategories: interests,
           submittedAt: new Date().toISOString(),
         }),
       });
@@ -819,6 +840,8 @@ export default function App() {
       setRegistrationCompleted(true);
       setRegistrationName('');
       setRegistrationContact('');
+      setRegistrationEmail('');
+      setRegistrationCategories([]);
       setRegistrationError('');
 
       // Keep the popup visible long enough for the user to see the success message.
@@ -1818,13 +1841,18 @@ export default function App() {
       {registrationOpen && (
         <View style={styles.registrationOverlay}>
           <View style={styles.registrationPopup}>
-            <Text style={styles.registrationTitle}>Welcome to OfferHaikya 👋</Text>
-            <Text style={styles.registrationSubtitle}>
-              Enter your details to continue.
-            </Text>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.registrationFormContent}
+            >
+              <Text style={styles.registrationTitle}>Welcome to OfferHaikya 👋</Text>
+              <Text style={styles.registrationSubtitle}>
+                Enter your details and choose your interests.
+              </Text>
 
-            <TextInput
-              value={registrationName}
+              <TextInput
+                value={registrationName}
               onChangeText={value => setRegistrationName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
               placeholder="Name *"
               placeholderTextColor="#99969c"
@@ -1847,6 +1875,44 @@ export default function App() {
               />
             </View>
 
+            <TextInput
+              value={registrationEmail}
+              onChangeText={value => setRegistrationEmail(value.trim().slice(0, 80))}
+              placeholder="Email address * (or phone)"
+              placeholderTextColor="#99969c"
+              style={styles.registrationInput}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={80}
+              editable={!registrationSubmitting}
+            />
+
+            <Text style={styles.registrationCategoryTitle}>Your interested categories *</Text>
+            <View style={styles.registrationCategoryWrap}>
+              {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
+                const selected = registrationCategories.includes(category);
+                return (
+                  <TouchableOpacity
+                    key={category}
+                    style={[styles.registrationCategoryChip, selected && styles.registrationCategoryChipSelected]}
+                    onPress={() => {
+                      setRegistrationCategories(current =>
+                        selected
+                          ? current.filter(item => item !== category)
+                          : [...current, category],
+                      );
+                    }}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={[styles.registrationCategoryText, selected && styles.registrationCategoryTextSelected]}>
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             {registrationError ? (
               <Text style={styles.registrationError}>{registrationError}</Text>
             ) : null}
@@ -1865,17 +1931,18 @@ export default function App() {
                 <Text style={styles.registrationButtonText}>Continue</Text>
               )}
             </TouchableOpacity>
-            {skipCountdown > 0 ? (
-              <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
-            ) : (
-              <TouchableOpacity
-                style={styles.registrationSkipButton}
-                onPress={() => setRegistrationOpen(false)}
-                disabled={registrationSubmitting}
-              >
-                <Text style={styles.registrationSkipText}>Skip for now</Text>
-              </TouchableOpacity>
-            )}
+              {skipCountdown > 0 ? (
+                <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
+              ) : (
+                <TouchableOpacity
+                  style={styles.registrationSkipButton}
+                  onPress={() => setRegistrationOpen(false)}
+                  disabled={registrationSubmitting}
+                >
+                  <Text style={styles.registrationSkipText}>Skip for now</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
           </View>
         </View>
       )}
@@ -2656,7 +2723,14 @@ const styles = StyleSheet.create({
   favoriteBadge: { position: 'absolute', top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#e31b23', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
   registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  registrationPopup: { width: '100%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  registrationFormContent: { paddingBottom: 2 },
+  registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
+  registrationCategoryWrap: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
+  registrationCategoryChip: { paddingHorizontal: 11, paddingVertical: 8, borderRadius: 16, borderWidth: 1, borderColor: '#dddddd', backgroundColor: WHITE, marginRight: 7, marginBottom: 7 },
+  registrationCategoryChipSelected: { backgroundColor: '#fff3ed', borderColor: ACCENT },
+  registrationCategoryText: { color: TEXT, fontSize: 12, fontWeight: '700' },
+  registrationCategoryTextSelected: { color: ACCENT, fontWeight: '900' },
   registrationTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 5 },
   registrationSubtitle: { color: MUTED, fontSize: 13, lineHeight: 19, marginBottom: 15 },
   registrationInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 11, backgroundColor: WHITE },
