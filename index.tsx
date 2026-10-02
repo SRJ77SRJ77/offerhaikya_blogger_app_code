@@ -524,8 +524,6 @@ export default function App() {
         console.log('[Nearby debug]', {
           title: post.title,
           labels: post.labels,
-          normalizedLabels,
-          hasLocalOfferTag,
           locationTerms: detectedLocationTerms,
           locationMatch,
           postLocation,
