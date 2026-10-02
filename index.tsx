@@ -1068,12 +1068,6 @@ export default function App() {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <Path
-            d="M5 12V19C5 20.105 5.895 21 7 21H17C18.105 21 19 20.105 19 19V12"
-            stroke={TEXT}
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
         </Svg>
       </TouchableOpacity>
       {item.image ? (
