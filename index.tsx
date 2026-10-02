@@ -665,7 +665,6 @@ export default function App() {
           setLocalOffersDisabled(matches.length === 0);
           if (bottomTab === 'local') {
             if (matches.length === 0) {
-              setLocalOfferEmptyCountdown(5);
               setLocalOfferEmptyOpen(true);
             } else {
               setLocalOfferEmptyOpen(false);
@@ -679,7 +678,6 @@ export default function App() {
           setNearbyPosts([]);
           setLocalOffersDisabled(true);
           if (bottomTab === 'local') {
-            setLocalOfferEmptyCountdown(5);
             setLocalOfferEmptyOpen(true);
           }
         }
