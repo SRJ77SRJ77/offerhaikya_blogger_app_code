@@ -254,6 +254,7 @@ export default function App() {
   const [tagPage, setTagPage] = useState<string | null>(null);
   const [tagPagePosts, setTagPagePosts] = useState<Post[]>([]);
   const [tagPageLoading, setTagPageLoading] = useState(false);
+  const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
@@ -2845,6 +2846,45 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
                 </ImageBackground>
+                <View style={styles.tagStrip}>
+                  <ScrollView
+                    ref={tagScrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.chips}
+                    onContentSizeChange={width => { tagContentWidthRef.current = width; }}
+                    onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
+                    onTouchStart={pauseTagAutoScroll}
+                    onMomentumScrollBegin={pauseTagAutoScroll}
+                    onScrollBeginDrag={pauseTagAutoScroll}
+                    scrollEventThrottle={16}
+                  >
+                    {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
+                      <TouchableOpacity
+                        key={'tag-page-' + item + '-' + index}
+                        onPress={() => {
+                          pauseTagAutoScroll();
+                          setTagPageDropdownOpen(false);
+                          if (item === 'All') {
+                            setTagPage(null);
+                            setActiveLabel('All');
+                            setQuery('');
+                            setSuggestions([]);
+                            loadPosts('', 1);
+                            return;
+                          }
+                          setTagPage(item);
+                          setActiveLabel(item);
+                          setQuery('');
+                          setSuggestions([]);
+                        }}
+                        style={[styles.chip, activeLabel === item && styles.activeChip]}
+                      >
+                        <Text style={styles.chipText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
                 <View style={styles.tagPageHeader}>
                   <TouchableOpacity
                     style={styles.tagPageBackButton}
@@ -2853,6 +2893,7 @@ export default function App() {
                       setQuery('');
                       setSuggestions([]);
                       setActiveLabel('All');
+                      setTagPageDropdownOpen(false);
                     }}
                   >
                     <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
@@ -2860,7 +2901,61 @@ export default function App() {
                   <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
                     #{tagPage} Offers
                   </Text>
+                  <TouchableOpacity
+                    style={styles.tagPageDropdownButton}
+                    onPress={() => setTagPageDropdownOpen(value => !value)}
+                  >
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
+                    <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
+                      {tagPageDropdownOpen ? '⌃' : '⌄'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
+                {tagPageDropdownOpen ? (
+                  <View style={[styles.tagPageDropdownMenu, darkMode && styles.tagPageDropdownMenuDark]}>
+                    <ScrollView
+                      style={styles.tagPageDropdownScroll}
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS).map(item => (
+                        <TouchableOpacity
+                          key={'dropdown-' + item}
+                          style={[
+                            styles.tagPageDropdownItem,
+                            activeLabel === item && styles.tagPageDropdownItemActive,
+                            darkMode && styles.tagPageDropdownItemDark,
+                          ]}
+                          onPress={() => {
+                            setTagPageDropdownOpen(false);
+                            if (item === 'All') {
+                              setTagPage(null);
+                              setActiveLabel('All');
+                              setQuery('');
+                              setSuggestions([]);
+                              loadPosts('', 1);
+                              return;
+                            }
+                            setTagPage(item);
+                            setActiveLabel(item);
+                            setQuery('');
+                            setSuggestions([]);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.tagPageDropdownItemText,
+                              activeLabel === item && styles.tagPageDropdownItemTextActive,
+                              darkMode && styles.darkText,
+                            ]}
+                          >
+                            {item}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                ) : null}
                 {tagPageLoading ? (
                   <View style={styles.tagPageLoading}>
                     <ActivityIndicator size="small" color={ACCENT} />
@@ -3480,7 +3575,18 @@ const styles = StyleSheet.create({
     tagPageHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10 },
   tagPageBackButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   tagPageBackText: { color: TEXT, fontSize: 34, lineHeight: 34 },
-  tagPageTitle: { flex: 1, color: TEXT, fontSize: 20, fontWeight: '900' },
+  tagPageTitle: { flex: 1, color: TEXT, fontSize: 20, fontWeight: '900', marginRight: 8 },
+  tagPageDropdownButton: { minWidth: 72, height: 38, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: WHITE },
+  tagPageDropdownText: { color: TEXT, fontSize: 13, fontWeight: '900' },
+  tagPageDropdownArrow: { color: TEXT, fontSize: 17, lineHeight: 18, marginLeft: 5 },
+  tagPageDropdownMenu: { marginHorizontal: 12, marginBottom: 10, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, overflow: 'hidden', elevation: 5, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  tagPageDropdownMenuDark: { backgroundColor: '#222222', borderColor: '#444444' },
+  tagPageDropdownScroll: { maxHeight: 240 },
+  tagPageDropdownItem: { minHeight: 44, paddingHorizontal: 13, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  tagPageDropdownItemDark: { borderBottomColor: '#333333' },
+  tagPageDropdownItemActive: { backgroundColor: '#fff3ed' },
+  tagPageDropdownItemText: { color: TEXT, fontSize: 13, fontWeight: '700' },
+  tagPageDropdownItemTextActive: { color: ACCENT, fontWeight: '900' },
   tagPageLoading: { alignItems: 'center', paddingBottom: 10 },
   sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   nearbyRefreshButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
