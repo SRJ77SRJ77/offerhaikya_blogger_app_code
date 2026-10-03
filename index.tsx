@@ -251,6 +251,9 @@ export default function App() {
   const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState('All');
+  const [tagPage, setTagPage] = useState<string | null>(null);
+  const [tagPagePosts, setTagPagePosts] = useState<Post[]>([]);
+  const [tagPageLoading, setTagPageLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
@@ -1152,6 +1155,33 @@ export default function App() {
       setRefreshing(false);
     }
   };
+
+  const loadTagPosts = useCallback(async (tag: string) => {
+    try {
+      setTagPageLoading(true);
+      const allPosts = await getAllPostsForNearby();
+      const normalizedTag = tag.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+      const matches = allPosts.filter(post =>
+        post.labels.some(label =>
+          label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() === normalizedTag,
+        ),
+      );
+      setTagPagePosts(matches);
+    } catch {
+      setTagPagePosts([]);
+    } finally {
+      setTagPageLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!tagPage) return;
+    void loadTagPosts(tagPage);
+    const timer = setInterval(() => {
+      void loadTagPosts(tagPage);
+    }, MAIN_AUTO_SYNC_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [tagPage, loadTagPosts]);
 
   const toggleFavorite = (post: Post) => {
     setFavorites(current => current.some(item => item.id === post.id)
@@ -2761,7 +2791,95 @@ export default function App() {
         </View>
       )}
 
-      <View style={darkMode ? styles.darkPage : styles.pageWrap}>
+      {tagPage ? (
+        <View style={darkMode ? styles.darkPage : styles.pageWrap}>
+          <FlatList
+            data={tagPagePosts}
+            keyExtractor={item => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
+            renderItem={renderPost}
+            ListHeaderComponent={
+              <>
+                <ImageBackground
+                  source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }}
+                  style={styles.hero}
+                  imageStyle={styles.heroImage}
+                >
+                  <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
+                  <Text style={styles.heroTitle}>Find the best offers</Text>
+                  <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
+                  <View style={styles.searchBox}>
+                    <Text style={styles.searchIcon}>⌕</Text>
+                    <TextInput
+                      ref={searchInputRef}
+                      value={query}
+                      onChangeText={setQuery}
+                      placeholder="Search offers..."
+                      placeholderTextColor="#99969c"
+                      style={styles.searchInput}
+                      returnKeyType="search"
+                      onSubmitEditing={() => {
+                        const text = query.trim();
+                        if (!text) return;
+                        setTagPage(null);
+                        setActiveLabel('All');
+                        setSuggestions([]);
+                        loadPosts(text, 1);
+                      }}
+                    />
+                    <TouchableOpacity
+                      style={styles.searchButton}
+                      onPress={() => {
+                        const text = query.trim();
+                        if (!text) return;
+                        setTagPage(null);
+                        setActiveLabel('All');
+                        setSuggestions([]);
+                        loadPosts(text, 1);
+                      }}
+                    >
+                      {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
+                    </TouchableOpacity>
+                  </View>
+                </ImageBackground>
+                <View style={styles.tagPageHeader}>
+                  <TouchableOpacity
+                    style={styles.tagPageBackButton}
+                    onPress={() => {
+                      setTagPage(null);
+                      setQuery('');
+                      setSuggestions([]);
+                      setActiveLabel('All');
+                    }}
+                  >
+                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
+                    #{tagPage} Offers
+                  </Text>
+                </View>
+                {tagPageLoading ? (
+                  <View style={styles.tagPageLoading}>
+                    <ActivityIndicator size="small" color={ACCENT} />
+                  </View>
+                ) : null}
+              </>
+            }
+            ListEmptyComponent={
+              tagPageLoading ? null : (
+                <View style={styles.state}>
+                  <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No offers found</Text>
+                  <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No posts are currently tagged with #{tagPage}.</Text>
+                </View>
+              )
+            }
+          />
+        </View>
+      ) : (
+<View style={darkMode ? styles.darkPage : styles.pageWrap}>
         <View style={styles.tagStrip}>
           <ScrollView
             ref={tagScrollRef}
@@ -2780,8 +2898,18 @@ export default function App() {
                 key={item + '-' + index}
                 onPress={() => {
                   pauseTagAutoScroll();
+                  if (item === 'All') {
+                    setTagPage(null);
+                    setActiveLabel('All');
+                    setQuery('');
+                    setSuggestions([]);
+                    loadPosts('', 1);
+                    return;
+                  }
+                  setTagPage(item);
                   setActiveLabel(item);
-                  loadPosts(item === 'All' ? '' : item, 1);
+                  setQuery('');
+                  setSuggestions([]);
                 }}
                 style={[styles.chip, activeLabel === item && styles.activeChip]}
               >
@@ -2966,6 +3094,7 @@ export default function App() {
         }
       />
       </View>
+      )}
       <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
         <TouchableOpacity
           style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
@@ -3348,7 +3477,12 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: 'transparent' },
   chipText: { color: WHITE, fontSize: 14, fontWeight: '800' },
   activeChipText: { color: WHITE },
-    sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    tagPageHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10 },
+  tagPageBackButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  tagPageBackText: { color: TEXT, fontSize: 34, lineHeight: 34 },
+  tagPageTitle: { flex: 1, color: TEXT, fontSize: 20, fontWeight: '900' },
+  tagPageLoading: { alignItems: 'center', paddingBottom: 10 },
+  sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   nearbyRefreshButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   nearbyRefreshText: { color: ACCENT, fontSize: 27, lineHeight: 30, fontWeight: '900' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
