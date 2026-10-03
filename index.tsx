@@ -1749,7 +1749,7 @@ export default function App() {
 
     const loadBloggerInfoPage = async () => {
       try {
-        const response = await fetch(BLOG_URL + '/p/' + slugs[infoPage] + '.html');
+        const response = await fetch(BLOG_URL + '/p/' + slugs[infoPage] + '.html?ohk_refresh=' + Date.now());
         if (!response.ok) throw new Error('Unable to load Blogger page');
         const html = await response.text();
         const bodyMatch = html.match(/<div[^>]*class=["'][^"']*post-body[^"']*["'][^>]*>([\s\S]*?)(?:<div[^>]*class=["'][^"']*post-footer|<\/article|<\/main)/i);
