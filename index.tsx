@@ -2077,20 +2077,94 @@ export default function App() {
             </View>
             <RenderHTML
               ignoredDomTags={['iframe']}
+              ignoredStyles={[
+                'fontFamily',
+                'fontSize',
+                'lineHeight',
+                'color',
+                'fontWeight',
+                'fontStyle',
+                'textDecoration',
+              ]}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
+              baseStyle={{
+                fontFamily: 'Rubik',
+                fontSize: 15,
+                lineHeight: 24,
+                color: darkMode ? '#eeeeee' : '#4f4c52',
+              }}
+              defaultTextProps={{ allowFontScaling: false }}
               tagsStyles={({
-                p: { marginTop: 0, marginBottom: 8, lineHeight: 24, color: darkMode ? '#eeeeee' : '#4f4c52' },
-                h1: { color: darkMode ? WHITE : TEXT, fontSize: 27, lineHeight: 35, fontWeight: '900', marginTop: 10, marginBottom: 8 },
-                h2: { color: darkMode ? WHITE : TEXT, fontSize: 23, lineHeight: 31, fontWeight: '900', marginTop: 12, marginBottom: 7 },
-                h3: { color: darkMode ? WHITE : TEXT, fontSize: 19, lineHeight: 27, fontWeight: '800', marginTop: 10, marginBottom: 6 },
-                li: { marginBottom: 3, lineHeight: 24 },
-                a: { color: ACCENT },
-                strong: { fontWeight: '900' },
-                em: { fontStyle: 'italic' },
+                p: {
+                  fontFamily: 'Rubik',
+                  fontSize: 15,
+                  lineHeight: 24,
+                  marginTop: 0,
+                  marginBottom: 10,
+                  color: darkMode ? '#eeeeee' : '#4f4c52',
+                },
+                h1: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 27,
+                  lineHeight: 35,
+                  fontWeight: '900',
+                  marginTop: 10,
+                  marginBottom: 10,
+                },
+                h2: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 23,
+                  lineHeight: 31,
+                  fontWeight: '900',
+                  marginTop: 14,
+                  marginBottom: 8,
+                },
+                h3: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 19,
+                  lineHeight: 27,
+                  fontWeight: '800',
+                  marginTop: 12,
+                  marginBottom: 7,
+                },
+                li: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? '#eeeeee' : '#4f4c52',
+                  fontSize: 15,
+                  lineHeight: 24,
+                  marginBottom: 4,
+                },
+                a: {
+                  fontFamily: 'Rubik',
+                  color: ACCENT,
+                  fontSize: 15,
+                },
+                strong: {
+                  fontFamily: 'Rubik',
+                  fontWeight: '700',
+                },
+                em: {
+                  fontFamily: 'Rubik',
+                  fontStyle: 'italic',
+                },
+                ul: { marginTop: 4, marginBottom: 10 },
+                ol: { marginTop: 4, marginBottom: 10 },
                 table: { width: '100%' },
-                th: { padding: 7, fontWeight: '900' },
-                td: { padding: 7 },
+                th: {
+                  fontFamily: 'Rubik',
+                  padding: 7,
+                  fontSize: 15,
+                  fontWeight: '700',
+                },
+                td: {
+                  fontFamily: 'Rubik',
+                  padding: 7,
+                  fontSize: 15,
+                },
               } as any)}
             />
             {mapCoordinates ? (
