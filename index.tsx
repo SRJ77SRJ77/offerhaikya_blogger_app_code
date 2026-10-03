@@ -2731,7 +2731,7 @@ export default function App() {
               <>
                 <View style={styles.sectionRow}>
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers{locationLabel ? ' · ' + locationLabel : ''}
+                    Filtered Nearby Offers{locationLabel ? ' - ' + locationLabel.split(/[\s,]+/)[0] : ''}
                   </Text>
                   {!locationServicesEnabled ? (
                     <TouchableOpacity
