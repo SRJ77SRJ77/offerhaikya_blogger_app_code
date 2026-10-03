@@ -2084,7 +2084,7 @@ export default function App() {
                 'color',
                 'fontWeight',
                 'fontStyle',
-                'textDecoration',
+                'textDecorationLine',
               ]}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
