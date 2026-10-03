@@ -40,7 +40,8 @@ const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 200;
 const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
-const METADATA_AUTO_SYNC_INTERVAL_MS = 30 * 1000;
+const METADATA_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 30 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
@@ -1815,7 +1816,7 @@ export default function App() {
       refreshTimer = setTimeout(() => {
         scheduleRefresh();
         void loadBloggerInfoPage();
-      }, METADATA_AUTO_SYNC_INTERVAL_MS);
+      }, INFO_PAGE_AUTO_SYNC_INTERVAL_MS);
     };
 
     void loadBloggerInfoPage();
