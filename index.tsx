@@ -1869,7 +1869,7 @@ export default function App() {
       cancelled = true;
       clearInterval(detailRefreshTimer);
     };
-  }, [detail]);
+  }, [detail?.id]);
 
   if (infoPage) {
     const infoTitles = {
