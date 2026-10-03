@@ -756,28 +756,39 @@ export default function App() {
       return nearbyMatch;
     };
 
-    const checkForNewNearbyPosts = async () => {
+    const checkForNearbyPostUpdates = async () => {
       try {
         const latestPosts = await fetchFeedFromNetwork('', 1);
         if (cancelled) return;
 
-        const currentNearbyPosts = nearbyCacheRef.current?.posts || nearbyPosts;
-        const existingIds = new Set(currentNearbyPosts.map(post => post.id));
-
-        const newMatches = latestPosts.filter(post => {
-          if (existingIds.has(post.id)) return false;
-
-          return matchesNearbyOfferForPolling(post, userLocation, locationTerms);
-        });
-
-        if (!newMatches.length || cancelled) return;
+        const latestNearbyMatches = latestPosts.filter(post =>
+          matchesNearbyOfferForPolling(post, userLocation, locationTerms),
+        );
 
         setNearbyPosts(current => {
-          const ids = new Set(current.map(post => post.id));
-          const additions = newMatches.filter(post => !ids.has(post.id));
-          if (!additions.length) return current;
+          const latestById = new Map(
+            latestPosts.map(post => [post.id, post]),
+          );
+          const latestMatchIds = new Set(
+            latestNearbyMatches.map(post => post.id),
+          );
 
-          const merged = [...additions, ...current];
+          // Replace refreshed posts so label/content changes are reflected,
+          // add newly eligible nearby posts, and remove posts that no longer
+          // satisfy the Nearby rules.
+          const refreshed = current
+            .map(post => latestById.get(post.id) || post)
+            .filter(post => {
+              if (!latestById.has(post.id)) return true;
+              return latestMatchIds.has(post.id);
+            });
+
+          const refreshedIds = new Set(refreshed.map(post => post.id));
+          const additions = latestNearbyMatches.filter(
+            post => !refreshedIds.has(post.id),
+          );
+
+          const merged = [...additions, ...refreshed];
           const cached = nearbyCacheRef.current;
 
           if (cached) {
@@ -787,17 +798,21 @@ export default function App() {
             };
           }
 
-          setLocalOffersDisabled(false);
-          setLocalOfferEmptyOpen(false);
+          const hasMatches = merged.length > 0;
+          setLocalOffersDisabled(!hasMatches);
+          if (hasMatches) {
+            setLocalOfferEmptyOpen(false);
+          }
+
           return merged;
         });
       } catch {
-        // New-post polling is best-effort and must never interrupt the UI.
+        // Nearby polling is best-effort and must never interrupt the UI.
       }
     };
 
     const interval = setInterval(
-      checkForNewNearbyPosts,
+      checkForNearbyPostUpdates,
       NEARBY_NEW_POST_CHECK_INTERVAL_MS,
     );
 
