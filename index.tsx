@@ -1747,9 +1747,24 @@ export default function App() {
       terms: 'terms-and-condition',
     };
 
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
     const loadBloggerInfoPage = async () => {
+      const controller = new AbortController();
+      const requestTimeout = setTimeout(() => controller.abort(), 15000);
+
       try {
-        const response = await fetch(BLOG_URL + '/p/' + slugs[infoPage] + '.html?ohk_refresh=' + Date.now(), { cache: 'no-store' });
+        const response = await fetch(
+          BLOG_URL + '/p/' + slugs[infoPage] + '.html?ohk_refresh=' + Date.now(),
+          {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, max-age=0',
+              'Pragma': 'no-cache',
+            },
+            signal: controller.signal,
+          },
+        );
         if (!response.ok) throw new Error('Unable to load Blogger page');
         const html = await response.text();
         const bodyMatch = html.match(/<div[^>]*class=["'][^"']*post-body[^"']*["'][^>]*>([\s\S]*?)(?:<div[^>]*class=["'][^"']*post-footer|<\/article|<\/main)/i);
@@ -1764,21 +1779,20 @@ export default function App() {
         }
       } catch {
         if (!cancelled) setBloggerInfoData(null);
+      } finally {
+        clearTimeout(requestTimeout);
       }
     };
 
-    loadBloggerInfoPage();
-
-    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-
     const scheduleRefresh = () => {
       if (cancelled) return;
-      refreshTimer = setTimeout(async () => {
-        await loadBloggerInfoPage();
+      refreshTimer = setTimeout(() => {
         scheduleRefresh();
+        void loadBloggerInfoPage();
       }, METADATA_AUTO_SYNC_INTERVAL_MS);
     };
 
+    void loadBloggerInfoPage();
     scheduleRefresh();
 
     const subscription = AppState.addEventListener('change', state => {
