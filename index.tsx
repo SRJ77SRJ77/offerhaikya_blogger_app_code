@@ -1730,7 +1730,7 @@ export default function App() {
     const loadInfoPagePosts = async () => {
       try {
         if (!cancelled) setInfoPagePostsLoading(true);
-        const latestPosts = await getFeed('', 1);
+        const latestPosts = await fetchFeedFromNetwork('', 1);
         if (!cancelled) setInfoPagePosts(latestPosts);
       } catch {
         if (!cancelled) setInfoPagePosts([]);
