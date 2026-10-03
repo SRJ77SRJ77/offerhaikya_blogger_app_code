@@ -1845,22 +1845,29 @@ export default function App() {
 
     let cancelled = false;
 
-    const loadDetailPagePosts = async () => {
+    const loadDetailPageData = async () => {
       try {
-        if (!cancelled) setDetailPagePostsLoading(true);
-        const latestPosts = await getFeed('', 1);
+        const latestPosts = await fetchFeedFromNetwork('', 1, true);
+        const updatedDetail = latestPosts.find(post => post.id === detail.id);
+        if (!cancelled && updatedDetail) {
+          setDetail(updatedDetail);
+        }
         if (!cancelled) setDetailPagePosts(latestPosts);
       } catch {
-        if (!cancelled) setDetailPagePosts([]);
+        // Keep the currently visible offer details if a refresh fails.
       } finally {
         if (!cancelled) setDetailPagePostsLoading(false);
       }
     };
 
-    loadDetailPagePosts();
+    loadDetailPageData();
+    const detailRefreshTimer = setInterval(() => {
+      void loadDetailPageData();
+    }, METADATA_AUTO_SYNC_INTERVAL_MS);
 
     return () => {
       cancelled = true;
+      clearInterval(detailRefreshTimer);
     };
   }, [detail]);
 
