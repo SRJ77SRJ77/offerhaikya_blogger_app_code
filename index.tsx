@@ -2088,12 +2088,12 @@ export default function App() {
               ]}
               contentWidth={Math.max(320, width - 40)}
               source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
-              baseStyle={{
+              baseStyle={({
                 fontFamily: 'Rubik',
                 fontSize: 15,
                 lineHeight: 24,
                 color: darkMode ? '#eeeeee' : '#4f4c52',
-              }}
+              } as any)}
               defaultTextProps={{ allowFontScaling: false }}
               tagsStyles={({
                 p: {
