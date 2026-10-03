@@ -156,7 +156,7 @@ const parseFeed = (data: any): Post[] => {
 const getFeedCacheKey = (query = '', startIndex = 1) =>
   query.trim().toLowerCase() + '::' + startIndex;
 
-const fetchFeedFromNetwork = async (query = '', startIndex = 1) => {
+const fetchFeedFromNetwork = async (query = '', startIndex = 1, forceRefresh = false) => {
   const params = new URLSearchParams({
     alt: 'json',
     'max-results': String(PAGE_SIZE),
@@ -167,7 +167,22 @@ const fetchFeedFromNetwork = async (query = '', startIndex = 1) => {
     params.set('q', query.trim());
   }
 
-  const response = await fetch(FEED_URL + '?' + params.toString());
+  if (forceRefresh) {
+    params.set('ohk_refresh', String(Date.now()));
+  }
+
+  const response = await fetch(
+    FEED_URL + '?' + params.toString(),
+    forceRefresh
+      ? {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, max-age=0',
+            'Pragma': 'no-cache',
+          },
+        }
+      : undefined,
+  );
   if (!response.ok) throw new Error('Unable to load posts');
 
   const posts = parseFeed(await response.json());
@@ -1727,10 +1742,12 @@ export default function App() {
 
     let cancelled = false;
 
+    let infoPostsRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
     const loadInfoPagePosts = async () => {
       try {
         if (!cancelled) setInfoPagePostsLoading(true);
-        const latestPosts = await fetchFeedFromNetwork('', 1);
+        const latestPosts = await fetchFeedFromNetwork('', 1, true);
         if (!cancelled) setInfoPagePosts(latestPosts);
       } catch {
         if (!cancelled) setInfoPagePosts([]);
@@ -1739,7 +1756,16 @@ export default function App() {
       }
     };
 
-    loadInfoPagePosts();
+    const scheduleInfoPostsRefresh = () => {
+      if (cancelled) return;
+      infoPostsRefreshTimer = setTimeout(() => {
+        void loadInfoPagePosts();
+        scheduleInfoPostsRefresh();
+      }, METADATA_AUTO_SYNC_INTERVAL_MS);
+    };
+
+    void loadInfoPagePosts();
+    scheduleInfoPostsRefresh();
     const slugs: Record<string, string> = {
       about: 'about-us',
       contact: 'contact-us',
@@ -1803,6 +1829,7 @@ export default function App() {
 
     return () => {
       cancelled = true;
+      if (infoPostsRefreshTimer) clearTimeout(infoPostsRefreshTimer);
       if (refreshTimer) clearTimeout(refreshTimer);
       subscription.remove();
     };
