@@ -2053,13 +2053,27 @@ export default function App() {
             <Text style={[styles.detailTitle, darkMode && styles.darkText]}>{detail.title}</Text>
             <View style={styles.detailTitleRow}>
               <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
-              <TouchableOpacity
-                style={styles.detailShareRow}
-                onPress={() => openShareOptions(detail.url)}
-                accessibilityLabel="Share post"
-              >
-                <Text style={styles.detailShareText}>Share</Text>
-              </TouchableOpacity>
+              <View style={styles.detailActions}>
+                <TouchableOpacity
+                  style={styles.detailIconButton}
+                  onPress={() => openShareOptions(detail.url)}
+                  accessibilityLabel="Share post"
+                >
+                  <Image
+                    source={{ uri: 'https://cdn-icons-png.flaticon.com/512/107/107784.png' }}
+                    style={styles.detailShareIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.detailIconButton}
+                  onPress={() => toggleFavorite(detail)}
+                  accessibilityLabel={isFavorite(detail) ? 'Remove favorite' : 'Add favorite'}
+                >
+                  <Text style={styles.detailHeartText}>
+                    {isFavorite(detail) ? '♥' : '♡'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
             <RenderHTML
               ignoredDomTags={['iframe']}
@@ -3208,8 +3222,10 @@ const styles = StyleSheet.create({
   cardExpiry: { position: 'absolute', top: 8, left: 8, zIndex: 3, maxWidth: '62%', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)' },
   cardExpiryText: { color: ACCENT, fontSize: 9, fontWeight: '900' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  detailShareRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingLeft: 8 },
-  detailShareText: { color: ACCENT, fontSize: 16, fontWeight: '900' },
+  detailActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  detailIconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  detailShareIcon: { width: 21, height: 21 },
+  detailHeartText: { color: '#e31b23', fontSize: 25, lineHeight: 28 },
   cardHeartText: { color: '#e31b23', fontSize: 20, lineHeight: 22 },
   imageFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: HERO },
   fallbackText: { color: WHITE, fontSize: 16, fontWeight: '900' },
