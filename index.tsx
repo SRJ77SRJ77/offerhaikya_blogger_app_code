@@ -2151,6 +2151,10 @@ export default function App() {
                   fontFamily: 'Rubik',
                   fontStyle: 'italic',
                 },
+                img: {
+                  marginTop: 5,
+                  marginBottom: 5,
+                },
                 ul: { marginTop: 4, marginBottom: 10 },
                 ol: { marginTop: 4, marginBottom: 10 },
                 table: { width: '100%' },
