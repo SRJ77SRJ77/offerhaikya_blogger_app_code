@@ -389,6 +389,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const createFirebaseGuestUser = async () => {
+      try {
+        if (!auth.currentUser) {
+          const credential = await signInAnonymously(auth);
+          console.log('Firebase guest UID:', credential.user.uid);
+        }
+      } catch (error) {
+        console.log('Firebase anonymous auth error:', error);
+      }
+    };
+
+    createFirebaseGuestUser();
+  }, []);
+
+  useEffect(() => {
     if (!nearbyPreloaderOpen) return;
 
     nearbyPreloaderSpin.setValue(0);
