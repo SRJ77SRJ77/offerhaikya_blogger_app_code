@@ -479,7 +479,7 @@ export default function App() {
 
     const animation = Animated.timing(startupPreloaderProgress, {
       toValue: 1,
-      duration: 3000,
+      duration: 1500,
       easing: Easing.linear,
       useNativeDriver: false,
     });
@@ -488,7 +488,7 @@ export default function App() {
 
     const timer = setTimeout(() => {
       setStartupPreloader(false);
-    }, 3000);
+    }, 1500);
 
     return () => {
       animation.stop();
