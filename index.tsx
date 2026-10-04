@@ -20,7 +20,6 @@ import {
   View,
   ToastAndroid,
   Share,
-  Alert,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
