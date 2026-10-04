@@ -4203,7 +4203,7 @@ export default function App() {
             </View>
           ) : null}
         </View>
-      ) :       {tagPage ? (
+      ) : tagPage ? (
         <View style={darkMode ? styles.darkPage : styles.pageWrap}>
           <FlatList
             data={tagPagePosts}
