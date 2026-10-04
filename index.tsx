@@ -20,6 +20,7 @@ import {
   View,
   ToastAndroid,
   Share,
+  Alert,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
@@ -31,7 +32,7 @@ import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInAnonymously } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
@@ -289,6 +290,15 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileDeleting, setProfileDeleting] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileName, setProfileName] = useState('');
+  const [profileContact, setProfileContact] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profileCategories, setProfileCategories] = useState<string[]>([]);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -1574,6 +1584,179 @@ export default function App() {
     }
   };
 
+  const openProfile = async () => {
+    setProfileError('');
+    setProfileOpen(true);
+    setProfileLoading(true);
+
+    try {
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        throw new Error('Firebase user unavailable');
+      }
+
+      const snapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
+
+      if (!snapshot.exists() || !snapshot.data()?.registrationCompleted) {
+        setProfileOpen(false);
+        setRegistrationName('');
+        setRegistrationContact('');
+        setRegistrationEmail('');
+        setRegistrationCategories([]);
+        registrationNameRef.current = '';
+        registrationContactRef.current = '';
+        registrationEmailRef.current = '';
+        registrationCategoriesRef.current = [];
+        setRegistrationCompleted(false);
+        setRegistrationOpen(true);
+        return;
+      }
+
+      const data = snapshot.data();
+      setProfileName(String(data.name || ''));
+      setProfileContact(String(data.contact || '').replace(/^91/, ''));
+      setProfileEmail(String(data.email || ''));
+      setProfileCategories(Array.isArray(data.interestedCategories) ? data.interestedCategories : []);
+    } catch (error) {
+      console.log('Profile load error:', error);
+      setProfileError('Could not load your profile. Please try again.');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const saveProfile = async () => {
+    const name = profileName.trim();
+    const contact = profileContact.trim();
+    const email = profileEmail.trim().toLowerCase();
+
+    if (!/^[A-Za-z ]{3,12}$/.test(name)) {
+      setProfileError('Name must be 3-12 letters.');
+      return;
+    }
+
+    if (contact && !/^\d{10}$/.test(contact)) {
+      setProfileError('Enter a valid 10-digit Indian phone number.');
+      return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setProfileError('Enter a valid email address.');
+      return;
+    }
+
+    if (!contact && !email) {
+      setProfileError('Please enter a phone number or email address.');
+      return;
+    }
+
+    if (profileCategories.length === 0) {
+      setProfileError('Please select at least one interested category.');
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+      setProfileError('');
+
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        throw new Error('Firebase user unavailable');
+      }
+
+      await setDoc(
+        doc(db, 'users', firebaseUser.uid),
+        {
+          uid: firebaseUser.uid,
+          name,
+          contact: contact ? '91' + contact : '',
+          email,
+          interestedCategories: profileCategories,
+          registrationCompleted: true,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+
+      setRegistrationName(name);
+      setRegistrationContact(contact);
+      setRegistrationEmail(email);
+      setRegistrationCategories(profileCategories);
+      registrationNameRef.current = name;
+      registrationContactRef.current = contact;
+      registrationEmailRef.current = email;
+      registrationCategoriesRef.current = profileCategories;
+      setRegistrationCompleted(true);
+      setProfileOpen(false);
+    } catch (error) {
+      console.log('Profile save error:', error);
+      setProfileError('Could not update your profile. Please try again.');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const deleteProfile = () => {
+    Alert.alert(
+      'Delete profile?',
+      'Your saved name, phone, email and interests will be removed from Firebase.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setProfileDeleting(true);
+              setProfileError('');
+
+              if (!auth.currentUser) {
+                await signInAnonymously(auth);
+              }
+
+              const firebaseUser = auth.currentUser;
+              if (!firebaseUser) {
+                throw new Error('Firebase user unavailable');
+              }
+
+              await deleteDoc(doc(db, 'users', firebaseUser.uid));
+
+              setProfileOpen(false);
+              setProfileName('');
+              setProfileContact('');
+              setProfileEmail('');
+              setProfileCategories([]);
+              setRegistrationName('');
+              setRegistrationContact('');
+              setRegistrationEmail('');
+              setRegistrationCategories([]);
+              registrationNameRef.current = '';
+              registrationContactRef.current = '';
+              registrationEmailRef.current = '';
+              registrationCategoriesRef.current = [];
+              setRegistrationCompleted(false);
+              setSkipCountdown(5);
+              setRegistrationOpen(true);
+            } catch (error) {
+              console.log('Profile delete error:', error);
+              setProfileError('Could not delete your profile. Please try again.');
+            } finally {
+              setProfileDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const scheduleLocationPromptRetry = () => {
     if (locationAutoTimerRef.current) {
       clearTimeout(locationAutoTimerRef.current);
@@ -2109,7 +2292,174 @@ export default function App() {
 
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
-        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
+        <Modal
+        visible={profileOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!profileSaving && !profileDeleting) {
+            setProfileOpen(false);
+            setProfileError('');
+          }
+        }}
+      >
+        <View style={styles.profileOverlay}>
+          <TouchableOpacity
+            style={styles.profileBackdrop}
+            activeOpacity={1}
+            onPress={() => {
+              if (!profileSaving && !profileDeleting) {
+                setProfileOpen(false);
+                setProfileError('');
+              }
+            }}
+          />
+          <View style={[styles.profilePopup, darkMode && styles.profilePopupDark]}>
+            <View style={styles.profileHeader}>
+              <View>
+                <Text style={[styles.profileTitle, darkMode && styles.darkText]}>My Profile</Text>
+                <Text style={[styles.profileSubtitle, darkMode && styles.darkMutedText]}>
+                  Update your details anytime.
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.profileCloseButton}
+                onPress={() => {
+                  setProfileOpen(false);
+                  setProfileError('');
+                }}
+                disabled={profileSaving || profileDeleting}
+              >
+                <Text style={[styles.profileCloseText, darkMode && styles.darkText]}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            {profileLoading ? (
+              <View style={styles.profileLoading}>
+                <ActivityIndicator size="large" color={ACCENT} />
+                <Text style={[styles.profileLoadingText, darkMode && styles.darkMutedText]}>Loading profile...</Text>
+              </View>
+            ) : (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.profileFormContent}
+              >
+                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Name</Text>
+                <TextInput
+                  value={profileName}
+                  onChangeText={value => setProfileName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
+                  placeholder="Name"
+                  placeholderTextColor="#99969c"
+                  style={[styles.profileInput, darkMode && styles.profileInputDark]}
+                  autoCapitalize="words"
+                  maxLength={12}
+                  editable={!profileSaving && !profileDeleting}
+                />
+
+                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Phone</Text>
+                <View style={[styles.profilePhoneWrap, darkMode && styles.profileInputDark]}>
+                  <Text style={[styles.profilePhonePrefix, darkMode && styles.darkText]}>+91</Text>
+                  <TextInput
+                    value={profileContact}
+                    onChangeText={value => setProfileContact(value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit phone number"
+                    placeholderTextColor="#99969c"
+                    style={[styles.profilePhoneInput, darkMode && styles.darkText]}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                    editable={!profileSaving && !profileDeleting}
+                  />
+                </View>
+
+                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Email</Text>
+                <TextInput
+                  value={profileEmail}
+                  onChangeText={value => setProfileEmail(value.slice(0, 80))}
+                  placeholder="Email address"
+                  placeholderTextColor="#99969c"
+                  style={[styles.profileInput, darkMode && styles.profileInputDark]}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  maxLength={80}
+                  editable={!profileSaving && !profileDeleting}
+                />
+
+                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Interested categories</Text>
+                <View style={[styles.profileCategoryMenu, darkMode && styles.profileCategoryMenuDark]}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    style={styles.profileCategoryScroll}
+                  >
+                    {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
+                      const selected = profileCategories.includes(category);
+                      return (
+                        <TouchableOpacity
+                          key={'profile-' + category}
+                          style={styles.profileCategoryItem}
+                          onPress={() => {
+                            setProfileCategories(current =>
+                              current.includes(category)
+                                ? current.filter(item => item !== category)
+                                : [...current, category],
+                            );
+                          }}
+                          disabled={profileSaving || profileDeleting}
+                        >
+                          <View style={[styles.profileCheckbox, selected && styles.profileCheckboxSelected]}>
+                            {selected ? <Text style={styles.profileCheck}>✓</Text> : null}
+                          </View>
+                          <Text
+                            style={[
+                              styles.profileCategoryText,
+                              selected && styles.profileCategoryTextSelected,
+                              darkMode && styles.darkText,
+                            ]}
+                          >
+                            {category}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+
+                {profileError ? (
+                  <Text style={styles.profileError}>{profileError}</Text>
+                ) : null}
+
+                <TouchableOpacity
+                  style={[styles.profileSaveButton, (profileSaving || profileDeleting) && styles.disabledButton]}
+                  onPress={saveProfile}
+                  disabled={profileSaving || profileDeleting}
+                >
+                  {profileSaving ? (
+                    <ActivityIndicator size="small" color={WHITE} />
+                  ) : (
+                    <Text style={styles.registrationButtonText}>Save changes</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.profileDeleteButton}
+                  onPress={deleteProfile}
+                  disabled={profileSaving || profileDeleting}
+                >
+                  {profileDeleting ? (
+                    <ActivityIndicator size="small" color="#d93025" />
+                  ) : (
+                    <Text style={styles.profileDeleteText}>Delete profile</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
         <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
           <TouchableOpacity onPress={() => { closeMenu(); setMenuOpen(false); setInfoPage(null); }} style={styles.backButton}>
             <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
@@ -2941,6 +3291,25 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconButton} onPress={() => searchInputRef.current?.focus()}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>⌕</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={openProfile}
+            accessibilityLabel="Profile"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 11.5A4 4 0 1 0 12 3.5A4 4 0 0 0 12 11.5Z"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+              />
+              <Path
+                d="M4.5 21A7.5 7.5 0 0 1 19.5 21"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
           </TouchableOpacity>
         </View>
       </View>
@@ -3970,7 +4339,39 @@ const styles = StyleSheet.create({
   favoriteRemoveText: { color: '#e31b23', fontSize: 24, lineHeight: 24 },
   favoriteBadge: { position: 'absolute', top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#e31b23', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
-  registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  profileOverlay: { ...StyleSheet.absoluteFill, zIndex: 210, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  profileBackdrop: { ...StyleSheet.absoluteFill },
+  profilePopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  profilePopupDark: { backgroundColor: '#111111' },
+  profileHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 15 },
+  profileTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 4 },
+  profileSubtitle: { color: MUTED, fontSize: 13 },
+  profileCloseButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  profileCloseText: { color: TEXT, fontSize: 29, lineHeight: 30 },
+  profileLoading: { minHeight: 280, alignItems: 'center', justifyContent: 'center' },
+  profileLoadingText: { color: MUTED, fontSize: 13, marginTop: 10 },
+  profileFormContent: { paddingBottom: 4 },
+  profileFieldLabel: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 7 },
+  profileInput: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, color: TEXT, fontSize: 15, marginBottom: 12, backgroundColor: WHITE },
+  profileInputDark: { backgroundColor: '#1c1c1c', borderColor: '#343434', color: WHITE },
+  profilePhoneWrap: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: WHITE },
+  profilePhonePrefix: { color: TEXT, fontSize: 15, fontWeight: '800', marginRight: 8 },
+  profilePhoneInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 0 },
+  profileCategoryMenu: { borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, marginBottom: 12, overflow: 'hidden' },
+  profileCategoryMenuDark: { backgroundColor: '#1c1c1c', borderColor: '#343434' },
+  profileCategoryScroll: { maxHeight: 190 },
+  profileCategoryItem: { minHeight: 44, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  profileCheckbox: { width: 21, height: 21, borderWidth: 1.5, borderColor: '#bbbbbb', borderRadius: 5, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  profileCheckboxSelected: { backgroundColor: ACCENT, borderColor: ACCENT },
+  profileCheck: { color: WHITE, fontSize: 14, fontWeight: '900', lineHeight: 16 },
+  profileCategoryText: { flex: 1, color: TEXT, fontSize: 13 },
+  profileCategoryTextSelected: { color: ACCENT, fontWeight: '800' },
+  profileError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
+  profileSaveButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  profileDeleteButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  profileDeleteText: { color: '#d93025', fontSize: 13, fontWeight: '800' },
+
+registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
   registrationFormContent: { paddingBottom: 2 },
