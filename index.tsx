@@ -2074,6 +2074,7 @@ export default function App() {
 
       if (pendingDeleteAfterLoginRef.current) {
         pendingDeleteAfterLoginRef.current = false;
+        registrationFlowActiveRef.current = false;
         await deleteAccountAfterRecentLogin();
         return;
       }
