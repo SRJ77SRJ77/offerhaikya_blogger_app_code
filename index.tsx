@@ -29,7 +29,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInAnonymously } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { auth, db } from './firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
