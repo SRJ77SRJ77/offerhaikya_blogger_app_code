@@ -3044,7 +3044,7 @@ export default function App() {
           <TouchableOpacity
             style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
-            accessibilityLabel="Local offers"
+            accessibilityLabel="Nearby"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
@@ -3060,9 +3060,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
-              Local Offers
-            </Text>
+            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -3438,7 +3436,7 @@ export default function App() {
               localOffersDisabled && styles.bottomNavItemDisabled,
             ]}
             onPress={goToLocalOffersTab}
-            accessibilityLabel="Local offers"
+            accessibilityLabel="Nearby"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
@@ -3454,9 +3452,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>
-              Local Offers
-            </Text>
+            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -4627,7 +4623,7 @@ export default function App() {
         <TouchableOpacity
           style={[styles.bottomNavItem, bottomTabRef.current === 'local' && styles.bottomNavItemActive]}
           onPress={goToLocalOffersTab}
-          accessibilityLabel="Local offers"
+          accessibilityLabel="Nearby"
         >
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
@@ -4643,9 +4639,7 @@ export default function App() {
               strokeWidth={2}
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
-            Local Offers
-          </Text>
+          <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
