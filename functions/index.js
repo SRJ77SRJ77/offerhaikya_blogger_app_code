@@ -91,7 +91,7 @@ exports.sendNewOfferNotifications = onSchedule(
   },
   async () => {
     const response = await fetch(
-      FEED_URL + "?alt=json&max-results=20&ohk_notification_check=" + Date.now(),
+      FEED_URL + "?alt=json&max-results=500&ohk_notification_check=" + Date.now(),
       {
         headers: {
           "Cache-Control": "no-cache, no-store, max-age=0",
@@ -165,8 +165,6 @@ exports.sendNewOfferNotifications = onSchedule(
     }
 
     const db = getFirestore();
-    const userTokens = new Map();
-    const matchingUsers = new Set();
 
     const registeredUsersSnapshot = await db
       .collection("users")
@@ -174,57 +172,53 @@ exports.sendNewOfferNotifications = onSchedule(
       .where("notificationsEnabled", "==", true)
       .get();
 
-    for (const userDoc of registeredUsersSnapshot.docs) {
-      const data = userDoc.data();
-      const token = data?.expoPushToken;
-      if (
-        typeof token === "string" &&
-        token.startsWith("ExponentPushToken[")
-      ) {
-        userTokens.set(userDoc.id, token);
-      }
-    }
-
-    const getCategoryUsers = async (label) => {
-      const snapshot = await db
-        .collection("users")
-        .where("registrationCompleted", "==", true)
-        .where("notificationsEnabled", "==", true)
-        .where("interestedCategories", "array-contains", label)
-        .get();
-
-      snapshot.docs.forEach((userDoc) => matchingUsers.add(userDoc.id));
-    };
+    const eligibleUsers = registeredUsersSnapshot.docs
+      .map((userDoc) => ({
+        uid: userDoc.id,
+        data: userDoc.data(),
+        token: userDoc.data()?.expoPushToken,
+      }))
+      .filter((user) =>
+        typeof user.token === "string" &&
+        user.token.startsWith("ExponentPushToken["),
+      );
 
     for (const post of changedPosts) {
       const isUpdate = Boolean(previousPosts[post.id]);
+      const normalizedPostLabels = new Set(
+        post.labels.map((label) =>
+          String(label).trim().toLowerCase(),
+        ),
+      );
 
-      // Users who explicitly saved this exact post must be notified when
-      // that post changes, even if its category is not one they selected.
-      if (isUpdate) {
-        const favoriteUsersSnapshot = await db
-          .collection("users")
-          .where("registrationCompleted", "==", true)
-          .where("notificationsEnabled", "==", true)
-          .where("favoritePostIds", "array-contains", post.id)
-          .get();
+      const targetTokens = eligibleUsers
+        .filter((user) => {
+          const favoritePostIds = Array.isArray(user.data?.favoritePostIds)
+            ? user.data.favoritePostIds.map((id) => String(id))
+            : [];
 
-        favoriteUsersSnapshot.docs.forEach((userDoc) => {
-          matchingUsers.add(userDoc.id);
-        });
-      }
+          const interestedCategories = Array.isArray(
+            user.data?.interestedCategories,
+          )
+            ? user.data.interestedCategories.map((category) =>
+                String(category).trim().toLowerCase(),
+              )
+            : [];
 
-      // New/updated posts also notify registered users who selected
-      // one of the Blogger labels as an interested category.
-      for (const label of post.labels) {
-        await getCategoryUsers(label);
-      }
+          const favoriteMatch =
+            isUpdate && favoritePostIds.includes(post.id);
 
-      const targetTokens = Array.from(matchingUsers)
-        .map((uid) => userTokens.get(uid))
-        .filter(Boolean);
+          const categoryMatch = interestedCategories.some((category) =>
+            normalizedPostLabels.has(category),
+          );
 
-      const messages = targetTokens.map((token) => ({
+          return favoriteMatch || categoryMatch;
+        })
+        .map((user) => user.token);
+
+      const uniqueTargetTokens = Array.from(new Set(targetTokens));
+
+      const messages = uniqueTargetTokens.map((token) => ({
         to: token,
         title: isUpdate
           ? "OfferHaikya Offer Updated"
@@ -253,13 +247,13 @@ exports.sendNewOfferNotifications = onSchedule(
       }
 
       console.log(
-        isUpdate ? "Sent offer-update notifications:" : "Sent new-offer notifications:",
+        isUpdate
+          ? "Sent offer-update notifications:"
+          : "Sent new-offer notifications:",
         post.id,
         "users:",
         messages.length,
       );
-
-      matchingUsers.clear();
     }
 
     await STATE_REF.set({
