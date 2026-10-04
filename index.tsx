@@ -698,7 +698,7 @@ export default function App() {
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
-          name: 'OfferHaikya',
+          name: 'Offerhaikya',
           importance: Notifications.AndroidImportance.DEFAULT,
         });
       }
@@ -1862,7 +1862,7 @@ export default function App() {
     try {
       await Share.share({
         message: sharePostUrl,
-        title: 'Share OfferHaikya post',
+        title: 'Share Offerhaikya post',
       });
     } catch {
       ToastAndroid.show('Could not open share options', ToastAndroid.SHORT);
@@ -2569,7 +2569,7 @@ export default function App() {
   const logoutAccount = async () => {
     Alert.alert(
       'Log out?',
-      'Are you sure you want to log out of your OfferHaikya account?',
+      'Are you sure you want to log out of your Offerhaikya account?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -2925,7 +2925,7 @@ export default function App() {
           <Image source={{ uri: item.image }} style={styles.cardImage} />
         ) : (
           <View style={[styles.cardImage, styles.imageFallback]}>
-            <Text style={styles.fallbackText}>OfferHaikya</Text>
+            <Text style={styles.fallbackText}>Offerhaikya</Text>
           </View>
         )}
         <View style={[styles.cardBody, darkMode && styles.cardBodyDark]}>
@@ -3631,7 +3631,7 @@ export default function App() {
               >
                 <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
                 <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
-                  The OfferHaikya post link
+                  The Offerhaikya post link
                 </Text>
               </TouchableOpacity>
 
@@ -3800,7 +3800,7 @@ export default function App() {
                     ? 'My Profile'
                     : authMode === 'signIn'
                       ? 'Login'
-                      : 'Welcome to OfferHaikya 👋'}
+                      : 'Welcome to Offerhaikya 👋'}
                 </Text>
 
                 {(profileMode || authMode === 'signIn') ? (
@@ -4392,7 +4392,7 @@ export default function App() {
                 >
                   <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
                   <Text style={styles.heroTitle}>Find the best offers</Text>
-                  <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
+                  <Text style={styles.heroSubtitle}>New offers from Offerhaikya, updated automatically.</Text>
                   <View style={styles.searchBox}>
                     <Text style={styles.searchIcon}>⌕</Text>
                     <TextInput
@@ -4577,7 +4577,7 @@ export default function App() {
             >
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
-              <Text style={styles.heroSubtitle}>New offers from OfferHaikya, updated automatically.</Text>
+              <Text style={styles.heroSubtitle}>New offers from Offerhaikya, updated automatically.</Text>
               <View style={styles.searchBox}>
                 <Text style={styles.searchIcon}>⌕</Text>
                 <TextInput
@@ -4855,7 +4855,7 @@ export default function App() {
             >
               <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
               <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
-                The OfferHaikya post link
+                The Offerhaikya post link
               </Text>
             </TouchableOpacity>
 
@@ -4911,7 +4911,7 @@ export default function App() {
       >
         <View style={styles.locationPromptOverlay}>
           <View style={styles.locationPromptPopup}>
-            <Text style={styles.locationPromptTitle}>OfferHaikya needs your location</Text>
+            <Text style={styles.locationPromptTitle}>Offerhaikya needs your location</Text>
             <Text style={styles.locationPromptText}>
               Please turn on location to see the best local and trending offers near you.
             </Text>
