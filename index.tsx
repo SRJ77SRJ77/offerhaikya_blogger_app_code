@@ -2354,7 +2354,7 @@ export default function App() {
               // Create a separate guest session after logout.
               await signInAnonymously(auth);
               await loadFavoritesForUser(auth.currentUser);
-              setRegistrationOpen(true);
+              setRegistrationOpen(false);
             } catch (error) {
               console.log('Logout error:', error);
               setRegistrationError('Could not log out. Please try again.');
