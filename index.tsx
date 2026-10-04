@@ -69,6 +69,7 @@ const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
+const PROFILE_CACHE_PREFIX = 'offerhaikya_profile_';
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -1827,6 +1828,20 @@ export default function App() {
       },
       { merge: true },
     );
+
+    // Keep a non-sensitive local copy of profile fields for this Firebase UID.
+    // Password is never stored here.
+    await AsyncStorage.setItem(
+      PROFILE_CACHE_PREFIX + user.uid,
+      JSON.stringify({
+        uid: user.uid,
+        name: profile.name,
+        contact: profile.contact,
+        email: profile.email,
+        interestedCategories: profile.categories,
+        areaCity: profile.areaCity,
+      }),
+    );
   };
 
   const submitRegistration = async () => {
@@ -1902,8 +1917,44 @@ export default function App() {
   };
 
   const loadRegisteredProfile = async (user: any) => {
-    const snapshot = await getDoc(doc(db, 'users', user.uid));
-    const data = snapshot.exists() ? snapshot.data() : {};
+    let data: any = null;
+
+    try {
+      const snapshot = await getDoc(doc(db, 'users', user.uid));
+      if (snapshot.exists()) {
+        data = snapshot.data();
+
+        // Refresh the local non-sensitive profile cache from Firestore.
+        await AsyncStorage.setItem(
+          PROFILE_CACHE_PREFIX + user.uid,
+          JSON.stringify({
+            uid: user.uid,
+            name: data.name || '',
+            contact: data.contact || '',
+            email: data.email || user.email || '',
+            interestedCategories: Array.isArray(data.interestedCategories)
+              ? data.interestedCategories
+              : [],
+            areaCity: data.areaCity || '',
+          }),
+        );
+      }
+    } catch (error) {
+      console.log('Profile Firestore read error:', error);
+    }
+
+    if (!data) {
+      try {
+        const cached = await AsyncStorage.getItem(
+          PROFILE_CACHE_PREFIX + user.uid,
+        );
+        data = cached ? JSON.parse(cached) : null;
+      } catch (error) {
+        console.log('Profile cache read error:', error);
+      }
+    }
+
+    data = data || {};
 
     const name = String(data.name || user.displayName || '');
     const contact = String(data.contact || '').replace(/^91/, '');
@@ -1928,8 +1979,6 @@ export default function App() {
     registrationEmailRef.current = email;
     registrationAreaCityRef.current = areaCity;
     registrationCategoriesRef.current = categories;
-
-
   };
 
   const openProfile = async () => {
@@ -2079,32 +2128,20 @@ export default function App() {
         return;
       }
 
-      try {
-        await loadRegisteredProfile(credential.user);
-        setRegistrationError('');
-      } catch (profileError) {
-        console.log('Profile load after sign in:', profileError);
-
-        // Firebase login already succeeded. Keep the account logged in and
-        // open the registered profile using Auth data even if Firestore is
-        // temporarily unavailable.
-        setRegistrationOpen(true);
-        setProfileMode(true);
-        setProfileStatus('registered');
-        setRegistrationCompleted(true);
-        setAuthMode('register');
-        setRegistrationName(String(credential.user.displayName || ''));
-        setRegistrationEmail(String(credential.user.email || email));
-        setRegistrationContact('');
-        setRegistrationAreaCity('');
-        setRegistrationCategories([]);
-        setRegistrationError('');
-      }
+      await loadRegisteredProfile(credential.user);
 
       registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
       setRegistrationPassword('');
+      setRegistrationPasswordVisible(false);
+      setRegistrationError('');
       setRegistrationSuccess(false);
+
+      // Normal login ends at the home screen. The profile icon can be used
+      // later to open My Profile.
+      setRegistrationOpen(false);
+      setProfileMode(false);
+      setAuthMode('register');
     } catch (error: any) {
       console.log('Sign in error:', error);
 
@@ -2197,6 +2234,7 @@ export default function App() {
       // Delete the user's profile and favorites first while Auth is still valid.
       await deleteDoc(doc(db, 'users', uid));
       await AsyncStorage.removeItem(getFavoritesStorageKey(uid));
+      await AsyncStorage.removeItem(PROFILE_CACHE_PREFIX + uid);
       setFavorites([]);
 
       // This should now succeed because the user just authenticated.
