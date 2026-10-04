@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   AppState,
+  Platform,
   Animated,
   Easing,
   FlatList,
@@ -31,6 +32,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInAnonymously } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
@@ -485,6 +488,102 @@ export default function App() {
       setSearching(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const setupPushNotifications = async () => {
+      try {
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser || cancelled) return;
+
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'OfferHaikya',
+            importance: Notifications.AndroidImportance.DEFAULT,
+          });
+        }
+
+        const existingPermission = await Notifications.getPermissionsAsync();
+        let finalStatus = existingPermission.status;
+
+        if (finalStatus !== 'granted') {
+          const permission = await Notifications.requestPermissionsAsync();
+          finalStatus = permission.status;
+        }
+
+        if (finalStatus !== 'granted') {
+          await setDoc(
+            doc(db, 'users', firebaseUser.uid),
+            {
+              notificationsEnabled: false,
+              notificationPermission: finalStatus,
+            },
+            { merge: true },
+          );
+          return;
+        }
+
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ??
+          Constants?.easConfig?.projectId;
+
+        if (!projectId) {
+          console.log('Expo project ID not found for push notifications.');
+          return;
+        }
+
+        const pushToken = (
+          await Notifications.getExpoPushTokenAsync({ projectId })
+        ).data;
+
+        if (cancelled) return;
+
+        await setDoc(
+          doc(db, 'users', firebaseUser.uid),
+          {
+            expoPushToken: pushToken,
+            notificationsEnabled: true,
+            notificationPermission: 'granted',
+          },
+          { merge: true },
+        );
+
+        console.log('Expo push token:', pushToken);
+      } catch (error) {
+        console.log('Push notification setup error:', error);
+      }
+    };
+
+    void setupPushNotifications();
+
+    const tokenSubscription = Notifications.addPushTokenListener(async token => {
+      try {
+        if (!auth.currentUser) return;
+
+        await setDoc(
+          doc(db, 'users', auth.currentUser.uid),
+          {
+            expoPushToken: token.data,
+            notificationsEnabled: true,
+            notificationPermission: 'granted',
+          },
+          { merge: true },
+        );
+      } catch (error) {
+        console.log('Push token update error:', error);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      tokenSubscription.remove();
+    };
   }, []);
 
   useEffect(() => {
