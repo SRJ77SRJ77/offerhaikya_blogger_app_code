@@ -4372,9 +4372,15 @@ export default function App() {
                         {item.title}
                       </Text>
                       <Text style={styles.nearbyOfferDistance}>
-                        {typeof item.distanceKm === 'number'
-                          ? `${Math.round(item.distanceKm)} km away`
-                          : 'Nearby offer'}
+                        {(() => {
+                          const itemLocation = extractMapCoordinates(item.rawContent);
+                          const itemDistance = itemLocation && userLocation
+                            ? distanceKm(userLocation, itemLocation)
+                            : null;
+                          return typeof itemDistance === 'number'
+                            ? `${Math.round(itemDistance)} km away`
+                            : 'Nearby offer';
+                        })()}
                       </Text>
                       <View style={styles.nearbyOfferActions}>
                         <View style={styles.nearbyOfferViewButton}>
@@ -4392,7 +4398,7 @@ export default function App() {
                                   coordinates.longitude,
                               );
                             } else {
-                              setToastMessage('Location is not available for this offer yet.');
+                              Alert.alert('Location unavailable', 'Location is not available for this offer yet.');
                             }
                           }}
                         >
