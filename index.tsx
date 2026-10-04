@@ -313,6 +313,7 @@ export default function App() {
   const [profileMode, setProfileMode] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const skipReminderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const registrationFlowActiveRef = useRef(false);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -480,7 +481,11 @@ export default function App() {
 
         if (registered) {
           setRegistrationCompleted(true);
-          setProfileMode(false);
+          setProfileStatus('registered');
+          if (!registrationFlowActiveRef.current) {
+            setRegistrationOpen(false);
+            setProfileMode(false);
+          }
         } else {
           await checkRegistrationReminder();
         }
@@ -1734,6 +1739,7 @@ export default function App() {
     if (!profile) return;
 
     try {
+      registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
       setRegistrationSuccess(false);
@@ -1777,6 +1783,7 @@ export default function App() {
       setRegistrationSuccess(true);
 
       setTimeout(() => {
+        registrationFlowActiveRef.current = false;
         setRegistrationOpen(false);
         setProfileMode(false);
         setRegistrationSuccess(false);
@@ -1794,6 +1801,7 @@ export default function App() {
         setRegistrationError('Could not create your account. Please try again.');
       }
 
+      registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
     }
   };
@@ -1893,6 +1901,7 @@ export default function App() {
     }
 
     try {
+      registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
 
@@ -1914,6 +1923,7 @@ export default function App() {
       setRegistrationSuccess(true);
 
       setTimeout(() => {
+        registrationFlowActiveRef.current = false;
         setRegistrationOpen(false);
         setProfileMode(false);
         setRegistrationSuccess(false);
@@ -1927,6 +1937,7 @@ export default function App() {
         setRegistrationError('Could not update your profile. Please try again.');
       }
 
+      registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
     }
   };
@@ -1946,12 +1957,14 @@ export default function App() {
     }
 
     try {
+      registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
 
       const credential = await signInWithEmailAndPassword(auth, email, password);
       await loadRegisteredProfile(credential.user);
 
+      registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
       setRegistrationPassword('');
       setRegistrationSuccess(false);
@@ -1964,6 +1977,7 @@ export default function App() {
         setRegistrationError('Could not sign in. Please try again.');
       }
 
+      registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
     }
   };
