@@ -2928,7 +2928,9 @@ export default function App() {
                     style={styles.tagPageDropdownButton}
                     onPress={() => setTagPageDropdownOpen(value => !value)}
                   >
-                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Category</Text>
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]} numberOfLines={1}>
+                      Category - {tagPage || 'All'}
+                    </Text>
                     <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
                       {tagPageDropdownOpen ? '⌃' : '⌄'}
                     </Text>
