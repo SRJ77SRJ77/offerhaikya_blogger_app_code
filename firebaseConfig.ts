@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDOAZFtJpQK1W9bLSAFFKVFXg7l6_rNhK8',
+  apiKey: 'AIzaSyCFGA6W0MUxsnPZWDRh8nG8HPCnFmHpvwk',
   authDomain: 'offerhaikya-app.firebaseapp.com',
   projectId: 'offerhaikya-app',
   storageBucket: 'offerhaikya-app.firebasestorage.app',
