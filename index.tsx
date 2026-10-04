@@ -337,6 +337,7 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [selectedNearbyPost, setSelectedNearbyPost] = useState<Post | null>(null);
   const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
@@ -2553,6 +2554,7 @@ export default function App() {
     setPage(1);
     setLocalOfferEmptyOpen(false);
     setLocalOffersDisabled(false);
+    setSelectedNearbyPost(null);
     nearbyCacheRef.current = null;
     startNearbyPreloader();
     loadPosts('', 1);
@@ -2575,7 +2577,10 @@ export default function App() {
         return;
       }
 
+      // Open Nearby immediately. If location is unavailable, the existing
+      // location prompt can then guide the user to enable/retry it.
       localOffersPermissionPendingRef.current = true;
+      enterLocalOffers();
       setLocationPromptOpen(true);
     } catch {
       localOffersPermissionPendingRef.current = true;
@@ -3433,7 +3438,6 @@ export default function App() {
               localOffersDisabled && styles.bottomNavItemDisabled,
             ]}
             onPress={goToLocalOffersTab}
-            disabled={localOffersDisabled}
             accessibilityLabel="Local offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
@@ -4071,7 +4075,139 @@ export default function App() {
         </View>
       )}
 
-      {tagPage ? (
+      {bottomTab === 'local' ? (
+        <View style={[styles.nearbyPage, darkMode && styles.nearbyPageDark]}>
+          <View style={styles.nearbyMapHeader}>
+            <View>
+              <Text style={[styles.nearbyMapTitle, darkMode && styles.darkText]}>Nearby Offers</Text>
+              <Text style={[styles.nearbyMapSubtitle, darkMode && styles.darkMutedText]}>
+                {locationLabel ? locationLabel : 'Your current location'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.nearbyMapRefresh}
+              onPress={() => {
+                setSelectedNearbyPost(null);
+                startNearbyPreloader();
+                setLocationRefreshKey(value => value + 1);
+              }}
+              accessibilityLabel="Refresh nearby offers"
+            >
+              <Text style={styles.nearbyMapRefreshText}>↻</Text>
+            </TouchableOpacity>
+          </View>
+
+          {userLocation ? (
+            <MapView
+              key={'nearby-map-' + locationRefreshKey + '-' + userLocation.latitude.toFixed(4) + '-' + userLocation.longitude.toFixed(4)}
+              style={styles.nearbyFullMap}
+              initialRegion={{
+                ...userLocation,
+                latitudeDelta: 0.45,
+                longitudeDelta: 0.45,
+              }}
+              showsUserLocation
+              showsMyLocationButton
+              onPress={() => setSelectedNearbyPost(null)}
+            >
+              <Marker
+                coordinate={userLocation}
+                title="You are here"
+                description={locationLabel || 'Your current location'}
+                pinColor={ACCENT}
+              />
+
+              {nearbyPosts
+                .map(post => ({
+                  post,
+                  coordinates: extractMapCoordinates(post.rawContent),
+                }))
+                .filter(item => item.coordinates)
+                .map(item => (
+                  <Marker
+                    key={'nearby-marker-' + item.post.id}
+                    coordinate={item.coordinates!}
+                    title={item.post.title}
+                    description={item.post.label}
+                    onPress={() => setSelectedNearbyPost(item.post)}
+                  />
+                ))}
+            </MapView>
+          ) : (
+            <View style={styles.nearbyNoLocation}>
+              <Text style={styles.nearbyNoLocationIcon}>📍</Text>
+              <Text style={[styles.nearbyNoLocationTitle, darkMode && styles.darkText]}>
+                Location not available
+              </Text>
+              <Text style={[styles.nearbyNoLocationText, darkMode && styles.darkMutedText]}>
+                Turn on location to see your position and nearby offer markers.
+              </Text>
+              <TouchableOpacity
+                style={styles.registrationButton}
+                onPress={requestLocationPermission}
+              >
+                <Text style={styles.registrationButtonText}>Enable Location</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {selectedNearbyPost ? (
+            <View style={[styles.nearbyOfferCard, darkMode && styles.nearbyOfferCardDark]}>
+              <TouchableOpacity
+                style={styles.nearbyOfferCardClose}
+                onPress={() => setSelectedNearbyPost(null)}
+                accessibilityLabel="Close offer"
+              >
+                <Text style={[styles.nearbyOfferCardCloseText, darkMode && styles.darkText]}>×</Text>
+              </TouchableOpacity>
+
+              {selectedNearbyPost.image ? (
+                <Image source={{ uri: selectedNearbyPost.image }} style={styles.nearbyOfferImage} />
+              ) : null}
+
+              <View style={styles.nearbyOfferInfo}>
+                <Text style={styles.nearbyOfferLabel}>{selectedNearbyPost.label}</Text>
+                <Text style={[styles.nearbyOfferTitle, darkMode && styles.darkText]} numberOfLines={2}>
+                  {selectedNearbyPost.title}
+                </Text>
+                {userLocation && extractMapCoordinates(selectedNearbyPost.rawContent) ? (
+                  <Text style={[styles.nearbyOfferDistance, darkMode && styles.darkMutedText]}>
+                    {distanceKm(userLocation, extractMapCoordinates(selectedNearbyPost.rawContent)!).toFixed(1)} km away
+                  </Text>
+                ) : null}
+
+                <View style={styles.nearbyOfferActions}>
+                  <TouchableOpacity
+                    style={styles.nearbyOfferViewButton}
+                    onPress={() => {
+                      setSelectedNearbyPost(null);
+                      openDetail(selectedNearbyPost);
+                    }}
+                  >
+                    <Text style={styles.nearbyOfferViewButtonText}>View Offer</Text>
+                  </TouchableOpacity>
+
+                  {extractMapCoordinates(selectedNearbyPost.rawContent) ? (
+                    <TouchableOpacity
+                      style={styles.nearbyOfferMapsButton}
+                      onPress={() => {
+                        const coordinates = extractMapCoordinates(selectedNearbyPost.rawContent);
+                        if (!coordinates) return;
+                        void Linking.openURL(
+                          'https://www.google.com/maps/search/?api=1&query=' +
+                          coordinates.latitude + ',' + coordinates.longitude,
+                        );
+                      }}
+                    >
+                      <Text style={styles.nearbyOfferMapsButtonText}>Open in Google Maps</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+          ) : null}
+        </View>
+      ) :       {tagPage ? (
         <View style={darkMode ? styles.darkPage : styles.pageWrap}>
           <FlatList
             data={tagPagePosts}
@@ -4962,6 +5098,32 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
+  nearbyPage: { flex: 1, backgroundColor: PAGE, position: 'relative' },
+  nearbyPageDark: { backgroundColor: '#000000' },
+  nearbyFullMap: { flex: 1 },
+  nearbyMapHeader: { position: 'absolute', top: 12, left: 12, right: 12, zIndex: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, elevation: 5, shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  nearbyMapTitle: { color: TEXT, fontSize: 18, fontWeight: '900' },
+  nearbyMapSubtitle: { color: MUTED, fontSize: 11, marginTop: 2 },
+  nearbyMapRefresh: { width: 40, height: 40, borderRadius: 20, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  nearbyMapRefreshText: { color: WHITE, fontSize: 23, lineHeight: 24, fontWeight: '900' },
+  nearbyNoLocation: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30, backgroundColor: PAGE },
+  nearbyNoLocationIcon: { fontSize: 42, marginBottom: 10 },
+  nearbyNoLocationTitle: { color: TEXT, fontSize: 20, fontWeight: '900', textAlign: 'center' },
+  nearbyNoLocationText: { color: MUTED, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 7, marginBottom: 18 },
+  nearbyOfferCard: { position: 'absolute', left: 12, right: 12, bottom: 14, zIndex: 8, backgroundColor: WHITE, borderRadius: 16, padding: 12, flexDirection: 'row', elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } },
+  nearbyOfferCardDark: { backgroundColor: '#1c1c1c' },
+  nearbyOfferCardClose: { position: 'absolute', right: 5, top: 5, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  nearbyOfferCardCloseText: { color: TEXT, fontSize: 25, lineHeight: 26 },
+  nearbyOfferImage: { width: 82, height: 82, borderRadius: 10, backgroundColor: '#eeeeee' },
+  nearbyOfferInfo: { flex: 1, paddingLeft: 11, paddingRight: 28 },
+  nearbyOfferLabel: { color: ACCENT, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  nearbyOfferTitle: { color: TEXT, fontSize: 14, lineHeight: 19, fontWeight: '900', marginTop: 3 },
+  nearbyOfferDistance: { color: MUTED, fontSize: 11, marginTop: 4 },
+  nearbyOfferActions: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 9 },
+  nearbyOfferViewButton: { minHeight: 34, paddingHorizontal: 11, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  nearbyOfferViewButtonText: { color: WHITE, fontSize: 11, fontWeight: '900' },
+  nearbyOfferMapsButton: { minHeight: 34, paddingHorizontal: 9, borderRadius: 8, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },
+  nearbyOfferMapsButtonText: { color: WHITE, fontSize: 10, fontWeight: '900' },
   bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
   bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
   bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
