@@ -434,6 +434,8 @@ export default function App() {
     if (registrationCompleted || profileMode) return;
 
     try {
+      const hasRegisteredAccount = (await AsyncStorage.getItem(HAS_REGISTERED_ACCOUNT_KEY)) === 'true';
+      if (hasRegisteredAccount) return;
       const skippedAt = Number(
         (await AsyncStorage.getItem(SKIP_STORAGE_KEY)) || '0'
       );
