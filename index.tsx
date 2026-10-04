@@ -4785,7 +4785,7 @@ export default function App() {
           onPress={goToHotOffersTab}
           accessibilityLabel="Hot Offers"
         >
-          <Text style={[styles.bottomNavPercentIcon, bottomTab === 'hot' && styles.bottomNavPercentIconActive, darkMode && styles.bottomNavPercentIconDark]}>%</Text>
+          <Text style={[styles.bottomNavPercentIcon, darkMode && styles.bottomNavPercentIconDark, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
           <Text style={[styles.bottomNavLabel, bottomTab === 'hot' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
             Hot Offers
           </Text>
