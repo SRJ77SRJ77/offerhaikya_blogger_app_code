@@ -3268,7 +3268,7 @@ export default function App() {
                   ? 'My Profile'
                   : authMode === 'signIn'
                     ? 'Welcome back 👋'
-                    : 'Become a Member'}
+                    : 'Welcome to OfferHaikya 👋'}
               </Text>
 
               <Text style={styles.registrationSubtitle}>
@@ -3490,10 +3490,16 @@ export default function App() {
                   <View style={styles.registrationSecondaryRow}>
                     <TouchableOpacity
                       style={styles.registrationSecondaryHalfButton}
-                      onPress={openWelcomeRegistration}
+                      onPress={() => {
+                        if (ADD_OFFERS_WHATSAPP_URL) {
+                          void Linking.openURL(ADD_OFFERS_WHATSAPP_URL);
+                        } else {
+                          Alert.alert('Add Offers', 'WhatsApp link will be added soon.');
+                        }
+                      }}
                       disabled={registrationSubmitting || profileLoading}
                     >
-                      <Text style={styles.registrationBecomeMemberText}>Become Member</Text>
+                      <Text style={styles.addOffersText}>Add Offers</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -3513,21 +3519,7 @@ export default function App() {
                     >
                       <Text style={styles.profileActionText}>Forgot Password?</Text>
                     </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.addOffersButton}
-                      onPress={() => {
-                        if (ADD_OFFERS_WHATSAPP_URL) {
-                          void Linking.openURL(ADD_OFFERS_WHATSAPP_URL);
-                        } else {
-                          Alert.alert('Add Offers', 'WhatsApp link will be added soon.');
-                        }
-                      }}
-                      disabled={registrationSubmitting}
-                    >
-                      <Text style={styles.addOffersText}>Add Offers</Text>
-                    </TouchableOpacity>
-                  )}
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -4767,7 +4759,6 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationAuthHalfButton: { flex: 1 },
   registrationSecondaryRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 4 },
   registrationSecondaryHalfButton: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center' },
-  registrationBecomeMemberText: { color: ACCENT, fontSize: 13, fontWeight: '900' },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
