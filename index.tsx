@@ -5062,6 +5062,8 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18, position: 'relative' },
   registrationHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 3 },
+  registrationCloseButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: -2, marginRight: -2 },
+  registrationCloseText: { color: WHITE, fontSize: 24, lineHeight: 26, fontWeight: '700' },
   registrationFormContent: { paddingBottom: 2 },
   registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
   registrationCategoryDropdown: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: WHITE, marginBottom: 8 },
