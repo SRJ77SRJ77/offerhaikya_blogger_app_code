@@ -44,7 +44,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1747,6 +1747,20 @@ export default function App() {
 
       if (user?.uid) {
         void persistFavoritesForUser(user, next);
+
+        if (!user.isAnonymous) {
+          void setDoc(
+            doc(db, 'users', user.uid),
+            {
+              favoritePostIds: next.some(item => item.id === post.id)
+                ? arrayUnion(post.id)
+                : arrayRemove(post.id),
+            },
+            { merge: true },
+          ).catch(error => {
+            console.log('Favorite notification target sync error:', error);
+          });
+        }
       }
 
       return next;
