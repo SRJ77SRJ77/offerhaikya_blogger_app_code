@@ -3621,7 +3621,7 @@ const styles = StyleSheet.create({
     backgroundColor: ACCENT,
   },
   startupPreloaderStatus: {
-    color: TEXT,
+    color: '#000000',
     fontSize: 12,
     fontWeight: '700',
     marginTop: 10,
