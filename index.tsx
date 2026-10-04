@@ -27,7 +27,6 @@ import * as Clipboard from 'expo-clipboard';
 import * as Location from 'expo-location';
 import * as IntentLauncher from 'expo-intent-launcher';
 import Svg, { Path } from 'react-native-svg';
-import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -337,7 +336,6 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
-  const [selectedNearbyPost, setSelectedNearbyPost] = useState<Post | null>(null);
   const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
@@ -2554,7 +2552,6 @@ export default function App() {
     setPage(1);
     setLocalOfferEmptyOpen(false);
     setLocalOffersDisabled(false);
-    setSelectedNearbyPost(null);
     nearbyCacheRef.current = null;
     startNearbyPreloader();
     loadPosts('', 1);
@@ -4072,136 +4069,97 @@ export default function App() {
       )}
 
       {bottomTab === 'local' ? (
-        <View style={[styles.nearbyPage, darkMode && styles.nearbyPageDark]}>
-          <View style={styles.nearbyMapHeader}>
-            <View>
-              <Text style={[styles.nearbyMapTitle, darkMode && styles.darkText]}>Nearby Offers</Text>
-              <Text style={[styles.nearbyMapSubtitle, darkMode && styles.darkMutedText]}>
-                {locationLabel ? locationLabel : 'Your current location'}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.nearbyMapRefresh}
-              onPress={() => {
-                setSelectedNearbyPost(null);
-                startNearbyPreloader();
-                setLocationRefreshKey(value => value + 1);
-              }}
-              accessibilityLabel="Refresh nearby offers"
-            >
-              <Text style={styles.nearbyMapRefreshText}>↻</Text>
-            </TouchableOpacity>
-          </View>
-
-          {userLocation ? (
-            <MapView
-              key={'nearby-map-' + locationRefreshKey + '-' + userLocation.latitude.toFixed(4) + '-' + userLocation.longitude.toFixed(4)}
-              style={styles.nearbyFullMap}
-              initialRegion={{
-                ...userLocation,
-                latitudeDelta: 0.45,
-                longitudeDelta: 0.45,
-              }}
-              showsUserLocation
-              showsMyLocationButton
-              onPress={() => setSelectedNearbyPost(null)}
-            >
-              <Marker
-                coordinate={userLocation}
-                title="You are here"
-                description={locationLabel || 'Your current location'}
-                pinColor={ACCENT}
-              />
-
-              {nearbyPosts
-                .map(post => ({
-                  post,
-                  coordinates: extractMapCoordinates(post.rawContent),
-                }))
-                .filter(item => item.coordinates)
-                .map(item => (
-                  <Marker
-                    key={'nearby-marker-' + item.post.id}
-                    coordinate={item.coordinates!}
-                    title={item.post.title}
-                    description={item.post.label}
-                    onPress={() => setSelectedNearbyPost(item.post)}
-                  />
-                ))}
-            </MapView>
-          ) : (
-            <View style={styles.nearbyNoLocation}>
-              <Text style={styles.nearbyNoLocationIcon}>📍</Text>
-              <Text style={[styles.nearbyNoLocationTitle, darkMode && styles.darkText]}>
-                Location not available
-              </Text>
-              <Text style={[styles.nearbyNoLocationText, darkMode && styles.darkMutedText]}>
-                Turn on location to see your position and nearby offer markers.
-              </Text>
-              <TouchableOpacity
-                style={styles.registrationButton}
-                onPress={requestLocationPermission}
-              >
-                <Text style={styles.registrationButtonText}>Enable Location</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {selectedNearbyPost ? (
-            <View style={[styles.nearbyOfferCard, darkMode && styles.nearbyOfferCardDark]}>
-              <TouchableOpacity
-                style={styles.nearbyOfferCardClose}
-                onPress={() => setSelectedNearbyPost(null)}
-                accessibilityLabel="Close offer"
-              >
-                <Text style={[styles.nearbyOfferCardCloseText, darkMode && styles.darkText]}>×</Text>
-              </TouchableOpacity>
-
-              {selectedNearbyPost.image ? (
-                <Image source={{ uri: selectedNearbyPost.image }} style={styles.nearbyOfferImage} />
-              ) : null}
-
-              <View style={styles.nearbyOfferInfo}>
-                <Text style={styles.nearbyOfferLabel}>{selectedNearbyPost.label}</Text>
-                <Text style={[styles.nearbyOfferTitle, darkMode && styles.darkText]} numberOfLines={2}>
-                  {selectedNearbyPost.title}
+        <View style={darkMode ? styles.darkPage : styles.pageWrap}>
+          <View style={styles.nearbyPage}>
+            <View style={styles.nearbyMapHeader}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.nearbyMapTitle}>Nearby Offers</Text>
+                <Text style={styles.nearbyMapSubtitle}>
+                  {locationLabel || 'Offers near your selected area'}
                 </Text>
-                {userLocation && extractMapCoordinates(selectedNearbyPost.rawContent) ? (
-                  <Text style={[styles.nearbyOfferDistance, darkMode && styles.darkMutedText]}>
-                    {distanceKm(userLocation, extractMapCoordinates(selectedNearbyPost.rawContent)!).toFixed(1)} km away
-                  </Text>
-                ) : null}
-
-                <View style={styles.nearbyOfferActions}>
-                  <TouchableOpacity
-                    style={styles.nearbyOfferViewButton}
-                    onPress={() => {
-                      setSelectedNearbyPost(null);
-                      openDetail(selectedNearbyPost);
-                    }}
-                  >
-                    <Text style={styles.nearbyOfferViewButtonText}>View Offer</Text>
-                  </TouchableOpacity>
-
-                  {extractMapCoordinates(selectedNearbyPost.rawContent) ? (
-                    <TouchableOpacity
-                      style={styles.nearbyOfferMapsButton}
-                      onPress={() => {
-                        const coordinates = extractMapCoordinates(selectedNearbyPost.rawContent);
-                        if (!coordinates) return;
-                        void Linking.openURL(
-                          'https://www.google.com/maps/search/?api=1&query=' +
-                          coordinates.latitude + ',' + coordinates.longitude,
-                        );
-                      }}
-                    >
-                      <Text style={styles.nearbyOfferMapsButtonText}>Open in Google Maps</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
               </View>
+              <TouchableOpacity
+                style={styles.nearbyMapRefresh}
+                onPress={() => {
+                  void refreshLocationAndNearby();
+                }}
+                accessibilityLabel="Refresh nearby offers"
+              >
+                <Text style={styles.nearbyMapRefreshText}>↻</Text>
+              </TouchableOpacity>
             </View>
-          ) : null}
+
+            {nearbyPosts.length > 0 ? (
+              <FlatList
+                data={nearbyPosts}
+                keyExtractor={item => 'nearby-' + item.id}
+                contentContainerStyle={styles.nearbyListContent}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={darkMode ? styles.nearbyListCardDark : styles.nearbyListCard}
+                    onPress={() => openDetail(item)}
+                    activeOpacity={0.88}
+                  >
+                    {item.imageUrl ? (
+                      <Image source={{ uri: item.imageUrl }} style={styles.nearbyListImage} />
+                    ) : (
+                      <View style={styles.nearbyListImage} />
+                    )}
+                    <View style={styles.nearbyListInfo}>
+                      <Text style={styles.nearbyOfferLabel}>{item.label}</Text>
+                      <Text style={styles.nearbyListTitle} numberOfLines={2}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.nearbyOfferDistance}>
+                        {typeof item.distanceKm === 'number'
+                          ? `${Math.round(item.distanceKm)} km away`
+                          : 'Nearby offer'}
+                      </Text>
+                      <View style={styles.nearbyOfferActions}>
+                        <View style={styles.nearbyOfferViewButton}>
+                          <Text style={styles.nearbyOfferViewButtonText}>View Offer</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.nearbyOfferMapsButton}
+                          onPress={() => {
+                            const coordinates = extractMapCoordinates(item.rawContent);
+                            if (coordinates) {
+                              void Linking.openURL(
+                                'https://www.google.com/maps/search/?api=1&query=' +
+                                  coordinates.latitude +
+                                  ',' +
+                                  coordinates.longitude,
+                              );
+                            } else {
+                              setToastMessage('Location is not available for this offer yet.');
+                            }
+                          }}
+                        >
+                          <Text style={styles.nearbyOfferMapsButtonText}>Open Location</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            ) : (
+              <View style={styles.nearbyNoLocation}>
+                <Text style={styles.nearbyNoLocationIcon}>📍</Text>
+                <Text style={styles.nearbyNoLocationTitle}>Nearby Offers</Text>
+                <Text style={styles.nearbyNoLocationText}>
+                  We’ll show offers around your current or selected area here.
+                </Text>
+                <TouchableOpacity
+                  style={styles.nearbyOfferViewButton}
+                  onPress={() => {
+                    void refreshLocationAndNearby();
+                  }}
+                >
+                  <Text style={styles.nearbyOfferViewButtonText}>Refresh Nearby</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       ) : tagPage ? (
         <View style={darkMode ? styles.darkPage : styles.pageWrap}>
@@ -5092,14 +5050,17 @@ const styles = StyleSheet.create({
   mapView: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' },
   mapButton: { marginTop: 10, backgroundColor: ACCENT, borderRadius: 9, paddingVertical: 11, alignItems: 'center' },
   mapButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
-  nearbyPage: { flex: 1, backgroundColor: PAGE, position: 'relative' },
-  nearbyPageDark: { backgroundColor: '#000000' },
-  nearbyFullMap: { flex: 1 },
-  nearbyMapHeader: { position: 'absolute', top: 12, left: 12, right: 12, zIndex: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, elevation: 5, shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
-  nearbyMapTitle: { color: TEXT, fontSize: 18, fontWeight: '900' },
-  nearbyMapSubtitle: { color: MUTED, fontSize: 11, marginTop: 2 },
+  nearbyPage: { flex: 1, backgroundColor: PAGE },
+  nearbyMapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, backgroundColor: WHITE, borderBottomWidth: 1, borderBottomColor: '#e8e8e8' },
+  nearbyMapTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
+  nearbyMapSubtitle: { color: MUTED, fontSize: 11, marginTop: 3 },
   nearbyMapRefresh: { width: 40, height: 40, borderRadius: 20, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   nearbyMapRefreshText: { color: WHITE, fontSize: 23, lineHeight: 24, fontWeight: '900' },
+  nearbyListContent: { padding: 12, paddingBottom: 30 },
+  nearbyListCard: { backgroundColor: WHITE, borderRadius: 14, marginBottom: 10, padding: 10, flexDirection: 'row', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
+  nearbyListCardDark: { backgroundColor: '#1c1c1c', borderRadius: 14, marginBottom: 10, padding: 10, flexDirection: 'row' },
+  nearbyListImage: { width: 82, height: 82, borderRadius: 10, backgroundColor: '#eeeeee' },
+  nearbyListInfo: { flex: 1, paddingLeft: 11, paddingRight: 2 },
   nearbyNoLocation: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30, backgroundColor: PAGE },
   nearbyNoLocationIcon: { fontSize: 42, marginBottom: 10 },
   nearbyNoLocationTitle: { color: TEXT, fontSize: 20, fontWeight: '900', textAlign: 'center' },
@@ -5111,7 +5072,7 @@ const styles = StyleSheet.create({
   nearbyOfferImage: { width: 82, height: 82, borderRadius: 10, backgroundColor: '#eeeeee' },
   nearbyOfferInfo: { flex: 1, paddingLeft: 11, paddingRight: 28 },
   nearbyOfferLabel: { color: ACCENT, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
-  nearbyOfferTitle: { color: TEXT, fontSize: 14, lineHeight: 19, fontWeight: '900', marginTop: 3 },
+  nearbyListTitle: { color: TEXT, fontSize: 14, lineHeight: 19, fontWeight: '900', marginTop: 3 },
   nearbyOfferDistance: { color: MUTED, fontSize: 11, marginTop: 4 },
   nearbyOfferActions: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 9 },
   nearbyOfferViewButton: { minHeight: 34, paddingHorizontal: 11, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
