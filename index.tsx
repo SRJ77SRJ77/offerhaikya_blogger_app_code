@@ -272,6 +272,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [startupPreloader, setStartupPreloader] = useState(true);
+  const startupPreloaderProgress = useRef(new Animated.Value(0)).current;
   const [registrationName, setRegistrationName] = useState('');
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationEmail, setRegistrationEmail] = useState('');
@@ -468,12 +469,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    startupPreloaderProgress.setValue(0);
+
+    const animation = Animated.timing(startupPreloaderProgress, {
+      toValue: 1,
+      duration: 3000,
+      easing: Easing.linear,
+      useNativeDriver: false,
+    });
+
+    animation.start();
+
     const timer = setTimeout(() => {
       setStartupPreloader(false);
     }, 3000);
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => {
+      animation.stop();
+      clearTimeout(timer);
+    };
+  }, [startupPreloaderProgress]);
 
   useEffect(() => {
     loadPosts();
@@ -2542,11 +2557,31 @@ export default function App() {
   }
 
   if (startupPreloader) {
+    const startupProgressWidth = startupPreloaderProgress.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0%', '100%'],
+    });
+
     return (
       <View style={styles.startupPreloader}>
-        <Text style={styles.startupPreloaderFace}>🙂</Text>
-        <ActivityIndicator size="small" color={ACCENT} />
-        <Text style={styles.startupPreloaderText}>Getting things ready...</Text>
+        <Image
+          source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
+          style={styles.startupPreloaderLogo}
+          resizeMode="contain"
+        />
+        <Image
+          source={require('./assets/Offer.gif')}
+          style={styles.startupPreloaderGif}
+          resizeMode="contain"
+        />
+        <View style={styles.startupPreloaderProgressTrack}>
+          <Animated.View
+            style={[
+              styles.startupPreloaderProgressFill,
+              { width: startupProgressWidth },
+            ]}
+          />
+        </View>
       </View>
     );
   }
@@ -3559,16 +3594,29 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 28,
   },
-  startupPreloaderFace: {
-    fontSize: 64,
-    marginBottom: 18,
+  startupPreloaderLogo: {
+    width: 230,
+    height: 82,
+    marginBottom: 16,
   },
-  startupPreloaderText: {
-    marginTop: 12,
-    color: TEXT,
-    fontSize: 14,
-    fontWeight: '700',
+  startupPreloaderGif: {
+    width: 150,
+    height: 150,
+    marginBottom: 28,
+  },
+  startupPreloaderProgressTrack: {
+    width: '72%',
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#eeeeee',
+    overflow: 'hidden',
+  },
+  startupPreloaderProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: ACCENT,
   },
   safe: { flex: 1, backgroundColor: PAGE },
   darkSafe: { backgroundColor: '#000000' },
