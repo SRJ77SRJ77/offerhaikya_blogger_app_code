@@ -1642,6 +1642,7 @@ export default function App() {
       registrationEmailRef.current = email;
       registrationCategoriesRef.current = categories;
     } else {
+      setRegistrationCompleted(false);
       setRegistrationName('');
       setRegistrationContact('');
       setRegistrationEmail('');
