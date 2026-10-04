@@ -4040,7 +4040,21 @@ export default function App() {
             onPress={() => setNotificationsOpen(true)}
             accessibilityLabel="Notifications"
           >
-            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>🔔</Text>
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M18 9A6 6 0 0 0 6 9C6 16 3.5 16 3.5 18H20.5C20.5 16 18 16 18 9Z"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M10 21H14"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
             {notifications.length > 0 ? (
               <View style={styles.favoriteBadge}>
                 <Text style={styles.favoriteBadgeText}>{notifications.length}</Text>
