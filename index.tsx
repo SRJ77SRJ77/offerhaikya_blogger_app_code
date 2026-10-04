@@ -3597,9 +3597,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   startupPreloaderGif: {
-  width: 110,
-  height: 110,
-  marginBottom: 22,
+  width: 82,
+  height: 82,
+  marginBottom: 18,
 },
   startupPreloaderProgressTrack: {
     width: '72%',
