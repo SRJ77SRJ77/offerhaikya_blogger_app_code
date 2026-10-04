@@ -3281,20 +3281,6 @@ export default function App() {
             {mapCoordinates ? (
               <View style={styles.mapSection}>
                 <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
-                <MapView
-                  style={styles.mapView}
-                  initialRegion={{
-                    ...mapCoordinates,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  pitchEnabled={false}
-                  rotateEnabled={false}
-                >
-                  <Marker coordinate={mapCoordinates} title="OfferHaikya location" />
-                </MapView>
                 <TouchableOpacity
                   style={styles.mapButton}
                   onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${mapCoordinates.latitude},${mapCoordinates.longitude}`)}
