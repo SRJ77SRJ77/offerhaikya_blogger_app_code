@@ -3555,6 +3555,23 @@ export default function App() {
                       : 'Welcome to OfferHaikya 👋'}
                 </Text>
 
+                {(profileMode || authMode === 'signIn') ? (
+                  <TouchableOpacity
+                    style={styles.registrationCloseButton}
+                    onPress={() => {
+                      if (!registrationSubmitting) {
+                        setRegistrationOpen(false);
+                        setRegistrationCategoriesOpen(false);
+                        setRegistrationError('');
+                        setRegistrationSuccess('');
+                      }
+                    }}
+                    disabled={registrationSubmitting}
+                    accessibilityLabel="Close"
+                  >
+                    <Text style={styles.registrationCloseText}>×</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
 
               <Text style={styles.registrationSubtitle}>
