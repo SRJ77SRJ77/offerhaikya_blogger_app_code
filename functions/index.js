@@ -39,7 +39,7 @@ const parseFeed = (data) => {
     const labels = (entry.category || []).map((item) => item.term).filter(Boolean);
     return {
       id: entry.id?.$t || String(index),
-      title: entry.title?.$t || "New OfferHaikya offer",
+      title: entry.title?.$t || "New Offerhaikya offer",
       url: alternate?.href || "https://www.offerhaikya.com",
       publishedAt: entry.published?.$t || entry.updated?.$t || "",
       date: entry.published?.$t || entry.updated?.$t || "",
@@ -81,7 +81,7 @@ exports.sendNewOfferNotifications = onSchedule(
       { headers: { "Cache-Control": "no-cache, no-store, max-age=0", "Pragma": "no-cache" } },
     );
 
-    if (!response.ok) throw new Error("Unable to read OfferHaikya Blogger feed");
+    if (!response.ok) throw new Error("Unable to read Offerhaikya Blogger feed");
 
     const posts = parseFeed(await response.json());
     if (!posts.length) return;
@@ -151,8 +151,11 @@ exports.sendNewOfferNotifications = onSchedule(
 
     for (const post of changedPosts) {
       const isUpdate = Boolean(previousPosts[post.id]);
+      const normalizeCategory = (value) =>
+        String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
       const normalizedPostLabels = new Set(
-        post.labels.map((label) => String(label).trim().toLowerCase()),
+        post.labels.map(normalizeCategory).filter(Boolean),
       );
 
       const targetTokens = eligibleUsers
@@ -161,7 +164,7 @@ exports.sendNewOfferNotifications = onSchedule(
             ? user.data.favoritePostIds.map((id) => String(id))
             : [];
           const interestedCategories = Array.isArray(user.data?.interestedCategories)
-            ? user.data.interestedCategories.map((category) => String(category).trim().toLowerCase())
+            ? user.data.interestedCategories.map(normalizeCategory).filter(Boolean)
             : [];
 
           const favoriteMatch = isUpdate && favoritePostIds.includes(post.id);
@@ -175,7 +178,7 @@ exports.sendNewOfferNotifications = onSchedule(
 
       const messages = Array.from(new Set(targetTokens)).map((token) => ({
         to: token,
-        title: isUpdate ? "OfferHaikya Offer Updated" : "New OfferHaikya Offer",
+        title: isUpdate ? "Offerhaikya Offer Updated" : "New Offerhaikya Offer",
         body: post.title,
         sound: "default",
         priority: "high",
