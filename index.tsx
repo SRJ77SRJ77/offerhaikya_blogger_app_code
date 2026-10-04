@@ -3413,7 +3413,7 @@ export default function App() {
                 {profileMode
                   ? 'My Profile'
                   : authMode === 'signIn'
-                    ? 'Welcome back 👋'
+                    ? 'Login'
                     : 'Welcome to OfferHaikya 👋'}
               </Text>
 
@@ -3605,33 +3605,19 @@ export default function App() {
                   {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
                   {registrationSuccess ? <Text style={styles.registrationSuccess}>{registrationSuccess}</Text> : null}
 
-                  <View style={styles.registrationAuthButtonRow}>
-                    <TouchableOpacity
-                      style={[styles.registrationButton, styles.registrationAuthHalfButton, registrationSubmitting && styles.disabledButton]}
-                      onPress={authMode === 'register' ? submitRegistration : openWelcomeRegistration}
-                      disabled={registrationSubmitting || registrationSuccess || profileLoading}
-                    >
-                      <Text style={styles.registrationButtonText}>Create Account</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.registrationLoginButton, styles.registrationAuthHalfButton, registrationSubmitting && styles.disabledButton]}
-                      onPress={authMode === 'signIn' ? signInAccount : () => {
-                        setAuthMode('signIn');
-                        setRegistrationPassword('');
-                        setRegistrationPasswordVisible(false);
-                        setRegistrationError('');
-                        setRegistrationSuccess(false);
-                      }}
-                      disabled={registrationSubmitting || profileLoading}
-                    >
-                      {registrationSubmitting && authMode === 'signIn' ? (
-                        <ActivityIndicator size="small" color={WHITE} />
-                      ) : (
-                        <Text style={styles.registrationLoginButtonText}>Login</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    onPress={authMode === 'signIn' ? signInAccount : submitRegistration}
+                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
+                  >
+                    {registrationSubmitting ? (
+                      <ActivityIndicator size="small" color={WHITE} />
+                    ) : (
+                      <Text style={styles.registrationButtonText}>
+                        {authMode === 'signIn' ? 'Submit' : 'Create Account'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
 
                   <View style={styles.registrationSecondaryRow}>
                     <TouchableOpacity
@@ -3645,15 +3631,35 @@ export default function App() {
                       }}
                       disabled={registrationSubmitting || profileLoading}
                     >
-                      <Text style={styles.addOffersText}>Add Offers</Text>
+                      <Text style={styles.registrationLinkText}>Add Offers</Text>
                     </TouchableOpacity>
+
+                    <Text style={styles.registrationLinkSeparator}>|</Text>
 
                     <TouchableOpacity
                       style={styles.registrationSecondaryHalfButton}
                       onPress={skipRegistration}
                       disabled={registrationSubmitting || profileLoading}
                     >
-                      <Text style={styles.registrationSkipText}>Browse Offers</Text>
+                      <Text style={styles.registrationLinkText}>Browse Offers</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.registrationLinkSeparator}>|</Text>
+
+                    <TouchableOpacity
+                      style={styles.registrationSecondaryHalfButton}
+                      onPress={() => {
+                        setAuthMode(value => value === 'signIn' ? 'register' : 'signIn');
+                        setRegistrationPassword('');
+                        setRegistrationPasswordVisible(false);
+                        setRegistrationError('');
+                        setRegistrationSuccess(false);
+                      }}
+                      disabled={registrationSubmitting || profileLoading}
+                    >
+                      <Text style={styles.registrationLinkText}>
+                        {authMode === 'signIn' ? 'Signup' : 'Login'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
@@ -3667,6 +3673,7 @@ export default function App() {
                     </TouchableOpacity>
                   ) : null}
                 </>
+              )
               ) : (
                 <>
                   {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
@@ -4915,6 +4922,8 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationAuthHalfButton: { flex: 1 },
   registrationSecondaryRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 4 },
   registrationSecondaryHalfButton: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center' },
+  registrationLinkText: { color: '#000000', fontSize: 13, fontWeight: '800', textAlign: 'center' },
+  registrationLinkSeparator: { color: '#000000', fontSize: 14, fontWeight: '700', paddingHorizontal: 2 },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
