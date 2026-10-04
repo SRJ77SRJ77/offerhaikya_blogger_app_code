@@ -3318,7 +3318,7 @@ export default function App() {
             onPress={goToHotOffersTab}
             accessibilityLabel="Hot Offers"
           >
-            <Text style={[styles.bottomNavPercentIcon, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
+            <Text style={[styles.bottomNavPercentIcon, bottomTab === 'hot' && styles.bottomNavPercentIconActive, darkMode && styles.bottomNavPercentIconDark]}>%</Text>
             <Text style={[styles.bottomNavLabel, bottomTab === 'hot' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
               Hot Offers
             </Text>
@@ -3696,8 +3696,8 @@ export default function App() {
             onPress={goToHotOffersTab}
             accessibilityLabel="Hot Offers"
           >
-            <Text style={styles.infoBottomNavPercentIcon}>%</Text>
-            <Text style={styles.infoBottomNavLabel}>Hot Offers</Text>
+            <Text style={[styles.infoBottomNavPercentIcon, darkMode && styles.infoBottomNavPercentIconDark]}>%</Text>
+            <Text style={[styles.infoBottomNavLabel, darkMode && styles.infoBottomNavLabelDark]}>Hot Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -5234,11 +5234,14 @@ const styles = StyleSheet.create({
   bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 76, backgroundColor: WHITE, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#dddddd', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8, paddingTop: 7, paddingBottom: 7, zIndex: 140, elevation: 12, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
   bottomNavDark: { backgroundColor: '#151515', borderTopColor: '#303030' },
   bottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4 },
-  bottomNavPercentIcon: { color: TEXT, fontSize: 23, lineHeight: 23, fontWeight: '900' },
+  bottomNavPercentIcon: { color: 'rgba(0,0,0,0.8)', fontSize: 23, lineHeight: 23, fontWeight: '900' },
+  bottomNavPercentIconDark: { color: WHITE },
   bottomNavPercentIconActive: { color: ACCENT },
-  infoBottomNavPercentIcon: { color: MUTED, fontSize: 23, lineHeight: 23, fontWeight: '900' },
+  infoBottomNavPercentIcon: { color: 'rgba(0,0,0,0.8)', fontSize: 23, lineHeight: 23, fontWeight: '900' },
+  infoBottomNavPercentIconDark: { color: WHITE },
   infoBottomNavItem: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', borderRadius: 12, marginHorizontal: 4, backgroundColor: 'transparent' },
   infoBottomNavLabel: { color: MUTED, fontSize: 11, fontWeight: '800', marginTop: 4 },
+  infoBottomNavLabelDark: { color: WHITE },
   bottomNavItemActive: { backgroundColor: '#fff3ed' },
   bottomNavItemDisabled: { opacity: 0.5 },
   bottomNavLabelDisabled: { color: '#b8b8b8' },
@@ -5276,8 +5279,8 @@ const styles = StyleSheet.create({
   shareOption: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   shareOptionTitle: { color: TEXT, fontSize: 16, fontWeight: '900' },
   shareOptionText: { color: MUTED, fontSize: 12, lineHeight: 18, marginTop: 3 },
-  shareCancelButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  shareCancelText: { color: ACCENT, fontSize: 14, fontWeight: '900' },
+  shareCancelButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+  shareCancelText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   favoriteOverlayBackdrop: { ...StyleSheet.absoluteFill },
   favoritePopup: { width: '100%', maxHeight: '62%', backgroundColor: WHITE, borderRadius: 16, padding: 12, zIndex: 2 },
   favoritePopupDark: { backgroundColor: '#222222' },
@@ -5392,7 +5395,8 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
   loadMoreWrap: { paddingHorizontal: 18, paddingVertical: 14 },
   footer: { alignItems: 'center', paddingVertical: 24 },
-  footerBrand: { color: TEXT, fontSize: 16, fontWeight: '900' },
+  footerBrand: { color: TEXT, fontSize: 13, fontWeight: '900' },
+  footerBrandDark: { color: WHITE },
   footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
   footerLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 16, paddingHorizontal: 10 },
   footerLink: { color: TEXT, fontSize: 12, fontWeight: '800' },
