@@ -3242,10 +3242,11 @@ export default function App() {
           />
         </TouchableOpacity>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+          <TouchableOpacity style={styles.headerActionButton} onPress={() => setDarkMode(value => !value)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => setWishlistOpen(true)}>
+
+          <TouchableOpacity style={styles.headerActionButton} onPress={() => setWishlistOpen(true)}>
             <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>♡</Text>
             {favorites.length > 0 ? (
               <View style={styles.favoriteBadge}>
@@ -3253,15 +3254,33 @@ export default function App() {
               </View>
             ) : null}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => searchInputRef.current?.focus()}>
-            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>⌕</Text>
-          </TouchableOpacity>
+
           <TouchableOpacity
-            style={styles.headerIconButton}
+            style={styles.headerActionButton}
+            onPress={() => searchInputRef.current?.focus()}
+            accessibilityLabel="Search"
+          >
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={darkMode ? WHITE : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.headerActionButton}
             onPress={openProfile}
             accessibilityLabel="Profile"
           >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M12 11.5A4 4 0 1 0 12 3.5A4 4 0 0 0 12 11.5Z"
                 stroke={darkMode ? WHITE : TEXT}
@@ -4107,10 +4126,11 @@ const styles = StyleSheet.create({
   header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
   headerDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
   headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerIcon: { fontSize: 22, color: TEXT },
+  headerActionButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headerIcon: { fontSize: 22, color: TEXT, textAlign: 'center', includeFontPadding: false },
   headerIconDark: { color: WHITE },
-  headerLogo: { width: 170, height: 54, marginLeft: 25 },
-  headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' },
+  headerLogo: { width: 164, height: 50, marginLeft: 22 },
+  headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', paddingLeft: 4 },
   listDark: { backgroundColor: '#000000' },
   detailListDark: { backgroundColor: '#000000' },
   menuOverlay: { ...StyleSheet.absoluteFill, zIndex: 100, flexDirection: 'row' },
