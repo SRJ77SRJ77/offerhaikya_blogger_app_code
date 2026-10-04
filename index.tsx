@@ -3268,7 +3268,7 @@ export default function App() {
                   ? 'My Profile'
                   : authMode === 'signIn'
                     ? 'Welcome back 👋'
-                    : 'Welcome to OfferHaikya 👋'}
+                    : 'Become a Member'}
               </Text>
 
               <Text style={styles.registrationSubtitle}>
@@ -3453,21 +3453,112 @@ export default function App() {
                 </>
               ) : null}
 
-              {authMode === 'signIn' && !profileMode ? (
+              
+              {!profileMode ? (
                 <>
                   {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
                   {registrationSuccess ? <Text style={styles.registrationSuccess}>{registrationSuccess}</Text> : null}
 
+                  <View style={styles.registrationAuthButtonRow}>
+                    <TouchableOpacity
+                      style={[styles.registrationButton, styles.registrationAuthHalfButton, registrationSubmitting && styles.disabledButton]}
+                      onPress={authMode === 'register' ? submitRegistration : openWelcomeRegistration}
+                      disabled={registrationSubmitting || registrationSuccess || profileLoading}
+                    >
+                      <Text style={styles.registrationButtonText}>Create Account</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.registrationLoginButton, styles.registrationAuthHalfButton, registrationSubmitting && styles.disabledButton]}
+                      onPress={authMode === 'signIn' ? signInAccount : () => {
+                        setAuthMode('signIn');
+                        setRegistrationPassword('');
+                        setRegistrationPasswordVisible(false);
+                        setRegistrationError('');
+                        setRegistrationSuccess(false);
+                      }}
+                      disabled={registrationSubmitting || profileLoading}
+                    >
+                      {registrationSubmitting && authMode === 'signIn' ? (
+                        <ActivityIndicator size="small" color={WHITE} />
+                      ) : (
+                        <Text style={styles.registrationLoginButtonText}>Login</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.registrationSecondaryRow}>
+                    <TouchableOpacity
+                      style={styles.registrationSecondaryHalfButton}
+                      onPress={openWelcomeRegistration}
+                      disabled={registrationSubmitting || profileLoading}
+                    >
+                      <Text style={styles.registrationBecomeMemberText}>Become Member</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.registrationSecondaryHalfButton}
+                      onPress={skipRegistration}
+                      disabled={registrationSubmitting || profileLoading}
+                    >
+                      <Text style={styles.registrationSkipText}>Browse Offers</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {authMode === 'signIn' ? (
+                    <TouchableOpacity
+                      style={styles.profileActionTextButton}
+                      onPress={forgotPassword}
+                      disabled={registrationSubmitting}
+                    >
+                      <Text style={styles.profileActionText}>Forgot Password?</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.addOffersButton}
+                      onPress={() => {
+                        if (ADD_OFFERS_WHATSAPP_URL) {
+                          void Linking.openURL(ADD_OFFERS_WHATSAPP_URL);
+                        } else {
+                          Alert.alert('Add Offers', 'WhatsApp link will be added soon.');
+                        }
+                      }}
+                      disabled={registrationSubmitting}
+                    >
+                      <Text style={styles.addOffersText}>Add Offers</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              ) : (
+                <>
+                  {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
+                  {registrationSuccess ? <Text style={styles.registrationSuccess}>Profile updated successfully ✓</Text> : null}
+
                   <TouchableOpacity
-                    style={[styles.registrationLoginButton, registrationSubmitting && styles.disabledButton]}
-                    onPress={signInAccount}
-                    disabled={registrationSubmitting || profileLoading}
+                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    onPress={saveProfile}
+                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
-                      <Text style={styles.registrationLoginButtonText}>Sign In</Text>
+                      <Text style={styles.registrationButtonText}>Update</Text>
                     )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.registrationSkipButton}
+                    onPress={() => {
+                      if (!registrationSubmitting) {
+                        setRegistrationOpen(false);
+                        setProfileMode(false);
+                        setRegistrationError('');
+                        setRegistrationSuccess(false);
+                      }
+                    }}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.registrationSkipText}>Close</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -3479,108 +3570,12 @@ export default function App() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.registrationSkipButton}
-                    onPress={openWelcomeRegistration}
+                    style={styles.profileDeleteButton}
+                    onPress={deleteProfile}
                     disabled={registrationSubmitting}
                   >
-                    <Text style={styles.registrationSkipText}>Back to Register</Text>
+                    <Text style={styles.profileDeleteText}>Delete Profile</Text>
                   </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
-                  {registrationSuccess ? (
-                    <Text style={styles.registrationSuccess}>
-                      {profileMode ? 'Profile updated successfully ✓' : 'Registration successful ✓'}
-                    </Text>
-                  ) : null}
-
-                  <TouchableOpacity
-                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
-                    onPress={profileMode ? saveProfile : submitRegistration}
-                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
-                  >
-                    {registrationSubmitting ? (
-                      <ActivityIndicator size="small" color={WHITE} />
-                    ) : (
-                      <Text style={styles.registrationButtonText}>
-                        {profileMode ? 'Update' : 'Create Account'}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-
-                  {profileMode ? (
-                    <>
-                      <TouchableOpacity
-                        style={styles.registrationSkipButton}
-                        onPress={() => {
-                          if (!registrationSubmitting) {
-                            setRegistrationOpen(false);
-                            setProfileMode(false);
-                            setRegistrationError('');
-                            setRegistrationSuccess(false);
-                          }
-                        }}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.registrationSkipText}>Close</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.profileActionTextButton}
-                        onPress={forgotPassword}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.profileActionText}>Forgot Password?</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.profileDeleteButton}
-                        onPress={deleteProfile}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.profileDeleteText}>Delete Profile</Text>
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <>
-                      <TouchableOpacity
-                        style={styles.addOffersButton}
-                        onPress={() => {
-                          if (ADD_OFFERS_WHATSAPP_URL) {
-                            void Linking.openURL(ADD_OFFERS_WHATSAPP_URL);
-                          } else {
-                            Alert.alert('Add Offers', 'WhatsApp link will be added soon.');
-                          }
-                        }}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.addOffersText}>Add Offers</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.registrationSkipButton}
-                        onPress={skipRegistration}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.registrationSkipText}>Browse Offers</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.profileActionTextButton}
-                        onPress={() => {
-                          setAuthMode('signIn');
-                          setRegistrationPassword('');
-                          setRegistrationPasswordVisible(false);
-                          setRegistrationError('');
-                          setRegistrationSuccess(false);
-                        }}
-                        disabled={registrationSubmitting}
-                      >
-                        <Text style={styles.profileActionText}>Already registered? Sign in</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
                 </>
               )}
             </ScrollView>
@@ -4767,7 +4762,12 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   registrationButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   registrationLoginButton: { minHeight: 48, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },
-  registrationLoginButtonText: { color: ACCENT, fontSize: 14, fontWeight: '900' },
+  registrationLoginButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  registrationAuthButtonRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  registrationAuthHalfButton: { flex: 1 },
+  registrationSecondaryRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 4 },
+  registrationSecondaryHalfButton: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center' },
+  registrationBecomeMemberText: { color: ACCENT, fontSize: 13, fontWeight: '900' },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
