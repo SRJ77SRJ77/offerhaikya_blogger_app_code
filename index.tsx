@@ -38,6 +38,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInAnonymously,
+  signOut,
   signInWithEmailAndPassword,
   updateEmail,
   updateProfile as updateFirebaseProfile,
@@ -307,6 +308,7 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
   const [authMode, setAuthMode] = useState<'register' | 'signIn'>('register');
   // true only when Firebase confirms registrationCompleted; skipped users use the Welcome form.
@@ -314,6 +316,7 @@ export default function App() {
   const [profileLoading, setProfileLoading] = useState(false);
   const skipReminderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const registrationFlowActiveRef = useRef(false);
+  const authBootstrappedRef = useRef(false);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -463,8 +466,11 @@ export default function App() {
 
     const loadAccountState = async (user: any) => {
       if (!user || user.isAnonymous) {
+        if (cancelled) return;
         setRegistrationCompleted(false);
         setProfileStatus('skipped');
+        setProfileMode(false);
+        setAuthMode('register');
         await checkRegistrationReminder();
         return;
       }
@@ -474,7 +480,7 @@ export default function App() {
         if (cancelled) return;
 
         const data = snapshot.exists() ? snapshot.data() : null;
-        const registered = data?.registrationCompleted === true;
+        const registered = data?.registrationCompleted === true || !!user.email;
 
         setRegistrationCompleted(registered);
         setProfileStatus(registered ? 'registered' : 'new');
@@ -485,24 +491,65 @@ export default function App() {
           if (!registrationFlowActiveRef.current) {
             setRegistrationOpen(false);
             setProfileMode(false);
+            setAuthMode('register');
           }
         } else {
           await checkRegistrationReminder();
         }
       } catch (error) {
         console.log('Account state load error:', error);
-        await checkRegistrationReminder();
+
+        // A non-anonymous Firebase user is an authenticated account.
+        // Never send that user back to the first registration popup just
+        // because Firestore is temporarily unavailable.
+        if (!cancelled && user && !user.isAnonymous) {
+          setRegistrationCompleted(true);
+          setProfileStatus('registered');
+          if (!registrationFlowActiveRef.current) {
+            setRegistrationOpen(false);
+            setProfileMode(false);
+            setAuthMode('register');
+          }
+        }
       }
     };
 
     const unsubscribe = onAuthStateChanged(auth, user => {
+      if (!authBootstrappedRef.current) return;
       if (cancelled) return;
       void loadAccountState(user);
     });
 
-    if (!auth.currentUser) {
-      void checkRegistrationReminder();
-    }
+    const bootstrapAuth = async () => {
+      try {
+        await auth.authStateReady();
+        if (cancelled) return;
+
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+
+        if (cancelled) return;
+
+        authBootstrappedRef.current = true;
+        setAuthReady(true);
+        await loadAccountState(auth.currentUser);
+      } catch (error) {
+        console.log('Auth bootstrap error:', error);
+
+        if (!cancelled) {
+          authBootstrappedRef.current = true;
+          setAuthReady(true);
+          setRegistrationCompleted(false);
+          setProfileStatus('skipped');
+          setRegistrationOpen(true);
+          setProfileMode(false);
+          setAuthMode('register');
+        }
+      }
+    };
+
+    void bootstrapAuth();
 
     return () => {
       cancelled = true;
@@ -513,7 +560,6 @@ export default function App() {
       }
     };
   }, []);
-
 
 
   useEffect(() => {
@@ -1808,39 +1854,53 @@ export default function App() {
 
   const loadRegisteredProfile = async (user: any) => {
     const snapshot = await getDoc(doc(db, 'users', user.uid));
+    const data = snapshot.exists() ? snapshot.data() : {};
 
-    if (!snapshot.exists()) {
-      throw new Error('Profile data not found');
-    }
-
-    const data = snapshot.data();
+    const name = String(data.name || user.displayName || '');
+    const contact = String(data.contact || '').replace(/^91/, '');
+    const email = String(data.email || user.email || '');
+    const areaCity = String(data.areaCity || '');
+    const categories = Array.isArray(data.interestedCategories)
+      ? data.interestedCategories
+      : [];
 
     setProfileStatus('registered');
     setRegistrationCompleted(true);
     setProfileMode(true);
-    setRegistrationName(String(data.name || user.displayName || ''));
-    setRegistrationContact(String(data.contact || '').replace(/^91/, ''));
-    setRegistrationEmail(String(data.email || user.email || ''));
-    setRegistrationAreaCity(String(data.areaCity || ''));
-    setRegistrationCategories(
-      Array.isArray(data.interestedCategories)
-        ? data.interestedCategories
-        : [],
-    );
+    setAuthMode('register');
+    setRegistrationName(name);
+    setRegistrationContact(contact);
+    setRegistrationEmail(email);
+    setRegistrationAreaCity(areaCity);
+    setRegistrationCategories(categories);
 
-    registrationNameRef.current = String(data.name || user.displayName || '');
-    registrationContactRef.current = String(data.contact || '').replace(/^91/, '');
-    registrationEmailRef.current = String(data.email || user.email || '');
-    registrationAreaCityRef.current = String(data.areaCity || '');
-    registrationCategoriesRef.current =
-      Array.isArray(data.interestedCategories)
-        ? data.interestedCategories
-        : [];
+    registrationNameRef.current = name;
+    registrationContactRef.current = contact;
+    registrationEmailRef.current = email;
+    registrationAreaCityRef.current = areaCity;
+    registrationCategoriesRef.current = categories;
+
+    // Repair a missing profile document without changing the Firebase Auth account.
+    if (!snapshot.exists()) {
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          uid: user.uid,
+          name,
+          contact: contact ? '91' + contact : '',
+          email,
+          interestedCategories: categories,
+          areaCity,
+          profileStatus: 'registered',
+          registrationCompleted: true,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+    }
   };
 
   const openProfile = async () => {
-    setRegistrationOpen(true);
-    setProfileLoading(true);
     setRegistrationError('');
     setRegistrationSuccess(false);
     setRegistrationCategoriesOpen(false);
@@ -1850,15 +1910,32 @@ export default function App() {
     try {
       const user = auth.currentUser;
 
-      if (user && !user.isAnonymous) {
-        await loadRegisteredProfile(user);
-      } else {
+      if (!user) {
         openWelcomeRegistration();
+        return;
       }
+
+      if (user.isAnonymous) {
+        openWelcomeRegistration();
+        return;
+      }
+
+      setRegistrationOpen(true);
+      setProfileMode(true);
+      setProfileLoading(true);
+      await loadRegisteredProfile(user);
     } catch (error) {
       console.log('Profile load error:', error);
-      openWelcomeRegistration();
-      setRegistrationError('');
+
+      // Keep the registered profile screen open instead of showing
+      // the new-user registration form.
+      setRegistrationOpen(true);
+      setProfileMode(true);
+      setProfileStatus('registered');
+      setRegistrationCompleted(true);
+      setAuthMode('register');
+      setRegistrationEmail(String(auth.currentUser?.email || ''));
+      setRegistrationError('Could not load all profile details. Please try again.');
     } finally {
       setProfileLoading(false);
     }
@@ -1971,10 +2048,20 @@ export default function App() {
     } catch (error: any) {
       console.log('Sign in error:', error);
 
-      if (error?.code === 'auth/invalid-credential') {
+      if (
+        error?.code === 'auth/invalid-credential' ||
+        error?.code === 'auth/user-not-found' ||
+        error?.code === 'auth/wrong-password'
+      ) {
         setRegistrationError('Email or password is incorrect.');
+      } else if (error?.code === 'auth/invalid-email') {
+        setRegistrationError('Enter a valid email address.');
+      } else if (error?.code === 'auth/too-many-requests') {
+        setRegistrationError('Too many attempts. Please try again later.');
+      } else if (error?.code === 'auth/network-request-failed') {
+        setRegistrationError('Internet connection failed. Please try again.');
       } else {
-        setRegistrationError('Could not sign in. Please try again.');
+        setRegistrationError('Login failed. Please try again.');
       }
 
       registrationFlowActiveRef.current = false;
@@ -2052,8 +2139,8 @@ export default function App() {
                 throw new Error('Registered account not found');
               }
 
-              await deleteUser(user);
               await deleteDoc(doc(db, 'users', user.uid));
+              await deleteUser(user);
               await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
 
               if (skipReminderTimerRef.current) {
@@ -2088,6 +2175,44 @@ export default function App() {
               } else {
                 setRegistrationError('Could not delete your account. Please try again.');
               }
+            } finally {
+              setRegistrationSubmitting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const logoutAccount = async () => {
+    Alert.alert(
+      'Log out?',
+      'Are you sure you want to log out of your OfferHaikya account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setRegistrationSubmitting(true);
+              setRegistrationError('');
+
+              await signOut(auth);
+              await signInAnonymously(auth);
+
+              setProfileStatus('skipped');
+              setRegistrationCompleted(false);
+              setProfileMode(false);
+              setAuthMode('register');
+              setRegistrationPassword('');
+              setRegistrationPasswordVisible(false);
+              setRegistrationError('');
+              setRegistrationSuccess(false);
+              setRegistrationOpen(true);
+            } catch (error) {
+              console.log('Logout error:', error);
+              setRegistrationError('Could not log out. Please try again.');
             } finally {
               setRegistrationSubmitting(false);
             }
@@ -3255,7 +3380,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
-      {registrationOpen && (
+      {authReady && registrationOpen && (
         <View style={styles.registrationOverlay}>
           <View style={styles.registrationPopup}>
             <ScrollView
@@ -3567,6 +3692,14 @@ export default function App() {
                     disabled={registrationSubmitting}
                   >
                     <Text style={styles.profileDeleteText}>Delete Profile</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.profileLogoutButton}
+                    onPress={logoutAccount}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.profileLogoutText}>Logout</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -4490,8 +4623,8 @@ const styles = StyleSheet.create({
   headerActionButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerIcon: { fontSize: 22, color: TEXT, textAlign: 'center', includeFontPadding: false },
   headerIconDark: { color: WHITE },
-  headerLogo: { width: 164, height: 50, marginLeft: 22 },
-  headerActions: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', paddingLeft: 4 },
+  headerLogo: { width: 164, height: 50, marginLeft: 16 },
+  headerActions: { marginLeft: 'auto', marginRight: 12, flexDirection: 'row', alignItems: 'center', paddingLeft: 4 },
   listDark: { backgroundColor: '#000000' },
   detailListDark: { backgroundColor: '#000000' },
   menuOverlay: { ...StyleSheet.absoluteFill, zIndex: 100, flexDirection: 'row' },
@@ -4715,6 +4848,8 @@ const styles = StyleSheet.create({
   profileSaveButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   profileDeleteButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   profileDeleteText: { color: '#d93025', fontSize: 13, fontWeight: '800' },
+  profileLogoutButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  profileLogoutText: { color: TEXT, fontSize: 13, fontWeight: '800' },
 
 registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
