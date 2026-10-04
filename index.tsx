@@ -4361,8 +4361,8 @@ export default function App() {
                     onPress={() => openDetail(item)}
                     activeOpacity={0.88}
                   >
-                    {item.imageUrl ? (
-                      <Image source={{ uri: item.imageUrl }} style={styles.nearbyListImage} />
+                    {item.image ? (
+                      <Image source={{ uri: item.image }} style={styles.nearbyListImage} />
                     ) : (
                       <View style={styles.nearbyListImage} />
                     )}
