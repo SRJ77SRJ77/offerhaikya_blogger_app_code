@@ -5145,8 +5145,6 @@ const styles = StyleSheet.create({
   tagPageDropdownItemTextActive: { color: ACCENT, fontWeight: '900' },
   tagPageLoading: { alignItems: 'center', paddingBottom: 10 },
   sectionRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  nearbyRefreshButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-  nearbyRefreshText: { color: ACCENT, fontSize: 27, lineHeight: 30, fontWeight: '900' },
   sectionTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   pageText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   row: { flexDirection: 'row', paddingHorizontal: 10, justifyContent: 'space-between' },
