@@ -1465,6 +1465,16 @@ export default function App() {
   };
 
   const submitRegistration = async () => {
+    if (!auth.currentUser) {
+      try {
+        await signInAnonymously(auth);
+      } catch (error) {
+        console.log('Firebase anonymous auth error:', error);
+        setRegistrationError('Could not connect your account. Please try again.');
+        return;
+      }
+    }
+
     const registrationData = {
       type: 'registration',
       name: registrationName.trim(),
@@ -1472,6 +1482,7 @@ export default function App() {
       email: registrationEmail.trim().toLowerCase(),
       interestedCategories: registrationCategories.join(', '),
       submittedAt: new Date().toISOString(),
+      uid: auth.currentUser?.uid || '',
     };
 
     if (!/^[A-Za-z ]{3,12}$/.test(registrationData.name)) {
@@ -1516,7 +1527,8 @@ export default function App() {
         '&name=' + encodeURIComponent(registrationData.name) +
         '&contact=' + encodeURIComponent(registrationData.contact) +
         '&email=' + encodeURIComponent(registrationData.email) +
-        '&interestedCategories=' + encodeURIComponent(registrationData.interestedCategories);
+        '&interestedCategories=' + encodeURIComponent(registrationData.interestedCategories) +
+        '&uid=' + encodeURIComponent(auth.currentUser?.uid || '');
 
       const response = await fetch(registrationUrl, {
         method: 'GET',
@@ -1663,6 +1675,27 @@ export default function App() {
 
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) throw new Error('Firebase user unavailable');
+
+      const profileUpdateUrl =
+        REGISTRATION_URL +
+        '?type=' + encodeURIComponent('profile_update') +
+        '&uid=' + encodeURIComponent(firebaseUser.uid) +
+        '&name=' + encodeURIComponent(name) +
+        '&contact=' + encodeURIComponent(contact ? '91' + contact : '') +
+        '&email=' + encodeURIComponent(email) +
+        '&interestedCategories=' + encodeURIComponent(categories.join(', '));
+
+      const profileResponse = await fetch(profileUpdateUrl, { method: 'GET' });
+
+      if (!profileResponse.ok) {
+        throw new Error('Could not update Google Sheet');
+      }
+
+      const profileResponseData = await profileResponse.json();
+
+      if (!profileResponseData?.success) {
+        throw new Error(profileResponseData?.error || 'Could not update Google Sheet');
+      }
 
       await setDoc(
         doc(db, 'users', firebaseUser.uid),
