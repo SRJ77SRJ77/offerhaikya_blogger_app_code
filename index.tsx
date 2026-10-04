@@ -3337,7 +3337,7 @@ export default function App() {
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
               />
             </Svg>
@@ -4385,7 +4385,11 @@ export default function App() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.bottomNavItem, bottomTabRef.current === 'local' && styles.bottomNavItemActive]}
+          style={[
+            styles.bottomNavItem,
+            bottomTabRef.current === 'local' && styles.bottomNavItemActive,
+            localOffersDisabled && styles.bottomNavItemDisabled,
+          ]}
           onPress={goToLocalOffersTab}
           accessibilityLabel="Local Offers"
         >
@@ -4403,7 +4407,7 @@ export default function App() {
               strokeWidth={2}
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
+          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Local Offers</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
