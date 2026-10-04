@@ -3673,7 +3673,6 @@ export default function App() {
                     </TouchableOpacity>
                   ) : null}
                 </>
-              )
               ) : (
                 <>
                   {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
