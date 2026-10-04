@@ -290,15 +290,8 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileMode, setProfileMode] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [profileDeleting, setProfileDeleting] = useState(false);
-  const [profileError, setProfileError] = useState('');
-  const [profileName, setProfileName] = useState('');
-  const [profileContact, setProfileContact] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
-  const [profileCategories, setProfileCategories] = useState<string[]>([]);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -1148,7 +1141,7 @@ export default function App() {
   }, [registrationOpen, query, page, loadPosts]);
 
   useEffect(() => {
-    if (!registrationOpen || registrationCompleted) return;
+    if (!registrationOpen || registrationCompleted || profileMode) return;
     setSkipCountdown(5);
     const timer = setInterval(() => {
       setSkipCountdown(current => {
@@ -1585,9 +1578,11 @@ export default function App() {
   };
 
   const openProfile = async () => {
-    setProfileError('');
-    setProfileOpen(true);
+    setProfileMode(true);
     setProfileLoading(true);
+    setRegistrationError('');
+    setRegistrationSuccess(false);
+    setRegistrationOpen(true);
 
     try {
       if (!auth.currentUser) {
@@ -1595,82 +1590,80 @@ export default function App() {
       }
 
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        throw new Error('Firebase user unavailable');
-      }
+      if (!firebaseUser) throw new Error('Firebase user unavailable');
 
       const snapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
+      if (snapshot.exists()) {
+        const data = snapshot.data();
 
-      if (!snapshot.exists() || !snapshot.data()?.registrationCompleted) {
-        setProfileOpen(false);
-        setRegistrationName('');
-        setRegistrationContact('');
-        setRegistrationEmail('');
-        setRegistrationCategories([]);
-        registrationNameRef.current = '';
-        registrationContactRef.current = '';
-        registrationEmailRef.current = '';
-        registrationCategoriesRef.current = [];
-        setRegistrationCompleted(false);
-        setRegistrationOpen(true);
-        return;
+        const name = String(data.name || '');
+        const contact = String(data.contact || '').replace(/^91/, '');
+        const email = String(data.email || '');
+        const categories = Array.isArray(data.interestedCategories)
+          ? data.interestedCategories
+          : [];
+
+        setRegistrationName(name);
+        setRegistrationContact(contact);
+        setRegistrationEmail(email);
+        setRegistrationCategories(categories);
+        registrationNameRef.current = name;
+        registrationContactRef.current = contact;
+        registrationEmailRef.current = email;
+        registrationCategoriesRef.current = categories;
       }
-
-      const data = snapshot.data();
-      setProfileName(String(data.name || ''));
-      setProfileContact(String(data.contact || '').replace(/^91/, ''));
-      setProfileEmail(String(data.email || ''));
-      setProfileCategories(Array.isArray(data.interestedCategories) ? data.interestedCategories : []);
     } catch (error) {
       console.log('Profile load error:', error);
-      setProfileError('Could not load your profile. Please try again.');
+      setRegistrationError('Could not load your profile. Please try again.');
     } finally {
       setProfileLoading(false);
     }
   };
 
-  const saveProfile = async () => {
-    const name = profileName.trim();
-    const contact = profileContact.trim();
-    const email = profileEmail.trim().toLowerCase();
+  const updateProfile = async () => {
+    const name = registrationName.trim();
+    const contact = registrationContact.trim();
+    const email = registrationEmail.trim().toLowerCase();
+    const categories = registrationCategoriesRef.current.length
+      ? registrationCategoriesRef.current
+      : registrationCategories;
 
     if (!/^[A-Za-z ]{3,12}$/.test(name)) {
-      setProfileError('Name must be 3-12 letters.');
+      setRegistrationError('Name must be 3-12 letters.');
       return;
     }
 
     if (contact && !/^\d{10}$/.test(contact)) {
-      setProfileError('Enter a valid 10-digit Indian phone number.');
+      setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setProfileError('Enter a valid email address.');
+      setRegistrationError('Enter a valid email address.');
       return;
     }
 
     if (!contact && !email) {
-      setProfileError('Please enter a phone number or email address.');
+      setRegistrationError('Please enter a phone number or email address.');
       return;
     }
 
-    if (profileCategories.length === 0) {
-      setProfileError('Please select at least one interested category.');
+    if (categories.length === 0) {
+      setRegistrationError('Please select at least one interested category.');
       return;
     }
 
     try {
-      setProfileSaving(true);
-      setProfileError('');
+      setRegistrationSubmitting(true);
+      setRegistrationError('');
+      setRegistrationSuccess(false);
 
       if (!auth.currentUser) {
         await signInAnonymously(auth);
       }
 
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        throw new Error('Firebase user unavailable');
-      }
+      if (!firebaseUser) throw new Error('Firebase user unavailable');
 
       await setDoc(
         doc(db, 'users', firebaseUser.uid),
@@ -1679,7 +1672,7 @@ export default function App() {
           name,
           contact: contact ? '91' + contact : '',
           email,
-          interestedCategories: profileCategories,
+          interestedCategories: categories,
           registrationCompleted: true,
           updatedAt: new Date().toISOString(),
         },
@@ -1689,72 +1682,26 @@ export default function App() {
       setRegistrationName(name);
       setRegistrationContact(contact);
       setRegistrationEmail(email);
-      setRegistrationCategories(profileCategories);
+      setRegistrationCategories(categories);
       registrationNameRef.current = name;
       registrationContactRef.current = contact;
       registrationEmailRef.current = email;
-      registrationCategoriesRef.current = profileCategories;
+      registrationCategoriesRef.current = categories;
+
+      setRegistrationSubmitting(false);
+      setRegistrationSuccess(true);
       setRegistrationCompleted(true);
-      setProfileOpen(false);
+
+      setTimeout(() => {
+        setRegistrationOpen(false);
+        setProfileMode(false);
+        setRegistrationSuccess(false);
+      }, 900);
     } catch (error) {
-      console.log('Profile save error:', error);
-      setProfileError('Could not update your profile. Please try again.');
-    } finally {
-      setProfileSaving(false);
+      console.log('Profile update error:', error);
+      setRegistrationError('Could not update your profile. Please try again.');
+      setRegistrationSubmitting(false);
     }
-  };
-
-  const deleteProfile = () => {
-    Alert.alert(
-      'Delete profile?',
-      'Your saved name, phone, email and interests will be removed from Firebase.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setProfileDeleting(true);
-              setProfileError('');
-
-              if (!auth.currentUser) {
-                await signInAnonymously(auth);
-              }
-
-              const firebaseUser = auth.currentUser;
-              if (!firebaseUser) {
-                throw new Error('Firebase user unavailable');
-              }
-
-              await deleteDoc(doc(db, 'users', firebaseUser.uid));
-
-              setProfileOpen(false);
-              setProfileName('');
-              setProfileContact('');
-              setProfileEmail('');
-              setProfileCategories([]);
-              setRegistrationName('');
-              setRegistrationContact('');
-              setRegistrationEmail('');
-              setRegistrationCategories([]);
-              registrationNameRef.current = '';
-              registrationContactRef.current = '';
-              registrationEmailRef.current = '';
-              registrationCategoriesRef.current = [];
-              setRegistrationCompleted(false);
-              setSkipCountdown(5);
-              setRegistrationOpen(true);
-            } catch (error) {
-              console.log('Profile delete error:', error);
-              setProfileError('Could not delete your profile. Please try again.');
-            } finally {
-              setProfileDeleting(false);
-            }
-          },
-        },
-      ],
-    );
   };
 
   const scheduleLocationPromptRetry = () => {
@@ -3088,10 +3035,20 @@ export default function App() {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.registrationFormContent}
             >
-              <Text style={styles.registrationTitle}>Welcome to OfferHaikya 👋</Text>
-              <Text style={styles.registrationSubtitle}>
-                Enter your details and choose your interests.
+              <Text style={styles.registrationTitle}>
+                {profileMode ? 'My Profile' : 'Welcome to OfferHaikya 👋'}
               </Text>
+              <Text style={styles.registrationSubtitle}>
+                {profileMode
+                  ? 'Update your details and interests anytime.'
+                  : 'Enter your details and choose your interests.'}
+              </Text>
+
+              {profileMode && profileLoading ? (
+                <View style={{ paddingVertical: 18, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={ACCENT} />
+                </View>
+              ) : null}
 
               <TextInput
                 value={registrationName}
@@ -3226,26 +3183,34 @@ export default function App() {
 
             <TouchableOpacity
               style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
-              onPress={submitRegistration}
-              disabled={registrationSubmitting || registrationSuccess}
+              onPress={profileMode ? updateProfile : submitRegistration}
+              disabled={registrationSubmitting || registrationSuccess || profileLoading}
             >
               {registrationSubmitting ? (
                 <ActivityIndicator size="small" color={WHITE} />
               ) : (
-                <Text style={styles.registrationButtonText}>Continue</Text>
+                <Text style={styles.registrationButtonText}>
+                  {profileMode ? 'Update' : 'Continue'}
+                </Text>
               )}
             </TouchableOpacity>
-              {skipCountdown > 0 ? (
-                <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
-              ) : (
-                <TouchableOpacity
-                  style={styles.registrationSkipButton}
-                  onPress={() => setRegistrationOpen(false)}
-                  disabled={registrationSubmitting}
-                >
-                  <Text style={styles.registrationSkipText}>Skip for now</Text>
-                </TouchableOpacity>
-              )}
+
+            {profileMode ? (
+              <TouchableOpacity
+                style={styles.registrationSkipButton}
+                onPress={() => {
+                  if (!registrationSubmitting) {
+                    setRegistrationOpen(false);
+                    setProfileMode(false);
+                    setRegistrationError('');
+                    setRegistrationSuccess(false);
+                  }
+                }}
+                disabled={registrationSubmitting}
+              >
+                <Text style={styles.registrationSkipText}>Close</Text>
+              </TouchableOpacity>
+            ) : null}
             </ScrollView>
           </View>
         </View>
