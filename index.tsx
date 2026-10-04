@@ -2564,12 +2564,7 @@ export default function App() {
 
     return (
       <View style={styles.startupPreloader}>
-        <Image
-          source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
-          style={styles.startupPreloaderLogo}
-          resizeMode="contain"
-        />
-        <Image
+          <Image
           source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Offer.gif' }}
           style={styles.startupPreloaderGif}
           resizeMode="contain"
@@ -3602,10 +3597,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   startupPreloaderGif: {
-    width: 150,
-    height: 150,
-    marginBottom: 28,
-  },
+  width: 110,
+  height: 110,
+  marginBottom: 22,
+},
   startupPreloaderProgressTrack: {
     width: '72%',
     height: 6,
