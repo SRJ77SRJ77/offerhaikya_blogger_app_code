@@ -2570,7 +2570,7 @@ export default function App() {
           resizeMode="contain"
         />
         <Image
-          source={require('./assets/Offer.gif')}
+          source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Offer.gif' }}
           style={styles.startupPreloaderGif}
           resizeMode="contain"
         />
