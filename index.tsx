@@ -30,6 +30,7 @@ import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
@@ -1431,6 +1432,29 @@ export default function App() {
           responseData?.error || 'Registration failed'
         );
       }
+
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        throw new Error('Firebase user unavailable');
+      }
+
+      await setDoc(
+        doc(db, 'users', firebaseUser.uid),
+        {
+          uid: firebaseUser.uid,
+          name: registrationData.name,
+          contact: registrationData.contact,
+          email: registrationData.email,
+          interestedCategories: registrationCategories,
+          registrationCompleted: true,
+          submittedAt: registrationData.submittedAt,
+        },
+        { merge: true },
+      );
 
       setRegistrationSubmitting(false);
       setRegistrationSuccess(true);
