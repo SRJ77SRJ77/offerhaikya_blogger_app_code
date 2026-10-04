@@ -2827,32 +2827,6 @@ export default function App() {
             renderItem={renderPost}
             ListHeaderComponent={
               <>
-                <View style={styles.tagPageHeader}>
-                  <TouchableOpacity
-                    style={styles.tagPageBackButton}
-                    onPress={() => {
-                      setTagPage(null);
-                      setQuery('');
-                      setSuggestions([]);
-                      setActiveLabel('All');
-                      setTagPageDropdownOpen(false);
-                    }}
-                  >
-                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
-                  </TouchableOpacity>
-                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
-                    #{tagPage} Offers
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.tagPageDropdownButton}
-                    onPress={() => setTagPageDropdownOpen(value => !value)}
-                  >
-                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
-                    <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
-                      {tagPageDropdownOpen ? '⌃' : '⌄'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
                 <View style={styles.tagStrip}>
                   <ScrollView
                     ref={tagScrollRef}
@@ -2934,6 +2908,32 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
                 </ImageBackground>
+                <View style={styles.tagPageHeader}>
+                  <TouchableOpacity
+                    style={styles.tagPageBackButton}
+                    onPress={() => {
+                      setTagPage(null);
+                      setQuery('');
+                      setSuggestions([]);
+                      setActiveLabel('All');
+                      setTagPageDropdownOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
+                    #{tagPage} Offers
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.tagPageDropdownButton}
+                    onPress={() => setTagPageDropdownOpen(value => !value)}
+                  >
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
+                    <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
+                      {tagPageDropdownOpen ? '⌃' : '⌄'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 {tagPageDropdownOpen ? (
                   <View style={[styles.tagPageDropdownMenu, darkMode && styles.tagPageDropdownMenuDark]}>
                     <ScrollView
