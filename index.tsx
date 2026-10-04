@@ -70,6 +70,7 @@ const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
 const PROFILE_CACHE_PREFIX = 'offerhaikya_profile_';
+const HAS_REGISTERED_ACCOUNT_KEY = 'offerhaikya_has_registered_account';
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -308,7 +309,7 @@ export default function App() {
   const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState<boolean | string>(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
@@ -487,6 +488,10 @@ export default function App() {
 
         setRegistrationCompleted(registered);
         setProfileStatus(registered ? 'registered' : 'new');
+
+        if (registered) {
+          await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
+        }
 
         if (registered) {
           setRegistrationCompleted(true);
@@ -1880,6 +1885,7 @@ export default function App() {
       }
 
       await saveRegisteredProfile(registeredUser, profile);
+      await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
       await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
 
       if (skipReminderTimerRef.current) {
@@ -1990,14 +1996,17 @@ export default function App() {
 
     try {
       const user = auth.currentUser;
+      const hasRegisteredAccount = (await AsyncStorage.getItem(HAS_REGISTERED_ACCOUNT_KEY)) === 'true';
 
-      if (!user) {
-        openWelcomeRegistration();
-        return;
-      }
-
-      if (user.isAnonymous) {
-        openWelcomeRegistration();
+      if (!user || user.isAnonymous) {
+        setProfileMode(false);
+        setProfileLoading(false);
+        if (hasRegisteredAccount) {
+          setAuthMode('signIn');
+          setRegistrationOpen(true);
+        } else {
+          openWelcomeRegistration();
+        }
         return;
       }
 
@@ -2120,6 +2129,7 @@ export default function App() {
       setRegistrationError('');
 
       const credential = await signInWithEmailAndPassword(auth, email, password);
+      await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
 
       if (pendingDeleteAfterLoginRef.current) {
         pendingDeleteAfterLoginRef.current = false;
@@ -2239,6 +2249,7 @@ export default function App() {
 
       // This should now succeed because the user just authenticated.
       await deleteUser(user);
+      await AsyncStorage.removeItem(HAS_REGISTERED_ACCOUNT_KEY);
 
       await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
 
