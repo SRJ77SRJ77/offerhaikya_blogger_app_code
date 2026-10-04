@@ -2584,6 +2584,7 @@ export default function App() {
             ]}
           />
         </View>
+        <Text style={styles.startupPreloaderStatus}>Loading Offers...</Text>
       </View>
     );
   }
