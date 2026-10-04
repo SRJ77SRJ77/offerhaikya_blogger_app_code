@@ -3533,13 +3533,31 @@ export default function App() {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.registrationFormContent}
             >
-              <Text style={styles.registrationTitle}>
-                {profileMode
-                  ? 'My Profile'
-                  : authMode === 'signIn'
-                    ? 'Login'
-                    : 'Welcome to OfferHaikya 👋'}
-              </Text>
+              <View style={styles.registrationHeaderRow}>
+                <Text style={styles.registrationTitle}>
+                  {profileMode
+                    ? 'My Profile'
+                    : authMode === 'signIn'
+                      ? 'Login'
+                      : 'Welcome to OfferHaikya 👋'}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.registrationCloseButton}
+                  onPress={() => {
+                    if (!registrationSubmitting) {
+                      setRegistrationOpen(false);
+                      setRegistrationCategoriesOpen(false);
+                      setRegistrationError('');
+                      setRegistrationSuccess(false);
+                    }
+                  }}
+                  disabled={registrationSubmitting}
+                  accessibilityLabel="Close"
+                >
+                  <Text style={styles.registrationCloseText}>×</Text>
+                </TouchableOpacity>
+              </View>
 
               <Text style={styles.registrationSubtitle}>
                 {profileMode
@@ -5028,6 +5046,9 @@ const styles = StyleSheet.create({
 registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  registrationHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 3 },
+  registrationCloseButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', marginTop: -4, marginRight: -4 },
+  registrationCloseText: { color: TEXT, fontSize: 30, lineHeight: 30, fontWeight: '500' },
   registrationFormContent: { paddingBottom: 2 },
   registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
   registrationCategoryDropdown: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: WHITE, marginBottom: 8 },
