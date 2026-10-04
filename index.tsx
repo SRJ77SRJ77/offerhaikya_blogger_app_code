@@ -34,6 +34,7 @@ import {
   EmailAuthProvider,
   createUserWithEmailAndPassword,
   deleteUser,
+  reauthenticateWithCredential,
   linkWithCredential,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -2135,8 +2136,9 @@ export default function App() {
 
       if (pendingDeleteAfterLoginRef.current) {
         pendingDeleteAfterLoginRef.current = false;
-        registrationFlowActiveRef.current = false;
         await deleteAccountAfterRecentLogin();
+        registrationFlowActiveRef.current = false;
+        setRegistrationSubmitting(false);
         return;
       }
 
@@ -2242,15 +2244,25 @@ export default function App() {
       setRegistrationError('');
 
       const uid = user.uid;
+      const email = user.email?.trim().toLowerCase() || '';
 
-      // Delete the user's profile and favorites first while Auth is still valid.
+      if (!email || !registrationPassword) {
+        setRegistrationError('Enter your account password to confirm deletion.');
+        return;
+      }
+
+      // Explicitly re-authenticate before the destructive operation.
+      const credential = EmailAuthProvider.credential(email, registrationPassword);
+      const reauthenticated = await reauthenticateWithCredential(user, credential);
+
+      // Delete the user's profile and favorites while Auth is still valid.
       await deleteDoc(doc(db, 'users', uid));
       await AsyncStorage.removeItem(getFavoritesStorageKey(uid));
       await AsyncStorage.removeItem(PROFILE_CACHE_PREFIX + uid);
       setFavorites([]);
 
-      // This should now succeed because the user just authenticated.
-      await deleteUser(user);
+      // Delete the Firebase Authentication account using the freshly re-authenticated user.
+      await deleteUser(reauthenticated.user);
       await AsyncStorage.removeItem(HAS_REGISTERED_ACCOUNT_KEY);
 
       await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
