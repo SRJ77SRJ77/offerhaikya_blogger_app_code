@@ -20,6 +20,7 @@ import {
   View,
   ToastAndroid,
   Share,
+  Alert,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
@@ -1736,6 +1737,79 @@ export default function App() {
     }
   };
 
+  const deleteProfile = () => {
+    Alert.alert(
+      'Delete profile?',
+      'Are you sure you want to delete your profile? Your saved details will be removed.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setRegistrationSubmitting(true);
+              setRegistrationError('');
+              setRegistrationSuccess(false);
+
+              if (!auth.currentUser) {
+                await signInAnonymously(auth);
+              }
+
+              const firebaseUser = auth.currentUser;
+              if (!firebaseUser) {
+                throw new Error('Firebase user unavailable');
+              }
+
+              const deleteUrl =
+                REGISTRATION_URL +
+                '?type=' + encodeURIComponent('profile_delete') +
+                '&uid=' + encodeURIComponent(firebaseUser.uid);
+
+              const deleteResponse = await fetch(deleteUrl, { method: 'GET' });
+
+              if (!deleteResponse.ok) {
+                throw new Error('Could not delete Google Sheet profile');
+              }
+
+              const deleteResponseData = await deleteResponse.json();
+
+              if (!deleteResponseData?.success) {
+                throw new Error(
+                  deleteResponseData?.error || 'Could not delete Google Sheet profile'
+                );
+              }
+
+              await deleteDoc(doc(db, 'users', firebaseUser.uid));
+
+              setRegistrationOpen(false);
+              setProfileMode(false);
+              setRegistrationName('');
+              setRegistrationContact('');
+              setRegistrationEmail('');
+              setRegistrationCategories([]);
+              setRegistrationCategoriesOpen(false);
+              registrationNameRef.current = '';
+              registrationContactRef.current = '';
+              registrationEmailRef.current = '';
+              registrationCategoriesRef.current = [];
+              setRegistrationCompleted(false);
+              setRegistrationError('');
+            } catch (error) {
+              console.log('Profile delete error:', error);
+              setRegistrationError('Could not delete your profile. Please try again.');
+            } finally {
+              setRegistrationSubmitting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const scheduleLocationPromptRetry = () => {
     if (locationAutoTimerRef.current) {
       clearTimeout(locationAutoTimerRef.current);
@@ -3228,20 +3302,30 @@ export default function App() {
             </TouchableOpacity>
 
             {profileMode ? (
-              <TouchableOpacity
-                style={styles.registrationSkipButton}
-                onPress={() => {
-                  if (!registrationSubmitting) {
-                    setRegistrationOpen(false);
-                    setProfileMode(false);
-                    setRegistrationError('');
-                    setRegistrationSuccess(false);
-                  }
-                }}
-                disabled={registrationSubmitting}
-              >
-                <Text style={styles.registrationSkipText}>Close</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={styles.registrationSkipButton}
+                  onPress={() => {
+                    if (!registrationSubmitting) {
+                      setRegistrationOpen(false);
+                      setProfileMode(false);
+                      setRegistrationError('');
+                      setRegistrationSuccess(false);
+                    }
+                  }}
+                  disabled={registrationSubmitting}
+                >
+                  <Text style={styles.registrationSkipText}>Close</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.profileDeleteButton}
+                  onPress={deleteProfile}
+                  disabled={registrationSubmitting}
+                >
+                  <Text style={styles.profileDeleteText}>Delete Profile</Text>
+                </TouchableOpacity>
+              </>
             ) : (
               <React.Fragment>
                 {skipCountdown > 0 ? (
