@@ -284,6 +284,8 @@ export default function App() {
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
   const [wishlistOpen, setWishlistOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Post[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
@@ -2714,6 +2716,73 @@ export default function App() {
     </View>
   );
 
+  const notificationPopup = notificationsOpen ? (
+    <View style={styles.favoriteOverlay}>
+      <TouchableOpacity
+        style={styles.favoriteOverlayBackdrop}
+        activeOpacity={1}
+        onPress={() => setNotificationsOpen(false)}
+      />
+      <View style={[styles.favoritePopup, darkMode && styles.favoritePopupDark]}>
+        <View style={styles.favoritePopupHeader}>
+          <View>
+            <Text style={[styles.favoritePopupTitle, darkMode && styles.darkText]}>Notifications</Text>
+          </View>
+          <TouchableOpacity style={styles.favoriteClose} onPress={() => setNotificationsOpen(false)}>
+            <Text style={[styles.favoriteCloseText, darkMode && styles.headerIconDark]}>×</Text>
+          </TouchableOpacity>
+        </View>
+
+        {notifications.length === 0 ? (
+          <View style={styles.favoriteEmpty}>
+            <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No notifications yet</Text>
+            <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>
+              New offer notifications will appear here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.favoriteList}
+            renderItem={({ item }) => (
+              <View style={[styles.favoriteItem, darkMode && styles.favoriteItemDark]}>
+                <TouchableOpacity
+                  style={styles.favoriteItemMain}
+                  onPress={() => {
+                    setNotificationsOpen(false);
+                    openDetail(item);
+                  }}
+                >
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.favoriteItemImage} />
+                  ) : (
+                    <View style={[styles.favoriteItemImage, styles.imageFallback]}>
+                      <Text style={styles.favoriteItemFallback}>Offer</Text>
+                    </View>
+                  )}
+                  <View style={styles.favoriteItemText}>
+                    <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.favoriteRemove}
+                  onPress={() => setNotifications(current => current.filter(notification => notification.id !== item.id))}
+                  accessibilityLabel="Remove notification"
+                >
+                  <Text style={styles.favoriteRemoveText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </View>
+  ) : null;
+
   const favoritePopup = wishlistOpen ? (
     <View style={styles.favoriteOverlay}>
       <TouchableOpacity
@@ -3968,6 +4037,19 @@ export default function App() {
 
           <TouchableOpacity
             style={styles.headerActionButton}
+            onPress={() => setNotificationsOpen(true)}
+            accessibilityLabel="Notifications"
+          >
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>🔔</Text>
+            {notifications.length > 0 ? (
+              <View style={styles.favoriteBadge}>
+                <Text style={styles.favoriteBadgeText}>{notifications.length}</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.headerActionButton}
             onPress={openProfile}
             accessibilityLabel="Profile"
           >
@@ -4859,6 +4941,7 @@ export default function App() {
         </View>
       </Modal>
 
+    {notificationPopup}
     {favoritePopup}
     </SafeAreaView>
   );
