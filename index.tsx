@@ -1918,7 +1918,7 @@ export default function App() {
       setRegistrationCompleted(true);
       setAuthMode('register');
       setRegistrationEmail(String(auth.currentUser?.email || ''));
-      setRegistrationError('Could not load profile details. Please check your connection and try again.');
+      setRegistrationError('');
     } finally {
       setProfileLoading(false);
     }
@@ -2042,7 +2042,7 @@ export default function App() {
         setRegistrationContact('');
         setRegistrationAreaCity('');
         setRegistrationCategories([]);
-        setRegistrationError('Signed in, but profile details could not be loaded. Please try again.');
+        setRegistrationError('');
       }
 
       registrationFlowActiveRef.current = false;
@@ -3662,19 +3662,19 @@ export default function App() {
                   {registrationSuccess ? <Text style={styles.registrationSuccess}>Profile updated successfully ✓</Text> : null}
 
                   <TouchableOpacity
-                    style={[styles.profilePrimaryButton, registrationSubmitting && styles.disabledButton]}
+                    style={[styles.profileUpdateButton, registrationSubmitting && styles.disabledButton]}
                     onPress={saveProfile}
                     disabled={registrationSubmitting || registrationSuccess || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
-                      <Text style={styles.profilePrimaryButtonText}>Update</Text>
+                      <Text style={styles.profileUpdateButtonText}>Update</Text>
                     )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.profilePrimaryButton, registrationSubmitting && styles.disabledButton]}
+                    style={[styles.profileCloseButton, registrationSubmitting && styles.disabledButton]}
                     onPress={() => {
                       if (!registrationSubmitting) {
                         setRegistrationOpen(false);
@@ -3685,7 +3685,7 @@ export default function App() {
                     }}
                     disabled={registrationSubmitting}
                   >
-                    <Text style={styles.profilePrimaryButtonText}>Close</Text>
+                    <Text style={styles.profileCloseButtonText}>Close</Text>
                   </TouchableOpacity>
 
                   <View style={styles.profileLinkRow}>
@@ -4862,8 +4862,10 @@ const styles = StyleSheet.create({
   profileCategoryTextSelected: { color: ACCENT, fontWeight: '800' },
   profileError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
   profileSaveButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  profilePrimaryButton: { minHeight: 48, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  profilePrimaryButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  profileUpdateButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  profileUpdateButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  profileCloseButton: { minHeight: 48, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  profileCloseButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   profileLinkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 2 },
   profileLinkItem: { minHeight: 32, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   profileLinkText: { color: '#000000', fontSize: 12, fontWeight: '800' },
