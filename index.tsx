@@ -1587,6 +1587,21 @@ export default function App() {
 
   const loadNotificationsForUser = async (user: any) => {
     if (!user?.uid || user.isAnonymous) {
+      try {
+        const dismissedAt = Number(
+          (await AsyncStorage.getItem(GUEST_NOTIFICATION_DISMISSED_KEY)) || '0'
+        );
+        const remaining = GUEST_NOTIFICATION_REMINDER_MS - (Date.now() - dismissedAt);
+        if (remaining > 0) {
+          setNotifications([]);
+          return;
+        }
+        if (dismissedAt) {
+          await AsyncStorage.removeItem(GUEST_NOTIFICATION_DISMISSED_KEY);
+        }
+      } catch {
+        // Guest reminder state is best-effort.
+      }
       setNotifications(posts.slice(0, 3));
       return;
     }
@@ -1641,14 +1656,45 @@ export default function App() {
 
   useEffect(() => {
     const user = auth.currentUser;
-
-    if (!user || user.isAnonymous) {
-      setNotifications(posts.slice(0, 3));
-      return;
-    }
-
     void loadNotificationsForUser(user);
   }, [authReady, registrationCompleted, posts]);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user || !user.isAnonymous) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleGuestReminder = async () => {
+      try {
+        const dismissedAt = Number(
+          (await AsyncStorage.getItem(GUEST_NOTIFICATION_DISMISSED_KEY)) || '0'
+        );
+        const remaining = dismissedAt
+          ? GUEST_NOTIFICATION_REMINDER_MS - (Date.now() - dismissedAt)
+          : 0;
+
+        if (remaining <= 0) {
+          setNotifications(posts.slice(0, 3));
+          return;
+        }
+
+        setNotifications([]);
+        timer = setTimeout(() => {
+          void AsyncStorage.removeItem(GUEST_NOTIFICATION_DISMISSED_KEY);
+          setNotifications(posts.slice(0, 3));
+        }, remaining);
+      } catch {
+        setNotifications(posts.slice(0, 3));
+      }
+    };
+
+    void scheduleGuestReminder();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [authReady, posts]);
 
   useEffect(() => {
     const receivedSubscription =
@@ -2929,7 +2975,12 @@ export default function App() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.favoriteRemove}
-                  onPress={() => setNotifications(current => current.filter(notification => notification.id !== item.id))}
+                  onPress={() => {
+                    setNotifications(current => current.filter(notification => notification.id !== item.id));
+                    if (auth.currentUser?.isAnonymous) {
+                      void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
+                    }
+                  }}
                   accessibilityLabel="Remove notification"
                 >
                   <Text style={styles.favoriteRemoveText}>×</Text>
