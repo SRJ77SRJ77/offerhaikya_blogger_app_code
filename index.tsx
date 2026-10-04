@@ -1880,24 +1880,7 @@ export default function App() {
     registrationAreaCityRef.current = areaCity;
     registrationCategoriesRef.current = categories;
 
-    // Repair a missing profile document without changing the Firebase Auth account.
-    if (!snapshot.exists()) {
-      await setDoc(
-        doc(db, 'users', user.uid),
-        {
-          uid: user.uid,
-          name,
-          contact: contact ? '91' + contact : '',
-          email,
-          interestedCategories: categories,
-          areaCity,
-          profileStatus: 'registered',
-          registrationCompleted: true,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true },
-      );
-    }
+
   };
 
   const openProfile = async () => {
@@ -1935,7 +1918,7 @@ export default function App() {
       setRegistrationCompleted(true);
       setAuthMode('register');
       setRegistrationEmail(String(auth.currentUser?.email || ''));
-      setRegistrationError('Could not load all profile details. Please try again.');
+      setRegistrationError('Could not load profile details. Please check your connection and try again.');
     } finally {
       setProfileLoading(false);
     }
@@ -3679,19 +3662,19 @@ export default function App() {
                   {registrationSuccess ? <Text style={styles.registrationSuccess}>Profile updated successfully ✓</Text> : null}
 
                   <TouchableOpacity
-                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    style={[styles.profilePrimaryButton, registrationSubmitting && styles.disabledButton]}
                     onPress={saveProfile}
                     disabled={registrationSubmitting || registrationSuccess || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
-                      <Text style={styles.registrationButtonText}>Update</Text>
+                      <Text style={styles.profilePrimaryButtonText}>Update</Text>
                     )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.registrationSkipButton}
+                    style={[styles.profilePrimaryButton, registrationSubmitting && styles.disabledButton]}
                     onPress={() => {
                       if (!registrationSubmitting) {
                         setRegistrationOpen(false);
@@ -3702,32 +3685,38 @@ export default function App() {
                     }}
                     disabled={registrationSubmitting}
                   >
-                    <Text style={styles.registrationSkipText}>Close</Text>
+                    <Text style={styles.profilePrimaryButtonText}>Close</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.profileActionTextButton}
-                    onPress={forgotPassword}
-                    disabled={registrationSubmitting}
-                  >
-                    <Text style={styles.profileActionText}>Forgot Password?</Text>
-                  </TouchableOpacity>
+                  <View style={styles.profileLinkRow}>
+                    <TouchableOpacity
+                      style={styles.profileLinkItem}
+                      onPress={deleteProfile}
+                      disabled={registrationSubmitting}
+                    >
+                      <Text style={styles.profileLinkDeleteText}>Delete</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.profileDeleteButton}
-                    onPress={deleteProfile}
-                    disabled={registrationSubmitting}
-                  >
-                    <Text style={styles.profileDeleteText}>Delete Profile</Text>
-                  </TouchableOpacity>
+                    <Text style={styles.profileLinkSeparator}>|</Text>
 
-                  <TouchableOpacity
-                    style={styles.profileLogoutButton}
-                    onPress={logoutAccount}
-                    disabled={registrationSubmitting}
-                  >
-                    <Text style={styles.profileLogoutText}>Logout</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.profileLinkItem}
+                      onPress={forgotPassword}
+                      disabled={registrationSubmitting}
+                    >
+                      <Text style={styles.profileLinkText}>Forgot Password?</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.profileLinkSeparator}>|</Text>
+
+                    <TouchableOpacity
+                      style={styles.profileLinkItem}
+                      onPress={logoutAccount}
+                      disabled={registrationSubmitting}
+                    >
+                      <Text style={styles.profileLinkText}>Logout</Text>
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
             </ScrollView>
@@ -4873,10 +4862,13 @@ const styles = StyleSheet.create({
   profileCategoryTextSelected: { color: ACCENT, fontWeight: '800' },
   profileError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
   profileSaveButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  profileDeleteButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  profileDeleteText: { color: '#d93025', fontSize: 13, fontWeight: '800' },
-  profileLogoutButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-  profileLogoutText: { color: TEXT, fontSize: 13, fontWeight: '800' },
+  profilePrimaryButton: { minHeight: 48, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  profilePrimaryButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  profileLinkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 2 },
+  profileLinkItem: { minHeight: 32, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  profileLinkText: { color: '#000000', fontSize: 12, fontWeight: '800' },
+  profileLinkDeleteText: { color: '#d93025', fontSize: 12, fontWeight: '800' },
+  profileLinkSeparator: { color: '#000000', fontSize: 12, fontWeight: '700' },
 
 registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
