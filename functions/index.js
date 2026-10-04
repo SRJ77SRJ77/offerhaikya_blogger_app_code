@@ -113,10 +113,156 @@ exports.sendNewOfferNotifications = onSchedule(
 
     const stateSnapshot = await STATE_REF.get();
     const state = stateSnapshot.exists ? stateSnapshot.data() : null;
-    const newest = posts[0];
+    const previousPosts = state?.posts || {};
+    const currentPosts = Object.fromEntries(
+      posts.map((post) => [
+        post.id,
+        {
+          updatedAt: post.publishedAt || "",
+          title: post.title,
+          fingerprint: JSON.stringify({
+            title: post.title,
+            content: post.content,
+            labels: post.labels,
+            image: post.image,
+          }),
+        },
+      ]),
+    );
 
     if (!state?.initialized) {
       await STATE_REF.set({
+        initialized: true,
+        posts: currentPosts,
+        latestPostId: posts[0].id,
+        latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      console.log("Notification watcher initialized at:", posts[0].id);
+      return;
+    }
+
+    const newPosts = posts.filter((post) => !previousPosts[post.id]);
+    const updatedPosts = posts.filter((post) => {
+      const previous = previousPosts[post.id];
+      if (!previous) return false;
+      return previous.fingerprint !== currentPosts[post.id].fingerprint;
+    });
+
+    const changedPosts = [...newPosts, ...updatedPosts]
+      .filter((post, index, list) =>
+        list.findIndex((item) => item.id === post.id) === index,
+      );
+
+    if (!changedPosts.length) {
+      await STATE_REF.set({
+        posts: currentPosts,
+        latestPostId: posts[0].id,
+        latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      return;
+    }
+
+    const db = getFirestore();
+    const userTokens = new Map();
+    const matchingUsers = new Set();
+
+    const registeredUsersSnapshot = await db
+      .collection("users")
+      .where("registrationCompleted", "==", true)
+      .where("notificationsEnabled", "==", true)
+      .get();
+
+    for (const userDoc of registeredUsersSnapshot.docs) {
+      const data = userDoc.data();
+      const token = data?.expoPushToken;
+      if (
+        typeof token === "string" &&
+        token.startsWith("ExponentPushToken[")
+      ) {
+        userTokens.set(userDoc.id, token);
+      }
+    }
+
+    const getCategoryUsers = async (label) => {
+      const snapshot = await db
+        .collection("users")
+        .where("registrationCompleted", "==", true)
+        .where("notificationsEnabled", "==", true)
+        .where("interestedCategories", "array-contains", label)
+        .get();
+
+      snapshot.docs.forEach((userDoc) => matchingUsers.add(userDoc.id));
+    };
+
+    for (const post of changedPosts) {
+      const isUpdate = Boolean(previousPosts[post.id]);
+
+      // Users who explicitly saved this exact post must be notified when
+      // that post changes, even if its category is not one they selected.
+      if (isUpdate) {
+        const favoriteUsersSnapshot = await db
+          .collection("users")
+          .where("registrationCompleted", "==", true)
+          .where("notificationsEnabled", "==", true)
+          .where("favoritePostIds", "array-contains", post.id)
+          .get();
+
+        favoriteUsersSnapshot.docs.forEach((userDoc) => {
+          matchingUsers.add(userDoc.id);
+        });
+      }
+
+      // New/updated posts also notify registered users who selected
+      // one of the Blogger labels as an interested category.
+      for (const label of post.labels) {
+        await getCategoryUsers(label);
+      }
+
+      const targetTokens = Array.from(matchingUsers)
+        .map((uid) => userTokens.get(uid))
+        .filter(Boolean);
+
+      const messages = targetTokens.map((token) => ({
+        to: token,
+        title: isUpdate
+          ? "OfferHaikya Offer Updated"
+          : "New OfferHaikya Offer",
+        body: post.title,
+        sound: "default",
+        priority: "high",
+        channelId: "default",
+        data: {
+          postId: post.id,
+          postTitle: post.title,
+          postUrl: post.url,
+          postDate: post.date,
+          publishedAt: post.publishedAt,
+          postLabel: post.label,
+          postLabels: post.labels,
+          postImage: post.image,
+          postExcerpt: post.excerpt,
+          postContent: post.content,
+          postRawContent: post.rawContent,
+        },
+      }));
+
+      if (messages.length) {
+        await sendExpoPushMessages(messages);
+      }
+
+      console.log(
+        isUpdate ? "Sent offer-update notifications:" : "Sent new-offer notifications:",
+        post.id,
+        "users:",
+        messages.length,
+      );
+
+      matchingUsers.clear();
+    }
+
+    await STATE_REF.set({
         initialized: true,
         latestPostId: newest.id,
         latestPublishedAt: newest.publishedAt || new Date().toISOString(),
