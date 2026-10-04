@@ -436,6 +436,11 @@ export default function App() {
     }, 350);
   }, []);
 
+  const refreshLocationAndNearby = useCallback(() => {
+    nearbyCacheRef.current = null;
+    setLocationRefreshKey(value => value + 1);
+  }, []);
+
   const ensureAnonymousUser = async () => {
     if (auth.currentUser) return auth.currentUser;
     const credential = await signInAnonymously(auth);
