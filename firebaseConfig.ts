@@ -1,6 +1,5 @@
-import { initializeApp } from 'firebase/app';
-// @ts-ignore Firebase v12 currently exposes this at runtime but may omit it from TypeScript declarations.
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore } from 'firebase/firestore';
 
@@ -13,10 +12,17 @@ const firebaseConfig = {
   appId: '1:91570217615:web:f6dcf8478282214959c6fa',
 };
 
-const app = initializeApp(firebaseConfig);
-const persistence = getReactNativePersistence(ReactNativeAsyncStorage);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-export const auth = initializeAuth(app, {
-  persistence,
-});
+let auth;
+
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  });
+} catch {
+  auth = getAuth(app);
+}
+
+export { auth };
 export const db = getFirestore(app);
