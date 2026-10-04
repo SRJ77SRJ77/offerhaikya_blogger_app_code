@@ -3300,26 +3300,26 @@ export default function App() {
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
           <TouchableOpacity
-            style={styles.infoBottomNavItem}
+            style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
             onPress={goToHomeTab}
             accessibilityLabel="Home"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : MUTED}
+                stroke={localOffersDisabled ? '#b8b8b8' : (bottomTabRef.current === 'local' ? ACCENT : (darkMode ? WHITE : TEXT))}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'home' && styles.bottomNavLabelActive]}>
               Home
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
+            style={[styles.bottomNavItem, bottomTabRef.current === 'local' && styles.bottomNavItemActive, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
             accessibilityLabel="Local Offers"
           >
@@ -3333,11 +3333,11 @@ export default function App() {
               />
               <Path
                 d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={MUTED}
+                stroke={localOffersDisabled ? '#b8b8b8' : (bottomTabRef.current === 'local' ? ACCENT : (darkMode ? WHITE : TEXT))}
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Local Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -3352,27 +3352,27 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.infoBottomNavItem}
+            style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
             onPress={openOfferRequestTab}
             accessibilityLabel="Request offer"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={MUTED}
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinejoin="round"
               />
               <Path
                 d="M4.5 6L12 12L19.5 6"
-                stroke={MUTED}
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
             <Text
-              style={[styles.infoBottomNavLabel, darkMode && styles.bottomNavLabelDark]}
+              style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.78}
@@ -3383,24 +3383,24 @@ export default function App() {
 
 
           <TouchableOpacity
-            style={styles.infoBottomNavItem}
+            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
             onPress={goToSearchTab}
             accessibilityLabel="Search"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-                stroke={TEXT}
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
               />
               <Path
                 d="M16.5 16.5L21 21"
-                stroke={TEXT}
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
               />
             </Svg>
-            <Text style={styles.infoBottomNavLabel}>Search</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>Search</Text>
           </TouchableOpacity>
 
         </View>
