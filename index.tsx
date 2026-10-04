@@ -2753,17 +2753,14 @@ export default function App() {
     setTagPage(null);
     setTagPageDropdownOpen(false);
     activateBottomTabFor5Sec('local');
-    setActiveLabel('All');
-    setQuery('');
-    setSuggestions([]);
-    setPage(1);
     setLocalOfferEmptyOpen(false);
     setLocalOffersDisabled(false);
-    nearbyCacheRef.current = null;
-    startNearbyPreloader();
-    loadPosts('', 1);
-    mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
-    setLocationRefreshKey(value => value + 1);
+    requestAnimationFrame(() => {
+      mainListRef.current?.scrollToOffset({
+        offset: nearbySectionOffsetRef.current,
+        animated: true,
+      });
+    });
   };
 
   const goToLocalOffersTab = async () => {
@@ -3276,7 +3273,7 @@ export default function App() {
           <TouchableOpacity
             style={[styles.infoBottomNavItem, localOffersDisabled && styles.bottomNavItemDisabled]}
             onPress={goToLocalOffersTab}
-            accessibilityLabel="Nearby"
+            accessibilityLabel="Local Offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
@@ -3292,7 +3289,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
+            <Text style={[styles.infoBottomNavLabel, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -3654,7 +3651,7 @@ export default function App() {
               localOffersDisabled && styles.bottomNavItemDisabled,
             ]}
             onPress={goToLocalOffersTab}
-            accessibilityLabel="Nearby"
+            accessibilityLabel="Local Offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
@@ -3670,7 +3667,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
+            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -4316,106 +4313,7 @@ export default function App() {
         </View>
       )}
 
-      {bottomTab === 'local' ? (
-        <View style={darkMode ? styles.darkPage : styles.pageWrap}>
-          <View style={styles.nearbyPage}>
-            <View style={styles.nearbyMapHeader}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={styles.nearbyMapTitle}>Nearby Offers</Text>
-                <Text style={styles.nearbyMapSubtitle}>
-                  {locationLabel || 'Offers near your selected area'}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.nearbyMapRefresh}
-                onPress={() => {
-                  void refreshLocationAndNearby();
-                }}
-                accessibilityLabel="Refresh nearby offers"
-              >
-                <Text style={styles.nearbyMapRefreshText}>↻</Text>
-              </TouchableOpacity>
-            </View>
-
-            {nearbyPosts.length > 0 ? (
-              <FlatList
-                data={nearbyPosts}
-                keyExtractor={item => 'nearby-' + item.id}
-                contentContainerStyle={styles.nearbyListContent}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={darkMode ? styles.nearbyListCardDark : styles.nearbyListCard}
-                    onPress={() => openDetail(item)}
-                    activeOpacity={0.88}
-                  >
-                    {item.image ? (
-                      <Image source={{ uri: item.image }} style={styles.nearbyListImage} />
-                    ) : (
-                      <View style={styles.nearbyListImage} />
-                    )}
-                    <View style={styles.nearbyListInfo}>
-                      <Text style={styles.nearbyOfferLabel}>{item.label}</Text>
-                      <Text style={styles.nearbyListTitle} numberOfLines={2}>
-                        {item.title}
-                      </Text>
-                      <Text style={styles.nearbyOfferDistance}>
-                        {(() => {
-                          const itemLocation = extractMapCoordinates(item.rawContent);
-                          const itemDistance = itemLocation && userLocation
-                            ? distanceKm(userLocation, itemLocation)
-                            : null;
-                          return typeof itemDistance === 'number'
-                            ? `${Math.round(itemDistance)} km away`
-                            : 'Nearby offer';
-                        })()}
-                      </Text>
-                      <View style={styles.nearbyOfferActions}>
-                        <View style={styles.nearbyOfferViewButton}>
-                          <Text style={styles.nearbyOfferViewButtonText}>View Offer</Text>
-                        </View>
-                        <TouchableOpacity
-                          style={styles.nearbyOfferMapsButton}
-                          onPress={() => {
-                            const coordinates = extractMapCoordinates(item.rawContent);
-                            if (coordinates) {
-                              void Linking.openURL(
-                                'https://www.google.com/maps/search/?api=1&query=' +
-                                  coordinates.latitude +
-                                  ',' +
-                                  coordinates.longitude,
-                              );
-                            } else {
-                              Alert.alert('Location unavailable', 'Location is not available for this offer yet.');
-                            }
-                          }}
-                        >
-                          <Text style={styles.nearbyOfferMapsButtonText}>Open Location</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                )}
-              />
-            ) : (
-              <View style={styles.nearbyNoLocation}>
-                <Text style={styles.nearbyNoLocationIcon}>📍</Text>
-                <Text style={styles.nearbyNoLocationTitle}>Nearby Offers</Text>
-                <Text style={styles.nearbyNoLocationText}>
-                  We’ll show offers around your current or selected area here.
-                </Text>
-                <TouchableOpacity
-                  style={styles.nearbyOfferViewButton}
-                  onPress={() => {
-                    void refreshLocationAndNearby();
-                  }}
-                >
-                  <Text style={styles.nearbyOfferViewButtonText}>Refresh Nearby</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      ) : tagPage ? (
+      {tagPage ? (
         <View style={darkMode ? styles.darkPage : styles.pageWrap}>
           <FlatList
             data={tagPagePosts}
@@ -4728,19 +4626,16 @@ export default function App() {
 
             {nearbyPosts.length > 0 ? (
               <>
-                <View style={styles.sectionRow}>
+                <View
+                  style={styles.sectionRow}
+                  onLayout={event => {
+                    nearbySectionOffsetRef.current = event.nativeEvent.layout.y;
+                  }}
+                >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
                     Filtered Nearby Offers{locationLabel ? ' - ' + locationLabel.split(/[\s,]+/)[0] : ''}
                   </Text>
-                  {!locationServicesEnabled ? (
-                    <TouchableOpacity
-                      style={styles.nearbyRefreshButton}
-                      onPress={() => setLocationPromptOpen(true)}
-                      accessibilityLabel="Refresh Nearby location"
-                    >
-                      <Text style={[styles.nearbyRefreshText, darkMode && styles.darkText]}>↻</Text>
-                    </TouchableOpacity>
-                  ) : null}
+
                 </View>
                 <View>
                   {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
@@ -4835,23 +4730,23 @@ export default function App() {
         <TouchableOpacity
           style={[styles.bottomNavItem, bottomTabRef.current === 'local' && styles.bottomNavItemActive]}
           onPress={goToLocalOffersTab}
-          accessibilityLabel="Nearby"
+          accessibilityLabel="Local Offers"
         >
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-              stroke={bottomTabRef.current === 'local' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTabRef.current === 'local' ? ACCENT : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <Path
               d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-              stroke={bottomTabRef.current === 'local' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTabRef.current === 'local' ? ACCENT : TEXT)}
               strokeWidth={2}
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
+          <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -5309,8 +5204,6 @@ const styles = StyleSheet.create({
   nearbyMapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, backgroundColor: WHITE, borderBottomWidth: 1, borderBottomColor: '#e8e8e8' },
   nearbyMapTitle: { color: TEXT, fontSize: 20, fontWeight: '900' },
   nearbyMapSubtitle: { color: MUTED, fontSize: 11, marginTop: 3 },
-  nearbyMapRefresh: { width: 40, height: 40, borderRadius: 20, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  nearbyMapRefreshText: { color: WHITE, fontSize: 23, lineHeight: 24, fontWeight: '900' },
   nearbyListContent: { padding: 12, paddingBottom: 30 },
   nearbyListCard: { backgroundColor: WHITE, borderRadius: 14, marginBottom: 10, padding: 10, flexDirection: 'row', elevation: 2, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
   nearbyListCardDark: { backgroundColor: '#1c1c1c', borderRadius: 14, marginBottom: 10, padding: 10, flexDirection: 'row' },
