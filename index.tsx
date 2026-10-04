@@ -479,7 +479,7 @@ export default function App() {
         setProfileStatus(registered ? 'registered' : 'new');
 
         if (registered) {
-          setRegistrationOpen(false);
+          setRegistrationCompleted(true);
           setProfileMode(false);
         } else {
           await checkRegistrationReminder();
