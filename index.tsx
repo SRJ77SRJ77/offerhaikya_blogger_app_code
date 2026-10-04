@@ -3209,7 +3209,21 @@ export default function App() {
               >
                 <Text style={styles.registrationSkipText}>Close</Text>
               </TouchableOpacity>
-            ) : null}
+            ) : (
+              <React.Fragment>
+                {skipCountdown > 0 ? (
+                  <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.registrationSkipButton}
+                    onPress={() => setRegistrationOpen(false)}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.registrationSkipText}>Skip for now</Text>
+                  </TouchableOpacity>
+                )}
+              </React.Fragment>
+            )}
             </ScrollView>
           </View>
         </View>
