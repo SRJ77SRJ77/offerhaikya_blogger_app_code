@@ -3345,12 +3345,14 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.infoBottomNavItem}
+            style={[styles.bottomNavItem, bottomTab === 'hot' && styles.bottomNavItemActive]}
             onPress={goToHotOffersTab}
             accessibilityLabel="Hot Offers"
           >
-            <Text style={[styles.infoBottomNavPercentIcon, darkMode && styles.infoBottomNavPercentIconDark]}>%</Text>
-            <Text style={[styles.infoBottomNavLabel, darkMode && styles.infoBottomNavLabelDark]}>Hot Offers</Text>
+            <Text style={[styles.bottomNavPercentIcon, darkMode && styles.bottomNavPercentIconDark, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'hot' && styles.bottomNavLabelActive]}>
+              Hot Offers
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
