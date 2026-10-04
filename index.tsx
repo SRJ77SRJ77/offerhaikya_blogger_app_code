@@ -28,6 +28,8 @@ import Svg, { Path } from 'react-native-svg';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { signInAnonymously } from 'firebase/auth';
+import { auth } from './firebaseConfig';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
