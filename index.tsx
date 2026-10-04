@@ -3123,7 +3123,9 @@ export default function App() {
         const bodyMatch = html.match(/<div[^>]*class=["'][^"']*post-body[^"']*["'][^>]*>([\s\S]*?)(?:<div[^>]*class=["'][^"']*post-footer|<\/article|<\/main)/i);
         const pageHtml = (bodyMatch?.[1] || '').trim();
         if (!pageHtml) return;
-        const cleanPageHtml = pageHtml.replace(/<img\b[^>]*>/gi, '');
+        const cleanPageHtml = infoPage === 'privacy' || infoPage === 'terms'
+          ? pageHtml.replace(/<img\b[^>]*>/gi, '')
+          : pageHtml;
         if (!cancelled) {
           setBloggerInfoData({
             title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions',
@@ -3204,10 +3206,6 @@ export default function App() {
       privacy: 'Privacy Policy',
       terms: 'Terms & Conditions',
     };
-    const infoPostsSource = infoPagePosts.length > 0 ? infoPagePosts : posts;
-    const suggestedInfoPosts = infoPostsSource.slice(0, 4);
-    const latestBlogPosts = infoPostsSource.slice(0, 8);
-
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
@@ -3242,59 +3240,17 @@ export default function App() {
             </View>
           )}
 
-          <View style={styles.infoBottomRecommendations}>
-<View style={styles.infoRecommendationSection}>
-            <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
-              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
+          <View style={styles.footer}>
+            <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
+            <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
+            <View style={styles.footerLinks}>
+              <TouchableOpacity onPress={() => openInfoPage('about')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>About Us</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => openInfoPage('contact')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Contact Us</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => openInfoPage('privacy')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Privacy Policy</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => openInfoPage('terms')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Terms & Conditions</Text></TouchableOpacity>
             </View>
-
-            {infoPagePostsLoading && infoPostsSource.length === 0 ? (
-              <View style={styles.state}>
-                <ActivityIndicator size="small" color={ACCENT} />
-                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading suggested posts...</Text>
-              </View>
-            ) : infoPostsSource.length > 0 ? (
-              <View>
-                {Array.from({ length: Math.ceil(suggestedInfoPosts.length / 2) }).map((_, rowIndex) => (
-                  <View style={styles.row} key={'suggested-row-' + rowIndex}>
-                    {suggestedInfoPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.state}>
-                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No suggested posts available right now.</Text>
-              </View>
-            )}
           </View>
 
-          <View style={styles.infoRecommendationSection}>
-            <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
-              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
-            </View>
-
-            {infoPagePostsLoading && infoPostsSource.length === 0 ? (
-              <View style={styles.state}>
-                <ActivityIndicator size="small" color={ACCENT} />
-                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading latest posts...</Text>
-              </View>
-            ) : infoPostsSource.length > 0 ? (
-              <View>
-                {Array.from({ length: Math.ceil(latestBlogPosts.length / 2) }).map((_, rowIndex) => (
-                  <View style={styles.row} key={'latest-blog-row-' + rowIndex}>
-                    {latestBlogPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.state}>
-                <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No latest posts available right now.</Text>
-              </View>
-            )}
-          </View>
-          </View>
         </ScrollView>
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
