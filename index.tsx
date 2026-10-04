@@ -272,6 +272,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [startupPreloader, setStartupPreloader] = useState(true);
+  const [startupPreloaderStage, setStartupPreloaderStage] = useState<'local' | 'online'>('local');
   const startupPreloaderProgress = useRef(new Animated.Value(0)).current;
   const [registrationName, setRegistrationName] = useState('');
   const [registrationContact, setRegistrationContact] = useState('');
@@ -470,6 +471,11 @@ export default function App() {
 
   useEffect(() => {
     startupPreloaderProgress.setValue(0);
+    setStartupPreloaderStage('local');
+
+    const onlineTimer = setTimeout(() => {
+      setStartupPreloaderStage('online');
+    }, 1500);
 
     const animation = Animated.timing(startupPreloaderProgress, {
       toValue: 1,
@@ -487,6 +493,7 @@ export default function App() {
     return () => {
       animation.stop();
       clearTimeout(timer);
+      clearTimeout(onlineTimer);
     };
   }, [startupPreloaderProgress]);
 
@@ -3612,6 +3619,12 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 3,
     backgroundColor: ACCENT,
+  },
+  startupPreloaderStatus: {
+    color: TEXT,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 10,
   },
   safe: { flex: 1, backgroundColor: PAGE },
   darkSafe: { backgroundColor: '#000000' },
