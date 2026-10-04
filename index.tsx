@@ -10,7 +10,6 @@ import {
   ImageBackground,
   Linking,
   Modal,
-  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -25,7 +24,6 @@ import {
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
 import * as Location from 'expo-location';
-import * as IntentLauncher from 'expo-intent-launcher';
 import Svg, { Path } from 'react-native-svg';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,6 +64,8 @@ const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
+const GUEST_NOTIFICATION_REMINDER_MS = 5 * 60 * 1000;
+const GUEST_NOTIFICATION_DISMISSED_KEY = 'offerhaikya_guest_notifications_dismissed_at';
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
@@ -301,7 +301,6 @@ export default function App() {
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
   const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [searching, setSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
@@ -374,6 +373,7 @@ export default function App() {
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
   const mainListRef = useRef<FlatList<Post>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
+  const nearbySectionOffsetRef = useRef(0);
   const nearbyPreloaderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nearbyPreloaderFinishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nearbyPreloaderOpenRef = useRef(false);
@@ -434,11 +434,6 @@ export default function App() {
       setNearbyPreloaderProgress(0);
       nearbyPreloaderFinishTimerRef.current = null;
     }, 350);
-  }, []);
-
-  const refreshLocationAndNearby = useCallback(() => {
-    nearbyCacheRef.current = null;
-    setLocationRefreshKey(value => value + 1);
   }, []);
 
   const ensureAnonymousUser = async () => {
@@ -649,7 +644,6 @@ export default function App() {
         setPage(pageNumber);
         setLoading(false);
         setSearching(false);
-        setRefreshing(false);
 
         void fetchFeedFromNetwork(search, startIndex).catch(() => {});
 
@@ -671,7 +665,6 @@ export default function App() {
     } finally {
       setLoading(false);
       setSearching(false);
-      setRefreshing(false);
     }
   }, []);
 
@@ -1539,7 +1532,6 @@ export default function App() {
     } finally {
       setLoading(false);
       setSearching(false);
-      setRefreshing(false);
     }
   };
 
@@ -1861,11 +1853,6 @@ export default function App() {
     return `Expires in ${minutes}m`;
   };
 
-  const refresh = () => {
-    setRefreshing(true);
-    loadPosts(query.trim().length >= 3 ? query : '', page);
-  };
-
   const openDetail = (post: Post) => {
     closeMenu();
     setInfoPage(null);
@@ -1900,11 +1887,6 @@ export default function App() {
     }).start(({ finished }) => {
       if (finished) setMenuOpen(false);
     });
-  };
-
-  const goToPage = (nextPage: number) => {
-    if (nextPage < 1) return;
-    loadPosts(query.trim().length >= 3 ? query : '', nextPage);
   };
 
   const openWelcomeRegistration = () => {
@@ -2615,9 +2597,7 @@ export default function App() {
 
       if (currentPermission.status === 'granted') {
         if (!servicesEnabled) {
-          await IntentLauncher.startActivityAsync(
-            IntentLauncher.ActivityAction.LOCATION_SOURCE_SETTINGS
-          );
+          scheduleLocationPromptRetry();
         } else {
           setLocationRefreshKey(value => value + 1);
         }
@@ -2627,12 +2607,12 @@ export default function App() {
       // If device Location is OFF, guide the user to Settings instead of
       // repeatedly triggering the OS permission dialog.
       if (!servicesEnabled) {
-        await Linking.openSettings();
+        scheduleLocationPromptRetry();
         return;
       }
 
       if (currentPermission.canAskAgain === false) {
-        await Linking.openSettings();
+        scheduleLocationPromptRetry();
         return;
       }
 
@@ -3095,7 +3075,7 @@ export default function App() {
         const cleanPageHtml = pageHtml.replace(/<img\b[^>]*>/gi, '');
         if (!cancelled) {
           setBloggerInfoData({
-            title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms and Condition',
+            title: infoPage === 'about' ? 'About Us' : infoPage === 'contact' ? 'Contact Us' : infoPage === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions',
             html: cleanPageHtml,
           });
         }
@@ -3171,7 +3151,7 @@ export default function App() {
       about: 'About Us',
       contact: 'Contact Us',
       privacy: 'Privacy Policy',
-      terms: 'Terms and Condition',
+      terms: 'Terms & Conditions',
     };
     const infoPostsSource = infoPagePosts.length > 0 ? infoPagePosts : posts;
     const suggestedInfoPosts = infoPostsSource.slice(0, 4);
@@ -4793,7 +4773,7 @@ export default function App() {
                 </TouchableOpacity>
               </View>
               <View style={styles.footer}>
-                <Text style={styles.footerBrand}>OfferHaikya</Text>
+                <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
                 <View style={styles.socialRow}>
                   <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
@@ -4816,7 +4796,7 @@ export default function App() {
                   <TouchableOpacity onPress={() => openInfoPage('about')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>About Us</Text></TouchableOpacity>
                   <TouchableOpacity onPress={() => openInfoPage('contact')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Contact Us</Text></TouchableOpacity>
                   <TouchableOpacity onPress={() => openInfoPage('privacy')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Privacy Policy</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={() => openInfoPage('terms')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Terms and Condition</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => openInfoPage('terms')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Terms & Conditions</Text></TouchableOpacity>
                 </View>
               </View>
             </>
