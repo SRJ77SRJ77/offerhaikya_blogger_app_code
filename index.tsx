@@ -75,6 +75,16 @@ const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'I
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const ADD_OFFERS_WHATSAPP_URL = '';
+const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 type Post = {
   id: string;
@@ -531,6 +541,7 @@ export default function App() {
       if (cancelled) return;
       void loadAccountState(user);
       void loadFavoritesForUser(user);
+      void loadNotificationsForUser(user);
     });
 
     const bootstrapAuth = async () => {
@@ -1553,6 +1564,143 @@ export default function App() {
     }, MAIN_AUTO_SYNC_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [tagPage, loadTagPosts]);
+
+  const getNotificationsStorageKey = (uid: string) =>
+    NOTIFICATIONS_STORAGE_PREFIX + uid;
+
+  const notificationPostFromData = (data: any): Post | null => {
+    if (!data?.postId || !data?.postTitle || !data?.postUrl) return null;
+
+    return {
+      id: String(data.postId),
+      title: String(data.postTitle),
+      url: String(data.postUrl),
+      date: String(data.postDate || ''),
+      publishedAt: String(data.publishedAt || ''),
+      label: String(data.postLabel || 'Offers'),
+      labels: Array.isArray(data.postLabels)
+        ? data.postLabels.map((value: any) => String(value))
+        : [],
+      image: typeof data.postImage === 'string' ? data.postImage : '',
+      excerpt: String(data.postExcerpt || ''),
+      content: String(data.postContent || ''),
+      rawContent: String(data.postRawContent || ''),
+    };
+  };
+
+  const loadNotificationsForUser = async (user: any) => {
+    if (!user?.uid || user.isAnonymous) {
+      setNotifications(posts.slice(0, 3));
+      return;
+    }
+
+    try {
+      const stored = await AsyncStorage.getItem(
+        getNotificationsStorageKey(user.uid),
+      );
+      const parsed = stored ? JSON.parse(stored) : [];
+      setNotifications(
+        Array.isArray(parsed)
+          ? parsed.filter(item => item && item.id).slice(0, 50)
+          : [],
+      );
+    } catch {
+      setNotifications([]);
+    }
+  };
+
+  const persistNotificationsForUser = async (
+    user: any,
+    nextNotifications: Post[],
+  ) => {
+    if (!user?.uid || user.isAnonymous) return;
+
+    try {
+      await AsyncStorage.setItem(
+        getNotificationsStorageKey(user.uid),
+        JSON.stringify(nextNotifications.slice(0, 50)),
+      );
+    } catch (error) {
+      console.log('Notifications save error:', error);
+    }
+  };
+
+  const addReceivedNotification = (post: Post) => {
+    const user = auth.currentUser;
+
+    setNotifications(current => {
+      const next = [
+        post,
+        ...current.filter(item => item.id !== post.id),
+      ].slice(0, 50);
+
+      if (user && !user.isAnonymous) {
+        void persistNotificationsForUser(user, next);
+      }
+
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const user = auth.currentUser;
+
+    if (!user || user.isAnonymous) {
+      setNotifications(posts.slice(0, 3));
+      return;
+    }
+
+    void loadNotificationsForUser(user);
+  }, [authReady, registrationCompleted, posts]);
+
+  useEffect(() => {
+    const receivedSubscription =
+      Notifications.addNotificationReceivedListener(notification => {
+        const post = notificationPostFromData(
+          notification.request.content.data,
+        );
+
+        if (post && auth.currentUser && !auth.currentUser.isAnonymous) {
+          addReceivedNotification(post);
+        }
+      });
+
+    const openNotification = (notification: Notifications.Notification) => {
+      const post = notificationPostFromData(
+        notification.request.content.data,
+      );
+
+      if (!post) return;
+
+      addReceivedNotification(post);
+      setNotificationsOpen(false);
+      openDetail(post);
+    };
+
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener(response => {
+        openNotification(response.notification);
+      });
+
+    const checkInitialNotification = async () => {
+      try {
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response?.notification) {
+          openNotification(response.notification);
+          await Notifications.clearLastNotificationResponseAsync();
+        }
+      } catch (error) {
+        console.log('Initial notification response error:', error);
+      }
+    };
+
+    void checkInitialNotification();
+
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
 
   const getFavoritesStorageKey = (uid: string) =>
     FAVORITES_STORAGE_PREFIX + uid;
