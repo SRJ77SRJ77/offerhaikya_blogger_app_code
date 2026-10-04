@@ -416,20 +416,100 @@ export default function App() {
     }, 350);
   }, []);
 
+  const ensureAnonymousUser = async () => {
+    if (auth.currentUser) return auth.currentUser;
+    const credential = await signInAnonymously(auth);
+    return credential.user;
+  };
+
+  const checkRegistrationReminder = async () => {
+    if (registrationCompleted || profileMode) return;
+
+    try {
+      const skippedAt = Number(
+        (await AsyncStorage.getItem(SKIP_STORAGE_KEY)) || '0'
+      );
+
+      if (!skippedAt) {
+        setRegistrationOpen(true);
+        return;
+      }
+
+      const remaining = SKIP_REMINDER_MS - (Date.now() - skippedAt);
+
+      if (remaining <= 0) {
+        await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
+        setRegistrationOpen(true);
+        setProfileMode(false);
+        setAuthMode('register');
+        return;
+      }
+
+      if (skipReminderTimerRef.current) {
+        clearTimeout(skipReminderTimerRef.current);
+      }
+
+      skipReminderTimerRef.current = setTimeout(() => {
+        void checkRegistrationReminder();
+      }, remaining);
+    } catch (error) {
+      console.log('Registration reminder error:', error);
+    }
+  };
+
   useEffect(() => {
-    const createFirebaseGuestUser = async () => {
+    let cancelled = false;
+
+    const loadAccountState = async (user: any) => {
+      if (!user || user.isAnonymous) {
+        setRegistrationCompleted(false);
+        setProfileStatus('skipped');
+        await checkRegistrationReminder();
+        return;
+      }
+
       try {
-        if (!auth.currentUser) {
-          const credential = await signInAnonymously(auth);
-          console.log('Firebase guest UID:', credential.user.uid);
+        const snapshot = await getDoc(doc(db, 'users', user.uid));
+        if (cancelled) return;
+
+        const data = snapshot.exists() ? snapshot.data() : null;
+        const registered = data?.registrationCompleted === true;
+
+        setRegistrationCompleted(registered);
+        setProfileStatus(registered ? 'registered' : 'new');
+
+        if (registered) {
+          setRegistrationOpen(false);
+          setProfileMode(false);
+        } else {
+          await checkRegistrationReminder();
         }
       } catch (error) {
-        console.log('Firebase anonymous auth error:', error);
+        console.log('Account state load error:', error);
+        await checkRegistrationReminder();
       }
     };
 
-    createFirebaseGuestUser();
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      if (cancelled) return;
+      void loadAccountState(user);
+    });
+
+    if (!auth.currentUser) {
+      void checkRegistrationReminder();
+    }
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+      if (skipReminderTimerRef.current) {
+        clearTimeout(skipReminderTimerRef.current);
+        skipReminderTimerRef.current = null;
+      }
+    };
   }, []);
+
+
 
   useEffect(() => {
     if (!nearbyPreloaderOpen) return;
@@ -514,84 +594,88 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  const syncPushTokenForRegisteredUser = async () => {
+    try {
+      if (!registrationCompleted) return;
 
-    const setupPushNotifications = async () => {
-      try {
-        if (!auth.currentUser) {
-          await signInAnonymously(auth);
-        }
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser || firebaseUser.isAnonymous) return;
 
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser || cancelled) return;
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'OfferHaikya',
+          importance: Notifications.AndroidImportance.DEFAULT,
+        });
+      }
 
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('default', {
-            name: 'OfferHaikya',
-            importance: Notifications.AndroidImportance.DEFAULT,
-          });
-        }
+      const existingPermission = await Notifications.getPermissionsAsync();
+      let finalStatus = existingPermission.status;
 
-        const existingPermission = await Notifications.getPermissionsAsync();
-        let finalStatus = existingPermission.status;
+      if (finalStatus !== 'granted') {
+        const permission = await Notifications.requestPermissionsAsync();
+        finalStatus = permission.status;
+      }
 
-        if (finalStatus !== 'granted') {
-          const permission = await Notifications.requestPermissionsAsync();
-          finalStatus = permission.status;
-        }
-
-        if (finalStatus !== 'granted') {
-          await setDoc(
-            doc(db, 'users', firebaseUser.uid),
-            {
-              notificationsEnabled: false,
-              notificationPermission: finalStatus,
-            },
-            { merge: true },
-          );
-          return;
-        }
-
-        const projectId =
-          Constants?.expoConfig?.extra?.eas?.projectId ??
-          Constants?.easConfig?.projectId;
-
-        if (!projectId) {
-          console.log('Expo project ID not found for push notifications.');
-          return;
-        }
-
-        const pushToken = (
-          await Notifications.getExpoPushTokenAsync({ projectId })
-        ).data;
-
-        if (cancelled) return;
-
+      if (finalStatus !== 'granted') {
         await setDoc(
           doc(db, 'users', firebaseUser.uid),
           {
-            expoPushToken: pushToken,
-            notificationsEnabled: true,
-            notificationPermission: 'granted',
+            notificationsEnabled: false,
+            notificationPermission: finalStatus,
           },
           { merge: true },
         );
-
-        console.log('Expo push token:', pushToken);
-      } catch (error) {
-        console.log('Push notification setup error:', error);
+        return;
       }
+
+      const projectId =
+        Constants?.expoConfig?.extra?.eas?.projectId ??
+        Constants?.easConfig?.projectId;
+
+      if (!projectId) {
+        console.log('Expo project ID not found for push notifications.');
+        return;
+      }
+
+      const pushToken = (
+        await Notifications.getExpoPushTokenAsync({ projectId })
+      ).data;
+
+      await setDoc(
+        doc(db, 'users', firebaseUser.uid),
+        {
+          expoPushToken: pushToken,
+          notificationsEnabled: true,
+          notificationPermission: 'granted',
+        },
+        { merge: true },
+      );
+
+      console.log('Expo push token:', pushToken);
+    } catch (error) {
+      console.log('Push notification sync error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!registrationCompleted) return;
+
+    let cancelled = false;
+
+    const setup = async () => {
+      if (cancelled) return;
+      await syncPushTokenForRegisteredUser();
     };
 
-    void setupPushNotifications();
+    void setup();
 
     const tokenSubscription = Notifications.addPushTokenListener(async token => {
       try {
-        if (!auth.currentUser) return;
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser || firebaseUser.isAnonymous || cancelled) return;
 
         await setDoc(
-          doc(db, 'users', auth.currentUser.uid),
+          doc(db, 'users', firebaseUser.uid),
           {
             expoPushToken: token.data,
             notificationsEnabled: true,
@@ -608,7 +692,9 @@ export default function App() {
       cancelled = true;
       tokenSubscription.remove();
     };
-  }, []);
+  }, [registrationCompleted]);
+
+
 
   useEffect(() => {
     startupPreloaderProgress.setValue(0);
