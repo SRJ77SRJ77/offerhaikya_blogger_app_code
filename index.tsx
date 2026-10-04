@@ -271,6 +271,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [startupPreloader, setStartupPreloader] = useState(true);
   const [registrationName, setRegistrationName] = useState('');
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationEmail, setRegistrationEmail] = useState('');
@@ -464,6 +465,14 @@ export default function App() {
       setSearching(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStartupPreloader(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -2532,6 +2541,16 @@ export default function App() {
     );
   }
 
+  if (startupPreloader) {
+    return (
+      <View style={styles.startupPreloader}>
+        <Text style={styles.startupPreloaderFace}>🙂</Text>
+        <ActivityIndicator size="small" color={ACCENT} />
+        <Text style={styles.startupPreloaderText}>Getting things ready...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
       {registrationOpen && (
@@ -3535,6 +3554,22 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  startupPreloader: {
+    flex: 1,
+    backgroundColor: WHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startupPreloaderFace: {
+    fontSize: 64,
+    marginBottom: 18,
+  },
+  startupPreloaderText: {
+    marginTop: 12,
+    color: TEXT,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   safe: { flex: 1, backgroundColor: PAGE },
   darkSafe: { backgroundColor: '#000000' },
   pageWrap: { flex: 1, backgroundColor: PAGE },
