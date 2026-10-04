@@ -1717,6 +1717,18 @@ export default function App() {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
         setFavorites(parsed);
+
+        if (!user.isAnonymous) {
+          await setDoc(
+            doc(db, 'users', user.uid),
+            {
+              favoritePostIds: parsed
+                .filter(item => item?.id)
+                .map(item => String(item.id)),
+            },
+            { merge: true },
+          );
+        }
       }
     } catch (error) {
       console.log('Favorites load error:', error);
