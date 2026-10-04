@@ -2929,7 +2929,7 @@ export default function App() {
                       Category - {tagPage || 'All'}
                     </Text>
                     <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
-                      {tagPageDropdownOpen ? '⌃' : '⌄'}
+                      {tagPageDropdownOpen ? '▴' : '▾'}
                     </Text>
                   </TouchableOpacity>
                 </View>
