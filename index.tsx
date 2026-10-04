@@ -2908,7 +2908,7 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
                 </ImageBackground>
-                <View style={styles.tagPageHeader}>
+                <View style={[styles.tagPageHeader, { justifyContent: 'space-between' }]}>
                   <TouchableOpacity
                     style={styles.tagPageDropdownButton}
                     onPress={() => {
