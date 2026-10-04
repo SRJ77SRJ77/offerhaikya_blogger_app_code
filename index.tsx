@@ -3487,8 +3487,6 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
 
-                  <View style={styles.registrationOrangeDivider} />
-
                   <View style={styles.registrationSecondaryRow}>
                     <TouchableOpacity
                       style={styles.registrationSecondaryHalfButton}
@@ -4759,7 +4757,6 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationLoginButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
   registrationAuthButtonRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   registrationAuthHalfButton: { flex: 1 },
-  registrationOrangeDivider: { height: 2, backgroundColor: ACCENT, width: '100%', marginTop: 12, marginBottom: 6, borderRadius: 1 },
   registrationSecondaryRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 4 },
   registrationSecondaryHalfButton: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
