@@ -3459,14 +3459,14 @@ export default function App() {
                   {registrationSuccess ? <Text style={styles.registrationSuccess}>{registrationSuccess}</Text> : null}
 
                   <TouchableOpacity
-                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    style={[styles.registrationLoginButton, registrationSubmitting && styles.disabledButton]}
                     onPress={signInAccount}
                     disabled={registrationSubmitting || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
-                      <Text style={styles.registrationButtonText}>Sign In</Text>
+                      <Text style={styles.registrationLoginButtonText}>Sign In</Text>
                     )}
                   </TouchableOpacity>
 
@@ -4766,6 +4766,8 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSuccess: { color: '#168a3a', fontSize: 13, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   registrationButtonText: { color: WHITE, fontSize: 14, fontWeight: '900' },
+  registrationLoginButton: { minHeight: 48, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },
+  registrationLoginButtonText: { color: ACCENT, fontSize: 14, fontWeight: '900' },
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
