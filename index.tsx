@@ -2910,7 +2910,7 @@ export default function App() {
                 </ImageBackground>
                 <View style={styles.tagPageHeader}>
                   <TouchableOpacity
-                    style={styles.tagPageBackButton}
+                    style={styles.tagPageDropdownButton}
                     onPress={() => {
                       setTagPage(null);
                       setQuery('');
@@ -2919,7 +2919,7 @@ export default function App() {
                       setTagPageDropdownOpen(false);
                     }}
                   >
-                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>‹ Back</Text>
                   </TouchableOpacity>
                   <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
                     #{tagPage} Offers
@@ -2928,7 +2928,7 @@ export default function App() {
                     style={styles.tagPageDropdownButton}
                     onPress={() => setTagPageDropdownOpen(value => !value)}
                   >
-                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Category</Text>
                     <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
                       {tagPageDropdownOpen ? '⌃' : '⌄'}
                     </Text>
