@@ -1557,245 +1557,324 @@ export default function App() {
     loadPosts(query.trim().length >= 3 ? query : '', nextPage);
   };
 
-  const submitRegistration = async () => {
-    if (!auth.currentUser) {
-      try {
-        await signInAnonymously(auth);
-      } catch (error) {
-        console.log('Firebase anonymous auth error:', error);
-        setRegistrationError('Could not connect your account. Please try again.');
-        return;
-      }
-    }
-
-    const registrationData = {
-      type: 'registration',
-      name: registrationName.trim(),
-      contact: registrationContact.trim() ? '91' + registrationContact.trim() : '',
-      email: registrationEmail.trim().toLowerCase(),
-      interestedCategories: registrationCategories.join(', '),
-      submittedAt: new Date().toISOString(),
-      uid: auth.currentUser?.uid || '',
-    };
-
-    if (!/^[A-Za-z ]{3,12}$/.test(registrationData.name)) {
-      setRegistrationError('Name must be 3-12 letters.');
-      return;
-    }
-
-    if (
-      registrationData.contact &&
-      !/^91\d{10}$/.test(registrationData.contact)
-    ) {
-      setRegistrationError('Enter a valid 10-digit Indian phone number.');
-      return;
-    }
-
-    if (
-      registrationData.email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registrationData.email)
-    ) {
-      setRegistrationError('Enter a valid email address.');
-      return;
-    }
-
-    if (!registrationData.contact && !registrationData.email) {
-      setRegistrationError('Please enter a phone number or email address.');
-      return;
-    }
-
-    if (!registrationData.interestedCategories) {
-      setRegistrationError('Please select at least one interested category.');
-      return;
-    }
-
-    try {
-      setRegistrationSubmitting(true);
-      setRegistrationSuccess(false);
-      setRegistrationError('');
-
-      const registrationUrl =
-        REGISTRATION_URL +
-        '?type=' + encodeURIComponent(registrationData.type) +
-        '&name=' + encodeURIComponent(registrationData.name) +
-        '&contact=' + encodeURIComponent(registrationData.contact) +
-        '&email=' + encodeURIComponent(registrationData.email) +
-        '&interestedCategories=' + encodeURIComponent(registrationData.interestedCategories) +
-        '&uid=' + encodeURIComponent(auth.currentUser?.uid || '');
-
-      const response = await fetch(registrationUrl, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const responseData = await response.json();
-
-      if (!responseData?.success) {
-        throw new Error(
-          responseData?.error || 'Registration failed'
-        );
-      }
-
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
-      }
-
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        throw new Error('Firebase user unavailable');
-      }
-
-      await setDoc(
-        doc(db, 'users', firebaseUser.uid),
-        {
-          uid: firebaseUser.uid,
-          name: registrationData.name,
-          contact: registrationData.contact,
-          email: registrationData.email,
-          interestedCategories: registrationCategories,
-          registrationCompleted: true,
-          submittedAt: registrationData.submittedAt,
-        },
-        { merge: true },
-      );
-
-      await AsyncStorage.setItem(
-        PROFILE_STORAGE_KEY,
-        JSON.stringify({
-          registrationCompleted: true,
-          name: registrationData.name,
-          contact: registrationData.contact,
-          email: registrationData.email,
-          interestedCategories: registrationCategories,
-        }),
-      );
-
-      setRegistrationSubmitting(false);
-      setRegistrationSuccess(true);
-      setRegistrationCompleted(true);
-
-      setTimeout(() => {
-        setRegistrationOpen(false);
-        setRegistrationSuccess(false);
-        setRegistrationName('');
-        setRegistrationContact('');
-        setRegistrationEmail('');
-        setRegistrationCategories([]);
-        setRegistrationCategoriesOpen(false);
-      }, 900);
-    } catch {
-      setRegistrationError('Could not submit registration. Please try again.');
-      setRegistrationSubmitting(false);
-    }
-  };
-
-  const openProfile = async () => {
-    // Always open the same form. The local cache tells us immediately whether
-    // this is a registered user; Firestore is used to refresh the data.
-    setRegistrationOpen(true);
+  const openWelcomeRegistration = () => {
+    setAuthMode('register');
+    setProfileMode(false);
+    setProfileLoading(false);
     setRegistrationError('');
     setRegistrationSuccess(false);
-    setRegistrationCategoriesOpen(false);
-    setProfileLoading(false);
-    setProfileMode(false);
-
-    let localProfile: any = null;
-
-    try {
-      const cached = await AsyncStorage.getItem(PROFILE_STORAGE_KEY);
-      if (cached) {
-        localProfile = JSON.parse(cached);
-      }
-    } catch {
-      localProfile = null;
-    }
-
-    if (localProfile?.registrationCompleted === true) {
-      const name = String(localProfile.name || '');
-      const contact = String(localProfile.contact || '').replace(/^91/, '');
-      const email = String(localProfile.email || '');
-      const categories = Array.isArray(localProfile.interestedCategories)
-        ? localProfile.interestedCategories
-        : [];
-
-      setProfileMode(true);
-      setRegistrationName(name);
-      setRegistrationContact(contact);
-      setRegistrationEmail(email);
-      setRegistrationCategories(categories);
-      registrationNameRef.current = name;
-      registrationContactRef.current = contact;
-      registrationEmailRef.current = email;
-      registrationCategoriesRef.current = categories;
-    } else {
-      setRegistrationCompleted(false);
-      setRegistrationName('');
-      setRegistrationContact('');
-      setRegistrationEmail('');
-      setRegistrationCategories([]);
-      registrationNameRef.current = '';
-      registrationContactRef.current = '';
-      registrationEmailRef.current = '';
-      registrationCategoriesRef.current = [];
-      setSkipCountdown(0);
-    }
-
-    // Refresh from Firebase when possible. A read failure must NOT prevent
-    // the profile form from opening.
-    try {
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
-      }
-
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) return;
-
-      const snapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
-      if (!snapshot.exists()) return;
-
-      const data = snapshot.data();
-      if (data?.registrationCompleted !== true) return;
-
-      const name = String(data.name || '');
-      const contact = String(data.contact || '').replace(/^91/, '');
-      const email = String(data.email || '');
-      const categories = Array.isArray(data.interestedCategories)
-        ? data.interestedCategories
-        : [];
-
-      setProfileMode(true);
-      setRegistrationCompleted(true);
-      setRegistrationName(name);
-      setRegistrationContact(contact);
-      setRegistrationEmail(email);
-      setRegistrationCategories(categories);
-      registrationNameRef.current = name;
-      registrationContactRef.current = contact;
-      registrationEmailRef.current = email;
-      registrationCategoriesRef.current = categories;
-
-      await AsyncStorage.setItem(
-        PROFILE_STORAGE_KEY,
-        JSON.stringify({
-          registrationCompleted: true,
-          name,
-          contact: data.contact || '',
-          email,
-          interestedCategories: categories,
-        }),
-      );
-    } catch (error) {
-      console.log('Profile refresh skipped:', error);
-    }
+    setRegistrationPassword('');
+    setRegistrationPasswordVisible(false);
+    setRegistrationName('');
+    setRegistrationContact('');
+    setRegistrationEmail('');
+    setRegistrationAreaCity('');
+    setRegistrationCategories([]);
+    registrationNameRef.current = '';
+    registrationContactRef.current = '';
+    registrationEmailRef.current = '';
+    registrationAreaCityRef.current = '';
+    registrationCategoriesRef.current = [];
+    setRegistrationOpen(true);
   };
 
-  const updateProfile = async () => {
+  const validateRegistration = () => {
     const name = registrationName.trim();
     const contact = registrationContact.trim();
     const email = registrationEmail.trim().toLowerCase();
+    const password = registrationPassword;
+    const categories = registrationCategoriesRef.current.length
+      ? registrationCategoriesRef.current
+      : registrationCategories;
+
+    if (!/^[A-Za-z ]{3,12}$/.test(name)) {
+      setRegistrationError('Name must be 3-12 letters.');
+      return null;
+    }
+
+    if (!/^\d{10}$/.test(contact)) {
+      setRegistrationError('Enter a valid 10-digit Indian phone number.');
+      return null;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRegistrationError('Enter a valid email address.');
+      return null;
+    }
+
+    if (password.length < 6) {
+      setRegistrationError('Password must be at least 6 characters.');
+      return null;
+    }
+
+    if (categories.length === 0) {
+      setRegistrationError('Please select at least one interested category.');
+      return null;
+    }
+
+    return {
+      name,
+      contact: '91' + contact,
+      email,
+      password,
+      areaCity: registrationAreaCity.trim(),
+      categories,
+    };
+  };
+
+  const requestPostRegistrationPermissions = async () => {
+    // Registration is already complete. Permission decisions must never block the account.
+    try {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'OfferHaikya',
+          importance: Notifications.AndroidImportance.DEFAULT,
+        });
+      }
+
+      const notificationPermission = await Notifications.getPermissionsAsync();
+      let notificationStatus = notificationPermission.status;
+
+      if (notificationStatus !== 'granted') {
+        const requested = await Notifications.requestPermissionsAsync();
+        notificationStatus = requested.status;
+      }
+
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser && !firebaseUser.isAnonymous && notificationStatus === 'granted') {
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ??
+          Constants?.easConfig?.projectId;
+
+        if (projectId) {
+          const pushToken = (
+            await Notifications.getExpoPushTokenAsync({ projectId })
+          ).data;
+
+          await setDoc(
+            doc(db, 'users', firebaseUser.uid),
+            {
+              expoPushToken: pushToken,
+              notificationsEnabled: true,
+              notificationPermission: 'granted',
+            },
+            { merge: true },
+          );
+        }
+      } else if (firebaseUser && !firebaseUser.isAnonymous) {
+        await setDoc(
+          doc(db, 'users', firebaseUser.uid),
+          {
+            notificationsEnabled: false,
+            notificationPermission: notificationStatus,
+          },
+          { merge: true },
+        );
+      }
+    } catch (error) {
+      console.log('Post-registration notification permission error:', error);
+    }
+
+    try {
+      const permission = await Location.getForegroundPermissionsAsync();
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+      if (permission.status === 'granted' && servicesEnabled) {
+        setLocationPromptOpen(false);
+        setLocationRefreshKey(value => value + 1);
+      } else if (permission.status !== 'granted' && permission.canAskAgain !== false) {
+        setLocationPromptOpen(true);
+      }
+    } catch (error) {
+      console.log('Post-registration location permission error:', error);
+    }
+  };
+
+  const saveRegisteredProfile = async (
+    user: any,
+    profile: {
+      name: string;
+      contact: string;
+      email: string;
+      categories: string[];
+      areaCity: string;
+    },
+  ) => {
+    let manualLocationCoordinates: { latitude: number; longitude: number } | null = null;
+
+    if (profile.areaCity) {
+      try {
+        const geocoded = await Location.geocodeAsync(profile.areaCity);
+        const first = geocoded?.[0];
+        if (first?.latitude != null && first?.longitude != null) {
+          manualLocationCoordinates = {
+            latitude: first.latitude,
+            longitude: first.longitude,
+          };
+        }
+      } catch {
+        // Keep the manually entered location even if geocoding is unavailable.
+      }
+    }
+
+    await setDoc(
+      doc(db, 'users', user.uid),
+      {
+        uid: user.uid,
+        name: profile.name,
+        contact: profile.contact,
+        email: profile.email,
+        interestedCategories: profile.categories,
+        areaCity: profile.areaCity,
+        manualLocationCoordinates,
+        profileStatus: 'registered',
+        registrationCompleted: true,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+  };
+
+  const submitRegistration = async () => {
+    const profile = validateRegistration();
+    if (!profile) return;
+
+    try {
+      setRegistrationSubmitting(true);
+      setRegistrationError('');
+      setRegistrationSuccess(false);
+
+      let user = auth.currentUser;
+
+      if (!user) {
+        user = (await signInAnonymously(auth)).user;
+      }
+
+      const credential = EmailAuthProvider.credential(
+        profile.email,
+        profile.password,
+      );
+
+      let registeredUser;
+
+      if (user.isAnonymous) {
+        registeredUser = (await linkWithCredential(user, credential)).user;
+      } else {
+        registeredUser = (
+          await createUserWithEmailAndPassword(
+            auth,
+            profile.email,
+            profile.password,
+          )
+        ).user;
+      }
+
+      await saveRegisteredProfile(registeredUser, profile);
+      await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
+
+      if (skipReminderTimerRef.current) {
+        clearTimeout(skipReminderTimerRef.current);
+        skipReminderTimerRef.current = null;
+      }
+
+      setProfileStatus('registered');
+      setRegistrationCompleted(true);
+      setRegistrationSubmitting(false);
+      setRegistrationSuccess(true);
+
+      setTimeout(() => {
+        setRegistrationOpen(false);
+        setProfileMode(false);
+        setRegistrationSuccess(false);
+        setRegistrationPassword('');
+        setRegistrationPasswordVisible(false);
+        void requestPostRegistrationPermissions();
+      }, 1200);
+    } catch (error: any) {
+      console.log('Registration error:', error);
+
+      if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/credential-already-in-use') {
+        setRegistrationError('This email is already registered. Tap Sign in below.');
+      } else if (error?.code === 'auth/weak-password') {
+        setRegistrationError('Password must be at least 6 characters.');
+      } else {
+        setRegistrationError('Could not create your account. Please try again.');
+      }
+
+      setRegistrationSubmitting(false);
+    }
+  };
+
+  const loadRegisteredProfile = async (user: any) => {
+    const snapshot = await getDoc(doc(db, 'users', user.uid));
+
+    if (!snapshot.exists()) {
+      throw new Error('Profile data not found');
+    }
+
+    const data = snapshot.data();
+
+    setProfileStatus('registered');
+    setRegistrationCompleted(true);
+    setProfileMode(true);
+    setRegistrationName(String(data.name || user.displayName || ''));
+    setRegistrationContact(String(data.contact || '').replace(/^91/, ''));
+    setRegistrationEmail(String(data.email || user.email || ''));
+    setRegistrationAreaCity(String(data.areaCity || ''));
+    setRegistrationCategories(
+      Array.isArray(data.interestedCategories)
+        ? data.interestedCategories
+        : [],
+    );
+
+    registrationNameRef.current = String(data.name || user.displayName || '');
+    registrationContactRef.current = String(data.contact || '').replace(/^91/, '');
+    registrationEmailRef.current = String(data.email || user.email || '');
+    registrationAreaCityRef.current = String(data.areaCity || '');
+    registrationCategoriesRef.current =
+      Array.isArray(data.interestedCategories)
+        ? data.interestedCategories
+        : [];
+  };
+
+  const openProfile = async () => {
+    setRegistrationOpen(true);
+    setProfileLoading(true);
+    setRegistrationError('');
+    setRegistrationSuccess(false);
+    setRegistrationCategoriesOpen(false);
+    setRegistrationPassword('');
+    setRegistrationPasswordVisible(false);
+
+    try {
+      const user = auth.currentUser;
+
+      if (user && !user.isAnonymous) {
+        await loadRegisteredProfile(user);
+      } else {
+        openWelcomeRegistration();
+      }
+    } catch (error) {
+      console.log('Profile load error:', error);
+      openWelcomeRegistration();
+      setRegistrationError('');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const saveProfile = async () => {
+    const user = auth.currentUser;
+
+    if (!user || user.isAnonymous) {
+      setRegistrationError('Please sign in to update your profile.');
+      return;
+    }
+
+    const name = registrationName.trim();
+    const contact = registrationContact.trim();
+    const email = registrationEmail.trim().toLowerCase();
+    const areaCity = registrationAreaCity.trim();
     const categories = registrationCategoriesRef.current.length
       ? registrationCategoriesRef.current
       : registrationCategories;
@@ -1805,18 +1884,13 @@ export default function App() {
       return;
     }
 
-    if (contact && !/^\d{10}$/.test(contact)) {
+    if (!/^\d{10}$/.test(contact)) {
       setRegistrationError('Enter a valid 10-digit Indian phone number.');
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setRegistrationError('Enter a valid email address.');
-      return;
-    }
-
-    if (!contact && !email) {
-      setRegistrationError('Please enter a phone number or email address.');
       return;
     }
 
@@ -1828,92 +1902,136 @@ export default function App() {
     try {
       setRegistrationSubmitting(true);
       setRegistrationError('');
-      setRegistrationSuccess(false);
 
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
+      if (email !== String(user.email || '').toLowerCase()) {
+        await updateEmail(user, email);
       }
 
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) throw new Error('Firebase user unavailable');
+      await updateFirebaseProfile(user, { displayName: name });
 
-      const profileUpdateUrl =
-        REGISTRATION_URL +
-        '?type=' + encodeURIComponent('profile_update') +
-        '&uid=' + encodeURIComponent(firebaseUser.uid) +
-        '&name=' + encodeURIComponent(name) +
-        '&contact=' + encodeURIComponent(contact ? '91' + contact : '') +
-        '&email=' + encodeURIComponent(email) +
-        '&interestedCategories=' + encodeURIComponent(categories.join(', '));
-
-      const profileResponse = await fetch(profileUpdateUrl, { method: 'GET' });
-
-      if (!profileResponse.ok) {
-        throw new Error('Could not update Google Sheet');
-      }
-
-      const profileResponseData = await profileResponse.json();
-
-      if (!profileResponseData?.success) {
-        throw new Error(profileResponseData?.error || 'Could not update Google Sheet');
-      }
-
-      await setDoc(
-        doc(db, 'users', firebaseUser.uid),
-        {
-          uid: firebaseUser.uid,
-          name,
-          contact: contact ? '91' + contact : '',
-          email,
-          interestedCategories: categories,
-          registrationCompleted: true,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true },
-      );
-
-      setRegistrationName(name);
-      setRegistrationContact(contact);
-      setRegistrationEmail(email);
-      setRegistrationCategories(categories);
-      registrationNameRef.current = name;
-      registrationContactRef.current = contact;
-      registrationEmailRef.current = email;
-      registrationCategoriesRef.current = categories;
-
-      await AsyncStorage.setItem(
-        PROFILE_STORAGE_KEY,
-        JSON.stringify({
-          registrationCompleted: true,
-          name,
-          contact: contact ? '91' + contact : '',
-          email,
-          interestedCategories: categories,
-        }),
-      );
+      await saveRegisteredProfile(user, {
+        name,
+        contact: '91' + contact,
+        email,
+        categories,
+        areaCity,
+      });
 
       setRegistrationSubmitting(false);
-      setRegistrationSuccess(false);
-      setRegistrationCompleted(true);
-      setRegistrationOpen(false);
-      setProfileMode(false);
-      setRegistrationError('');
-    } catch (error) {
+      setRegistrationSuccess(true);
+
+      setTimeout(() => {
+        setRegistrationOpen(false);
+        setProfileMode(false);
+        setRegistrationSuccess(false);
+      }, 900);
+    } catch (error: any) {
       console.log('Profile update error:', error);
-      setRegistrationError('Could not update your profile. Please try again.');
+
+      if (error?.code === 'auth/requires-recent-login') {
+        setRegistrationError('Please sign in again before changing your email.');
+      } else {
+        setRegistrationError('Could not update your profile. Please try again.');
+      }
+
       setRegistrationSubmitting(false);
+    }
+  };
+
+  const signInAccount = async () => {
+    const email = registrationEmail.trim().toLowerCase();
+    const password = registrationPassword;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRegistrationError('Enter a valid email address.');
+      return;
+    }
+
+    if (!password) {
+      setRegistrationError('Enter your password.');
+      return;
+    }
+
+    try {
+      setRegistrationSubmitting(true);
+      setRegistrationError('');
+
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await loadRegisteredProfile(credential.user);
+
+      setRegistrationSubmitting(false);
+      setRegistrationPassword('');
+      setRegistrationSuccess(false);
+    } catch (error: any) {
+      console.log('Sign in error:', error);
+
+      if (error?.code === 'auth/invalid-credential') {
+        setRegistrationError('Email or password is incorrect.');
+      } else {
+        setRegistrationError('Could not sign in. Please try again.');
+      }
+
+      setRegistrationSubmitting(false);
+    }
+  };
+
+  const forgotPassword = async () => {
+    const email = registrationEmail.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRegistrationError('Enter your email address first.');
+      return;
+    }
+
+    try {
+      setRegistrationSubmitting(true);
+      await sendPasswordResetEmail(auth, email);
+      setRegistrationSubmitting(false);
+      setRegistrationSuccess(true);
+      setRegistrationError('Password reset email sent. Check your inbox.');
+      setTimeout(() => setRegistrationSuccess(false), 1800);
+    } catch (error: any) {
+      console.log('Forgot password error:', error);
+
+      setRegistrationSubmitting(false);
+      if (error?.code === 'auth/user-not-found') {
+        setRegistrationError('No account was found with this email.');
+      } else {
+        setRegistrationError('Could not send the password reset email.');
+      }
+    }
+  };
+
+  const skipRegistration = async () => {
+    try {
+      await ensureAnonymousUser();
+      await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
+
+      setProfileStatus('skipped');
+      setRegistrationCompleted(false);
+      setProfileMode(false);
+      setAuthMode('register');
+      setRegistrationOpen(false);
+
+      if (skipReminderTimerRef.current) {
+        clearTimeout(skipReminderTimerRef.current);
+      }
+
+      skipReminderTimerRef.current = setTimeout(() => {
+        void checkRegistrationReminder();
+      }, SKIP_REMINDER_MS);
+    } catch (error) {
+      console.log('Skip registration error:', error);
+      setRegistrationOpen(false);
     }
   };
 
   const deleteProfile = () => {
     Alert.alert(
       'Delete profile?',
-      'Are you sure you want to delete your profile? Your saved details will be removed.',
+      'Are you sure you want to delete your Firebase account and profile?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
@@ -1921,58 +2039,41 @@ export default function App() {
             try {
               setRegistrationSubmitting(true);
               setRegistrationError('');
-              setRegistrationSuccess(false);
 
-              if (!auth.currentUser) {
-                await signInAnonymously(auth);
+              const user = auth.currentUser;
+              if (!user || user.isAnonymous) {
+                throw new Error('Registered account not found');
               }
 
-              const firebaseUser = auth.currentUser;
-              if (!firebaseUser) {
-                throw new Error('Firebase user unavailable');
-              }
+              await deleteUser(user);
+              await deleteDoc(doc(db, 'users', user.uid));
+              await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
 
-              const deleteUrl =
-                REGISTRATION_URL +
-                '?type=' + encodeURIComponent('profile_delete') +
-                '&uid=' + encodeURIComponent(firebaseUser.uid) +
-                '&contact=' + encodeURIComponent(registrationContact.trim() ? '91' + registrationContact.trim() : '') +
-                '&email=' + encodeURIComponent(registrationEmail.trim().toLowerCase());
-
-              const deleteResponse = await fetch(deleteUrl, { method: 'GET' });
-
-              if (!deleteResponse.ok) {
-                throw new Error('Could not delete Google Sheet profile');
-              }
-
-              const deleteResponseData = await deleteResponse.json();
-
-              if (!deleteResponseData?.success) {
-                throw new Error(
-                  deleteResponseData?.error || 'Could not delete Google Sheet profile'
-                );
-              }
-
-              await deleteDoc(doc(db, 'users', firebaseUser.uid));
-
-              await AsyncStorage.removeItem(PROFILE_STORAGE_KEY);
-
+              setProfileStatus('new');
+              setRegistrationCompleted(false);
               setRegistrationOpen(false);
               setProfileMode(false);
+              setAuthMode('register');
               setRegistrationName('');
               setRegistrationContact('');
               setRegistrationEmail('');
+              setRegistrationPassword('');
+              setRegistrationAreaCity('');
               setRegistrationCategories([]);
               setRegistrationCategoriesOpen(false);
               registrationNameRef.current = '';
               registrationContactRef.current = '';
               registrationEmailRef.current = '';
+              registrationAreaCityRef.current = '';
               registrationCategoriesRef.current = [];
-              setRegistrationCompleted(false);
-              setRegistrationError('');
-            } catch (error) {
+            } catch (error: any) {
               console.log('Profile delete error:', error);
-              setRegistrationError('Could not delete your profile. Please try again.');
+
+              if (error?.code === 'auth/requires-recent-login') {
+                setRegistrationError('Please sign in again before deleting your account.');
+              } else {
+                setRegistrationError('Could not delete your account. Please try again.');
+              }
             } finally {
               setRegistrationSubmitting(false);
             }
@@ -2215,19 +2316,21 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
-      const response = await fetch(REGISTRATION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          type: 'offer_request',
-          name,
-          contact: '91' + contact,
-          offerRequest: request,
-          submittedAt: new Date().toISOString(),
-        }),
-      });
+      const user = auth.currentUser;
+      if (!user) {
+        await signInAnonymously(auth);
+      }
 
-      if (!response.ok) throw new Error('Request failed');
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error('Firebase user unavailable');
+
+      await setDoc(doc(db, 'offerRequests', currentUser.uid + '_' + Date.now()), {
+        uid: currentUser.uid,
+        name,
+        contact: '91' + contact,
+        offerRequest: request,
+        submittedAt: new Date().toISOString(),
+      });
 
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(true);
@@ -3147,209 +3250,330 @@ export default function App() {
               contentContainerStyle={styles.registrationFormContent}
             >
               <Text style={styles.registrationTitle}>
-                {profileMode ? 'My Profile' : 'Welcome to OfferHaikya 👋'}
+                {profileMode
+                  ? 'My Profile'
+                  : authMode === 'signIn'
+                    ? 'Welcome back 👋'
+                    : 'Welcome to OfferHaikya 👋'}
               </Text>
+
               <Text style={styles.registrationSubtitle}>
                 {profileMode
                   ? 'Update your details and interests anytime.'
-                  : 'Enter your details and choose your interests.'}
+                  : authMode === 'signIn'
+                    ? 'Sign in to continue with your saved profile.'
+                    : 'Enter your details and choose your interests.'}
               </Text>
 
-              {profileMode && profileLoading ? (
+              {profileLoading ? (
                 <View style={{ paddingVertical: 18, alignItems: 'center' }}>
                   <ActivityIndicator size="small" color={ACCENT} />
                 </View>
               ) : null}
 
+              {authMode === 'signIn' && !profileMode ? null : (
+                <>
+                  <TextInput
+                    value={registrationName}
+                    onChangeText={value => {
+                      const next = value.replace(/[^A-Za-z ]/g, '').slice(0, 12);
+                      registrationNameRef.current = next;
+                      setRegistrationName(next);
+                    }}
+                    placeholder="Name *"
+                    placeholderTextColor="#99969c"
+                    style={styles.registrationInput}
+                    autoCapitalize="words"
+                    maxLength={12}
+                    editable={!registrationSubmitting && !profileLoading}
+                  />
+
+                  <View style={styles.phoneInputWrap}>
+                    <Text style={styles.phonePrefix}>+91</Text>
+                    <TextInput
+                      value={registrationContact}
+                      onChangeText={value => {
+                        const next = value.replace(/\D/g, '').slice(0, 10);
+                        registrationContactRef.current = next;
+                        setRegistrationContact(next);
+                      }}
+                      placeholder="Phone number *"
+                      placeholderTextColor="#99969c"
+                      style={styles.phoneInput}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      editable={!registrationSubmitting && !profileLoading}
+                    />
+                  </View>
+                </>
+              )}
+
               <TextInput
-                value={registrationName}
-              onChangeText={value => {
-                const nameValue = value.replace(/[^A-Za-z ]/g, '').slice(0, 12);
-                registrationNameRef.current = nameValue;
-                setRegistrationName(nameValue);
-              }}
-              placeholder="Name *"
-              placeholderTextColor="#99969c"
-              style={styles.registrationInput}
-              autoCapitalize="words"
-              maxLength={12}
-              editable={!registrationSubmitting}
-            />
-            <View style={styles.phoneInputWrap}>
-              <Text style={styles.phonePrefix}>+91</Text>
-              <TextInput
-                value={registrationContact}
+                value={registrationEmail}
                 onChangeText={value => {
-                  const digits = value.replace(/\D/g, '').slice(0, 10);
-                  registrationContactRef.current = digits;
-                  setRegistrationContact(digits);
+                  const next = value.slice(0, 80);
+                  registrationEmailRef.current = next;
+                  setRegistrationEmail(next);
                 }}
-                placeholder="10-digit phone number *"
+                placeholder="Email ID *"
                 placeholderTextColor="#99969c"
-                style={styles.phoneInput}
-                keyboardType="phone-pad"
-                maxLength={10}
-                editable={!registrationSubmitting}
+                style={styles.registrationInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={80}
+                editable={!registrationSubmitting && !profileLoading}
               />
-            </View>
 
-            <Text style={{ color: MUTED, fontSize: 13, fontWeight: '800', textAlign: 'center', marginTop: -3, marginBottom: 8 }}>
-              OR
-            </Text>
+              {!profileMode ? (
+                <View style={styles.passwordInputWrap}>
+                  <TextInput
+                    value={registrationPassword}
+                    onChangeText={setRegistrationPassword}
+                    placeholder="Password *"
+                    placeholderTextColor="#99969c"
+                    style={styles.passwordInput}
+                    secureTextEntry={!registrationPasswordVisible}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!registrationSubmitting && !profileLoading}
+                  />
+                  <TouchableOpacity
+                    style={styles.passwordEyeButton}
+                    onPress={() => setRegistrationPasswordVisible(value => !value)}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.passwordEyeText}>
+                      {registrationPasswordVisible ? 'Hide' : 'Show'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
 
-            <TextInput
-              value={registrationEmail}
-              onChangeText={value => {
-                const emailValue = value.slice(0, 80);
-                registrationEmailRef.current = emailValue;
-                setRegistrationEmail(emailValue);
-              }}
-              placeholder="Email Address"
-              placeholderTextColor="#99969c"
-              style={styles.registrationInput}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              maxLength={80}
-              editable={!registrationSubmitting}
-            />
+              {authMode === 'register' || profileMode ? (
+                <>
+                  <TextInput
+                    value={registrationAreaCity}
+                    onChangeText={value => {
+                      const next = value.slice(0, 80);
+                      registrationAreaCityRef.current = next;
+                      setRegistrationAreaCity(next);
+                    }}
+                    placeholder="Area / City"
+                    placeholderTextColor="#99969c"
+                    style={styles.registrationInput}
+                    maxLength={80}
+                    editable={!registrationSubmitting && !profileLoading}
+                  />
 
-            <Text style={styles.registrationCategoryTitle}>Interested Categories *</Text>
-            <TouchableOpacity
-              style={styles.registrationCategoryDropdown}
-              onPress={() => setRegistrationCategoriesOpen(value => !value)}
-              disabled={registrationSubmitting}
-              accessibilityLabel="Interested categories"
-            >
-              <Text
-                style={[
-                  styles.registrationCategoryDropdownText,
-                  registrationCategories.length > 0 && styles.registrationCategoryDropdownTextSelected,
-                ]}
-                numberOfLines={1}
-              >
-                {registrationCategories.length > 0
-                  ? `${registrationCategories.length} selected: ${registrationCategories.slice(0, 2).join(', ')}${registrationCategories.length > 2 ? ', …' : ''}`
-                  : 'Select interested categories'}
-              </Text>
-              <Text style={styles.registrationCategoryDropdownArrow}>
-                {registrationCategoriesOpen ? '⌃' : '⌄'}
-              </Text>
-            </TouchableOpacity>
+                  <Text style={styles.registrationCategoryTitle}>Interested Categories *</Text>
+                  <TouchableOpacity
+                    style={styles.registrationCategoryDropdown}
+                    onPress={() => setRegistrationCategoriesOpen(value => !value)}
+                    disabled={registrationSubmitting}
+                    accessibilityLabel="Interested categories"
+                  >
+                    <Text
+                      style={[
+                        styles.registrationCategoryDropdownText,
+                        registrationCategories.length > 0 && styles.registrationCategoryDropdownTextSelected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {registrationCategories.length > 0
+                        ? `${registrationCategories.length} selected: ${registrationCategories.slice(0, 2).join(', ')}${registrationCategories.length > 2 ? ', …' : ''}`
+                        : 'Select interested categories'}
+                    </Text>
+                    <Text style={styles.registrationCategoryDropdownArrow}>
+                      {registrationCategoriesOpen ? '⌃' : '⌄'}
+                    </Text>
+                  </TouchableOpacity>
 
-            {registrationCategoriesOpen ? (
-              <View style={styles.registrationCategoryDropdownMenu}>
-                <ScrollView
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator={true}
-                  style={styles.registrationCategoryDropdownScroll}
-                >
-                  {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
-                    const selected = registrationCategories.includes(category);
-                    return (
+                  {registrationCategoriesOpen ? (
+                    <View style={styles.registrationCategoryDropdownMenu}>
+                      <ScrollView
+                        nestedScrollEnabled
+                        showsVerticalScrollIndicator
+                        style={styles.registrationCategoryDropdownScroll}
+                      >
+                        {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
+                          const selected = registrationCategories.includes(category);
+                          return (
+                            <TouchableOpacity
+                              key={category}
+                              style={styles.registrationCategoryDropdownItem}
+                              onPress={() => {
+                                setRegistrationCategories(current => {
+                                  const next = selected
+                                    ? current.filter(item => item !== category)
+                                    : [...current, category];
+                                  registrationCategoriesRef.current = next;
+                                  return next;
+                                });
+                              }}
+                              disabled={registrationSubmitting}
+                            >
+                              <View
+                                style={[
+                                  styles.registrationCategoryCheckbox,
+                                  selected && styles.registrationCategoryCheckboxSelected,
+                                ]}
+                              >
+                                {selected ? <Text style={styles.registrationCategoryCheck}>✓</Text> : null}
+                              </View>
+                              <Text
+                                style={[
+                                  styles.registrationCategoryDropdownItemText,
+                                  selected && styles.registrationCategoryDropdownItemTextSelected,
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {category}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  ) : null}
+                </>
+              ) : null}
+
+              {authMode === 'signIn' && !profileMode ? (
+                <>
+                  {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
+                  {registrationSuccess ? <Text style={styles.registrationSuccess}>{registrationSuccess}</Text> : null}
+
+                  <TouchableOpacity
+                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    onPress={signInAccount}
+                    disabled={registrationSubmitting || profileLoading}
+                  >
+                    {registrationSubmitting ? (
+                      <ActivityIndicator size="small" color={WHITE} />
+                    ) : (
+                      <Text style={styles.registrationButtonText}>Sign In</Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.profileActionTextButton}
+                    onPress={forgotPassword}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.profileActionText}>Forgot Password?</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.registrationSkipButton}
+                    onPress={openWelcomeRegistration}
+                    disabled={registrationSubmitting}
+                  >
+                    <Text style={styles.registrationSkipText}>Back to Register</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
+                  {registrationSuccess ? (
+                    <Text style={styles.registrationSuccess}>
+                      {profileMode ? 'Profile updated successfully ✓' : 'Registration successful ✓'}
+                    </Text>
+                  ) : null}
+
+                  <TouchableOpacity
+                    style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
+                    onPress={profileMode ? saveProfile : submitRegistration}
+                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
+                  >
+                    {registrationSubmitting ? (
+                      <ActivityIndicator size="small" color={WHITE} />
+                    ) : (
+                      <Text style={styles.registrationButtonText}>
+                        {profileMode ? 'Update' : 'Create Account'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {profileMode ? (
+                    <>
                       <TouchableOpacity
-                        key={category}
-                        style={styles.registrationCategoryDropdownItem}
+                        style={styles.registrationSkipButton}
                         onPress={() => {
-                          setRegistrationCategories(current => {
-                            const next = selected
-                              ? current.filter(item => item !== category)
-                              : [...current, category];
-                            registrationCategoriesRef.current = next;
-                            return next;
-                          });
+                          if (!registrationSubmitting) {
+                            setRegistrationOpen(false);
+                            setProfileMode(false);
+                            setRegistrationError('');
+                            setRegistrationSuccess(false);
+                          }
                         }}
                         disabled={registrationSubmitting}
                       >
-                        <View
-                          style={[
-                            styles.registrationCategoryCheckbox,
-                            selected && styles.registrationCategoryCheckboxSelected,
-                          ]}
-                        >
-                          {selected ? <Text style={styles.registrationCategoryCheck}>✓</Text> : null}
-                        </View>
-                        <Text
-                          style={[
-                            styles.registrationCategoryDropdownItemText,
-                            selected && styles.registrationCategoryDropdownItemTextSelected,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {category}
-                        </Text>
+                        <Text style={styles.registrationSkipText}>Close</Text>
                       </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            ) : null}
 
-            {registrationError ? (
-              <Text style={styles.registrationError}>{registrationError}</Text>
-            ) : null}
-            {registrationSuccess ? (
-              <Text style={styles.registrationSuccess}>Form received successfully ✓</Text>
-            ) : null}
+                      <TouchableOpacity
+                        style={styles.profileActionTextButton}
+                        onPress={forgotPassword}
+                        disabled={registrationSubmitting}
+                      >
+                        <Text style={styles.profileActionText}>Forgot Password?</Text>
+                      </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
-              onPress={profileMode ? updateProfile : submitRegistration}
-              disabled={registrationSubmitting || registrationSuccess || profileLoading}
-            >
-              {registrationSubmitting ? (
-                <ActivityIndicator size="small" color={WHITE} />
-              ) : (
-                <Text style={styles.registrationButtonText}>
-                  {profileMode ? 'Update' : 'Continue'}
-                </Text>
+                      <TouchableOpacity
+                        style={styles.profileDeleteButton}
+                        onPress={deleteProfile}
+                        disabled={registrationSubmitting}
+                      >
+                        <Text style={styles.profileDeleteText}>Delete Profile</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={styles.addOffersButton}
+                        onPress={() => {
+                          if (ADD_OFFERS_WHATSAPP_URL) {
+                            void Linking.openURL(ADD_OFFERS_WHATSAPP_URL);
+                          } else {
+                            Alert.alert('Add Offers', 'WhatsApp link will be added soon.');
+                          }
+                        }}
+                        disabled={registrationSubmitting}
+                      >
+                        <Text style={styles.addOffersText}>Add Offers</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.registrationSkipButton}
+                        onPress={skipRegistration}
+                        disabled={registrationSubmitting}
+                      >
+                        <Text style={styles.registrationSkipText}>Browse Offers</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.profileActionTextButton}
+                        onPress={() => {
+                          setAuthMode('signIn');
+                          setRegistrationPassword('');
+                          setRegistrationPasswordVisible(false);
+                          setRegistrationError('');
+                          setRegistrationSuccess(false);
+                        }}
+                        disabled={registrationSubmitting}
+                      >
+                        <Text style={styles.profileActionText}>Already registered? Sign in</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </>
               )}
-            </TouchableOpacity>
-
-            {profileMode ? (
-              <>
-                <TouchableOpacity
-                  style={styles.registrationSkipButton}
-                  onPress={() => {
-                    if (!registrationSubmitting) {
-                      setRegistrationOpen(false);
-                      setProfileMode(false);
-                      setRegistrationError('');
-                      setRegistrationSuccess(false);
-                    }
-                  }}
-                  disabled={registrationSubmitting}
-                >
-                  <Text style={styles.registrationSkipText}>Close</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.profileDeleteButton}
-                  onPress={deleteProfile}
-                  disabled={registrationSubmitting}
-                >
-                  <Text style={styles.profileDeleteText}>Delete Profile</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <React.Fragment>
-                {skipCountdown > 0 ? (
-                  <Text style={styles.registrationWaitText}>Skip in {skipCountdown}…</Text>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.registrationSkipButton}
-                    onPress={() => setRegistrationOpen(false)}
-                    disabled={registrationSubmitting}
-                  >
-                    <Text style={styles.registrationSkipText}>Skip for now</Text>
-                  </TouchableOpacity>
-                )}
-              </React.Fragment>
-            )}
             </ScrollView>
           </View>
         </View>
       )}
+
 
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
 
@@ -4516,6 +4740,14 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   phoneInputWrap: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', marginBottom: 11, backgroundColor: WHITE },
   phonePrefix: { color: TEXT, fontSize: 15, fontWeight: '800', marginRight: 8 },
   phoneInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 0 },
+  passwordInputWrap: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingLeft: 13, paddingRight: 4, flexDirection: 'row', alignItems: 'center', marginBottom: 11, backgroundColor: WHITE },
+  passwordInput: { flex: 1, color: TEXT, fontSize: 15, paddingVertical: 0 },
+  passwordEyeButton: { minWidth: 54, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  passwordEyeText: { color: ACCENT, fontSize: 12, fontWeight: '900' },
+  addOffersButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  addOffersText: { color: ACCENT, fontSize: 13, fontWeight: '900' },
+  profileActionTextButton: { minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  profileActionText: { color: ACCENT, fontSize: 13, fontWeight: '800' },
   registrationError: { color: '#d93025', fontSize: 12, fontWeight: '700', marginBottom: 10 },
   registrationSuccess: { color: '#168a3a', fontSize: 13, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   registrationButton: { minHeight: 48, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
