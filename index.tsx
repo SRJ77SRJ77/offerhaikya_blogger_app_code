@@ -840,76 +840,137 @@ export default function App() {
     const loadNearbyOffers = async () => {
       try {
         const permission = await Location.getForegroundPermissionsAsync();
-        if (permission.status !== 'granted') {
-          if (!cancelled) {
-            setUserLocation(null);
-            setLocationLabel('');
-            setLocationTerms([]);
-            setNearbyPosts([]);
-            setLocalOffersDisabled(false);
-          }
-          return;
-        }
 
-        // Do not call the location API while device Location Services are OFF.
-        // This prevents Android from showing its own location prompt repeatedly.
-        const servicesEnabled = await Location.hasServicesEnabledAsync();
-        if (!cancelled) setLocationServicesEnabled(servicesEnabled);
-        if (!servicesEnabled) {
-          if (!cancelled) {
-            setUserLocation(null);
-            setLocationLabel('');
-            setLocationTerms([]);
-            setNearbyPosts([]);
-            setLocalOffersDisabled(false);
-          }
-          return;
-        }
-
-        const current = await Location.getLastKnownPositionAsync({
-          maxAge: 5 * 60 * 1000,
-          requiredAccuracy: 5000,
-        }) || await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        if (cancelled) return;
-
-        const coords = {
-          latitude: current.coords.latitude,
-          longitude: current.coords.longitude,
-        };
-        setUserLocation(coords);
-
+        let coords: { latitude: number; longitude: number } | null = null;
         let detectedLocationTerms: string[] = [];
         let detectedLocationLabel = '';
 
-        try {
-          const places = await Location.reverseGeocodeAsync(coords);
-          const place = places?.[0];
-          detectedLocationLabel = place?.district || place?.city || place?.subregion || place?.region || '';
-          detectedLocationTerms = buildLocationTerms(place);
+        if (permission.status === 'granted') {
+          const servicesEnabled = await Location.hasServicesEnabledAsync();
+          if (!cancelled) setLocationServicesEnabled(servicesEnabled);
 
-          if (detectedLocationLabel && /belagavi|belgaum|belgaon/i.test(detectedLocationLabel)) {
-            detectedLocationTerms = Array.from(new Set([
-              ...detectedLocationTerms,
-              'belagavi',
-              'belgaum',
-              'belgaon',
-              'belagavi district',
-              'belgaum district',
-            ]));
-          }
+          if (servicesEnabled) {
+            const current = await Location.getLastKnownPositionAsync({
+              maxAge: 5 * 60 * 1000,
+              requiredAccuracy: 5000,
+            }) || await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
 
-          if (!cancelled) {
-            setLocationLabel(detectedLocationLabel);
-            setLocationTerms(detectedLocationTerms);
+            if (cancelled) return;
+
+            coords = {
+              latitude: current.coords.latitude,
+              longitude: current.coords.longitude,
+            };
+            setUserLocation(coords);
+
+            try {
+              const places = await Location.reverseGeocodeAsync(coords);
+              const place = places?.[0];
+              detectedLocationLabel =
+                place?.district ||
+                place?.city ||
+                place?.subregion ||
+                place?.region ||
+                '';
+              detectedLocationTerms = buildLocationTerms(place);
+
+              if (
+                detectedLocationLabel &&
+                /belagavi|belgaum|belgaon/i.test(detectedLocationLabel)
+              ) {
+                detectedLocationTerms = Array.from(
+                  new Set([
+                    ...detectedLocationTerms,
+                    'belagavi',
+                    'belgaum',
+                    'belgaon',
+                    'belagavi district',
+                    'belgaum district',
+                  ]),
+                );
+              }
+            } catch {
+              detectedLocationLabel = '';
+              detectedLocationTerms = [];
+            }
+
+            // Save the latest GPS location for registered users.
+            try {
+              const firebaseUser = auth.currentUser;
+              if (firebaseUser && !firebaseUser.isAnonymous) {
+                await setDoc(
+                  doc(db, 'users', firebaseUser.uid),
+                  {
+                    location: coords,
+                    locationSource: 'gps',
+                    locationLabel: detectedLocationLabel,
+                    locationUpdatedAt: new Date().toISOString(),
+                  },
+                  { merge: true },
+                );
+              }
+            } catch {
+              // Best-effort location storage.
+            }
           }
-        } catch {
+        }
+
+        // If GPS is unavailable or denied, use the optional Area / City
+        // saved during registration.
+        if (!coords) {
+          try {
+            const firebaseUser = auth.currentUser;
+
+            if (firebaseUser && !firebaseUser.isAnonymous) {
+              const profileSnapshot = await getDoc(
+                doc(db, 'users', firebaseUser.uid),
+              );
+              const profileData = profileSnapshot.exists()
+                ? profileSnapshot.data()
+                : null;
+
+              const manualCoords = profileData?.manualLocationCoordinates;
+              const manualAreaCity = String(profileData?.areaCity || '').trim();
+
+              if (
+                manualCoords &&
+                Number.isFinite(Number(manualCoords.latitude)) &&
+                Number.isFinite(Number(manualCoords.longitude))
+              ) {
+                coords = {
+                  latitude: Number(manualCoords.latitude),
+                  longitude: Number(manualCoords.longitude),
+                };
+                detectedLocationLabel = manualAreaCity;
+                detectedLocationTerms = manualAreaCity
+                  ? [manualAreaCity]
+                  : [];
+                setUserLocation(coords);
+                setLocationLabel(manualAreaCity);
+                setLocationTerms(detectedLocationTerms);
+              }
+            }
+          } catch {
+            // Best-effort manual location fallback.
+          }
+        }
+
+        if (!coords) {
           if (!cancelled) {
+            setUserLocation(null);
             setLocationLabel('');
             setLocationTerms([]);
+            setNearbyPosts([]);
+            setLocalOffersDisabled(false);
           }
+          return;
+        }
+
+        if (!cancelled && permission.status === 'granted') {
+          setLocationLabel(detectedLocationLabel);
+          setLocationTerms(detectedLocationTerms);
         }
 
         const nearbyCacheKey =
@@ -2047,9 +2108,16 @@ export default function App() {
 
               await deleteUser(user);
               await deleteDoc(doc(db, 'users', user.uid));
-              await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
+              await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
 
-              setProfileStatus('new');
+              if (skipReminderTimerRef.current) {
+                clearTimeout(skipReminderTimerRef.current);
+              }
+              skipReminderTimerRef.current = setTimeout(() => {
+                void checkRegistrationReminder();
+              }, SKIP_REMINDER_MS);
+
+              setProfileStatus('skipped');
               setRegistrationCompleted(false);
               setRegistrationOpen(false);
               setProfileMode(false);
