@@ -3654,7 +3654,7 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={bottomTab === 'home' ? ACCENT : TEXT}
+                stroke={darkMode ? WHITE : (bottomTab === 'home' ? ACCENT : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -3708,13 +3708,13 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
                 strokeWidth={2}
                 strokeLinejoin="round"
               />
               <Path
                 d="M4.5 6L12 12L19.5 6"
-                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -3739,12 +3739,12 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
                 strokeWidth={2}
               />
               <Path
                 d="M16.5 16.5L21 21"
-                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
               />
@@ -4724,7 +4724,7 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-              stroke={bottomTab === 'home' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTab === 'home' ? ACCENT : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -4776,13 +4776,13 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M4 5.5H20V18.5H4V5.5Z"
-              stroke={bottomTab === 'request' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
               strokeWidth={2}
               strokeLinejoin="round"
             />
             <Path
               d="M4.5 6L12 12L19.5 6"
-              stroke={bottomTab === 'request' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -4807,12 +4807,12 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-              stroke={bottomTab === 'search' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
               strokeWidth={2}
             />
             <Path
               d="M16.5 16.5L21 21"
-              stroke={bottomTab === 'search' ? ACCENT : TEXT}
+              stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
             />
