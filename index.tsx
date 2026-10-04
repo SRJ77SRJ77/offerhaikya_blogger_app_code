@@ -30,7 +30,18 @@ import Svg, { Path } from 'react-native-svg';
 import MapView, { Marker } from 'react-native-maps';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signInAnonymously } from 'firebase/auth';
+import {
+  EmailAuthProvider,
+  createUserWithEmailAndPassword,
+  deleteUser,
+  linkWithCredential,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  updateEmail,
+  updateProfile as updateFirebaseProfile,
+} from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
@@ -46,7 +57,7 @@ const WHITE = '#ffffff';
 const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
-const NEARBY_RADIUS_KM = 200;
+const NEARBY_RADIUS_KM = 300;
 const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const METADATA_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
@@ -54,11 +65,12 @@ const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
+const SKIP_REMINDER_MS = 7 * 60 * 1000;
+const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
-const PROFILE_STORAGE_KEY = 'offerhaikya_profile';
-const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbwkNldloiCIk07pl02WmcfPSLnbp8gMol-YWfgdpo9wON_ekNL5M9ve0m0hOm2mL_Wv/exec';
+const ADD_OFFERS_WHATSAPP_URL = '';
 
 type Post = {
   id: string;
@@ -279,27 +291,33 @@ export default function App() {
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useState(false);
-  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [startupPreloader, setStartupPreloader] = useState(true);
   const [startupPreloaderStage, setStartupPreloaderStage] = useState<'local' | 'online'>('local');
   const startupPreloaderProgress = useRef(new Animated.Value(0)).current;
   const [registrationName, setRegistrationName] = useState('');
   const [registrationContact, setRegistrationContact] = useState('');
   const [registrationEmail, setRegistrationEmail] = useState('');
+  const [registrationPassword, setRegistrationPassword] = useState('');
+  const [registrationPasswordVisible, setRegistrationPasswordVisible] = useState(false);
+  const [registrationAreaCity, setRegistrationAreaCity] = useState('');
   const [registrationCategories, setRegistrationCategories] = useState<string[]>([]);
   const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
+  const [authMode, setAuthMode] = useState<'register' | 'signIn'>('register');
   // true only when Firebase confirms registrationCompleted; skipped users use the Welcome form.
   const [profileMode, setProfileMode] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const skipReminderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
+  const registrationAreaCityRef = useRef('');
   const registrationCategoriesRef = useRef<string[]>([]);
-  const [skipCountdown, setSkipCountdown] = useState(5);
   const [bloggerInfoData, setBloggerInfoData] = useState<{ title: string; html: string } | null>(null);
   const [infoPagePosts, setInfoPagePosts] = useState<Post[]>([]);
   const [infoPagePostsLoading, setInfoPagePostsLoading] = useState(false);
@@ -1142,21 +1160,6 @@ export default function App() {
       subscription.remove();
     };
   }, [registrationOpen, query, page, loadPosts]);
-
-  useEffect(() => {
-    if (!registrationOpen || registrationCompleted || profileMode) return;
-    setSkipCountdown(5);
-    const timer = setInterval(() => {
-      setSkipCountdown(current => {
-        if (current <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return current - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [registrationOpen, registrationCompleted, profileMode]);
 
   useEffect(() => {
     const text = query.trim();
