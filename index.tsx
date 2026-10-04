@@ -290,6 +290,7 @@ export default function App() {
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  // true only when Firebase confirms registrationCompleted; skipped users use the Welcome form.
   const [profileMode, setProfileMode] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const registrationNameRef = useRef('');
@@ -1153,7 +1154,7 @@ export default function App() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [registrationOpen, registrationCompleted]);
+  }, [registrationOpen, registrationCompleted, profileMode]);
 
   useEffect(() => {
     const text = query.trim();
@@ -1590,11 +1591,10 @@ export default function App() {
   };
 
   const openProfile = async () => {
-    setProfileMode(true);
     setProfileLoading(true);
     setRegistrationError('');
     setRegistrationSuccess(false);
-    setRegistrationOpen(true);
+    setRegistrationCategoriesOpen(false);
 
     try {
       if (!auth.currentUser) {
@@ -1605,16 +1605,18 @@ export default function App() {
       if (!firebaseUser) throw new Error('Firebase user unavailable');
 
       const snapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
-      if (snapshot.exists()) {
-        const data = snapshot.data();
+      const data = snapshot.exists() ? snapshot.data() : null;
+      const isRegisteredUser = data?.registrationCompleted === true;
 
-        const name = String(data.name || '');
-        const contact = String(data.contact || '').replace(/^91/, '');
-        const email = String(data.email || '');
-        const categories = Array.isArray(data.interestedCategories)
+      if (isRegisteredUser) {
+        const name = String(data?.name || '');
+        const contact = String(data?.contact || '').replace(/^91/, '');
+        const email = String(data?.email || '');
+        const categories = Array.isArray(data?.interestedCategories)
           ? data.interestedCategories
           : [];
 
+        setProfileMode(true);
         setRegistrationName(name);
         setRegistrationContact(contact);
         setRegistrationEmail(email);
@@ -1623,7 +1625,23 @@ export default function App() {
         registrationContactRef.current = contact;
         registrationEmailRef.current = email;
         registrationCategoriesRef.current = categories;
+      } else {
+        // User previously skipped registration (or has only anonymous
+        // notification data). Open the original Welcome form so the first
+        // submission creates a new registration row.
+        setProfileMode(false);
+        setRegistrationName('');
+        setRegistrationContact('');
+        setRegistrationEmail('');
+        setRegistrationCategories([]);
+        registrationNameRef.current = '';
+        registrationContactRef.current = '';
+        registrationEmailRef.current = '';
+        registrationCategoriesRef.current = [];
+        setSkipCountdown(0);
       }
+
+      setRegistrationOpen(true);
     } catch (error) {
       console.log('Profile load error:', error);
       setRegistrationError('Could not load your profile. Please try again.');
@@ -2347,173 +2365,6 @@ export default function App() {
 
     return (
       <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
-        <Modal
-        visible={profileOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => {
-          if (!profileSaving && !profileDeleting) {
-            setProfileOpen(false);
-            setProfileError('');
-          }
-        }}
-      >
-        <View style={styles.profileOverlay}>
-          <TouchableOpacity
-            style={styles.profileBackdrop}
-            activeOpacity={1}
-            onPress={() => {
-              if (!profileSaving && !profileDeleting) {
-                setProfileOpen(false);
-                setProfileError('');
-              }
-            }}
-          />
-          <View style={[styles.profilePopup, darkMode && styles.profilePopupDark]}>
-            <View style={styles.profileHeader}>
-              <View>
-                <Text style={[styles.profileTitle, darkMode && styles.darkText]}>My Profile</Text>
-                <Text style={[styles.profileSubtitle, darkMode && styles.darkMutedText]}>
-                  Update your details anytime.
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.profileCloseButton}
-                onPress={() => {
-                  setProfileOpen(false);
-                  setProfileError('');
-                }}
-                disabled={profileSaving || profileDeleting}
-              >
-                <Text style={[styles.profileCloseText, darkMode && styles.darkText]}>×</Text>
-              </TouchableOpacity>
-            </View>
-
-            {profileLoading ? (
-              <View style={styles.profileLoading}>
-                <ActivityIndicator size="large" color={ACCENT} />
-                <Text style={[styles.profileLoadingText, darkMode && styles.darkMutedText]}>Loading profile...</Text>
-              </View>
-            ) : (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.profileFormContent}
-              >
-                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Name</Text>
-                <TextInput
-                  value={profileName}
-                  onChangeText={value => setProfileName(value.replace(/[^A-Za-z ]/g, '').slice(0, 12))}
-                  placeholder="Name"
-                  placeholderTextColor="#99969c"
-                  style={[styles.profileInput, darkMode && styles.profileInputDark]}
-                  autoCapitalize="words"
-                  maxLength={12}
-                  editable={!profileSaving && !profileDeleting}
-                />
-
-                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Phone</Text>
-                <View style={[styles.profilePhoneWrap, darkMode && styles.profileInputDark]}>
-                  <Text style={[styles.profilePhonePrefix, darkMode && styles.darkText]}>+91</Text>
-                  <TextInput
-                    value={profileContact}
-                    onChangeText={value => setProfileContact(value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="10-digit phone number"
-                    placeholderTextColor="#99969c"
-                    style={[styles.profilePhoneInput, darkMode && styles.darkText]}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    editable={!profileSaving && !profileDeleting}
-                  />
-                </View>
-
-                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Email</Text>
-                <TextInput
-                  value={profileEmail}
-                  onChangeText={value => setProfileEmail(value.slice(0, 80))}
-                  placeholder="Email address"
-                  placeholderTextColor="#99969c"
-                  style={[styles.profileInput, darkMode && styles.profileInputDark]}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  maxLength={80}
-                  editable={!profileSaving && !profileDeleting}
-                />
-
-                <Text style={[styles.profileFieldLabel, darkMode && styles.darkText]}>Interested categories</Text>
-                <View style={[styles.profileCategoryMenu, darkMode && styles.profileCategoryMenuDark]}>
-                  <ScrollView
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator={false}
-                    style={styles.profileCategoryScroll}
-                  >
-                    {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(category => {
-                      const selected = profileCategories.includes(category);
-                      return (
-                        <TouchableOpacity
-                          key={'profile-' + category}
-                          style={styles.profileCategoryItem}
-                          onPress={() => {
-                            setProfileCategories(current =>
-                              current.includes(category)
-                                ? current.filter(item => item !== category)
-                                : [...current, category],
-                            );
-                          }}
-                          disabled={profileSaving || profileDeleting}
-                        >
-                          <View style={[styles.profileCheckbox, selected && styles.profileCheckboxSelected]}>
-                            {selected ? <Text style={styles.profileCheck}>✓</Text> : null}
-                          </View>
-                          <Text
-                            style={[
-                              styles.profileCategoryText,
-                              selected && styles.profileCategoryTextSelected,
-                              darkMode && styles.darkText,
-                            ]}
-                          >
-                            {category}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-
-                {profileError ? (
-                  <Text style={styles.profileError}>{profileError}</Text>
-                ) : null}
-
-                <TouchableOpacity
-                  style={[styles.profileSaveButton, (profileSaving || profileDeleting) && styles.disabledButton]}
-                  onPress={saveProfile}
-                  disabled={profileSaving || profileDeleting}
-                >
-                  {profileSaving ? (
-                    <ActivityIndicator size="small" color={WHITE} />
-                  ) : (
-                    <Text style={styles.registrationButtonText}>Save changes</Text>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.profileDeleteButton}
-                  onPress={deleteProfile}
-                  disabled={profileSaving || profileDeleting}
-                >
-                  {profileDeleting ? (
-                    <ActivityIndicator size="small" color="#d93025" />
-                  ) : (
-                    <Text style={styles.profileDeleteText}>Delete profile</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
-
       <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#000000' : WHITE} />
         <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
           <TouchableOpacity onPress={() => { closeMenu(); setMenuOpen(false); setInfoPage(null); }} style={styles.backButton}>
