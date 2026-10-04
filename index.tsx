@@ -1890,7 +1890,7 @@ export default function App() {
       setProfileStatus('registered');
       setRegistrationCompleted(true);
       setRegistrationSubmitting(false);
-      setRegistrationSuccess(true);
+      setRegistrationSuccess('Account created successfully ✓');
 
       setTimeout(() => {
         registrationFlowActiveRef.current = false;
