@@ -2921,9 +2921,6 @@ export default function App() {
                   >
                     <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>‹ Back</Text>
                   </TouchableOpacity>
-                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
-                    #{tagPage} Offers
-                  </Text>
                   <TouchableOpacity
                     style={styles.tagPageDropdownButton}
                     onPress={() => setTagPageDropdownOpen(value => !value)}
