@@ -35,6 +35,7 @@ import { auth, db } from './firebaseConfig';
 import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
@@ -56,6 +57,7 @@ const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
+const PROFILE_STORAGE_KEY = 'offerhaikya_profile';
 const REGISTRATION_URL = 'https://script.google.com/macros/s/AKfycbwkNldloiCIk07pl02WmcfPSLnbp8gMol-YWfgdpo9wON_ekNL5M9ve0m0hOm2mL_Wv/exec';
 
 type Post = {
@@ -1571,6 +1573,17 @@ export default function App() {
         { merge: true },
       );
 
+      await AsyncStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify({
+          registrationCompleted: true,
+          name: registrationData.name,
+          contact: registrationData.contact,
+          email: registrationData.email,
+          interestedCategories: registrationCategories,
+        }),
+      );
+
       setRegistrationSubmitting(false);
       setRegistrationSuccess(true);
       setRegistrationCompleted(true);
@@ -1583,7 +1596,7 @@ export default function App() {
         setRegistrationEmail('');
         setRegistrationCategories([]);
         setRegistrationCategoriesOpen(false);
-      }, 1600);
+      }, 900);
     } catch {
       setRegistrationError('Could not submit registration. Please try again.');
       setRegistrationSubmitting(false);
@@ -1591,63 +1604,101 @@ export default function App() {
   };
 
   const openProfile = async () => {
-    // Open the same registration form immediately. We show a loading state
-    // while checking whether this anonymous Firebase user has completed registration.
+    // Always open the same form. The local cache tells us immediately whether
+    // this is a registered user; Firestore is used to refresh the data.
     setRegistrationOpen(true);
-    setProfileLoading(true);
     setRegistrationError('');
     setRegistrationSuccess(false);
     setRegistrationCategoriesOpen(false);
+    setProfileLoading(false);
     setProfileMode(false);
 
+    let localProfile: any = null;
+
+    try {
+      const cached = await AsyncStorage.getItem(PROFILE_STORAGE_KEY);
+      if (cached) {
+        localProfile = JSON.parse(cached);
+      }
+    } catch {
+      localProfile = null;
+    }
+
+    if (localProfile?.registrationCompleted === true) {
+      const name = String(localProfile.name || '');
+      const contact = String(localProfile.contact || '').replace(/^91/, '');
+      const email = String(localProfile.email || '');
+      const categories = Array.isArray(localProfile.interestedCategories)
+        ? localProfile.interestedCategories
+        : [];
+
+      setProfileMode(true);
+      setRegistrationName(name);
+      setRegistrationContact(contact);
+      setRegistrationEmail(email);
+      setRegistrationCategories(categories);
+      registrationNameRef.current = name;
+      registrationContactRef.current = contact;
+      registrationEmailRef.current = email;
+      registrationCategoriesRef.current = categories;
+    } else {
+      setRegistrationName('');
+      setRegistrationContact('');
+      setRegistrationEmail('');
+      setRegistrationCategories([]);
+      registrationNameRef.current = '';
+      registrationContactRef.current = '';
+      registrationEmailRef.current = '';
+      registrationCategoriesRef.current = [];
+      setSkipCountdown(0);
+    }
+
+    // Refresh from Firebase when possible. A read failure must NOT prevent
+    // the profile form from opening.
     try {
       if (!auth.currentUser) {
         await signInAnonymously(auth);
       }
 
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) throw new Error('Firebase user unavailable');
+      if (!firebaseUser) return;
 
       const snapshot = await getDoc(doc(db, 'users', firebaseUser.uid));
-      const data = snapshot.exists() ? snapshot.data() : null;
-      const isRegisteredUser = data?.registrationCompleted === true;
+      if (!snapshot.exists()) return;
 
-      if (isRegisteredUser) {
-        const name = String(data?.name || '');
-        const contact = String(data?.contact || '').replace(/^91/, '');
-        const email = String(data?.email || '');
-        const categories = Array.isArray(data?.interestedCategories)
-          ? data.interestedCategories
-          : [];
+      const data = snapshot.data();
+      if (data?.registrationCompleted !== true) return;
 
-        setProfileMode(true);
-        setRegistrationName(name);
-        setRegistrationContact(contact);
-        setRegistrationEmail(email);
-        setRegistrationCategories(categories);
-        registrationNameRef.current = name;
-        registrationContactRef.current = contact;
-        registrationEmailRef.current = email;
-        registrationCategoriesRef.current = categories;
-      } else {
-        // User skipped registration or has only anonymous notification data.
-        // Keep the normal Welcome form so the first submission creates the entry.
-        setProfileMode(false);
-        setRegistrationName('');
-        setRegistrationContact('');
-        setRegistrationEmail('');
-        setRegistrationCategories([]);
-        registrationNameRef.current = '';
-        registrationContactRef.current = '';
-        registrationEmailRef.current = '';
-        registrationCategoriesRef.current = [];
-        setSkipCountdown(0);
-      }
+      const name = String(data.name || '');
+      const contact = String(data.contact || '').replace(/^91/, '');
+      const email = String(data.email || '');
+      const categories = Array.isArray(data.interestedCategories)
+        ? data.interestedCategories
+        : [];
+
+      setProfileMode(true);
+      setRegistrationCompleted(true);
+      setRegistrationName(name);
+      setRegistrationContact(contact);
+      setRegistrationEmail(email);
+      setRegistrationCategories(categories);
+      registrationNameRef.current = name;
+      registrationContactRef.current = contact;
+      registrationEmailRef.current = email;
+      registrationCategoriesRef.current = categories;
+
+      await AsyncStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify({
+          registrationCompleted: true,
+          name,
+          contact: data.contact || '',
+          email,
+          interestedCategories: categories,
+        }),
+      );
     } catch (error) {
-      console.log('Profile load error:', error);
-      setRegistrationError('Could not load your profile. Please check your connection and try again.');
-    } finally {
-      setProfileLoading(false);
+      console.log('Profile refresh skipped:', error);
     }
   };
 
@@ -1740,15 +1791,23 @@ export default function App() {
       registrationEmailRef.current = email;
       registrationCategoriesRef.current = categories;
 
-      setRegistrationSubmitting(false);
-      setRegistrationSuccess(true);
-      setRegistrationCompleted(true);
+      await AsyncStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify({
+          registrationCompleted: true,
+          name,
+          contact: contact ? '91' + contact : '',
+          email,
+          interestedCategories: categories,
+        }),
+      );
 
-      setTimeout(() => {
-        setRegistrationOpen(false);
-        setProfileMode(false);
-        setRegistrationSuccess(false);
-      }, 900);
+      setRegistrationSubmitting(false);
+      setRegistrationSuccess(false);
+      setRegistrationCompleted(true);
+      setRegistrationOpen(false);
+      setProfileMode(false);
+      setRegistrationError('');
     } catch (error) {
       console.log('Profile update error:', error);
       setRegistrationError('Could not update your profile. Please try again.');
@@ -1805,6 +1864,8 @@ export default function App() {
               }
 
               await deleteDoc(doc(db, 'users', firebaseUser.uid));
+
+              await AsyncStorage.removeItem(PROFILE_STORAGE_KEY);
 
               setRegistrationOpen(false);
               setProfileMode(false);
