@@ -309,7 +309,7 @@ export default function App() {
   const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState<boolean | string>(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState('');
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
@@ -1731,7 +1731,7 @@ export default function App() {
     setProfileMode(false);
     setProfileLoading(false);
     setRegistrationError('');
-    setRegistrationSuccess(false);
+    setRegistrationSuccess('');
     setRegistrationPassword('');
     setRegistrationPasswordVisible(false);
     setRegistrationName('');
@@ -1859,7 +1859,7 @@ export default function App() {
       registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
-      setRegistrationSuccess(false);
+      setRegistrationSuccess('');
 
       let user = auth.currentUser;
 
@@ -1904,7 +1904,7 @@ export default function App() {
         registrationFlowActiveRef.current = false;
         setRegistrationOpen(false);
         setProfileMode(false);
-        setRegistrationSuccess(false);
+        setRegistrationSuccess('');
         setRegistrationPassword('');
         setRegistrationPasswordVisible(false);
       }, 1200);
@@ -1991,7 +1991,7 @@ export default function App() {
 
   const openProfile = async () => {
     setRegistrationError('');
-    setRegistrationSuccess(false);
+    setRegistrationSuccess('');
     setRegistrationCategoriesOpen(false);
     setRegistrationPassword('');
     setRegistrationPasswordVisible(false);
@@ -2089,13 +2089,13 @@ export default function App() {
       });
 
       setRegistrationSubmitting(false);
-      setRegistrationSuccess(true);
+      setRegistrationSuccess('Profile updated successfully ✓');
 
       setTimeout(() => {
         registrationFlowActiveRef.current = false;
         setRegistrationOpen(false);
         setProfileMode(false);
-        setRegistrationSuccess(false);
+        setRegistrationSuccess('');
       }, 900);
     } catch (error: any) {
       console.log('Profile update error:', error);
@@ -2147,7 +2147,7 @@ export default function App() {
       setRegistrationPassword('');
       setRegistrationPasswordVisible(false);
       setRegistrationError('');
-      setRegistrationSuccess(false);
+      setRegistrationSuccess('');
 
       // Normal login ends at the home screen. The profile icon can be used
       // later to open My Profile.
@@ -2190,9 +2190,9 @@ export default function App() {
       setRegistrationSubmitting(true);
       await sendPasswordResetEmail(auth, email);
       setRegistrationSubmitting(false);
-      setRegistrationSuccess(true);
+      setRegistrationSuccess('Profile updated successfully ✓');
       setRegistrationError('Password reset email sent. Check your inbox.');
-      setTimeout(() => setRegistrationSuccess(false), 1800);
+      setTimeout(() => setRegistrationSuccess(''), 1800);
     } catch (error: any) {
       console.log('Forgot password error:', error);
 
@@ -2356,7 +2356,7 @@ export default function App() {
               setRegistrationAreaCity('');
               setRegistrationCategories([]);
               setRegistrationCategoriesOpen(false);
-              setRegistrationSuccess(false);
+              setRegistrationSuccess('');
 
               registrationNameRef.current = '';
               registrationContactRef.current = '';
@@ -3562,7 +3562,7 @@ export default function App() {
                       setRegistrationOpen(false);
                       setRegistrationCategoriesOpen(false);
                       setRegistrationError('');
-                      setRegistrationSuccess(false);
+                      setRegistrationSuccess('');
                     }
                   }}
                   disabled={registrationSubmitting}
@@ -3811,7 +3811,7 @@ export default function App() {
                           setRegistrationPassword('');
                           setRegistrationPasswordVisible(false);
                           setRegistrationError('');
-                          setRegistrationSuccess(false);
+                          setRegistrationSuccess('');
                           setRegistrationName('');
                           setRegistrationContact('');
                           setRegistrationAreaCity('');
@@ -3864,7 +3864,7 @@ export default function App() {
                         setRegistrationOpen(false);
                         setProfileMode(false);
                         setRegistrationError('');
-                        setRegistrationSuccess(false);
+                        setRegistrationSuccess('');
                       }
                     }}
                     disabled={registrationSubmitting}
