@@ -291,6 +291,7 @@ export default function App() {
   const [tagPageLoading, setTagPageLoading] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
   const [wishlistOpen, setWishlistOpen] = useState(false);
@@ -642,6 +643,7 @@ export default function App() {
       if (cached) {
         setPosts(cached);
         setPage(pageNumber);
+        setHasMorePosts(cached.length === PAGE_SIZE);
         setLoading(false);
         setSearching(false);
 
@@ -656,6 +658,7 @@ export default function App() {
       const result = await fetchFeedFromNetwork(search, startIndex);
       setPosts(result);
       setPage(pageNumber);
+      setHasMorePosts(result.length === PAGE_SIZE);
 
       if (result.length === PAGE_SIZE) {
         void prefetchFeed(search, pageNumber + 1);
@@ -667,6 +670,24 @@ export default function App() {
       setSearching(false);
     }
   }, []);
+
+  const loadMorePosts = useCallback(async () => {
+    if (!hasMorePosts || loading || searching) return;
+    try {
+      setSearching(true);
+      const activeSearch = query.trim().length >= 1 ? query.trim() : '';
+      const nextPage = page + 1;
+      const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
+      const result = await fetchFeedFromNetwork(activeSearch, startIndex);
+      setPosts(current => [...current, ...result]);
+      setPage(nextPage);
+      setHasMorePosts(result.length === PAGE_SIZE);
+    } catch {
+      setError('Could not load more offers. Please try again.');
+    } finally {
+      setSearching(false);
+    }
+  }, [hasMorePosts, loading, searching, query, page]);
 
   const syncPushTokenForRegisteredUser = async () => {
     try {
@@ -4424,7 +4445,7 @@ export default function App() {
                     onPress={() => setTagPageDropdownOpen(value => !value)}
                   >
                     <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]} numberOfLines={1}>
-                      Category - {tagPage || 'All'}
+                      Tags - {tagPage || 'All'}
                     </Text>
                     <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
                       {tagPageDropdownOpen ? '▴' : '▾'}
@@ -4547,16 +4568,7 @@ export default function App() {
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
-        ListHeaderComponentStyle={darkMode ? styles.contentDark : undefined}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
-        onEndReachedThreshold={0.5}
-        onEndReached={() => {
-          const activeSearch = query.trim().length >= 3 ? query.trim() : '';
-          if (posts.length === PAGE_SIZE) {
-            void prefetchFeed(activeSearch, page + 1);
-          }
-        }}
-        ListHeaderComponent={
+        ListHeaderComponentStyle={darkMode ? styles.contentDark : undefined}        ListHeaderComponent={
           <>
             <ImageBackground
               source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }}
@@ -4649,7 +4661,6 @@ export default function App() {
 
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers</Text>
-              <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Page {page}</Text>
             </View>
           </>
         }
@@ -4664,16 +4675,13 @@ export default function App() {
         }
         ListFooterComponent={
           visiblePosts.length > 0 ? (
-            <>
-              <View style={styles.pagination}>
-                <TouchableOpacity disabled={page === 1} onPress={() => goToPage(page - 1)} style={[styles.pageButton, page === 1 && styles.disabledButton]}>
-                  <Text style={styles.pageButtonText}>‹</Text>
-                </TouchableOpacity>
-                <Text style={styles.pageNumber}>{page}</Text>
-                <TouchableOpacity onPress={() => goToPage(page + 1)} style={styles.pageButton}>
-                  <Text style={styles.pageButtonText}>›</Text>
-                </TouchableOpacity>
-              </View>
+            <>               {hasMorePosts ? (
+                 <View style={styles.loadMoreWrap}>
+                   <TouchableOpacity style={styles.registrationButton} onPress={() => { void loadMorePosts(); }} disabled={searching}>
+                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.registrationButtonText}>Load More</Text>}
+                   </TouchableOpacity>
+                 </View>
+               ) : null}
               <View style={styles.footer}>
                 <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
@@ -5171,11 +5179,7 @@ const styles = StyleSheet.create({
   date: { color: MUTED, fontSize: 10, marginTop: 5 },
   excerpt: { color: '#66636a', fontSize: 11, lineHeight: 16, marginTop: 6 },
   readText: { color: ACCENT, fontSize: 11, fontWeight: '900', marginTop: 8 },
-  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 18 },
-  pageButton: { width: 40, height: 40, borderRadius: 10, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   disabledButton: { opacity: 0.35 },
-  pageButtonText: { color: WHITE, fontSize: 24, fontWeight: '900' },
-  pageNumber: { color: TEXT, fontSize: 15, fontWeight: '900' },
   state: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30, paddingVertical: 45 },
   stateText: { color: MUTED, fontSize: 14, textAlign: 'center', lineHeight: 21, marginTop: 9 },
   errorTitle: { color: TEXT, fontSize: 18, fontWeight: '900', textAlign: 'center' },
@@ -5386,6 +5390,7 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
+  loadMoreWrap: { paddingHorizontal: 18, paddingVertical: 14 },
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 16, fontWeight: '900' },
   footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
