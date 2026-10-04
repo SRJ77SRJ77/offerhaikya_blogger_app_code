@@ -1683,73 +1683,6 @@ export default function App() {
     };
   };
 
-  const requestPostRegistrationPermissions = async () => {
-    // Registration is already complete. Permission decisions must never block the account.
-    try {
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'OfferHaikya',
-          importance: Notifications.AndroidImportance.DEFAULT,
-        });
-      }
-
-      const notificationPermission = await Notifications.getPermissionsAsync();
-      let notificationStatus = notificationPermission.status;
-
-      if (notificationStatus !== 'granted') {
-        const requested = await Notifications.requestPermissionsAsync();
-        notificationStatus = requested.status;
-      }
-
-      const firebaseUser = auth.currentUser;
-      if (firebaseUser && !firebaseUser.isAnonymous && notificationStatus === 'granted') {
-        const projectId =
-          Constants?.expoConfig?.extra?.eas?.projectId ??
-          Constants?.easConfig?.projectId;
-
-        if (projectId) {
-          const pushToken = (
-            await Notifications.getExpoPushTokenAsync({ projectId })
-          ).data;
-
-          await setDoc(
-            doc(db, 'users', firebaseUser.uid),
-            {
-              expoPushToken: pushToken,
-              notificationsEnabled: true,
-              notificationPermission: 'granted',
-            },
-            { merge: true },
-          );
-        }
-      } else if (firebaseUser && !firebaseUser.isAnonymous) {
-        await setDoc(
-          doc(db, 'users', firebaseUser.uid),
-          {
-            notificationsEnabled: false,
-            notificationPermission: notificationStatus,
-          },
-          { merge: true },
-        );
-      }
-    } catch (error) {
-      console.log('Post-registration notification permission error:', error);
-    }
-
-    try {
-      const permission = await Location.getForegroundPermissionsAsync();
-      const servicesEnabled = await Location.hasServicesEnabledAsync();
-
-      if (permission.status === 'granted' && servicesEnabled) {
-        setLocationPromptOpen(false);
-        setLocationRefreshKey(value => value + 1);
-      } else if (permission.status !== 'granted' && permission.canAskAgain !== false) {
-        setLocationPromptOpen(true);
-      }
-    } catch (error) {
-      console.log('Post-registration location permission error:', error);
-    }
-  };
 
   const saveRegisteredProfile = async (
     user: any,
@@ -1849,7 +1782,6 @@ export default function App() {
         setRegistrationSuccess(false);
         setRegistrationPassword('');
         setRegistrationPasswordVisible(false);
-        void requestPostRegistrationPermissions();
       }, 1200);
     } catch (error: any) {
       console.log('Registration error:', error);
