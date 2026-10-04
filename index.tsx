@@ -304,6 +304,7 @@ export default function App() {
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
   const locationPermissionRequestActiveRef = useRef(false);
+  const localOffersPermissionPendingRef = useRef(false);
   const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
@@ -1474,9 +1475,15 @@ export default function App() {
 
       if (permission.status === 'granted') {
         locationPromptSnoozeUntilRef.current = 0;
-        startNearbyPreloader();
-        setLocationRefreshKey(value => value + 1);
+        if (localOffersPermissionPendingRef.current) {
+          localOffersPermissionPendingRef.current = false;
+          enterLocalOffers();
+        } else {
+          startNearbyPreloader();
+          setLocationRefreshKey(value => value + 1);
+        }
       } else {
+        localOffersPermissionPendingRef.current = false;
         scheduleLocationPromptRetry();
       }
     } catch {
@@ -1507,6 +1514,8 @@ export default function App() {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
+    setTagPage(null);
+    setTagPageDropdownOpen(false);
     activateBottomTabFor5Sec('home');
     setActiveLabel('All');
     setQuery('');
@@ -1542,10 +1551,12 @@ export default function App() {
     }, 150);
   };
 
-  const goToLocalOffersTab = async () => {
+  const enterLocalOffers = () => {
     closeMenu();
     setDetail(null);
     setInfoPage(null);
+    setTagPage(null);
+    setTagPageDropdownOpen(false);
     activateBottomTabFor5Sec('local');
     setActiveLabel('All');
     setQuery('');
@@ -1557,16 +1568,28 @@ export default function App() {
     startNearbyPreloader();
     loadPosts('', 1);
     mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    setLocationRefreshKey(value => value + 1);
+  };
+
+  const goToLocalOffersTab = async () => {
+    closeMenu();
+    setDetail(null);
+    setInfoPage(null);
 
     try {
       const permission = await Location.getForegroundPermissionsAsync();
       const servicesEnabled = await Location.hasServicesEnabledAsync();
+
       if (permission.status === 'granted' && servicesEnabled) {
-        setLocationRefreshKey(value => value + 1);
-      } else if (permission.canAskAgain !== false || !servicesEnabled) {
-        setLocationPromptOpen(true);
+        localOffersPermissionPendingRef.current = false;
+        enterLocalOffers();
+        return;
       }
+
+      localOffersPermissionPendingRef.current = true;
+      setLocationPromptOpen(true);
     } catch {
+      localOffersPermissionPendingRef.current = true;
       setLocationPromptOpen(true);
     }
   };
@@ -2804,6 +2827,71 @@ export default function App() {
             renderItem={renderPost}
             ListHeaderComponent={
               <>
+                <View style={styles.tagPageHeader}>
+                  <TouchableOpacity
+                    style={styles.tagPageBackButton}
+                    onPress={() => {
+                      setTagPage(null);
+                      setQuery('');
+                      setSuggestions([]);
+                      setActiveLabel('All');
+                      setTagPageDropdownOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
+                    #{tagPage} Offers
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.tagPageDropdownButton}
+                    onPress={() => setTagPageDropdownOpen(value => !value)}
+                  >
+                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
+                    <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
+                      {tagPageDropdownOpen ? '⌃' : '⌄'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.tagStrip}>
+                  <ScrollView
+                    ref={tagScrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.chips}
+                    onContentSizeChange={width => { tagContentWidthRef.current = width; }}
+                    onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
+                    onTouchStart={pauseTagAutoScroll}
+                    onMomentumScrollBegin={pauseTagAutoScroll}
+                    onScrollBeginDrag={pauseTagAutoScroll}
+                    scrollEventThrottle={16}
+                  >
+                    {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
+                      <TouchableOpacity
+                        key={'tag-page-' + item + '-' + index}
+                        onPress={() => {
+                          pauseTagAutoScroll();
+                          setTagPageDropdownOpen(false);
+                          if (item === 'All') {
+                            setTagPage(null);
+                            setActiveLabel('All');
+                            setQuery('');
+                            setSuggestions([]);
+                            loadPosts('', 1);
+                            return;
+                          }
+                          setTagPage(item);
+                          setActiveLabel(item);
+                          setQuery('');
+                          setSuggestions([]);
+                        }}
+                        style={[styles.chip, activeLabel === item && styles.activeChip]}
+                      >
+                        <Text style={styles.chipText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
                 <ImageBackground
                   source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg' }}
                   style={styles.hero}
@@ -2846,71 +2934,6 @@ export default function App() {
                     </TouchableOpacity>
                   </View>
                 </ImageBackground>
-                <View style={styles.tagStrip}>
-                  <ScrollView
-                    ref={tagScrollRef}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.chips}
-                    onContentSizeChange={width => { tagContentWidthRef.current = width; }}
-                    onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
-                    onTouchStart={pauseTagAutoScroll}
-                    onMomentumScrollBegin={pauseTagAutoScroll}
-                    onScrollBeginDrag={pauseTagAutoScroll}
-                    scrollEventThrottle={16}
-                  >
-                    {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
-                      <TouchableOpacity
-                        key={'tag-page-' + item + '-' + index}
-                        onPress={() => {
-                          pauseTagAutoScroll();
-                          setTagPageDropdownOpen(false);
-                          if (item === 'All') {
-                            setTagPage(null);
-                            setActiveLabel('All');
-                            setQuery('');
-                            setSuggestions([]);
-                            loadPosts('', 1);
-                            return;
-                          }
-                          setTagPage(item);
-                          setActiveLabel(item);
-                          setQuery('');
-                          setSuggestions([]);
-                        }}
-                        style={[styles.chip, activeLabel === item && styles.activeChip]}
-                      >
-                        <Text style={styles.chipText}>{item}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-                <View style={styles.tagPageHeader}>
-                  <TouchableOpacity
-                    style={styles.tagPageBackButton}
-                    onPress={() => {
-                      setTagPage(null);
-                      setQuery('');
-                      setSuggestions([]);
-                      setActiveLabel('All');
-                      setTagPageDropdownOpen(false);
-                    }}
-                  >
-                    <Text style={[styles.tagPageBackText, darkMode && styles.darkText]}>‹</Text>
-                  </TouchableOpacity>
-                  <Text style={[styles.tagPageTitle, darkMode && styles.darkText]} numberOfLines={1}>
-                    #{tagPage} Offers
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.tagPageDropdownButton}
-                    onPress={() => setTagPageDropdownOpen(value => !value)}
-                  >
-                    <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]}>Tags</Text>
-                    <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
-                      {tagPageDropdownOpen ? '⌃' : '⌄'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
                 {tagPageDropdownOpen ? (
                   <View style={[styles.tagPageDropdownMenu, darkMode && styles.tagPageDropdownMenuDark]}>
                     <ScrollView
