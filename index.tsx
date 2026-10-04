@@ -272,6 +272,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [startupPreloader, setStartupPreloader] = useState(true);
+  const [startupLoadingDots, setStartupLoadingDots] = useState('....');
   const [startupPreloaderStage, setStartupPreloaderStage] = useState<'local' | 'online'>('local');
   const startupPreloaderProgress = useRef(new Animated.Value(0)).current;
   const [registrationName, setRegistrationName] = useState('');
@@ -467,6 +468,19 @@ export default function App() {
       setSearching(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const startupLoadingInterval = setInterval(() => {
+      setStartupLoadingDots((current) => {
+        if (current === '....') return '..';
+        if (current === '..') return '....';
+        if (current === '....') return '......';
+        return '....';
+      });
+    }, 450);
+
+    return () => clearInterval(startupLoadingInterval);
   }, []);
 
   useEffect(() => {
@@ -2584,7 +2598,9 @@ export default function App() {
             ]}
           />
         </View>
-        <Text style={styles.startupPreloaderStatus}>Loading Offers...</Text>
+        <Text style={styles.startupPreloaderStatus}>
+          {'Loading Offers' + startupLoadingDots}
+        </Text>
       </View>
     );
   }
