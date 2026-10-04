@@ -2944,14 +2944,24 @@ export default function App() {
       <TouchableOpacity
         style={styles.favoriteOverlayBackdrop}
         activeOpacity={1}
-        onPress={() => setNotificationsOpen(false)}
+        onPress={() => {
+          setNotificationsOpen(false);
+          if (auth.currentUser?.isAnonymous) {
+            void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
+          }
+        }}
       />
       <View style={[styles.favoritePopup, darkMode && styles.favoritePopupDark]}>
         <View style={styles.favoritePopupHeader}>
           <View>
             <Text style={[styles.favoritePopupTitle, darkMode && styles.darkText]}>Notifications</Text>
           </View>
-          <TouchableOpacity style={styles.favoriteClose} onPress={() => setNotificationsOpen(false)}>
+          <TouchableOpacity style={styles.favoriteClose} onPress={() => {
+          setNotificationsOpen(false);
+          if (auth.currentUser?.isAnonymous) {
+            void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
+          }
+        }}>
             <Text style={[styles.favoriteCloseText, darkMode && styles.headerIconDark]}>×</Text>
           </TouchableOpacity>
         </View>
