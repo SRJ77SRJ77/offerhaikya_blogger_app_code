@@ -1591,10 +1591,14 @@ export default function App() {
   };
 
   const openProfile = async () => {
+    // Open the same registration form immediately. We show a loading state
+    // while checking whether this anonymous Firebase user has completed registration.
+    setRegistrationOpen(true);
     setProfileLoading(true);
     setRegistrationError('');
     setRegistrationSuccess(false);
     setRegistrationCategoriesOpen(false);
+    setProfileMode(false);
 
     try {
       if (!auth.currentUser) {
@@ -1626,9 +1630,8 @@ export default function App() {
         registrationEmailRef.current = email;
         registrationCategoriesRef.current = categories;
       } else {
-        // User previously skipped registration (or has only anonymous
-        // notification data). Open the original Welcome form so the first
-        // submission creates a new registration row.
+        // User skipped registration or has only anonymous notification data.
+        // Keep the normal Welcome form so the first submission creates the entry.
         setProfileMode(false);
         setRegistrationName('');
         setRegistrationContact('');
@@ -1640,11 +1643,9 @@ export default function App() {
         registrationCategoriesRef.current = [];
         setSkipCountdown(0);
       }
-
-      setRegistrationOpen(true);
     } catch (error) {
       console.log('Profile load error:', error);
-      setRegistrationError('Could not load your profile. Please try again.');
+      setRegistrationError('Could not load your profile. Please check your connection and try again.');
     } finally {
       setProfileLoading(false);
     }
