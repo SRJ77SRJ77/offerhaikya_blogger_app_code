@@ -1767,7 +1767,9 @@ export default function App() {
               const deleteUrl =
                 REGISTRATION_URL +
                 '?type=' + encodeURIComponent('profile_delete') +
-                '&uid=' + encodeURIComponent(firebaseUser.uid);
+                '&uid=' + encodeURIComponent(firebaseUser.uid) +
+                '&contact=' + encodeURIComponent(registrationContact.trim() ? '91' + registrationContact.trim() : '') +
+                '&email=' + encodeURIComponent(registrationEmail.trim().toLowerCase());
 
               const deleteResponse = await fetch(deleteUrl, { method: 'GET' });
 
