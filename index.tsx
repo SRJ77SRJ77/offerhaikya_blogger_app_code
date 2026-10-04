@@ -4993,7 +4993,7 @@ const styles = StyleSheet.create({
   profileHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 15 },
   profileTitle: { color: TEXT, fontSize: 21, fontWeight: '900', marginBottom: 4 },
   profileSubtitle: { color: MUTED, fontSize: 13 },
-  profileCloseButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  profileHeaderCloseButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   profileCloseText: { color: TEXT, fontSize: 29, lineHeight: 30 },
   profileLoading: { minHeight: 280, alignItems: 'center', justifyContent: 'center' },
   profileLoadingText: { color: MUTED, fontSize: 13, marginTop: 10 },
