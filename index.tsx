@@ -68,6 +68,7 @@ const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
+const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
@@ -317,6 +318,7 @@ export default function App() {
   const skipReminderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const registrationFlowActiveRef = useRef(false);
   const authBootstrappedRef = useRef(false);
+  const pendingDeleteAfterLoginRef = useRef(false);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -518,6 +520,7 @@ export default function App() {
       if (!authBootstrappedRef.current) return;
       if (cancelled) return;
       void loadAccountState(user);
+      void loadFavoritesForUser(user);
     });
 
     const bootstrapAuth = async () => {
@@ -534,6 +537,7 @@ export default function App() {
         authBootstrappedRef.current = true;
         setAuthReady(true);
         await loadAccountState(auth.currentUser);
+        await loadFavoritesForUser(auth.currentUser);
       } catch (error) {
         console.log('Auth bootstrap error:', error);
 
@@ -1540,10 +1544,55 @@ export default function App() {
     return () => clearInterval(timer);
   }, [tagPage, loadTagPosts]);
 
+  const getFavoritesStorageKey = (uid: string) =>
+    FAVORITES_STORAGE_PREFIX + uid;
+
+  const loadFavoritesForUser = async (user: any) => {
+    setFavorites([]);
+
+    if (!user?.uid) return;
+
+    try {
+      const stored = await AsyncStorage.getItem(getFavoritesStorageKey(user.uid));
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        setFavorites(parsed);
+      }
+    } catch (error) {
+      console.log('Favorites load error:', error);
+      setFavorites([]);
+    }
+  };
+
+  const persistFavoritesForUser = async (user: any, nextFavorites: Post[]) => {
+    if (!user?.uid) return;
+
+    try {
+      await AsyncStorage.setItem(
+        getFavoritesStorageKey(user.uid),
+        JSON.stringify(nextFavorites),
+      );
+    } catch (error) {
+      console.log('Favorites save error:', error);
+    }
+  };
+
   const toggleFavorite = (post: Post) => {
-    setFavorites(current => current.some(item => item.id === post.id)
-      ? current.filter(item => item.id !== post.id)
-      : [...current, post]);
+    const user = auth.currentUser;
+
+    setFavorites(current => {
+      const next = current.some(item => item.id === post.id)
+        ? current.filter(item => item.id !== post.id)
+        : [...current, post];
+
+      if (user?.uid) {
+        void persistFavoritesForUser(user, next);
+      }
+
+      return next;
+    });
   };
 
   const copyPostLink = async (url: string) => {
@@ -2023,6 +2072,12 @@ export default function App() {
 
       const credential = await signInWithEmailAndPassword(auth, email, password);
 
+      if (pendingDeleteAfterLoginRef.current) {
+        pendingDeleteAfterLoginRef.current = false;
+        await deleteAccountAfterRecentLogin();
+        return;
+      }
+
       try {
         await loadRegisteredProfile(credential.user);
         setRegistrationError('');
@@ -2124,64 +2179,94 @@ export default function App() {
     }
   };
 
+  const deleteAccountAfterRecentLogin = async () => {
+    const user = auth.currentUser;
+
+    if (!user || user.isAnonymous) {
+      setRegistrationError('Registered account not found.');
+      return;
+    }
+
+    try {
+      setRegistrationSubmitting(true);
+      setRegistrationError('');
+
+      const uid = user.uid;
+
+      // Delete the user's profile and favorites first while Auth is still valid.
+      await deleteDoc(doc(db, 'users', uid));
+      await AsyncStorage.removeItem(getFavoritesStorageKey(uid));
+      setFavorites([]);
+
+      // This should now succeed because the user just authenticated.
+      await deleteUser(user);
+
+      await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
+
+      setProfileStatus('skipped');
+      setRegistrationCompleted(false);
+      setRegistrationOpen(false);
+      setProfileMode(false);
+      setAuthMode('register');
+      setRegistrationName('');
+      setRegistrationContact('');
+      setRegistrationEmail('');
+      setRegistrationPassword('');
+      setRegistrationPasswordVisible(false);
+      setRegistrationAreaCity('');
+      setRegistrationCategories([]);
+      setRegistrationCategoriesOpen(false);
+
+      registrationNameRef.current = '';
+      registrationContactRef.current = '';
+      registrationEmailRef.current = '';
+      registrationAreaCityRef.current = '';
+      registrationCategoriesRef.current = [];
+      pendingDeleteAfterLoginRef.current = false;
+
+      if (skipReminderTimerRef.current) {
+        clearTimeout(skipReminderTimerRef.current);
+      }
+
+      skipReminderTimerRef.current = setTimeout(() => {
+        void checkRegistrationReminder();
+      }, SKIP_REMINDER_MS);
+    } catch (error: any) {
+      console.log('Profile delete error:', error);
+
+      if (error?.code === 'auth/requires-recent-login') {
+        pendingDeleteAfterLoginRef.current = true;
+        setProfileMode(false);
+        setAuthMode('signIn');
+        setRegistrationPassword('');
+        setRegistrationPasswordVisible(false);
+        setRegistrationError('Please login again to confirm account deletion.');
+        setRegistrationOpen(true);
+      } else {
+        setRegistrationError('Could not delete your account. Please try again.');
+      }
+    } finally {
+      setRegistrationSubmitting(false);
+    }
+  };
+
   const deleteProfile = () => {
     Alert.alert(
       'Delete profile?',
-      'Are you sure you want to delete your Firebase account and profile?',
+      'Please login again to confirm deletion of your account and profile.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Continue',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              setRegistrationSubmitting(true);
-              setRegistrationError('');
-
-              const user = auth.currentUser;
-              if (!user || user.isAnonymous) {
-                throw new Error('Registered account not found');
-              }
-
-              await deleteDoc(doc(db, 'users', user.uid));
-              await deleteUser(user);
-              await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
-
-              if (skipReminderTimerRef.current) {
-                clearTimeout(skipReminderTimerRef.current);
-              }
-              skipReminderTimerRef.current = setTimeout(() => {
-                void checkRegistrationReminder();
-              }, SKIP_REMINDER_MS);
-
-              setProfileStatus('skipped');
-              setRegistrationCompleted(false);
-              setRegistrationOpen(false);
-              setProfileMode(false);
-              setAuthMode('register');
-              setRegistrationName('');
-              setRegistrationContact('');
-              setRegistrationEmail('');
-              setRegistrationPassword('');
-              setRegistrationAreaCity('');
-              setRegistrationCategories([]);
-              setRegistrationCategoriesOpen(false);
-              registrationNameRef.current = '';
-              registrationContactRef.current = '';
-              registrationEmailRef.current = '';
-              registrationAreaCityRef.current = '';
-              registrationCategoriesRef.current = [];
-            } catch (error: any) {
-              console.log('Profile delete error:', error);
-
-              if (error?.code === 'auth/requires-recent-login') {
-                setRegistrationError('Please sign in again before deleting your account.');
-              } else {
-                setRegistrationError('Could not delete your account. Please try again.');
-              }
-            } finally {
-              setRegistrationSubmitting(false);
-            }
+          onPress: () => {
+            pendingDeleteAfterLoginRef.current = true;
+            setRegistrationError('Please login again to confirm account deletion.');
+            setRegistrationPassword('');
+            setRegistrationPasswordVisible(false);
+            setAuthMode('signIn');
+            setProfileMode(false);
+            setRegistrationOpen(true);
           },
         },
       ],
@@ -2201,18 +2286,35 @@ export default function App() {
             try {
               setRegistrationSubmitting(true);
               setRegistrationError('');
+              pendingDeleteAfterLoginRef.current = false;
 
               await signOut(auth);
-              await signInAnonymously(auth);
 
+              // Immediately remove the previous user's data from the visible form.
+              setFavorites([]);
               setProfileStatus('skipped');
               setRegistrationCompleted(false);
               setProfileMode(false);
               setAuthMode('register');
+              setRegistrationName('');
+              setRegistrationContact('');
+              setRegistrationEmail('');
               setRegistrationPassword('');
               setRegistrationPasswordVisible(false);
-              setRegistrationError('');
+              setRegistrationAreaCity('');
+              setRegistrationCategories([]);
+              setRegistrationCategoriesOpen(false);
               setRegistrationSuccess(false);
+
+              registrationNameRef.current = '';
+              registrationContactRef.current = '';
+              registrationEmailRef.current = '';
+              registrationAreaCityRef.current = '';
+              registrationCategoriesRef.current = [];
+
+              // Create a separate guest session after logout.
+              await signInAnonymously(auth);
+              await loadFavoritesForUser(auth.currentUser);
               setRegistrationOpen(true);
             } catch (error) {
               console.log('Logout error:', error);
@@ -3632,11 +3734,23 @@ export default function App() {
                     <TouchableOpacity
                       style={styles.registrationSecondaryHalfButton}
                       onPress={() => {
-                        setAuthMode(value => value === 'signIn' ? 'register' : 'signIn');
-                        setRegistrationPassword('');
-                        setRegistrationPasswordVisible(false);
-                        setRegistrationError('');
-                        setRegistrationSuccess(false);
+                        if (authMode === 'signIn') {
+                          openWelcomeRegistration();
+                        } else {
+                          setAuthMode('signIn');
+                          setRegistrationPassword('');
+                          setRegistrationPasswordVisible(false);
+                          setRegistrationError('');
+                          setRegistrationSuccess(false);
+                          setRegistrationName('');
+                          setRegistrationContact('');
+                          setRegistrationAreaCity('');
+                          setRegistrationCategories([]);
+                          registrationNameRef.current = '';
+                          registrationContactRef.current = '';
+                          registrationAreaCityRef.current = '';
+                          registrationCategoriesRef.current = [];
+                        }
                       }}
                       disabled={registrationSubmitting || profileLoading}
                     >
