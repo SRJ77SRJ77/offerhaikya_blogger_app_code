@@ -3763,7 +3763,7 @@ export default function App() {
                   <TouchableOpacity
                     style={[styles.registrationButton, registrationSubmitting && styles.disabledButton]}
                     onPress={authMode === 'signIn' ? signInAccount : submitRegistration}
-                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
+                    disabled={registrationSubmitting || !!registrationSuccess || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
@@ -3848,7 +3848,7 @@ export default function App() {
                   <TouchableOpacity
                     style={[styles.profileUpdateButton, registrationSubmitting && styles.disabledButton]}
                     onPress={saveProfile}
-                    disabled={registrationSubmitting || registrationSuccess || profileLoading}
+                    disabled={registrationSubmitting || !!registrationSuccess || profileLoading}
                   >
                     {registrationSubmitting ? (
                       <ActivityIndicator size="small" color={WHITE} />
