@@ -3681,13 +3681,13 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={darkMode ? WHITE : (bottomTab === 'home' ? ACCENT : TEXT)}
+                stroke={bottomTab === 'home' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'home' && styles.bottomNavLabelActive]}>
               Home
             </Text>
           </TouchableOpacity>
@@ -3715,7 +3715,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Local Offers</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Local Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -3735,20 +3735,20 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinejoin="round"
               />
               <Path
                 d="M4.5 6L12 12L19.5 6"
-                stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
             <Text
-              style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}
+              style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'request' && styles.bottomNavLabelActive]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.78}
@@ -3766,17 +3766,17 @@ export default function App() {
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-                stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
               />
               <Path
                 d="M16.5 16.5L21 21"
-                stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
                 strokeWidth={2}
                 strokeLinecap="round"
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
               Search
             </Text>
           </TouchableOpacity>
@@ -4747,13 +4747,13 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-              stroke={darkMode ? WHITE : (bottomTab === 'home' ? ACCENT : TEXT)}
+              stroke={bottomTab === 'home' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'home' && styles.bottomNavLabelActive]}>
             Home
           </Text>
         </TouchableOpacity>
@@ -4766,14 +4766,14 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-              stroke={darkMode ? WHITE : (bottomTabRef.current === 'local' ? ACCENT : TEXT)}
+              stroke={bottomTabRef.current === 'local' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <Path
               d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-              stroke={darkMode ? WHITE : (bottomTabRef.current === 'local' ? ACCENT : TEXT)}
+              stroke={bottomTabRef.current === 'local' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
             />
           </Svg>
@@ -4799,20 +4799,20 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M4 5.5H20V18.5H4V5.5Z"
-              stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
+              stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
               strokeLinejoin="round"
             />
             <Path
               d="M4.5 6L12 12L19.5 6"
-              stroke={darkMode ? WHITE : (bottomTab === 'request' ? ACCENT : TEXT)}
+              stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </Svg>
           <Text
-            style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}
+            style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'request' && styles.bottomNavLabelActive]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.78}
@@ -4830,17 +4830,17 @@ export default function App() {
           <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
             <Path
               d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-              stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
+              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
             />
             <Path
               d="M16.5 16.5L21 21"
-              stroke={darkMode ? WHITE : (bottomTab === 'search' ? ACCENT : TEXT)}
+              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
               strokeWidth={2}
               strokeLinecap="round"
             />
           </Svg>
-          <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
             Search
           </Text>
         </TouchableOpacity>
