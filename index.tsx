@@ -4406,10 +4406,8 @@ export default function App() {
                       onSubmitEditing={() => {
                         const text = query.trim();
                         if (!text) return;
-                        setTagPage(null);
-                        setActiveLabel('All');
                         setSuggestions([]);
-                        loadPosts(text, 1);
+                        void loadTagPosts(text);
                       }}
                     />
                     <TouchableOpacity
@@ -4417,10 +4415,8 @@ export default function App() {
                       onPress={() => {
                         const text = query.trim();
                         if (!text) return;
-                        setTagPage(null);
-                        setActiveLabel('All');
                         setSuggestions([]);
-                        loadPosts(text, 1);
+                        void loadTagPosts(text);
                       }}
                     >
                       {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
