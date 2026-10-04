@@ -1576,12 +1576,37 @@ export default function App() {
 
   useEffect(() => {
     if (!tagPage) return;
-    void loadTagPosts(tagPage);
-    const timer = setInterval(() => {
+
+    const text = query.trim();
+    const timer = setTimeout(async () => {
+      if (!text) {
+        await loadTagPosts(tagPage);
+        return;
+      }
+
+      try {
+        setTagPageLoading(true);
+        const results = await getFeed(text, 1);
+        setTagPagePosts(results);
+      } catch {
+        setTagPagePosts([]);
+      } finally {
+        setTagPageLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [tagPage, query, loadTagPosts]);
+
+  useEffect(() => {
+    if (!tagPage || query.trim()) return;
+
+    const interval = setInterval(() => {
       void loadTagPosts(tagPage);
     }, MAIN_AUTO_SYNC_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [tagPage, loadTagPosts]);
+
+    return () => clearInterval(interval);
+  }, [tagPage, query, loadTagPosts]);
 
   const getNotificationsStorageKey = (uid: string) =>
     NOTIFICATIONS_STORAGE_PREFIX + uid;
@@ -4053,7 +4078,7 @@ export default function App() {
                     <TextInput
                       ref={searchInputRef}
                       value={query}
-                      onChangeText={setQuery}
+                      onChangeText={text => setQuery(text)}
                       placeholder="Search offers..."
                       placeholderTextColor="#99969c"
                       style={styles.searchInput}
