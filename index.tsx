@@ -5045,10 +5045,10 @@ const styles = StyleSheet.create({
 
 registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
   registrationTestOverlay: { ...StyleSheet.absoluteFill, zIndex: 340, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-  registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18 },
+  registrationPopup: { width: '100%', maxHeight: '88%', backgroundColor: WHITE, borderRadius: 16, padding: 18, position: 'relative' },
   registrationHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 3 },
-  registrationCloseButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', marginTop: -4, marginRight: -4 },
-  registrationCloseText: { color: TEXT, fontSize: 30, lineHeight: 30, fontWeight: '500' },
+  registrationCloseButton: { position: 'absolute', top: -19, right: -19, width: 40, height: 40, borderRadius: 20, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center', zIndex: 20, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  registrationCloseText: { color: '#000000', fontSize: 28, lineHeight: 30, fontWeight: '500' },
   registrationFormContent: { paddingBottom: 2 },
   registrationCategoryTitle: { color: TEXT, fontSize: 13, fontWeight: '900', marginBottom: 8 },
   registrationCategoryDropdown: { minHeight: 48, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: WHITE, marginBottom: 8 },
