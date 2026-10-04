@@ -3261,6 +3261,23 @@ export default function App() {
           <View style={styles.footer}>
             <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
             <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
+            <View style={styles.socialRow}>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Instagram">
+                <View style={styles.instagramLogo}><View style={styles.instagramLens} /><View style={styles.instagramDot} /></View>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="YouTube">
+                <View style={styles.youtubeLogo}><View style={styles.youtubePlay} /></View>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="Facebook">
+                <Text style={styles.facebookLogo}>f</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="LinkedIn">
+                <Text style={styles.linkedinLogo}>in</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIcon} onPress={() => Linking.openURL('https://www.instagram.com/offerhaikya/')} accessibilityLabel="X">
+                <Text style={styles.xLogo}>𝕏</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.footerLinks}>
               <TouchableOpacity onPress={() => openInfoPage('about')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>About Us</Text></TouchableOpacity>
               <TouchableOpacity onPress={() => openInfoPage('contact')}><Text style={[styles.footerLink, darkMode && styles.darkText]}>Contact Us</Text></TouchableOpacity>
