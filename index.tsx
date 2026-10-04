@@ -2039,7 +2039,28 @@ export default function App() {
       setRegistrationError('');
 
       const credential = await signInWithEmailAndPassword(auth, email, password);
-      await loadRegisteredProfile(credential.user);
+
+      try {
+        await loadRegisteredProfile(credential.user);
+        setRegistrationError('');
+      } catch (profileError) {
+        console.log('Profile load after sign in:', profileError);
+
+        // Firebase login already succeeded. Keep the account logged in and
+        // open the registered profile using Auth data even if Firestore is
+        // temporarily unavailable.
+        setRegistrationOpen(true);
+        setProfileMode(true);
+        setProfileStatus('registered');
+        setRegistrationCompleted(true);
+        setAuthMode('register');
+        setRegistrationName(String(credential.user.displayName || ''));
+        setRegistrationEmail(String(credential.user.email || email));
+        setRegistrationContact('');
+        setRegistrationAreaCity('');
+        setRegistrationCategories([]);
+        setRegistrationError('Signed in, but profile details could not be loaded. Please try again.');
+      }
 
       registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
@@ -4619,12 +4640,12 @@ const styles = StyleSheet.create({
   contentDark: { backgroundColor: '#000000' },
   header: { height: 60, backgroundColor: WHITE, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#dddddd' },
   headerDark: { backgroundColor: '#000000', borderBottomColor: '#2b2b2b' },
-  headerIconButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerActionButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headerIconButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headerActionButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerIcon: { fontSize: 22, color: TEXT, textAlign: 'center', includeFontPadding: false },
   headerIconDark: { color: WHITE },
-  headerLogo: { width: 164, height: 50, marginLeft: 16 },
-  headerActions: { marginLeft: 'auto', marginRight: 12, flexDirection: 'row', alignItems: 'center', paddingLeft: 4 },
+  headerLogo: { width: 140, height: 48, marginLeft: 10 },
+  headerActions: { marginLeft: 4, marginRight: 0, flexDirection: 'row', alignItems: 'center', paddingLeft: 0 },
   listDark: { backgroundColor: '#000000' },
   detailListDark: { backgroundColor: '#000000' },
   menuOverlay: { ...StyleSheet.absoluteFill, zIndex: 100, flexDirection: 'row' },
