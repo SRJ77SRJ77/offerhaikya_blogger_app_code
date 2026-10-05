@@ -5649,19 +5649,68 @@ html,body#layout #outer-wrapper,body#layout .row{
       </b:if>
     </b:includable>
     <b:includable id='itemPost' var='post'>
-      <!-- Item Post Content -->
+      <!-- Offerhaikya app-style single offer page -->
       <b:include data='post' name='postMeta'/>
-      <div class='item-post-inner flex-col'>
-        <div class='entry-header p-eh'>
-          <b:class cond='data:skin.vars.tfyloveit == &quot;1px&quot;' name='h-li'/>
-          <b:include data='post' name='postHeader'/>
+      <article class='ohk-offer-page'>
+        <div class='ohk-offer-toolbar'>
+          <a class='ohk-offer-back' expr:href='data:blog.homepageUrl' aria-label='Back to Home'>&#8249;</a>
+          <div class='ohk-offer-toolbar-title'>Offer</div>
+          <button class='ohk-offer-theme' id='ohkOfferTheme' type='button' aria-label='Toggle dark mode'>&#9789;</button>
         </div>
-        <div class='entry-content-wrap flex-col'>
-          <b:include data='post' name='postBody'/>
-          <b:include cond='data:view.isPost and data:allBylineItems.labels' data='post' name='postLabels'/>
-          <b:include cond='data:view.isPost and data:allBylineItems.share' data='post' name='postShareButtons'/>
+
+        <div class='ohk-offer-card'>
+          <b:if cond='data:post.featuredImage'>
+            <div class='ohk-offer-image-wrap'>
+              <img class='ohk-offer-image'
+                   expr:src='data:post.featuredImage.isYouTube ? resizeImage(data:post.featuredImage.youtubeMaxResDefaultUrl.jsonEscaped, 900, &quot;16:9&quot;) : resizeImage(data:post.featuredImage, 900, &quot;16:9&quot;)'
+                   expr:alt='data:post.title ? data:post.title : data:messages.noTitle'
+                   loading='eager'/>
+            </div>
+          </b:if>
+
+          <div class='ohk-offer-inner'>
+            <div class='ohk-offer-label-row'>
+              <b:if cond='data:post.labels'>
+                <span class='ohk-offer-label'><data:post.labels.first.name/></span>
+              </b:if>
+              <span class='ohk-offer-expiry' id='ohkOfferExpiry'/>
+            </div>
+
+            <h1 class='ohk-offer-title'><data:post.title/></h1>
+
+            <div class='ohk-offer-meta'>
+              <span><data:post.timestamp/></span>
+              <div class='ohk-offer-actions'>
+                <button id='ohkOfferShare' type='button' aria-label='Share offer' title='Share offer'>&#8599;</button>
+                <button id='ohkOfferSave' type='button' aria-label='Save offer' title='Save offer'>&#9825;</button>
+              </div>
+            </div>
+
+            <div class='ohk-offer-body' id='ohk-offer-body'>
+              <b:include data='post' name='postBody'/>
+            </div>
+
+            <div class='ohk-offer-location' id='ohkOfferLocation' hidden='hidden'>
+              <div class='ohk-offer-section-title'>Location</div>
+              <a id='ohkOfferMap' href='#' target='_blank' rel='noopener noreferrer'>Open in Google Maps</a>
+            </div>
+
+            <div class='ohk-offer-related' id='ohkOfferSuggested' hidden='hidden'>
+              <div class='ohk-offer-section-head'>
+                <h2>Suggested Posts</h2>
+              </div>
+              <div class='ohk-offer-post-grid' id='ohkOfferSuggestedGrid'/>
+            </div>
+
+            <div class='ohk-offer-related' id='ohkOfferLatest' hidden='hidden'>
+              <div class='ohk-offer-section-head'>
+                <h2>Latest Posts</h2>
+              </div>
+              <div class='ohk-offer-post-grid' id='ohkOfferLatestGrid'/>
+            </div>
+          </div>
         </div>
-      </div>
+      </article>
       <b:include cond='data:view.isPost' data='post' name='postFooter'/>
     </b:includable>
     <b:includable id='linkShare'><b:comment>Replaced</b:comment></b:includable>
@@ -6153,7 +6202,53 @@ html,body#layout #outer-wrapper,body#layout .row{
     </b:includable>
   </b:defaultmarkup>
 </b:defaultmarkups>
-</head>
+
+<style id='ohk-offer-page-styles'>
+.ohk-offer-page{width:100%;max-width:860px;margin:0 auto;padding:12px 16px 48px;box-sizing:border-box}
+.ohk-offer-toolbar{height:48px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ohk-offer-back,.ohk-offer-theme{width:40px;height:40px;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;color:#202124;box-shadow:0 2px 12px rgba(0,0,0,.09);text-decoration:none;font-size:25px;cursor:pointer}
+.ohk-offer-toolbar-title{font-size:17px;font-weight:800;color:#202124}
+.ohk-offer-theme{font-size:19px}
+.ohk-offer-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.ohk-offer-image-wrap{width:100%;aspect-ratio:16/9;background:#f1f3f4;overflow:hidden}
+.ohk-offer-image{width:100%;height:100%;display:block;object-fit:cover}
+.ohk-offer-inner{padding:18px 20px 24px}
+.ohk-offer-label-row{display:flex;align-items:center;gap:8px;min-height:25px}
+.ohk-offer-label{display:inline-flex;padding:5px 10px;border-radius:999px;background:#fff3ed;color:#ff5b01;font-size:11px;font-weight:800;text-transform:uppercase}
+.ohk-offer-expiry{font-size:11px;font-weight:800;color:#d93025}
+.ohk-offer-title{margin:10px 0 8px;color:#202124;font-size:28px;line-height:1.2;font-weight:900}
+.ohk-offer-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#77747a;font-size:13px;margin-bottom:18px}
+.ohk-offer-actions{display:flex;gap:8px}
+.ohk-offer-actions button{width:38px;height:38px;border:0;border-radius:50%;background:#f3f4f6;color:#202124;font-size:20px;cursor:pointer}
+.ohk-offer-actions button.is-saved{background:#fff3ed;color:#ff5b01}
+.ohk-offer-body{color:#4f4c52;font-size:15px;line-height:1.6}
+.ohk-offer-body img{max-width:100%;height:auto;border-radius:12px}
+.ohk-offer-body iframe{max-width:100%}
+.ohk-offer-body a{color:#ff5b01}
+.ohk-offer-location{margin-top:22px;padding:15px;border-radius:14px;background:#f8f9fa}
+.ohk-offer-section-title{font-weight:900;font-size:16px;color:#202124;margin-bottom:8px}
+.ohk-offer-location a{display:inline-flex;padding:10px 13px;border-radius:10px;background:#ff5b01;color:#fff!important;text-decoration:none;font-weight:800;font-size:13px}
+.ohk-offer-related{margin-top:28px}
+.ohk-offer-section-head h2{margin:0 0 12px;color:#202124;font-size:19px;font-weight:900}
+.ohk-offer-post-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ohk-related-post{display:block;overflow:hidden;border-radius:14px;background:#f8f9fa;color:#202124;text-decoration:none}
+.ohk-related-image{width:100%;aspect-ratio:16/10;object-fit:cover;background:#eee;display:block}
+.ohk-related-copy{padding:10px}
+.ohk-related-label{font-size:9px;font-weight:800;color:#ff5b01;text-transform:uppercase}
+.ohk-related-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:4px;font-size:13px;line-height:1.35;font-weight:800}
+body.ohk-offer-dark{background:#171717!important}
+body.ohk-offer-dark .ohk-offer-toolbar-title{color:#fff}
+body.ohk-offer-dark .ohk-offer-back,body.ohk-offer-dark .ohk-offer-theme{background:#262626;color:#fff}
+body.ohk-offer-dark .ohk-offer-card{background:#202020;box-shadow:none}
+body.ohk-offer-dark .ohk-offer-title,body.ohk-offer-dark .ohk-offer-section-head h2,body.ohk-offer-dark .ohk-offer-section-title{color:#fff}
+body.ohk-offer-dark .ohk-offer-meta,body.ohk-offer-dark .ohk-offer-body{color:#ddd}
+body.ohk-offer-dark .ohk-offer-actions button{background:#303030;color:#fff}
+body.ohk-offer-dark .ohk-offer-actions button.is-saved{background:#3a261b;color:#ff7a2f}
+body.ohk-offer-dark .ohk-offer-location,body.ohk-offer-dark .ohk-related-post{background:#292929}
+body.ohk-offer-dark .ohk-related-post{color:#fff}
+@media(max-width:600px){.ohk-offer-page{padding:8px 10px 36px}.ohk-offer-card{border-radius:16px}.ohk-offer-inner{padding:15px}.ohk-offer-title{font-size:23px}.ohk-offer-post-grid{grid-template-columns:1fr 1fr}.ohk-offer-body{font-size:15px}}
+</style>
+\n</head>
 
 
 
@@ -9067,5 +9162,123 @@ var _0x499018=_0x23a7;function _0x23a7(_0x2ff5e1,_0x497127){_0x2ff5e1=_0x2ff5e1-
 
 
 
-</body>
+
+<script type='text/javascript'>
+//<![CDATA[
+(function(){
+  'use strict';
+  var page=document.querySelector('.ohk-offer-page');
+  if(!page)return;
+  var themeButton=document.getElementById('ohkOfferTheme');
+  var shareButton=document.getElementById('ohkOfferShare');
+  var saveButton=document.getElementById('ohkOfferSave');
+  var expiryBox=document.getElementById('ohkOfferExpiry');
+  var body=document.getElementById('ohk-offer-body');
+  var locationBox=document.getElementById('ohkOfferLocation');
+  var mapLink=document.getElementById('ohkOfferMap');
+  var suggestedBox=document.getElementById('ohkOfferSuggested');
+  var suggestedGrid=document.getElementById('ohkOfferSuggestedGrid');
+  var latestBox=document.getElementById('ohkOfferLatest');
+  var latestGrid=document.getElementById('ohkOfferLatestGrid');
+  var postId="data:post.id";
+  var storageKey='offerhaikya_favorites';
+  var themeKey='offerhaikya_web_dark';
+  function getStore(){
+    try{return JSON.parse(localStorage.getItem(storageKey)||'[]');}catch(e){return[];}
+  }
+  function setStore(v){try{localStorage.setItem(storageKey,JSON.stringify(v));}catch(e){}}
+  function updateSave(){
+    var saved=getStore().indexOf(postId)>=0;
+    saveButton.className=saved?'is-saved':'';
+    saveButton.innerHTML=saved?'&#9829;':'&#9825;';
+    saveButton.setAttribute('aria-label',saved?'Remove saved offer':'Save offer');
+  }
+  function toggleSave(){
+    var a=getStore(),i=a.indexOf(postId);
+    if(i>=0)a.splice(i,1);else a.push(postId);
+    setStore(a);updateSave();
+  }
+  updateSave();
+  saveButton.onclick=toggleSave;
+
+  function share(){
+    var data={title:document.title,text:document.title,url:window.location.href};
+    if(navigator.share){navigator.share(data).catch(function(){});return;}
+    if(navigator.clipboard){navigator.clipboard.writeText(window.location.href).then(function(){shareButton.innerHTML='&#10003;';setTimeout(function(){shareButton.innerHTML='&#8599;'},1200);});}
+  }
+  shareButton.onclick=share;
+
+  function setTheme(dark){
+    document.body.classList.toggle('ohk-offer-dark',dark);
+    themeButton.innerHTML=dark?'&#9788;':'&#9789;';
+    try{localStorage.setItem(themeKey,dark?'1':'0');}catch(e){}
+  }
+  var dark=false;try{dark=localStorage.getItem(themeKey)==='1';}catch(e){}
+  setTheme(dark);
+  themeButton.onclick=function(){setTheme(!document.body.classList.contains('ohk-offer-dark'));};
+
+  function findCoords(){
+    var html=body?body.innerHTML:'';
+    var m=html.match(/!3d(-?\\d+(?:\\.\\d+)?)!4d(-?\\d+(?:\\.\\d+)?)/);
+    if(m)return[m[1],m[2]];
+    m=html.match(/[?&](?:q|query)=(-?\\d+(?:\\.\\d+)?)[,%20]+(-?\\d+(?:\\.\\d+)?)/i);
+    return m?[m[1],m[2]]:null;
+  }
+  var coords=findCoords();
+  if(coords){
+    mapLink.href='https://www.google.com/maps/search/?api=1&query='+coords[0]+','+coords[1];
+    locationBox.hidden=false;
+  }
+
+  function expiry(){
+    var labels="data:post.labels";
+    var match=String(labels).match(/E(\\d+)/i);
+    if(!match)return;
+    var days=Number(match[1]);if(!days)return;
+    var published="data:post.timestamp";
+    var start=new Date(published).getTime();if(isNaN(start))return;
+    var end=start+days*86400000;
+    function tick(){
+      var left=end-Date.now();
+      if(left<=0){expiryBox.textContent='Expired';return;}
+      var mins=Math.ceil(left/60000),h=Math.floor(mins/60),d=Math.floor(h/24);
+      h%=24;mins%=60;
+      expiryBox.textContent=d?'Expires in '+d+'d'+(h?' '+h+'h':''):h?'Expires in '+h+'h'+(mins?' '+mins+'m':''):'Expires in '+mins+'m';
+    }
+    tick();setInterval(tick,60000);
+  }
+  expiry();
+
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function image(entry){
+    var html=(entry.content&&entry.content.$t)||'';
+    var m=html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    return m?m[1]:(entry.media$thumbnail&&entry.media$thumbnail.url)||'';
+  }
+  function url(entry){
+    var links=entry.link||[];for(var i=0;i<links.length;i++)if(links[i].rel==='alternate')return links[i].href;
+    return '#';
+  }
+  function card(entry){
+    var labels=entry.category||[],label=labels.length?labels[0].term:'Offers';
+    var im=image(entry);
+    return '<a class="ohk-related-post" href="'+url(entry)+'">'+(im?'<img class="ohk-related-image" src="'+im+'" loading="lazy" alt=""/>':'')+'<div class="ohk-related-copy"><div class="ohk-related-label">'+esc(label)+'</div><div class="ohk-related-title">'+esc(entry.title&&entry.title.$t||'Untitled post')+'</div></div></a>';
+  }
+  function render(entries,grid,box,current){
+    var out=[],i;for(i=0;i<entries.length;i++){var id=entries[i].id&&entries[i].id.$t||'';if(id!==current)out.push(entries[i]);if(out.length>=4)break;}
+    if(out.length){grid.innerHTML='';for(i=0;i<out.length;i++)grid.insertAdjacentHTML('beforeend',card(out[i]));box.hidden=false;}
+  }
+  function loadRelated(){
+    var label="data:post.labels.first.name";
+    var base=window.location.protocol+'//'+window.location.host+'/feeds/posts/default';
+    var s=document.createElement('script'),cb='ohkRelated_'+Date.now();
+    window[cb]=function(data){var entries=data&&data.feed&&data.feed.entry||[];render(entries,suggestedGrid,suggestedBox,postId);render(entries,latestGrid,latestBox,postId);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);};
+    s.src=base+'?alt=json-in-script&max-results=12&callback='+cb;
+    document.head.appendChild(s);
+  }
+  loadRelated();
+})();
+ //]]>
+</script>
+\n</body>
 </html>
