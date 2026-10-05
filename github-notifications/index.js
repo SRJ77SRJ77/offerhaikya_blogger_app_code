@@ -194,7 +194,11 @@ const run = async () => {
   if (!response.ok) throw new Error('Unable to read Offerhaikya Blogger feed');
 
   const posts = parseFeed(await response.json());
-  if (!posts.length) return;
+  console.log('Blogger feed posts:', posts.length, posts[0] ? { id: posts[0].id, title: posts[0].title, publishedAt: posts[0].publishedAt } : null);
+  if (!posts.length) {
+    console.log('No Blogger posts found; nothing to notify.');
+    return;
+  }
 
   const stateRef = db.doc(STATE_PATH);
   const stateSnapshot = await stateRef.get();
@@ -224,7 +228,7 @@ const run = async () => {
       latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
       updatedAt: FieldValue.serverTimestamp(),
     });
-    console.log('Notification watcher initialized:', posts[0].id);
+    console.log('Notification watcher initialized:', posts[0].id, 'trackedPosts:', posts.length);
     return;
   }
 
@@ -237,6 +241,14 @@ const run = async () => {
   const changedPosts = [...newPosts, ...updatedPosts].filter(
     (post, index, list) => list.findIndex(item => item.id === post.id) === index,
   );
+
+  console.log('Notification state:', {
+    initialized: Boolean(state?.initialized),
+    previousPosts: Object.keys(previousPosts).length,
+    newPosts: newPosts.length,
+    updatedPosts: updatedPosts.length,
+    changedPosts: changedPosts.length,
+  });
 
   if (!changedPosts.length) {
     await stateRef.set({
@@ -254,12 +266,16 @@ const run = async () => {
     .where('notificationsEnabled', '==', true)
     .get();
 
+  console.log('Notification users found:', usersSnapshot.size);
+
   const eligibleUsers = usersSnapshot.docs
     .map(userDoc => ({ data: userDoc.data(), token: userDoc.data()?.expoPushToken }))
     .filter(user =>
       typeof user.token === 'string' &&
       user.token.startsWith('ExponentPushToken['),
     );
+
+  console.log('Eligible users with Expo tokens:', eligibleUsers.length);
 
   for (const post of changedPosts) {
     const isUpdate = Boolean(previousPosts[post.id]);
@@ -316,10 +332,11 @@ const run = async () => {
       },
     }));
 
+    console.log('Prepared notification batch:', { postId: post.id, title: post.title, local, recipients: messages.length });
     if (messages.length) await sendExpoPushMessages(messages);
 
     console.log(
-      isUpdate ? 'Sent offer-update notifications:' : 'Sent new-offer notifications:',
+      messages.length ? (isUpdate ? 'Sent offer-update notifications:' : 'Sent new-offer notifications:') : 'No matching notification recipients:',
       post.id,
       'type:', local ? 'OFFLINE/LOCAL' : 'ONLINE',
       'users:', messages.length,
