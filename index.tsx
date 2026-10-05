@@ -2808,7 +2808,14 @@ export default function App() {
           // Return to Home when Location is turned back ON.
           returnHomeAfterLocationSettingsRef.current = true;
           try {
-            await Linking.openSettings();
+            if (Platform.OS === 'android' && typeof Linking.sendIntent === 'function') {
+              // Permission is already granted: open Android's device Location Services,
+              // not the app-permission settings screen.
+              await Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS');
+            } else {
+              // iOS: Location Services is managed from the app/device Settings.
+              await Linking.openSettings();
+            }
           } catch {
             // Keep the existing retry/check flow if Settings cannot be opened.
           }
