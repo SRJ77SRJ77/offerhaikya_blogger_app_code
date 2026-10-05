@@ -321,6 +321,7 @@ export default function App() {
   const [registrationCategories, setRegistrationCategories] = useState<string[]>([]);
   const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
+  const signInSubmittingRef = useRef(false);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState('');
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
@@ -2148,6 +2149,7 @@ export default function App() {
     if (!profile) return;
 
     try {
+      signInSubmittingRef.current = true;
       registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
@@ -2404,6 +2406,8 @@ export default function App() {
   };
 
   const signInAccount = async () => {
+    if (signInSubmittingRef.current) return;
+
     const email = registrationEmail.trim().toLowerCase();
     const password = registrationPassword;
 
@@ -2435,6 +2439,7 @@ export default function App() {
 
       await loadRegisteredProfile(credential.user);
 
+      signInSubmittingRef.current = false;
       registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
       setRegistrationPassword('');
@@ -2467,7 +2472,11 @@ export default function App() {
       }
 
       registrationFlowActiveRef.current = false;
-      setRegistrationSubmitting(false);
+      setRegistrationError((currentError) => currentError);
+      setTimeout(() => {
+        signInSubmittingRef.current = false;
+        setRegistrationSubmitting(false);
+      }, 2000);
     }
   };
 
