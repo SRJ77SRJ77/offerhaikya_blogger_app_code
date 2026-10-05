@@ -97,7 +97,7 @@ const isLocalOffer = post => {
   return labels.some(label => label.includes('offline offer') || label.includes('local offer'));
 };
 
-const matchesUserLocation = (post, user) => {
+const getUserLocationMatch = (post, user) => {
   const data = user.data || {};
   const current = data.location;
   const manual = data.manualLocationCoordinates;
@@ -116,7 +116,8 @@ const matchesUserLocation = (post, user) => {
       ? { latitude: Number(manual.latitude), longitude: Number(manual.longitude) }
       : null;
 
-  const coords = currentCoords || manualCoords;
+  const selectedCoords = currentCoords || manualCoords;
+  const selectedLocationType = currentCoords ? 'CURRENT' : manualCoords ? 'SAVED' : 'NONE';
 
   const locationTerms = buildLocationTerms(
     data.locationLabel,
@@ -136,11 +137,12 @@ const matchesUserLocation = (post, user) => {
 
   const postLocation = extractMapCoordinates(post.rawContent);
   const distanceMatch =
-    Boolean(coords && postLocation) &&
-    distanceKm(coords, postLocation) <= NEARBY_RADIUS_KM;
+    Boolean(selectedCoords && postLocation) &&
+    distanceKm(selectedCoords, postLocation) <= NEARBY_RADIUS_KM;
 
   return {
-    hasLocationData: Boolean(coords || locationTerms.length),
+    source: selectedLocationType,
+    hasLocation: Boolean(selectedCoords || locationTerms.length),
     matched: textMatch || distanceMatch,
   };
 };
@@ -289,24 +291,25 @@ const run = async () => {
           ? data.interestedCategories.map(normalizeText).filter(Boolean)
           : [];
 
-        const categoryMatch = interestedCategories.some(category =>
-          normalizedLabels.has(category),
-        );
+        const wantsOnlineOffers = interestedCategories.includes('online offer');
+        const wantsOfflineOffers = interestedCategories.includes('offline offer');
 
         if (!local) {
-          return categoryMatch;
+          // ONLINE OFFER: category subscription only. No location check.
+          return wantsOnlineOffers;
         }
 
-        const location = matchesUserLocation(post, user);
+        // OFFLINE OFFER: category subscription is required first.
+        if (!wantsOfflineOffers) return false;
 
-        // Local/offline: a matching location wins immediately.
-        if (location.matched) return true;
+        // Current location has priority. Saved/manual location is used only
+        // when the current location is unavailable.
+        const location = getUserLocationMatch(post, user);
 
-        // If neither current/saved location exists, use category fallback.
-        if (!location.hasLocationData) return categoryMatch;
+        // No current or saved location means no offline notification.
+        if (location.source === 'NONE') return false;
 
-        // User has location data, but this offer is not nearby: do not push.
-        return false;
+        return location.matched;
       })
       .map(user => user.token);
 
