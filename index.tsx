@@ -4550,8 +4550,11 @@ export default function App() {
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
                       onPress={() => {
+                        setTagPage(label);
                         setActiveLabel(label);
-                        loadPosts(label, 1);
+                        setQuery('');
+                        setSuggestions([]);
+                        setTagPageDropdownOpen(false);
                         closeMenu();
                       }}
                     >
@@ -4575,8 +4578,11 @@ export default function App() {
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
                       onPress={() => {
+                        setTagPage(label);
                         setActiveLabel(label);
-                        loadPosts(label, 1);
+                        setQuery('');
+                        setSuggestions([]);
+                        setTagPageDropdownOpen(false);
                         closeMenu();
                       }}
                     >
