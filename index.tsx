@@ -42,7 +42,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, setDoc, where } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1809,7 +1809,7 @@ export default function App() {
       let cloudNotifications: Post[] = [];
       try {
         const snapshot = await getDocs(
-          query(
+          firestoreQuery(
             collection(db, 'notifications'),
             where('uid', '==', user.uid),
           ),
