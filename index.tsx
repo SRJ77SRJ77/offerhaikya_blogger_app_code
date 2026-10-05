@@ -42,7 +42,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
