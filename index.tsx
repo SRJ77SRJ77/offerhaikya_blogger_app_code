@@ -3078,20 +3078,11 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
-      const user = auth.currentUser;
-      if (!user) {
-        await signInAnonymously(auth);
-      }
-
-      const currentUser = auth.currentUser;
-      if (!currentUser) throw new Error('Firebase user unavailable');
-
-      await setDoc(doc(db, 'offerRequests', currentUser.uid + '_' + Date.now()), {
-        uid: currentUser.uid,
+      await addDoc(collection(db, 'offerRequests'), {
         name,
-        contact: '91' + contact,
-        offerRequest: request,
-        submittedAt: new Date().toISOString(),
+        phone: '91' + contact,
+        request,
+        createdAt: new Date(),
       });
 
       setOfferRequestSubmitting(false);
@@ -3110,7 +3101,6 @@ export default function App() {
     }
   };
 
-  
   const renderPost = ({ item }: { item: Post }) => (
     <View key={item.id} style={[styles.card, darkMode && styles.cardDark]}>
       <TouchableOpacity style={styles.cardHeart} onPress={() => toggleFavorite(item)}>
