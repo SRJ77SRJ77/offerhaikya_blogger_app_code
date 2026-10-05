@@ -1395,9 +1395,10 @@ export default function App() {
         return;
       }
 
-      // Start the 5-minute popup deadline. The 30-second interval below only
-      // checks silently and can finish this flow early when Location becomes ready.
-      locationPromptSnoozeUntilRef.current = Date.now() + LOCATION_RETRY_MS;
+      // Location is currently unavailable: ask once immediately.
+      // If the user taps No, postponeLocationPrompt() starts the 5-minute retry.
+      // The 30-second checker continues silently in the background.
+      locationPromptSnoozeUntilRef.current = 0;
       void showLocationPromptIfNeeded();
 
       locationCheckIntervalRef.current = setInterval(
