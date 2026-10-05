@@ -1,6 +1,9 @@
 name: Deploy OfferHaikya Notifications
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -25,4 +28,4 @@ jobs:
       - name: Deploy notification function
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase deploy --only functions:sendNewOfferNotifications --project offerhaikya-app --token "$FIREBASE_TOKEN"
+        run: firebase deploy --only functions:sendNewOfferNotifications,firestore:rules --project offerhaikya-app --token "$FIREBASE_TOKEN"
