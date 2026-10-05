@@ -77,6 +77,7 @@ const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Pe
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
+const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -1055,6 +1056,54 @@ export default function App() {
           }
         }
 
+        // After logout the Firebase user becomes anonymous, so the previous
+        // account's Firestore location is no longer readable. Keep the last
+        // resolved location locally so Nearby can continue across logout.
+        if (!coords) {
+          try {
+            const savedLocationRaw = await AsyncStorage.getItem(SAVED_LOCATION_STORAGE_KEY);
+            if (savedLocationRaw) {
+              const savedLocation = JSON.parse(savedLocationRaw);
+              if (
+                savedLocation?.coords &&
+                Number.isFinite(Number(savedLocation.coords.latitude)) &&
+                Number.isFinite(Number(savedLocation.coords.longitude))
+              ) {
+                coords = {
+                  latitude: Number(savedLocation.coords.latitude),
+                  longitude: Number(savedLocation.coords.longitude),
+                };
+                detectedLocationLabel = String(savedLocation.label || '');
+                detectedLocationTerms = Array.isArray(savedLocation.terms)
+                  ? savedLocation.terms.map((term: any) => String(term)).filter(Boolean)
+                  : [];
+                if (!cancelled) {
+                  setUserLocation(coords);
+                  setLocationLabel(detectedLocationLabel);
+                  setLocationTerms(detectedLocationTerms);
+                }
+              }
+            }
+          } catch {
+            // Best-effort local location fallback.
+          }
+        }
+
+        if (coords) {
+          try {
+            await AsyncStorage.setItem(
+              SAVED_LOCATION_STORAGE_KEY,
+              JSON.stringify({
+                coords,
+                label: detectedLocationLabel,
+                terms: detectedLocationTerms,
+              }),
+            );
+          } catch {
+            // Best-effort local location persistence.
+          }
+        }
+
         if (!coords) {
           if (!cancelled) {
             setUserLocation(null);
@@ -1310,6 +1359,9 @@ export default function App() {
         locationReadyRef.current = false;
 
         // Keep the 5-minute popup deadline, but silently check Location every 30 seconds.
+        // Each 30-second check also refreshes Nearby so the priority stays:
+        // current device location -> saved location -> latest offers normally.
+        setLocationRefreshKey(value => value + 1);
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         // Permission was permanently denied. Let the user use the location
@@ -1371,6 +1423,7 @@ export default function App() {
         clearInterval(locationCheckIntervalRef.current);
         locationCheckIntervalRef.current = null;
       }
+      locationAutoStartedRef.current = false;
       subscription.remove();
     };
   }, [registrationOpen, startNearbyPreloader]);
@@ -2680,6 +2733,9 @@ export default function App() {
               // Create a separate guest session after logout.
               await signInAnonymously(auth);
               await loadFavoritesForUser(auth.currentUser);
+              // Re-run the location/nearby flow for the guest session. The
+              // 30-second checker will prefer current GPS, then saved location.
+              setLocationRefreshKey(value => value + 1);
               setRegistrationOpen(false);
             } catch (error) {
               console.log('Logout error:', error);
