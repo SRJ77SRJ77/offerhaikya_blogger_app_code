@@ -1044,11 +1044,49 @@ export default function App() {
                   longitude: Number(manualCoords.longitude),
                 };
                 detectedLocationLabel = manualAreaCity;
-                detectedLocationTerms = manualAreaCity
-                  ? [manualAreaCity]
-                  : [];
+                detectedLocationTerms = [];
+
+                try {
+                  // Use the same reverse-geocoded location-term logic as the
+                  // current GPS path, while preserving the saved Area / City.
+                  const places = await Location.reverseGeocodeAsync(coords);
+                  const place = places?.[0];
+
+                  detectedLocationTerms = buildLocationTerms({
+                    ...place,
+                    city: place?.city || manualAreaCity,
+                    name: place?.name || manualAreaCity,
+                  });
+
+                  if (manualAreaCity) {
+                    detectedLocationTerms = Array.from(
+                      new Set([
+                        ...detectedLocationTerms,
+                        ...buildLocationTerms({
+                          city: manualAreaCity,
+                          name: manualAreaCity,
+                        }),
+                      ]),
+                    );
+                  }
+
+                  detectedLocationLabel =
+                    place?.district ||
+                    place?.city ||
+                    place?.subregion ||
+                    place?.region ||
+                    manualAreaCity;
+                } catch {
+                  // If reverse geocoding the saved coordinates fails,
+                  // still apply the same alias expansion to the saved city.
+                  detectedLocationTerms = buildLocationTerms({
+                    city: manualAreaCity,
+                    name: manualAreaCity,
+                  });
+                }
+
                 setUserLocation(coords);
-                setLocationLabel(manualAreaCity);
+                setLocationLabel(detectedLocationLabel);
                 setLocationTerms(detectedLocationTerms);
               }
             }
