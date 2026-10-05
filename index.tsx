@@ -3075,17 +3075,11 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
-      if (!auth.currentUser) {
-        await signInAnonymously(auth);
-      }
-
-      if (!auth.currentUser) throw new Error('Firebase user unavailable');
-
       await addDoc(collection(db, 'offerRequests'), {
         name,
         phone: '91' + contact,
         request,
-        createdAt: serverTimestamp(),
+        createdAt: new Date(),
       });
 
       setOfferRequestSubmitting(false);
