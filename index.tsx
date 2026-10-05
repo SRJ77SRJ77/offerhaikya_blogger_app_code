@@ -3076,37 +3076,14 @@ export default function App() {
       setOfferRequestSuccess(false);
       setOfferRequestError('');
 
-      // Make sure Firebase has an authenticated session before writing.
-      // This also covers users who opened the request form very quickly
-      // before the anonymous auth bootstrap finished.
+      // Every guest gets a Firebase anonymous UID. Firestore rules enforce
+      // the 24-hour limit atomically; no client read of the limit document
+      // is needed (and guests are not allowed to read it).
       const firebaseUser = await ensureAnonymousUser();
-
-      // One request per Firebase user/guest every 24 hours.
-      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
-      const limitSnapshot = await getDoc(limitRef);
-      const lastRequestAt = limitSnapshot.exists()
-        ? limitSnapshot.data()?.lastRequestAt
-        : null;
-
-      if (lastRequestAt?.toMillis) {
-        const elapsedMs = Date.now() - lastRequestAt.toMillis();
-        if (elapsedMs < 24 * 60 * 60 * 1000) {
-          setOfferRequestSubmitting(false);
-          setOfferRequestError('');
-          setOfferRequestSuccess(false);
-          setOfferRequestOpen(false);
-          setOfferRequestName('');
-          setOfferRequestContact('');
-          setOfferRequestText('');
-          setTimeout(() => {
-            setOfferRequestError('');
-          }, 0);
-          return;
-        }
-      }
 
       const requestId = firebaseUser.uid + '_' + Date.now();
       const requestRef = doc(db, 'offerRequests', requestId);
+      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
       const batch = writeBatch(db);
 
       batch.set(requestRef, {
@@ -3138,13 +3115,14 @@ export default function App() {
     } catch (error: any) {
       console.log('Offer request submit error:', error);
       setOfferRequestSubmitting(false);
-      setOfferRequestError('');
-      setOfferRequestSuccess(true);
 
-      setTimeout(() => {
-        setOfferRequestOpen(false);
-        setOfferRequestSuccess(false);
-      }, 900);
+      if (error?.code === 'permission-denied') {
+        setOfferRequestError('Please request an offer again after 24 hours.');
+      } else if (error?.code === 'unavailable') {
+        setOfferRequestError('Internet connection failed. Please try again.');
+      } else {
+        setOfferRequestError('Could not send the request. Please try again.');
+      }
     }
   };
 
