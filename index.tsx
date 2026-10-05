@@ -1296,6 +1296,10 @@ export default function App() {
           }
 
           if (!wasLocationReady) {
+            if (localOffersPermissionPendingRef.current) {
+              localOffersPermissionPendingRef.current = false;
+              enterLocalOffers();
+            }
             startNearbyPreloader();
             setLocationRefreshKey(value => value + 1);
           }
@@ -2722,8 +2726,18 @@ export default function App() {
 
       if (currentPermission.status === 'granted') {
         if (!servicesEnabled) {
+          // App permission is already granted; open device Location Settings.
+          try {
+            await Linking.openSettings();
+          } catch {
+            // Keep the existing retry/check flow if Settings cannot be opened.
+          }
           scheduleLocationPromptRetry();
         } else {
+          if (localOffersPermissionPendingRef.current) {
+            localOffersPermissionPendingRef.current = false;
+            enterLocalOffers();
+          }
           setLocationRefreshKey(value => value + 1);
         }
         return;
