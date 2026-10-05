@@ -17,25 +17,36 @@ service cloud.firestore {
     }
 
     match /offerRequests/{requestId} {
-      // Each authenticated/anonymous Firebase session can create only one
-      // request document for a given calendar day. The app uses:
-      // requestId = uid_YYYY-MM-DD
+      // Request and 24-hour limit are written together in one atomic batch.
       allow create:
         if request.auth != null
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.keys().hasOnly([
-          'uid', 'name', 'phone', 'request', 'dayKey', 'createdAt'
+          'uid', 'name', 'phone', 'request', 'requestId', 'createdAt'
         ])
         && request.resource.data.name is string
         && request.resource.data.phone is string
         && request.resource.data.request is string
-        && request.resource.data.dayKey is string
+        && request.resource.data.requestId == requestId
         && request.resource.data.createdAt is timestamp
-        && requestId == request.resource.data.uid + '_' + request.resource.data.dayKey;
-      allow read:
+        && getAfter(
+          /databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)
+        ).data.requestId == requestId;
+      allow read, update, delete: if false;
+    }
+
+    match /offerRequestLimits/{userId} {
+      allow create, update:
         if request.auth != null
-        && resource.data.uid == request.auth.uid;
-      allow update, delete: if false;
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['lastRequestAt', 'requestId'])
+        && request.resource.data.lastRequestAt is timestamp
+        && request.resource.data.requestId is string
+        && request.resource.data.lastRequestAt == request.time
+        && getAfter(
+          /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
+        ).data.uid == request.auth.uid;
+      allow read, delete: if false;
     }
   }
 }
