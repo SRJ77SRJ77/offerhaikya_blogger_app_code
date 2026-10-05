@@ -3472,6 +3472,385 @@ export default function App() {
     );
   }
 
+  if (detail) {
+    const mapCoordinates = extractMapCoordinates(detail.rawContent);
+    const detailPostsSource = detailPagePosts.length > 0 ? detailPagePosts : posts;
+    const suggestedDetailPosts = detailPostsSource
+      .filter(post => post.id !== detail.id)
+      .filter(post => post.labels.some(label => detail.labels.includes(label)))
+      .slice(0, 4);
+    const latestDetailPosts = detailPostsSource
+      .filter(post => post.id !== detail.id)
+      .slice(0, 8);
+    return (
+      <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
+        <StatusBar barStyle={darkMode ? 'light-content' : 'dark-content'} backgroundColor={darkMode ? '#171717' : WHITE} />
+        <View style={[styles.detailHeader, darkMode && styles.detailHeaderDark]}>
+          <TouchableOpacity onPress={() => setDetail(null)} style={styles.backButton}>
+            <Text style={[styles.backText, darkMode && styles.headerIconDark]}>‹</Text>
+          </TouchableOpacity>
+          <Text style={[styles.detailHeaderTitle, darkMode && styles.darkText]} numberOfLines={1}>{detail.title}</Text>
+          <TouchableOpacity style={styles.headerIconButton} onPress={() => setDarkMode(value => !value)}>
+            <Text style={[styles.headerIcon, darkMode && styles.headerIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          style={darkMode ? styles.detailListDark : undefined}
+          data={[detail]}
+          keyExtractor={item => item.id}
+          renderItem={() => (
+            <View style={[styles.detailContent, darkMode && styles.detailContentDark]}>
+            <Text style={styles.detailLabel}>{detail.label}</Text>
+            <Text style={[styles.detailTitle, darkMode && styles.darkText]}>{detail.title}</Text>
+            <View style={styles.detailTitleRow}>
+              <Text style={[styles.detailDate, darkMode && styles.darkMutedText]}>{detail.date}</Text>
+              <View style={styles.detailActions}>
+                <TouchableOpacity
+                  style={styles.detailIconButton}
+                  onPress={() => openShareOptions(detail.url)}
+                  accessibilityLabel="Share post"
+                >
+                  <Image
+                    source={{ uri: 'https://cdn-icons-png.flaticon.com/512/107/107784.png' }}
+                    style={styles.detailShareIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.detailIconButton}
+                  onPress={() => toggleFavorite(detail)}
+                  accessibilityLabel={isFavorite(detail) ? 'Remove favorite' : 'Add favorite'}
+                >
+                  <Text style={styles.detailHeartText}>
+                    {isFavorite(detail) ? '♥' : '♡'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <RenderHTML
+              ignoredDomTags={['iframe']}
+              ignoredStyles={[
+                'fontFamily',
+                'fontSize',
+                'lineHeight',
+                'color',
+                'fontWeight',
+                'fontStyle',
+                'textDecorationLine',
+              ]}
+              contentWidth={Math.max(320, width - 40)}
+              source={{ html: detail.rawContent || `<p>${detail.content || detail.excerpt}</p>` }}
+              baseStyle={({
+                fontFamily: 'Rubik',
+                fontSize: 15,
+                lineHeight: 24,
+                color: darkMode ? '#eeeeee' : '#4f4c52',
+              } as any)}
+              defaultTextProps={{ allowFontScaling: false }}
+              tagsStyles={({
+                p: {
+                  fontFamily: 'Rubik',
+                  fontSize: 15,
+                  lineHeight: 24,
+                  marginTop: 0,
+                  marginBottom: 10,
+                  color: darkMode ? '#eeeeee' : '#4f4c52',
+                },
+                h1: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 27,
+                  lineHeight: 35,
+                  fontWeight: '900',
+                  marginTop: 10,
+                  marginBottom: 10,
+                },
+                h2: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 23,
+                  lineHeight: 31,
+                  fontWeight: '900',
+                  marginTop: 14,
+                  marginBottom: 8,
+                },
+                h3: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? WHITE : TEXT,
+                  fontSize: 19,
+                  lineHeight: 27,
+                  fontWeight: '800',
+                  marginTop: 12,
+                  marginBottom: 7,
+                },
+                li: {
+                  fontFamily: 'Rubik',
+                  color: darkMode ? '#eeeeee' : '#4f4c52',
+                  fontSize: 15,
+                  lineHeight: 24,
+                  marginBottom: 4,
+                },
+                a: {
+                  fontFamily: 'Rubik',
+                  color: ACCENT,
+                  fontSize: 15,
+                },
+                strong: {
+                  fontFamily: 'Rubik',
+                  fontWeight: '700',
+                },
+                em: {
+                  fontFamily: 'Rubik',
+                  fontStyle: 'italic',
+                },
+                img: {
+                  marginTop: 5,
+                  marginBottom: 5,
+                },
+                ul: { marginTop: 4, marginBottom: 10 },
+                ol: { marginTop: 4, marginBottom: 10 },
+                table: { width: '100%' },
+                th: {
+                  fontFamily: 'Rubik',
+                  padding: 7,
+                  fontSize: 15,
+                  fontWeight: '700',
+                },
+                td: {
+                  fontFamily: 'Rubik',
+                  padding: 7,
+                  fontSize: 15,
+                },
+              } as any)}
+            />
+            {mapCoordinates ? (
+              <View style={styles.mapSection}>
+                <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
+                <TouchableOpacity
+                  style={styles.mapButton}
+                  onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${mapCoordinates.latitude},${mapCoordinates.longitude}`)}
+                >
+                  <Text style={styles.mapButtonText}>Open in Google Maps</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
+            <View style={styles.infoBottomRecommendations}>
+              <View style={styles.infoRecommendationSection}>
+                <View style={styles.sectionRow}>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Suggested Posts</Text>
+                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>For you</Text>
+                </View>
+
+                {detailPagePostsLoading && detailPostsSource.length === 0 ? (
+                  <View style={styles.state}>
+                    <ActivityIndicator size="small" color={ACCENT} />
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading suggested posts...</Text>
+                  </View>
+                ) : suggestedDetailPosts.length > 0 ? (
+                  <View>
+                    {Array.from({ length: Math.ceil(suggestedDetailPosts.length / 2) }).map((_, rowIndex) => (
+                      <View style={styles.row} key={'detail-suggested-row-' + rowIndex}>
+                        {suggestedDetailPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.state}>
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No suggested posts available right now.</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.infoRecommendationSection}>
+                <View style={styles.sectionRow}>
+                  <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Posts</Text>
+                  <Text style={[styles.pageText, darkMode && styles.darkMutedText]}>Latest</Text>
+                </View>
+
+                {detailPagePostsLoading && detailPostsSource.length === 0 ? (
+                  <View style={styles.state}>
+                    <ActivityIndicator size="small" color={ACCENT} />
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>Loading latest posts...</Text>
+                  </View>
+                ) : latestDetailPosts.length > 0 ? (
+                  <View>
+                    {Array.from({ length: Math.ceil(latestDetailPosts.length / 2) }).map((_, rowIndex) => (
+                      <View style={styles.row} key={'detail-latest-row-' + rowIndex}>
+                        {latestDetailPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.state}>
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No latest posts available right now.</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+        contentContainerStyle={{ paddingBottom: 104 }}
+        />
+        <Modal
+          visible={sharePostUrl !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSharePostUrl(null)}
+        >
+          <View style={styles.shareOverlay}>
+            <TouchableOpacity
+              style={styles.shareBackdrop}
+              activeOpacity={1}
+              onPress={() => setSharePostUrl(null)}
+            />
+            <View style={[styles.sharePopup, darkMode && styles.favoritePopupDark]}>
+              <Text style={[styles.sharePopupTitle, darkMode && styles.darkText]}>Share Offer</Text>
+
+              <TouchableOpacity style={styles.shareOption} onPress={sharePost}>
+                <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Share with</Text>
+                <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                  WhatsApp, Instagram, Facebook & Other Apps
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.shareOption}
+                onPress={() => {
+                  if (sharePostUrl) copyPostLink(sharePostUrl);
+                  setSharePostUrl(null);
+                }}
+              >
+                <Text style={[styles.shareOptionTitle, darkMode && styles.darkText]}>Click to Copy Link</Text>
+                <Text style={[styles.shareOptionText, darkMode && styles.darkMutedText]}>
+                  The OfferHaikya post link
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.shareCancelButton}
+                onPress={() => setSharePostUrl(null)}
+              >
+                <Text style={styles.shareCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
+            onPress={goToHomeTab}
+            accessibilityLabel="Home"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
+                stroke={bottomTab === 'home' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.bottomNavItem,
+              bottomTabRef.current === 'local' && styles.bottomNavItemActive,
+              localOffersDisabled && styles.bottomNavItemDisabled,
+            ]}
+            onPress={goToLocalOffersTab}
+            accessibilityLabel="Nearby"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.infoBottomNavItem}
+            onPress={goToHotOffersTab}
+            accessibilityLabel="Hot Offers"
+          >
+            <Text style={styles.infoBottomNavPercentIcon}>%</Text>
+            <Text style={styles.infoBottomNavLabel}>Hot Offers</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
+            onPress={openOfferRequestTab}
+            accessibilityLabel="Request offer"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4 5.5H20V18.5H4V5.5Z"
+                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M4.5 6L12 12L19.5 6"
+                stroke={bottomTab === 'request' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text
+              style={[styles.bottomNavLabel, bottomTab === 'request' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+            >
+              Request Offer
+            </Text>
+          </TouchableOpacity>
+
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+            onPress={goToSearchTab}
+            accessibilityLabel="Search"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={bottomTab === 'search' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Search
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+
   if (startupPreloader) {
     const startupProgressWidth = startupPreloaderProgress.interpolate({
       inputRange: [0, 1],
