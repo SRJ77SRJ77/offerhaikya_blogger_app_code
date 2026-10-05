@@ -370,6 +370,7 @@ export default function App() {
   const [offerRequestText, setOfferRequestText] = useState('');
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
+  const [offerRequestSuccessMessage, setOfferRequestSuccessMessage] = useState('Request sent ✓');
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
@@ -3040,6 +3041,7 @@ export default function App() {
     activateBottomTabFor5Sec('request');
     setOfferRequestError('');
     setOfferRequestSuccess(false);
+    setOfferRequestSuccessMessage('Request sent ✓');
     setOfferRequestOpen(true);
   };
 
@@ -3076,10 +3078,37 @@ export default function App() {
       setOfferRequestSuccess(false);
       setOfferRequestError('');
 
-      // Every guest gets a Firebase anonymous UID. Firestore rules enforce
-      // the 24-hour limit atomically; no client read of the limit document
-      // is needed (and guests are not allowed to read it).
+      // Every guest gets a Firebase anonymous UID. Firestore rules also
+      // enforce the 24-hour limit atomically as the final security check.
       const firebaseUser = await ensureAnonymousUser();
+
+      // Read only this user's own limit so we can show the friendly
+      // 24-hour message before attempting the batch.
+      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
+      const limitSnapshot = await getDoc(limitRef);
+      const lastRequestAt = limitSnapshot.exists()
+        ? limitSnapshot.data()?.lastRequestAt
+        : null;
+
+      if (lastRequestAt?.toMillis) {
+        const elapsedMs = Date.now() - lastRequestAt.toMillis();
+        if (elapsedMs < 24 * 60 * 60 * 1000) {
+          setOfferRequestSubmitting(false);
+          setOfferRequestError('');
+          setOfferRequestSuccessMessage('Please request an offer after 24 hours. Thank you.');
+          setOfferRequestSuccess(true);
+
+          setTimeout(() => {
+            setOfferRequestOpen(false);
+            setOfferRequestSuccess(false);
+            setOfferRequestSuccessMessage('Request sent ✓');
+            setOfferRequestName('');
+            setOfferRequestContact('');
+            setOfferRequestText('');
+          }, 1800);
+          return;
+        }
+      }
 
       const requestId = firebaseUser.uid + '_' + Date.now();
       const requestRef = doc(db, 'offerRequests', requestId);
@@ -3103,6 +3132,7 @@ export default function App() {
       await batch.commit();
 
       setOfferRequestSubmitting(false);
+      setOfferRequestSuccessMessage('Request sent ✓');
       setOfferRequestSuccess(true);
 
       setTimeout(() => {
@@ -3117,7 +3147,7 @@ export default function App() {
       setOfferRequestSubmitting(false);
 
       if (error?.code === 'permission-denied') {
-        setOfferRequestError('Please request an offer again after 24 hours.');
+        setOfferRequestError('Could not send the request. Please try again.');
       } else if (error?.code === 'unavailable') {
         setOfferRequestError('Internet connection failed. Please try again.');
       } else {
@@ -5295,7 +5325,7 @@ export default function App() {
             <Text style={styles.offerRequestCounter}>{offerRequestText.length}/50</Text>
 
             {offerRequestError ? <Text style={styles.registrationError}>{offerRequestError}</Text> : null}
-            {offerRequestSuccess ? <Text style={styles.offerRequestSuccess}>Request sent ✓</Text> : null}
+            {offerRequestSuccess ? <Text style={styles.offerRequestSuccess}>{offerRequestSuccessMessage}</Text> : null}
 
             <TouchableOpacity
               style={[
