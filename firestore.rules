@@ -17,49 +17,10 @@ service cloud.firestore {
     }
 
     match /offerRequests/{requestId} {
-      // Request and 24-hour limit are written together in one atomic batch.
       allow create:
         if request.auth != null
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'uid', 'name', 'phone', 'request', 'requestId', 'createdAt'
-        ])
-        && request.resource.data.name is string
-        && request.resource.data.phone is string
-        && request.resource.data.request is string
-        && request.resource.data.requestId == requestId
-        && request.resource.data.createdAt is timestamp
-        && getAfter(
-          /databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)
-        ).data.requestId == requestId;
+        && request.resource.data.uid == request.auth.uid;
       allow read, update, delete: if false;
-    }
-
-    match /offerRequestLimits/{userId} {
-      allow create, update:
-        if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['lastRequestAt', 'requestId'])
-        && request.resource.data.lastRequestAt is timestamp
-        && request.resource.data.requestId is string
-        && request.resource.data.lastRequestAt == request.time
-        // First request is allowed. Later requests are allowed only
-        // when the previous request was at least 24 hours ago.
-        && (
-          !exists(
-            /databases/$(database)/documents/offerRequestLimits/$(userId)
-          )
-          || get(
-            /databases/$(database)/documents/offerRequestLimits/$(userId)
-          ).data.lastRequestAt <= request.time - duration.value(24, 'h')
-        )
-        && getAfter(
-          /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
-        ).data.uid == request.auth.uid;
-      allow read:
-        if request.auth != null
-        && request.auth.uid == userId;
-      allow delete: if false;
     }
   }
 }
