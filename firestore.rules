@@ -43,6 +43,16 @@ service cloud.firestore {
         && request.resource.data.lastRequestAt is timestamp
         && request.resource.data.requestId is string
         && request.resource.data.lastRequestAt == request.time
+        // First request is allowed. Later requests are allowed only
+        // when the previous request was at least 24 hours ago.
+        && (
+          !exists(
+            /databases/$(database)/documents/offerRequestLimits/$(userId)
+          )
+          || get(
+            /databases/$(database)/documents/offerRequestLimits/$(userId)
+          ).data.lastRequestAt <= request.time - duration.value(24, 'h')
+        )
         && getAfter(
           /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
         ).data.uid == request.auth.uid;
