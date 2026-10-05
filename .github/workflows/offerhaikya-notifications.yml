@@ -1,0 +1,36 @@
+name: Offerhaikya Push Notifications
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: offerhaikya-push-notifications
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: github-notifications/package-lock.json
+
+      - name: Install dependencies
+        working-directory: github-notifications
+        run: npm install --no-audit --no-fund
+
+      - name: Check new Blogger posts and send Expo pushes
+        working-directory: github-notifications
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: node index.js
