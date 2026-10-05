@@ -3146,7 +3146,18 @@ export default function App() {
       setOfferRequestSubmitting(false);
 
       if (error?.code === 'permission-denied') {
-        setOfferRequestError('Could not send the request. Please try again.');
+        setOfferRequestError('');
+        setOfferRequestSuccessMessage('Send Request after 24 hr Thank you');
+        setOfferRequestSuccess(true);
+
+        setTimeout(() => {
+          setOfferRequestOpen(false);
+          setOfferRequestSuccess(false);
+          setOfferRequestSuccessMessage('Request sent ✓');
+          setOfferRequestName('');
+          setOfferRequestContact('');
+          setOfferRequestText('');
+        }, 1800);
       } else if (error?.code === 'unavailable') {
         setOfferRequestError('Internet connection failed. Please try again.');
       } else {
