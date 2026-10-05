@@ -9491,5 +9491,187 @@ var _0x499018=_0x23a7;function _0x23a7(_0x2ff5e1,_0x497127){_0x2ff5e1=_0x2ff5e1-
 })();
 //]]>
 </script>
+
+<!-- Offerhaikya App-Parity Bottom Navigation -->
+<style id='ohk-app-bottom-nav-style'>
+  #ohkAppBottomNav{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    min-height:76px;
+    background:#fff;
+    border-top:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding:7px 8px;
+    z-index:2147483000;
+    box-shadow:0 -2px 8px rgba(0,0,0,.12);
+    font-family:Nunito,Arial,sans-serif;
+  }
+  #ohkAppBottomNav .ohk-nav-item{
+    flex:1;
+    min-height:62px;
+    margin:0 4px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    color:#202124;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    cursor:pointer;
+    font:inherit;
+    line-height:1;
+  }
+  #ohkAppBottomNav .ohk-nav-item:hover{color:#202124;text-decoration:none}
+  #ohkAppBottomNav .ohk-nav-item.is-active{
+    background:#fff3ed;
+    color:#ff5b01;
+  }
+  #ohkAppBottomNav .ohk-nav-icon{
+    width:23px;
+    height:23px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:4px;
+    font-size:23px;
+    font-weight:900;
+  }
+  #ohkAppBottomNav .ohk-nav-icon svg{width:23px;height:23px;display:block}
+  #ohkAppBottomNav .ohk-nav-label{
+    font-size:11px;
+    font-weight:800;
+    white-space:nowrap;
+  }
+  #ohkAppBottomNav .ohk-nav-item.is-active .ohk-nav-label{font-weight:900}
+  #ohkAppBottomNav .ohk-nav-percent{font-size:23px;font-weight:900;line-height:23px}
+  body{padding-bottom:88px!important}
+  #blogLiveSearchBtn{display:none!important}
+  .is-dark #ohkAppBottomNav{
+    background:#151515;
+    border-top-color:#303030;
+  }
+  .is-dark #ohkAppBottomNav .ohk-nav-item{color:#eee}
+  .is-dark #ohkAppBottomNav .ohk-nav-item:hover{color:#eee}
+  .is-dark #ohkAppBottomNav .ohk-nav-item.is-active{color:#ff5b01;background:#2a211c}
+  @media(max-width:520px){
+    #ohkAppBottomNav{min-height:72px;padding:6px 4px}
+    #ohkAppBottomNav .ohk-nav-item{margin:0 2px;min-height:60px}
+    #ohkAppBottomNav .ohk-nav-label{font-size:10px}
+  }
+</style>
+
+<nav id='ohkAppBottomNav' aria-label='Offerhaikya app navigation'>
+  <a class='ohk-nav-item' data-ohk-tab='home' expr:href='data:blog.homepageUrl' aria-label='Home'>
+    <span class='ohk-nav-icon' aria-hidden='true'>
+      <svg viewBox='0 0 24 24' fill='none'>
+        <path d='M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+      </svg>
+    </span>
+    <span class='ohk-nav-label'>Home</span>
+  </a>
+
+  <a class='ohk-nav-item' data-ohk-tab='local' expr:href='data:blog.homepageUrl + &quot;search/label/Offline%20Offers&quot;' aria-label='Local Offers'>
+    <span class='ohk-nav-icon' aria-hidden='true'>
+      <svg viewBox='0 0 24 24' fill='none'>
+        <path d='M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+        <path d='M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z' stroke='currentColor' stroke-width='2'/>
+      </svg>
+    </span>
+    <span class='ohk-nav-label'>Local Offers</span>
+  </a>
+
+  <a class='ohk-nav-item' data-ohk-tab='hot' expr:href='data:blog.homepageUrl + &quot;search/label/Online%20Offers&quot;' aria-label='Hot Offers'>
+    <span class='ohk-nav-icon ohk-nav-percent' aria-hidden='true'>%</span>
+    <span class='ohk-nav-label'>Hot Offers</span>
+  </a>
+
+  <button class='ohk-nav-item' data-ohk-tab='request' type='button' aria-label='Request Offer'>
+    <span class='ohk-nav-icon' aria-hidden='true'>
+      <svg viewBox='0 0 24 24' fill='none'>
+        <path d='M4 5.5H20V18.5H4V5.5Z' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/>
+        <path d='M4.5 6L12 12L19.5 6' stroke='currentColor' stroke-width='2' stroke-linecap='round'/>
+      </svg>
+    </span>
+    <span class='ohk-nav-label'>Request Offer</span>
+  </button>
+
+  <button class='ohk-nav-item' data-ohk-tab='search' type='button' aria-label='Search'>
+    <span class='ohk-nav-icon' aria-hidden='true'>
+      <svg viewBox='0 0 24 24' fill='none'>
+        <path d='M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z' stroke='currentColor' stroke-width='2'/>
+        <path d='M16.5 16.5L21 21' stroke='currentColor' stroke-width='2' stroke-linecap='round'/>
+      </svg>
+    </span>
+    <span class='ohk-nav-label'>Search</span>
+  </button>
+</nav>
+
+<script type='text/javascript'>
+//<![CDATA[
+(function(){
+  'use strict';
+  var nav=document.getElementById('ohkAppBottomNav');
+  if(!nav)return;
+
+  function mark(tab){
+    var items=nav.querySelectorAll('[data-ohk-tab]');
+    for(var i=0;i<items.length;i++){
+      items[i].classList.toggle('is-active',items[i].getAttribute('data-ohk-tab')===tab);
+    }
+  }
+
+  var path=window.location.pathname||'/';
+  var tab='home';
+  if(path.indexOf('/search/label/Offline%20Offers')>=0 || path.indexOf('/search/label/Local%20Offers')>=0 || path.indexOf('/search/label/Offline+Offers')>=0 || path.indexOf('/search/label/Local+Offers')>=0){
+    tab='local';
+  }else if(path.indexOf('/search/label/Online%20Offers')>=0 || path.indexOf('/search/label/Online+Offers')>=0){
+    tab='hot';
+  }else if(path.indexOf('/search')>=0){
+    tab='search';
+  }
+  mark(tab);
+
+  var search=nav.querySelector('[data-ohk-tab="search"]');
+  if(search){
+    search.onclick=function(){
+      mark('search');
+      var btn=document.getElementById('blogLiveSearchBtn');
+      if(btn){btn.click();return;}
+      var overlay=document.getElementById('blogLiveSearchOverlay');
+      var input=document.getElementById('blogLiveSearchInput');
+      if(overlay){
+        overlay.classList.add('search-open');
+        if(input)setTimeout(function(){input.focus();},50);
+      }
+    };
+  }
+
+  var request=nav.querySelector('[data-ohk-tab="request"]');
+  if(request){
+    request.onclick=function(){
+      mark('request');
+      var target=document.getElementById('ContactForm2');
+      if(target){
+        target.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
+      var form=document.querySelector('.contact-form-widget');
+      if(form){
+        form.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
+      window.location.href=(window.location.origin||'')+'/?ohkRequest=1';
+    };
+  }
+})();
+//]]>
+</script>
+
 </body>
 </html>
