@@ -42,7 +42,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1801,12 +1801,33 @@ export default function App() {
       const stored = await AsyncStorage.getItem(
         getNotificationsStorageKey(user.uid),
       );
-      const parsed = stored ? JSON.parse(stored) : [];
-      setNotifications(
-        Array.isArray(parsed)
-          ? parsed.filter(item => item && item.id).slice(0, 50)
-          : [],
-      );
+      const localParsed = stored ? JSON.parse(stored) : [];
+      const localNotifications: Post[] = Array.isArray(localParsed)
+        ? localParsed.filter(item => item && item.id)
+        : [];
+
+      let cloudNotifications: Post[] = [];
+      try {
+        const snapshot = await getDocs(
+          query(
+            collection(db, 'notifications'),
+            where('uid', '==', user.uid),
+          ),
+        );
+
+        cloudNotifications = snapshot.docs
+          .map(notificationDoc => notificationPostFromData(notificationDoc.data()))
+          .filter((item): item is Post => Boolean(item));
+      } catch (error) {
+        console.log('Firebase notification history load error:', error);
+      }
+
+      const merged = [...cloudNotifications, ...localNotifications]
+        .filter((item, index, list) => list.findIndex(other => other.id === item.id) === index)
+        .slice(0, 50);
+
+      setNotifications(merged);
+      void persistNotificationsForUser(user, merged);
     } catch {
       setNotifications([]);
     }
@@ -1907,6 +1928,7 @@ export default function App() {
       if (!post) return;
 
       addReceivedNotification(post);
+      void loadNotificationsForUser(auth.currentUser);
       setNotificationsOpen(false);
       openDetail(post);
     };
