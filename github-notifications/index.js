@@ -271,7 +271,7 @@ const run = async () => {
   console.log('Notification users found:', usersSnapshot.size);
 
   const eligibleUsers = usersSnapshot.docs
-    .map(userDoc => ({ data: userDoc.data(), token: userDoc.data()?.expoPushToken }))
+    .map(userDoc => ({ userId: userDoc.id, data: { ...userDoc.data(), uid: userDoc.id }, token: userDoc.data()?.expoPushToken }))
     .filter(user =>
       typeof user.token === 'string' &&
       user.token.startsWith('ExponentPushToken['),
@@ -284,35 +284,34 @@ const run = async () => {
     const local = isLocalOffer(post);
     const normalizedLabels = new Set(post.labels.map(normalizeText).filter(Boolean));
 
-    const targetTokens = eligibleUsers
-      .filter(user => {
-        const data = user.data || {};
-        const interestedCategories = Array.isArray(data.interestedCategories)
-          ? data.interestedCategories.map(normalizeText).filter(Boolean)
-          : [];
+    const targetUsers = eligibleUsers.filter(user => {
+      const data = user.data || {};
+      const interestedCategories = Array.isArray(data.interestedCategories)
+        ? data.interestedCategories.map(normalizeText).filter(Boolean)
+        : [];
 
-        const wantsOnlineOffers = interestedCategories.includes('online offer');
-        const wantsOfflineOffers = interestedCategories.includes('offline offer');
+      const wantsOnlineOffers = interestedCategories.includes('online offer');
+      const wantsOfflineOffers = interestedCategories.includes('offline offer');
 
-        if (!local) {
-          // ONLINE OFFER: category subscription only. No location check.
-          return wantsOnlineOffers;
-        }
+      if (!local) {
+        // ONLINE OFFER: category subscription only. No location check.
+        return wantsOnlineOffers;
+      }
 
-        // OFFLINE OFFER: category subscription is required first.
-        if (!wantsOfflineOffers) return false;
+      // OFFLINE OFFER: category subscription is required first.
+      if (!wantsOfflineOffers) return false;
 
-        // Current location has priority. Saved/manual location is used only
-        // when the current location is unavailable.
-        const location = getUserLocationMatch(post, user);
+      // Current location has priority. Saved/manual location is used only
+      // when the current location is unavailable.
+      const location = getUserLocationMatch(post, user);
 
-        // No current or saved location means no offline notification.
-        if (location.source === 'NONE') return false;
+      // No current or saved location means no offline notification.
+      if (location.source === 'NONE') return false;
 
-        return location.matched;
-      })
-      .map(user => user.token);
+      return location.matched;
+    });
 
+    const targetTokens = targetUsers.map(user => user.token);
     const messages = [...new Set(targetTokens)].map(token => ({
       to: token,
       title: isUpdate ? 'Offerhaikya Offer Updated' : 'New Offerhaikya Offer',
@@ -336,13 +335,41 @@ const run = async () => {
     }));
 
     console.log('Prepared notification batch:', { postId: post.id, title: post.title, local, recipients: messages.length });
-    if (messages.length) await sendExpoPushMessages(messages);
+    if (messages.length) {
+      await sendExpoPushMessages(messages);
+
+      const notificationWrites = targetUsers.map(user => {
+        const uid = user.data?.uid || user.userId || null;
+        if (!uid) return null;
+
+        return db.collection('notifications').doc(uid + '_' + post.id).set({
+          uid,
+          postId: post.id,
+          postTitle: post.title,
+          postUrl: post.url,
+          postDate: post.date,
+          publishedAt: post.publishedAt,
+          postLabel: post.label,
+          postLabels: post.labels,
+          postImage: post.image,
+          postExcerpt: post.excerpt,
+          postContent: post.content,
+          postRawContent: post.rawContent,
+          notificationType: isUpdate ? 'offer-update' : 'new-offer',
+          offerType: local ? 'offline' : 'online',
+          createdAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }).filter(Boolean);
+
+      await Promise.all(notificationWrites);
+      console.log('Saved Firebase notification history:', notificationWrites.length);
+    }
 
     console.log(
       messages.length ? (isUpdate ? 'Sent offer-update notifications:' : 'Sent new-offer notifications:') : 'No matching notification recipients:',
       post.id,
       'type:', local ? 'OFFLINE/LOCAL' : 'ONLINE',
-      'users:', messages.length,
+      'users:', targetUsers.length,
     );
   }
 
