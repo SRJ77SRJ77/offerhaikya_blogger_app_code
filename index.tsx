@@ -3085,7 +3085,7 @@ export default function App() {
         name,
         phone: '91' + contact,
         request,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
 
       setOfferRequestSubmitting(false);
