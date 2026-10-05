@@ -3112,7 +3112,6 @@ export default function App() {
 
       const requestId = firebaseUser.uid + '_' + Date.now();
       const requestRef = doc(db, 'offerRequests', requestId);
-      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
       const batch = writeBatch(db);
 
       batch.set(requestRef, {
