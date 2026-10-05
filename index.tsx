@@ -2422,6 +2422,7 @@ export default function App() {
     }
 
     try {
+      signInSubmittingRef.current = true;
       registrationFlowActiveRef.current = true;
       setRegistrationSubmitting(true);
       setRegistrationError('');
@@ -2432,6 +2433,7 @@ export default function App() {
       if (pendingDeleteAfterLoginRef.current) {
         pendingDeleteAfterLoginRef.current = false;
         await deleteAccountAfterRecentLogin();
+        signInSubmittingRef.current = false;
         registrationFlowActiveRef.current = false;
         setRegistrationSubmitting(false);
         return;
@@ -2472,8 +2474,7 @@ export default function App() {
       }
 
       registrationFlowActiveRef.current = false;
-      setRegistrationError((currentError) => currentError);
-      setTimeout(() => {
+            setTimeout(() => {
         signInSubmittingRef.current = false;
         setRegistrationSubmitting(false);
       }, 2000);
