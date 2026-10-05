@@ -5651,7 +5651,7 @@ html,body#layout #outer-wrapper,body#layout .row{
     <b:includable id='itemPost' var='post'>
       <!-- Offerhaikya app-style single offer page -->
       <b:include data='post' name='postMeta'/>
-      <article class='ohk-offer-page'>
+      <article class='ohk-offer-page' expr:data-ohk-id='data:post.id' expr:data-ohk-label='data:post.labels.first.name' expr:data-ohk-published='data:post.timestampISO8601'>
         <div class='ohk-offer-toolbar'>
           <a class='ohk-offer-back' expr:href='data:blog.homepageUrl' aria-label='Back to Home'>&#8249;</a>
           <div class='ohk-offer-toolbar-title'>Offer</div>
@@ -9264,15 +9264,15 @@ var _0x499018=_0x23a7;function _0x23a7(_0x2ff5e1,_0x497127){_0x2ff5e1=_0x2ff5e1-
     var im=image(entry);
     return '<a class="ohk-related-post" href="'+url(entry)+'">'+(im?'<img class="ohk-related-image" src="'+im+'" loading="lazy" alt=""/>':'')+'<div class="ohk-related-copy"><div class="ohk-related-label">'+esc(label)+'</div><div class="ohk-related-title">'+esc(entry.title&&entry.title.$t||'Untitled post')+'</div></div></a>';
   }
-  function render(entries,grid,box,current){
-    var out=[],i;for(i=0;i<entries.length;i++){var id=entries[i].id&&entries[i].id.$t||'';if(id!==current)out.push(entries[i]);if(out.length>=4)break;}
+  function render(entries,grid,box,current,filterLabel){
+    var out=[],i;for(i=0;i<entries.length;i++){var id=entries[i].id&&entries[i].id.$t||'';var cats=entries[i].category||[];var first=cats.length?cats[0].term:'';if(id!==current&&(!filterLabel||first===filterLabel))out.push(entries[i]);if(out.length>=4)break;}
     if(out.length){grid.innerHTML='';for(i=0;i<out.length;i++)grid.insertAdjacentHTML('beforeend',card(out[i]));box.hidden=false;}
   }
   function loadRelated(){
     var label="data:post.labels.first.name";
     var base=window.location.protocol+'//'+window.location.host+'/feeds/posts/default';
     var s=document.createElement('script'),cb='ohkRelated_'+Date.now();
-    window[cb]=function(data){var entries=data&&data.feed&&data.feed.entry||[];render(entries,suggestedGrid,suggestedBox,postId);render(entries,latestGrid,latestBox,postId);try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);};
+    window[cb]=function(data){var entries=data&&data.feed&&data.feed.entry||[];render(entries,suggestedGrid,suggestedBox,postId,label);render(entries,latestGrid,latestBox,postId,'');try{delete window[cb];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);};
     s.src=base+'?alt=json-in-script&max-results=12&callback='+cb;
     document.head.appendChild(s);
   }
