@@ -372,10 +372,8 @@ export default function App() {
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestSuccessMessage, setOfferRequestSuccessMessage] = useState('Request sent ✓');
   const [offerRequestError, setOfferRequestError] = useState('');
-  const [offerRequestLockedUntil, setOfferRequestLockedUntil] = useState<number | null>(null);
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
-  const [expiryNow, setExpiryNow] = useState(() => Date.now());
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
@@ -3035,25 +3033,6 @@ export default function App() {
     }
   };
 
-  const refreshOfferRequestLock = async () => {
-    try {
-      const firebaseUser = await ensureAnonymousUser();
-      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
-      const limitSnapshot = await getDoc(limitRef);
-      const lastRequestAt = limitSnapshot.exists()
-        ? limitSnapshot.data()?.lastRequestAt
-        : null;
-
-      if (lastRequestAt?.toMillis) {
-        const lockedUntil = lastRequestAt.toMillis() + 24 * 60 * 60 * 1000;
-        setOfferRequestLockedUntil(lockedUntil > Date.now() ? lockedUntil : null);
-      } else {
-        setOfferRequestLockedUntil(null);
-      }
-    } catch (error) {
-      console.log('Offer request lock check error:', error);
-    }
-  };
 
   const openOfferRequestTab = () => {
     closeMenu();
@@ -3064,7 +3043,6 @@ export default function App() {
     setOfferRequestSuccess(false);
     setOfferRequestSuccessMessage('Request sent ✓');
     setOfferRequestOpen(true);
-    void refreshOfferRequestLock();
   };
 
 
@@ -3099,63 +3077,23 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
-
-      // Every guest gets a Firebase anonymous UID. Firestore rules also
-      // enforce the 24-hour limit atomically as the final security check.
-      const firebaseUser = await ensureAnonymousUser();
-
-      // Read only this user's own limit so we can show the friendly
-      // 24-hour message before attempting the batch.
-      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
-      const limitSnapshot = await getDoc(limitRef);
-      const lastRequestAt = limitSnapshot.exists()
-        ? limitSnapshot.data()?.lastRequestAt
-        : null;
-
-      if (lastRequestAt?.toMillis) {
-        const elapsedMs = Date.now() - lastRequestAt.toMillis();
-        if (elapsedMs < 24 * 60 * 60 * 1000) {
-          setOfferRequestLockedUntil(lastRequestAt.toMillis() + 24 * 60 * 60 * 1000);
-          setOfferRequestSubmitting(false);
-          setOfferRequestError('');
-          setOfferRequestSuccessMessage('Send Request after 24 hr Thank you');
-          setOfferRequestSuccess(true);
-
-          setTimeout(() => {
-            setOfferRequestOpen(false);
-            setOfferRequestSuccess(false);
-            setOfferRequestSuccessMessage('Request sent ✓');
-            setOfferRequestName('');
-            setOfferRequestContact('');
-            setOfferRequestText('');
-          }, 1800);
-          return;
-        }
+      const user = auth.currentUser;
+      if (!user) {
+        await signInAnonymously(auth);
       }
 
-      const requestId = firebaseUser.uid + '_' + Date.now();
-      const requestRef = doc(db, 'offerRequests', requestId);
-      const batch = writeBatch(db);
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error('Firebase user unavailable');
 
-      batch.set(requestRef, {
-        uid: firebaseUser.uid,
+      await setDoc(doc(db, 'offerRequests', currentUser.uid + '_' + Date.now()), {
+        uid: currentUser.uid,
         name,
-        phone: '91' + contact,
-        request,
-        requestId,
-        createdAt: serverTimestamp(),
+        contact: '91' + contact,
+        offerRequest: request,
+        submittedAt: new Date().toISOString(),
       });
 
-      batch.set(limitRef, {
-        lastRequestAt: serverTimestamp(),
-        requestId,
-      });
-
-      await batch.commit();
-
-      setOfferRequestLockedUntil(Date.now() + 24 * 60 * 60 * 1000);
       setOfferRequestSubmitting(false);
-      setOfferRequestSuccessMessage('Request sent ✓');
       setOfferRequestSuccess(true);
 
       setTimeout(() => {
@@ -3165,20 +3103,13 @@ export default function App() {
         setOfferRequestContact('');
         setOfferRequestText('');
       }, 900);
-    } catch (error: any) {
-      console.log('Offer request submit error:', error);
+    } catch {
+      setOfferRequestError('Could not send the request. Please try again.');
       setOfferRequestSubmitting(false);
-
-      if (error?.code === 'permission-denied') {
-        setOfferRequestError('Could not send the request. Please try again.');
-      } else if (error?.code === 'unavailable') {
-        setOfferRequestError('Internet connection failed. Please try again.');
-      } else {
-        setOfferRequestError('Could not send the request. Please try again.');
-      }
     }
   };
 
+  
   const renderPost = ({ item }: { item: Post }) => (
     <View key={item.id} style={[styles.card, darkMode && styles.cardDark]}>
       <TouchableOpacity style={styles.cardHeart} onPress={() => toggleFavorite(item)}>
@@ -5354,15 +5285,13 @@ export default function App() {
               style={[
                 styles.registrationButton,
                 (offerRequestSubmitting ||
-                  offerRequestSuccess ||
-                  (offerRequestLockedUntil !== null && expiryNow < offerRequestLockedUntil)) &&
+                  offerRequestSuccess ||) &&
                   styles.disabledButton,
               ]}
               onPress={submitOfferRequest}
               disabled={
                 offerRequestSubmitting ||
                 offerRequestSuccess ||
-                (offerRequestLockedUntil !== null && expiryNow < offerRequestLockedUntil)
               }
             >
               {offerRequestSubmitting ? (
