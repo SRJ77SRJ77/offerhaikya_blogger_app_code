@@ -4,6 +4,7 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const FEED_URL = 'https://www.offerhaikya.com/feeds/posts/default';
 const STATE_PATH = 'notificationState/bloggerFeed';
 const NEARBY_RADIUS_KM = 300;
+const NOTIFICATION_LOGIC_VERSION = 2;
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 if (!getApps().length) {
@@ -228,6 +229,7 @@ const run = async () => {
       posts: currentPosts,
       latestPostId: posts[0].id,
       latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
+      notificationLogicVersion: NOTIFICATION_LOGIC_VERSION,
       updatedAt: FieldValue.serverTimestamp(),
     });
     console.log('Notification watcher initialized:', posts[0].id, 'trackedPosts:', posts.length);
@@ -240,7 +242,12 @@ const run = async () => {
     return Boolean(previous) && previous.fingerprint !== currentPosts[post.id].fingerprint;
   });
 
-  const changedPosts = [...newPosts, ...updatedPosts].filter(
+  const retryLatestForLogicFix =
+    state?.notificationLogicVersion !== NOTIFICATION_LOGIC_VERSION
+      ? posts.slice(0, 1)
+      : [];
+
+  const changedPosts = [...newPosts, ...updatedPosts, ...retryLatestForLogicFix].filter(
     (post, index, list) => list.findIndex(item => item.id === post.id) === index,
   );
 
@@ -378,6 +385,7 @@ const run = async () => {
     posts: currentPosts,
     latestPostId: posts[0].id,
     latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
+    notificationLogicVersion: NOTIFICATION_LOGIC_VERSION,
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
 };
