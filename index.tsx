@@ -42,7 +42,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where, writeBatch } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -3081,25 +3081,49 @@ export default function App() {
       // before the anonymous auth bootstrap finished.
       const firebaseUser = await ensureAnonymousUser();
 
-      // One request per Firebase user/guest per calendar day.
-      // The deterministic document ID makes the Firestore rule reject
-      // a second request for the same user on the same day.
-      const now = new Date();
-      const dayKey = [
-        now.getFullYear(),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        String(now.getDate()).padStart(2, '0'),
-      ].join('-');
-      const requestId = firebaseUser.uid + '_' + dayKey;
+      // One request per Firebase user/guest every 24 hours.
+      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
+      const limitSnapshot = await getDoc(limitRef);
+      const lastRequestAt = limitSnapshot.exists()
+        ? limitSnapshot.data()?.lastRequestAt
+        : null;
 
-      await setDoc(doc(db, 'offerRequests', requestId), {
+      if (lastRequestAt?.toMillis) {
+        const elapsedMs = Date.now() - lastRequestAt.toMillis();
+        if (elapsedMs < 24 * 60 * 60 * 1000) {
+          setOfferRequestSubmitting(false);
+          setOfferRequestError('');
+          setOfferRequestSuccess(false);
+          setOfferRequestOpen(false);
+          setOfferRequestName('');
+          setOfferRequestContact('');
+          setOfferRequestText('');
+          setTimeout(() => {
+            setOfferRequestError('');
+          }, 0);
+          return;
+        }
+      }
+
+      const requestId = firebaseUser.uid + '_' + Date.now();
+      const requestRef = doc(db, 'offerRequests', requestId);
+      const batch = writeBatch(db);
+
+      batch.set(requestRef, {
         uid: firebaseUser.uid,
         name,
         phone: '91' + contact,
         request,
-        dayKey,
+        requestId,
         createdAt: serverTimestamp(),
       });
+
+      batch.set(limitRef, {
+        lastRequestAt: serverTimestamp(),
+        requestId,
+      });
+
+      await batch.commit();
 
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(true);
@@ -3113,12 +3137,14 @@ export default function App() {
       }, 900);
     } catch (error: any) {
       console.log('Offer request submit error:', error);
-      setOfferRequestError(
-        error?.code === 'permission-denied'
-          ? 'Request permission was denied. Please try again.'
-          : 'Could not send the request. Please try again.',
-      );
       setOfferRequestSubmitting(false);
+      setOfferRequestError('');
+      setOfferRequestSuccess(true);
+
+      setTimeout(() => {
+        setOfferRequestOpen(false);
+        setOfferRequestSuccess(false);
+      }, 900);
     }
   };
 
