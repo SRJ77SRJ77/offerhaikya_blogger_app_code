@@ -3078,11 +3078,17 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
+
+      // Make sure Firebase has an authenticated session before writing.
+      // This also covers users who opened the request form very quickly
+      // before the anonymous auth bootstrap finished.
+      await ensureAnonymousUser();
+
       await addDoc(collection(db, 'offerRequests'), {
         name,
         phone: '91' + contact,
         request,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
 
       setOfferRequestSubmitting(false);
@@ -3095,8 +3101,13 @@ export default function App() {
         setOfferRequestContact('');
         setOfferRequestText('');
       }, 900);
-    } catch {
-      setOfferRequestError('Could not send the request. Please try again.');
+    } catch (error: any) {
+      console.log('Offer request submit error:', error);
+      setOfferRequestError(
+        error?.code === 'permission-denied'
+          ? 'Request permission was denied. Please try again.'
+          : 'Could not send the request. Please try again.',
+      );
       setOfferRequestSubmitting(false);
     }
   };
