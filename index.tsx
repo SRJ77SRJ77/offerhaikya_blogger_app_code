@@ -4931,8 +4931,12 @@ export default function App() {
             <>
               {hasMorePosts ? (
                  <View style={styles.loadMoreWrap}>
-                   <TouchableOpacity style={styles.registrationButton} onPress={() => { void loadMorePosts(); }} disabled={searching}>
-                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.registrationButtonText}>Load More</Text>}
+                   <TouchableOpacity
+                     style={[styles.loadMoreButton, searching && styles.disabledButton]}
+                     onPress={() => { void loadMorePosts(); }}
+                     disabled={searching}
+                   >
+                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
                    </TouchableOpacity>
                  </View>
                ) : null}
@@ -5649,7 +5653,9 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
-  loadMoreWrap: { paddingHorizontal: 18, paddingVertical: 14 },
+  loadMoreWrap: { alignItems: 'center', paddingHorizontal: 18, paddingVertical: 14 },
+  loadMoreButton: { minHeight: 36, paddingHorizontal: 20, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  loadMoreButtonText: { color: WHITE, fontSize: 12, fontWeight: '900' },
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 13, fontWeight: '900' },
   footerBrandDark: { color: WHITE },
