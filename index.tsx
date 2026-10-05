@@ -42,7 +42,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, setDoc, where } from 'firebase/firestore';
+import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -3075,20 +3075,17 @@ export default function App() {
       setOfferRequestSubmitting(true);
       setOfferRequestSuccess(false);
       setOfferRequestError('');
-      const user = auth.currentUser;
-      if (!user) {
+      if (!auth.currentUser) {
         await signInAnonymously(auth);
       }
 
-      const currentUser = auth.currentUser;
-      if (!currentUser) throw new Error('Firebase user unavailable');
+      if (!auth.currentUser) throw new Error('Firebase user unavailable');
 
-      await setDoc(doc(db, 'offerRequests', currentUser.uid + '_' + Date.now()), {
-        uid: currentUser.uid,
+      await addDoc(collection(db, 'offerRequests'), {
         name,
-        contact: '91' + contact,
-        offerRequest: request,
-        submittedAt: new Date().toISOString(),
+        phone: '91' + contact,
+        request,
+        createdAt: serverTimestamp(),
       });
 
       setOfferRequestSubmitting(false);
