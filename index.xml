@@ -4900,7 +4900,6 @@ h2.hero-title {
   .ohk-related-excerpt{font-size:10px;line-height:14px}
 }
 
-]]><style type="text/css">
 .ohk-related-post-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -4950,7 +4949,8 @@ h2.hero-title {
   .ohk-related-title{font-size:13px;line-height:17px}
   .ohk-related-excerpt{font-size:10px;line-height:14px}
 }
-</style>
+
+]]>
 </b:skin>
 </b:if>
 <b:if cond='data:view.isLayoutMode'>
