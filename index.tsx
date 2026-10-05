@@ -63,7 +63,8 @@ const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
-const LOCATION_RETRY_MS = 30 * 1000;
+const LOCATION_RETRY_MS = 5 * 60 * 1000;
+const LOCATION_CHECK_INTERVAL_MS = 30 * 1000;
 const GUEST_NOTIFICATION_REMINDER_MS = 5 * 60 * 1000;
 const GUEST_NOTIFICATION_DISMISSED_KEY = 'offerhaikya_guest_notifications_dismissed_at';
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
@@ -354,6 +355,7 @@ export default function App() {
   const [locationServicesEnabled, setLocationServicesEnabled] = useState(true);
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
   const locationAutoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locationCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const locationAutoStartedRef = useRef(false);
   const locationPromptSnoozeUntilRef = useRef(0);
   const locationPermissionRequestActiveRef = useRef(false);
@@ -1283,6 +1285,16 @@ export default function App() {
           setLocationPromptOpen(false);
           locationPromptSnoozeUntilRef.current = 0;
 
+          if (locationAutoTimerRef.current) {
+            clearTimeout(locationAutoTimerRef.current);
+            locationAutoTimerRef.current = null;
+          }
+
+          if (locationCheckIntervalRef.current) {
+            clearInterval(locationCheckIntervalRef.current);
+            locationCheckIntervalRef.current = null;
+          }
+
           if (!wasLocationReady) {
             startNearbyPreloader();
             setLocationRefreshKey(value => value + 1);
@@ -1292,7 +1304,7 @@ export default function App() {
 
         locationReadyRef.current = false;
 
-        // User chose "No": stay silent for 5 minutes.
+        // Keep the 5-minute popup deadline, but silently check Location every 30 seconds.
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         // Permission was permanently denied. Let the user use the location
@@ -1312,7 +1324,32 @@ export default function App() {
       }
     };
 
-    showLocationPromptIfNeeded();
+    const startLocationChecks = async () => {
+      const permission = await Location.getForegroundPermissionsAsync();
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      const locationReady =
+        permission.status === 'granted' && servicesEnabled;
+
+      if (locationReady) {
+        locationReadyRef.current = true;
+        locationPromptSnoozeUntilRef.current = 0;
+        startNearbyPreloader();
+        setLocationRefreshKey(value => value + 1);
+        return;
+      }
+
+      // Start the 5-minute popup deadline. The 30-second interval below only
+      // checks silently and can finish this flow early when Location becomes ready.
+      locationPromptSnoozeUntilRef.current = Date.now() + LOCATION_RETRY_MS;
+      void showLocationPromptIfNeeded();
+
+      locationCheckIntervalRef.current = setInterval(
+        showLocationPromptIfNeeded,
+        LOCATION_CHECK_INTERVAL_MS
+      );
+    };
+
+    void startLocationChecks();
 
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
@@ -1320,19 +1357,15 @@ export default function App() {
       }
     });
 
-    // Keep checking silently while the app remains open so turning Location
-    // OFF is detected without requiring the user to leave and reopen the app.
-    const locationCheckInterval = setInterval(
-      showLocationPromptIfNeeded,
-      30 * 1000
-    );
-
     return () => {
       if (locationAutoTimerRef.current) {
         clearTimeout(locationAutoTimerRef.current);
         locationAutoTimerRef.current = null;
       }
-      clearInterval(locationCheckInterval);
+      if (locationCheckIntervalRef.current) {
+        clearInterval(locationCheckIntervalRef.current);
+        locationCheckIntervalRef.current = null;
+      }
       subscription.remove();
     };
   }, [registrationOpen, startNearbyPreloader]);
