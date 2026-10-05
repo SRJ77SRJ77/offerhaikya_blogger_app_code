@@ -63,7 +63,7 @@ const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
-const LOCATION_RETRY_MS = 5 * 60 * 1000;
+const LOCATION_RETRY_MS = 30 * 1000;
 const GUEST_NOTIFICATION_REMINDER_MS = 5 * 60 * 1000;
 const GUEST_NOTIFICATION_DISMISSED_KEY = 'offerhaikya_guest_notifications_dismissed_at';
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
@@ -1324,7 +1324,7 @@ export default function App() {
     // OFF is detected without requiring the user to leave and reopen the app.
     const locationCheckInterval = setInterval(
       showLocationPromptIfNeeded,
-      1000
+      30 * 1000
     );
 
     return () => {
