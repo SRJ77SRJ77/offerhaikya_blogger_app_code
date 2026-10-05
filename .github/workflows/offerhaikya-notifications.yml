@@ -10,12 +10,13 @@ on:
 
 concurrency:
   group: offerhaikya-push-notifications
+  queue: max
   cancel-in-progress: false
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
