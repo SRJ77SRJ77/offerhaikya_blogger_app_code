@@ -1341,10 +1341,8 @@ export default function App() {
             locationAutoTimerRef.current = null;
           }
 
-          if (locationCheckIntervalRef.current) {
-            clearInterval(locationCheckIntervalRef.current);
-            locationCheckIntervalRef.current = null;
-          }
+          // Keep the 30-second watcher alive so a later ON -> OFF
+          // device Location change while the app is open is detected immediately.
 
           if (!wasLocationReady) {
             if (returnHomeAfterLocationSettingsRef.current) {
@@ -1403,10 +1401,16 @@ export default function App() {
         locationPromptSnoozeUntilRef.current = 0;
         startNearbyPreloader();
         setLocationRefreshKey(value => value + 1);
-        return;
+      } else {
+        // Location is currently unavailable: ask once immediately.
+        // The watcher remains active so a later Location ON/OFF transition
+        // is detected even while the app stays on the same screen.
+        locationPromptSnoozeUntilRef.current = 0;
+        void showLocationPromptIfNeeded();
       }
 
-      // Location is currently unavailable: ask once immediately.
+      // Keep checking every 30 seconds so turning device Location OFF
+      // while the app is open triggers the custom prompt immediately.
       // If the user taps No, postponeLocationPrompt() starts the 5-minute retry.
       // The 30-second checker continues silently in the background.
       locationPromptSnoozeUntilRef.current = 0;
