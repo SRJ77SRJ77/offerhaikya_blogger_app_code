@@ -1356,7 +1356,14 @@ export default function App() {
           return;
         }
 
+        // A real ON -> OFF transition must always ask immediately,
+        // even if a previous "No" created a 5-minute snooze.
+        const wasLocationReady = locationReadyRef.current === true;
         locationReadyRef.current = false;
+
+        if (wasLocationReady) {
+          locationPromptSnoozeUntilRef.current = 0;
+        }
 
         // Keep the 5-minute popup deadline, but silently check Location every 30 seconds.
         // Each 30-second check also refreshes Nearby so the priority stays:
