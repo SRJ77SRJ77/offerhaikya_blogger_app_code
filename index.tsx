@@ -4880,7 +4880,7 @@ export default function App() {
           accessibilityLabel="Hot Offers"
         >
           <Text style={[styles.bottomNavPercentIcon, darkMode && styles.bottomNavPercentIconDark, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
-          <Text style={[styles.bottomNavLabel, bottomTab === 'hot' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'hot' && styles.bottomNavLabelActive]}>
             Hot Offers
           </Text>
         </TouchableOpacity>
