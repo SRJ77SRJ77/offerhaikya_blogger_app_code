@@ -5289,10 +5289,7 @@ export default function App() {
                   styles.disabledButton,
               ]}
               onPress={submitOfferRequest}
-              disabled={
-                offerRequestSubmitting ||
-                offerRequestSuccess ||
-              }
+              disabled={offerRequestSubmitting || offerRequestSuccess}
             >
               {offerRequestSubmitting ? (
                 <ActivityIndicator size="small" color={WHITE} />
