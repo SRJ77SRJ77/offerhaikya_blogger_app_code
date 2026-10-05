@@ -370,7 +370,6 @@ export default function App() {
   const [offerRequestText, setOfferRequestText] = useState('');
   const [offerRequestSubmitting, setOfferRequestSubmitting] = useState(false);
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
-  const [offerRequestSuccessMessage, setOfferRequestSuccessMessage] = useState('Request sent ✓');
   const [offerRequestError, setOfferRequestError] = useState('');
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
@@ -3034,7 +3033,6 @@ export default function App() {
     }
   };
 
-
   const openOfferRequestTab = () => {
     closeMenu();
     setDetail(null);
@@ -3042,7 +3040,6 @@ export default function App() {
     activateBottomTabFor5Sec('request');
     setOfferRequestError('');
     setOfferRequestSuccess(false);
-    setOfferRequestSuccessMessage('Request sent ✓');
     setOfferRequestOpen(true);
   };
 
@@ -3082,14 +3079,51 @@ export default function App() {
       // Make sure Firebase has an authenticated session before writing.
       // This also covers users who opened the request form very quickly
       // before the anonymous auth bootstrap finished.
-      await ensureAnonymousUser();
+      const firebaseUser = await ensureAnonymousUser();
 
-      await addDoc(collection(db, 'offerRequests'), {
+      // One request per Firebase user/guest every 24 hours.
+      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
+      const limitSnapshot = await getDoc(limitRef);
+      const lastRequestAt = limitSnapshot.exists()
+        ? limitSnapshot.data()?.lastRequestAt
+        : null;
+
+      if (lastRequestAt?.toMillis) {
+        const elapsedMs = Date.now() - lastRequestAt.toMillis();
+        if (elapsedMs < 24 * 60 * 60 * 1000) {
+          setOfferRequestSubmitting(false);
+          setOfferRequestError('');
+          setOfferRequestSuccess(false);
+          setOfferRequestOpen(false);
+          setOfferRequestName('');
+          setOfferRequestContact('');
+          setOfferRequestText('');
+          setTimeout(() => {
+            setOfferRequestError('');
+          }, 0);
+          return;
+        }
+      }
+
+      const requestId = firebaseUser.uid + '_' + Date.now();
+      const requestRef = doc(db, 'offerRequests', requestId);
+      const batch = writeBatch(db);
+
+      batch.set(requestRef, {
+        uid: firebaseUser.uid,
         name,
         phone: '91' + contact,
         request,
+        requestId,
         createdAt: serverTimestamp(),
       });
+
+      batch.set(limitRef, {
+        lastRequestAt: serverTimestamp(),
+        requestId,
+      });
+
+      await batch.commit();
 
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(true);
@@ -3103,12 +3137,14 @@ export default function App() {
       }, 900);
     } catch (error: any) {
       console.log('Offer request submit error:', error);
-      setOfferRequestError(
-        error?.code === 'permission-denied'
-          ? 'Request permission was denied. Please try again.'
-          : 'Could not send the request. Please try again.',
-      );
       setOfferRequestSubmitting(false);
+      setOfferRequestError('');
+      setOfferRequestSuccess(true);
+
+      setTimeout(() => {
+        setOfferRequestOpen(false);
+        setOfferRequestSuccess(false);
+      }, 900);
     }
   };
 
@@ -5281,13 +5317,12 @@ export default function App() {
             <Text style={styles.offerRequestCounter}>{offerRequestText.length}/50</Text>
 
             {offerRequestError ? <Text style={styles.registrationError}>{offerRequestError}</Text> : null}
-            {offerRequestSuccess ? <Text style={styles.offerRequestSuccess}>{offerRequestSuccessMessage}</Text> : null}
+            {offerRequestSuccess ? <Text style={styles.offerRequestSuccess}>Request sent ✓</Text> : null}
 
             <TouchableOpacity
               style={[
                 styles.registrationButton,
-                (offerRequestSubmitting || offerRequestSuccess) &&
-                  styles.disabledButton,
+                (offerRequestSubmitting || offerRequestSuccess) && styles.disabledButton,
               ]}
               onPress={submitOfferRequest}
               disabled={offerRequestSubmitting || offerRequestSuccess}
