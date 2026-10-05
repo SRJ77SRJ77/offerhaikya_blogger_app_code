@@ -56,7 +56,10 @@ service cloud.firestore {
         && getAfter(
           /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
         ).data.uid == request.auth.uid;
-      allow read, delete: if false;
+      allow read:
+        if request.auth != null
+        && request.auth.uid == userId;
+      allow delete: if false;
     }
   }
 }
