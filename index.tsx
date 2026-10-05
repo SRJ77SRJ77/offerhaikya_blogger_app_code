@@ -3095,7 +3095,7 @@ export default function App() {
         if (elapsedMs < 24 * 60 * 60 * 1000) {
           setOfferRequestSubmitting(false);
           setOfferRequestError('');
-          setOfferRequestSuccessMessage('Please request an offer after 24 hours. Thank you.');
+          setOfferRequestSuccessMessage('Send Request after 24 hr Thank you');
           setOfferRequestSuccess(true);
 
           setTimeout(() => {
