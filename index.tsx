@@ -362,6 +362,7 @@ export default function App() {
   const locationPromptSnoozeUntilRef = useRef(0);
   const locationPermissionRequestActiveRef = useRef(false);
   const localOffersPermissionPendingRef = useRef(false);
+  const returnHomeAfterLocationSettingsRef = useRef(false);
   const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
@@ -1346,7 +1347,10 @@ export default function App() {
           }
 
           if (!wasLocationReady) {
-            if (localOffersPermissionPendingRef.current) {
+            if (returnHomeAfterLocationSettingsRef.current) {
+              returnHomeAfterLocationSettingsRef.current = false;
+              goToHomeTab();
+            } else if (localOffersPermissionPendingRef.current) {
               localOffersPermissionPendingRef.current = false;
               enterLocalOffers();
             }
@@ -2800,7 +2804,9 @@ export default function App() {
 
       if (currentPermission.status === 'granted') {
         if (!servicesEnabled) {
-          // App permission is already granted; open device Location Settings.
+          // App permission is already granted: open device Location Settings.
+          // Return to Home when Location is turned back ON.
+          returnHomeAfterLocationSettingsRef.current = true;
           try {
             await Linking.openSettings();
           } catch {
