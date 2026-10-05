@@ -372,6 +372,7 @@ export default function App() {
   const [offerRequestSuccess, setOfferRequestSuccess] = useState(false);
   const [offerRequestSuccessMessage, setOfferRequestSuccessMessage] = useState('Request sent ✓');
   const [offerRequestError, setOfferRequestError] = useState('');
+  const [offerRequestLockedUntil, setOfferRequestLockedUntil] = useState<number | null>(null);
   const [bottomTab, setBottomTab] = useState<'home' | 'local' | 'hot' | 'search' | 'request' | null>(null);
   const [sharePostUrl, setSharePostUrl] = useState<string | null>(null);
   const [expiryNow, setExpiryNow] = useState(() => Date.now());
@@ -3034,6 +3035,26 @@ export default function App() {
     }
   };
 
+  const refreshOfferRequestLock = async () => {
+    try {
+      const firebaseUser = await ensureAnonymousUser();
+      const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
+      const limitSnapshot = await getDoc(limitRef);
+      const lastRequestAt = limitSnapshot.exists()
+        ? limitSnapshot.data()?.lastRequestAt
+        : null;
+
+      if (lastRequestAt?.toMillis) {
+        const lockedUntil = lastRequestAt.toMillis() + 24 * 60 * 60 * 1000;
+        setOfferRequestLockedUntil(lockedUntil > Date.now() ? lockedUntil : null);
+      } else {
+        setOfferRequestLockedUntil(null);
+      }
+    } catch (error) {
+      console.log('Offer request lock check error:', error);
+    }
+  };
+
   const openOfferRequestTab = () => {
     closeMenu();
     setDetail(null);
@@ -3043,6 +3064,7 @@ export default function App() {
     setOfferRequestSuccess(false);
     setOfferRequestSuccessMessage('Request sent ✓');
     setOfferRequestOpen(true);
+    void refreshOfferRequestLock();
   };
 
 
@@ -3093,6 +3115,7 @@ export default function App() {
       if (lastRequestAt?.toMillis) {
         const elapsedMs = Date.now() - lastRequestAt.toMillis();
         if (elapsedMs < 24 * 60 * 60 * 1000) {
+          setOfferRequestLockedUntil(lastRequestAt.toMillis() + 24 * 60 * 60 * 1000);
           setOfferRequestSubmitting(false);
           setOfferRequestError('');
           setOfferRequestSuccessMessage('Send Request after 24 hr Thank you');
@@ -3130,6 +3153,7 @@ export default function App() {
 
       await batch.commit();
 
+      setOfferRequestLockedUntil(Date.now() + 24 * 60 * 60 * 1000);
       setOfferRequestSubmitting(false);
       setOfferRequestSuccessMessage('Request sent ✓');
       setOfferRequestSuccess(true);
@@ -3146,18 +3170,7 @@ export default function App() {
       setOfferRequestSubmitting(false);
 
       if (error?.code === 'permission-denied') {
-        setOfferRequestError('');
-        setOfferRequestSuccessMessage('Send Request after 24 hr Thank you');
-        setOfferRequestSuccess(true);
-
-        setTimeout(() => {
-          setOfferRequestOpen(false);
-          setOfferRequestSuccess(false);
-          setOfferRequestSuccessMessage('Request sent ✓');
-          setOfferRequestName('');
-          setOfferRequestContact('');
-          setOfferRequestText('');
-        }, 1800);
+        setOfferRequestError('Could not send the request. Please try again.');
       } else if (error?.code === 'unavailable') {
         setOfferRequestError('Internet connection failed. Please try again.');
       } else {
@@ -5340,10 +5353,17 @@ export default function App() {
             <TouchableOpacity
               style={[
                 styles.registrationButton,
-                (offerRequestSubmitting || offerRequestSuccess) && styles.disabledButton,
+                (offerRequestSubmitting ||
+                  offerRequestSuccess ||
+                  (offerRequestLockedUntil !== null && expiryNow < offerRequestLockedUntil)) &&
+                  styles.disabledButton,
               ]}
               onPress={submitOfferRequest}
-              disabled={offerRequestSubmitting || offerRequestSuccess}
+              disabled={
+                offerRequestSubmitting ||
+                offerRequestSuccess ||
+                (offerRequestLockedUntil !== null && expiryNow < offerRequestLockedUntil)
+              }
             >
               {offerRequestSubmitting ? (
                 <ActivityIndicator size="small" color={WHITE} />
