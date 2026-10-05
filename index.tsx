@@ -4351,7 +4351,8 @@ export default function App() {
         }
         ListFooterComponent={
           visiblePosts.length > 0 ? (
-            <>               {hasMorePosts ? (
+            <>
+              {hasMorePosts ? (
                  <View style={styles.loadMoreWrap}>
                    <TouchableOpacity style={styles.registrationButton} onPress={() => { void loadMorePosts(); }} disabled={searching}>
                      {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.registrationButtonText}>Load More</Text>}
