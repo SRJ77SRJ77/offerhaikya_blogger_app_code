@@ -3079,12 +3079,25 @@ export default function App() {
       // Make sure Firebase has an authenticated session before writing.
       // This also covers users who opened the request form very quickly
       // before the anonymous auth bootstrap finished.
-      await ensureAnonymousUser();
+      const firebaseUser = await ensureAnonymousUser();
 
-      await addDoc(collection(db, 'offerRequests'), {
+      // One request per Firebase user/guest per calendar day.
+      // The deterministic document ID makes the Firestore rule reject
+      // a second request for the same user on the same day.
+      const now = new Date();
+      const dayKey = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0'),
+      ].join('-');
+      const requestId = firebaseUser.uid + '_' + dayKey;
+
+      await setDoc(doc(db, 'offerRequests', requestId), {
+        uid: firebaseUser.uid,
         name,
         phone: '91' + contact,
         request,
+        dayKey,
         createdAt: serverTimestamp(),
       });
 
