@@ -5285,8 +5285,7 @@ export default function App() {
             <TouchableOpacity
               style={[
                 styles.registrationButton,
-                (offerRequestSubmitting ||
-                  offerRequestSuccess ||) &&
+                (offerRequestSubmitting || offerRequestSuccess) &&
                   styles.disabledButton,
               ]}
               onPress={submitOfferRequest}
