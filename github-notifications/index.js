@@ -297,8 +297,8 @@ const run = async () => {
         ? data.interestedCategories.map(normalizeText).filter(Boolean)
         : [];
 
-      const wantsOnlineOffers = interestedCategories.includes('online offer');
-      const wantsOfflineOffers = interestedCategories.includes('offline offer');
+      const wantsOnlineOffers = interestedCategories.some(category => category === 'online offer' || category === 'online offers');
+      const wantsOfflineOffers = interestedCategories.some(category => category === 'offline offer' || category === 'offline offers');
 
       if (!local) {
         // ONLINE OFFER: category subscription only. No location check.
