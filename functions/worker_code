@@ -301,6 +301,41 @@ const getNotificationState = async (env, accessToken) => {
   return firestoreDocumentToObject(await response.json());
 };
 
+const writeNotificationState = async (env, accessToken, state) => {
+  const url = firestoreDocumentUrl(env, "notificationState/bloggerFeed");
+  const fields = {};
+
+  for (const [key, value] of Object.entries(state || {})) {
+    if (typeof value === "string") {
+      fields[key] = { stringValue: value };
+    } else if (typeof value === "boolean") {
+      fields[key] = { booleanValue: value };
+    } else if (typeof value === "number" && Number.isInteger(value)) {
+      fields[key] = { integerValue: String(value) };
+    }
+  }
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ fields }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Firestore state write failed: HTTP " +
+      response.status +
+      " " +
+      (await response.text())
+    );
+  }
+
+  return firestoreDocumentToObject(await response.json());
+};
+
 const getEligibleUsers = async (env, accessToken) => {
   const url =
     "https://firestore.googleapis.com/v1/projects/" +
