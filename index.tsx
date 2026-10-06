@@ -1210,9 +1210,7 @@ export default function App() {
           detectedLocationTerms.slice().sort().join('|');
 
         const cachedNearby = nearbyCacheRef.current;
-        const forceNearbyRefresh = locationRefreshKey > 0;
         if (
-          !forceNearbyRefresh &&
           cachedNearby &&
           cachedNearby.key === nearbyCacheKey &&
           Date.now() - cachedNearby.savedAt <= NEARBY_CACHE_TTL_MS
@@ -1451,11 +1449,12 @@ export default function App() {
           locationPromptSnoozeUntilRef.current = 0;
         }
 
-        // Keep the 5-minute popup deadline, but silently check Location every 30 seconds.
-        // Each 30-second check also refreshes Nearby so the priority stays:
-        // current device location -> saved location -> latest offers normally.
-        nearbyCacheRef.current = null;
-        setLocationRefreshKey(value => value + 1);
+        // Check the device state frequently, but refresh Nearby only once when
+        // the device actually changes from Location ON -> OFF.
+        if (wasLocationReady) {
+          nearbyCacheRef.current = null;
+          setLocationRefreshKey(value => value + 1);
+        }
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
         // Permission was permanently denied. Let the user use the location
@@ -1487,10 +1486,11 @@ export default function App() {
         startNearbyPreloader();
         setLocationRefreshKey(value => value + 1);
       } else {
-        // Location is currently unavailable: ask once immediately.
-        // The watcher remains active so a later Location ON/OFF transition
-        // is detected even while the app stays on the same screen.
+        // Location is currently unavailable. Load the saved-location fallback
+        // once, then keep checking silently for a future Location ON transition.
         locationPromptSnoozeUntilRef.current = 0;
+        nearbyCacheRef.current = null;
+        setLocationRefreshKey(value => value + 1);
         void showLocationPromptIfNeeded();
       }
 
@@ -1513,6 +1513,7 @@ export default function App() {
       if (state === 'active') {
         nearbyCacheRef.current = null;
         void showLocationPromptIfNeeded();
+        setLocationRefreshKey(value => value + 1);
       }
     });
 
