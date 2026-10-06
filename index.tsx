@@ -638,18 +638,19 @@ export default function App() {
     };
   }, []);
 
-  const loadPosts = useCallback(async (search = '', pageNumber = 1) => {
+  const loadPosts = useCallback(async (search = '', pageNumber = 1, silent = false) => {
     try {
       setError('');
-      if (!search) setLoading(true);
-      else setSearching(true);
+      if (!silent) {
+        if (!search) setLoading(true);
+        else setSearching(true);
+      }
       const startIndex = (pageNumber - 1) * PAGE_SIZE + 1;
       const cached = getCachedFeed(search, startIndex);
 
       if (cached) {
         setPosts(cached);
         setPage(pageNumber);
-      paginationPageRef.current = pageNumber;
         paginationPageRef.current = pageNumber;
         setHasMorePosts(cached.length === PAGE_SIZE);
         setLoading(false);
@@ -666,6 +667,7 @@ export default function App() {
       const result = await fetchFeedFromNetwork(search, startIndex);
       setPosts(result);
       setPage(pageNumber);
+      paginationPageRef.current = pageNumber;
       setHasMorePosts(result.length === PAGE_SIZE);
 
       if (result.length === PAGE_SIZE) {
@@ -674,8 +676,10 @@ export default function App() {
     } catch {
       setError('Could not load the latest offers. Please try again.');
     } finally {
-      setLoading(false);
-      setSearching(false);
+      if (!silent) {
+        setLoading(false);
+        setSearching(false);
+      }
     }
   }, []);
 
@@ -701,7 +705,7 @@ export default function App() {
   const goToPage = (nextPage: number) => {
     if (nextPage < 1 || nextPage === page || (!hasMorePosts && nextPage > page)) return;
     const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-    loadPosts(activeSearch, nextPage);
+    loadPosts(activeSearch, nextPage, true);
   };
 
   const syncPushTokenForRegisteredUser = async () => {
