@@ -101,6 +101,8 @@ type Post = {
   excerpt: string;
   content: string;
   rawContent: string;
+  locationName?: string;
+  locationCoordinates?: { latitude: number; longitude: number };
 };
 
 const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
@@ -141,6 +143,42 @@ const extractMapCoordinates = (html = ''): { latitude: number; longitude: number
     return { latitude: Number(queryMatch[1]), longitude: Number(queryMatch[2]) };
   }
   return null;
+};
+
+const extractBloggerLocation = (entry: any, content = '') => {
+  const location = entry?.location || entry?.['gd$where'] || entry?.['georss$where'];
+  const name =
+    location?.name?.$t ||
+    location?.name ||
+    location?.['gd$name']?.$t ||
+    location?.['gd$name'] ||
+    entry?.['gd$where']?.name?.$t ||
+    entry?.['gd$where']?.name ||
+    '';
+
+  const latitude = Number(
+    location?.lat ??
+    location?.latitude ??
+    location?.['georss$point']?.lat ??
+    location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t ??
+    NaN,
+  );
+  const longitude = Number(
+    location?.lng ??
+    location?.longitude ??
+    location?.['georss$point']?.lng ??
+    NaN,
+  );
+
+  const coordinateLocation =
+    Number.isFinite(latitude) && Number.isFinite(longitude)
+      ? { latitude, longitude }
+      : extractMapCoordinates(content);
+
+  return {
+    name: String(name || '').trim(),
+    coordinates: coordinateLocation,
+  };
 };
 
 const formatDate = (value: string) => {
@@ -188,6 +226,8 @@ const parseFeed = (data: any): Post[] => {
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
       rawContent: content,
+      locationName: extractBloggerLocation(entry, content).name,
+      locationCoordinates: extractBloggerLocation(entry, content).coordinates || undefined,
     };
   });
 };
@@ -914,42 +954,43 @@ export default function App() {
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationText(label))
         .filter(Boolean);
-      const nearbyLocalTags = [
-        'offline offer',
-        'local offer',
-      ];
+      const nearbyLocalTags = ['offline offer', 'local offer'];
       const allTagText = normalizedLabels.join(' ');
-      const hasLocalOfferTag = nearbyLocalTags.some(tag =>
-        allTagText.includes(tag),
-      );
-
+      const hasLocalOfferTag = nearbyLocalTags.some(tag => allTagText.includes(tag));
       if (!hasLocalOfferTag) return false;
 
-      const contentText = normalizeLocationText(post.content || '');
-      const rawContentText = normalizeLocationText(post.rawContent || '');
+      // Location priority:
+      // 1) Blogger Location field
+      // 2) Labels/tags
+      // 3) Title
+      // Never scan the description for Nearby location matching.
+      const bloggerLocationText = normalizeLocationText(post.locationName || '');
+      const labelLocationText = normalizedLabels
+        .filter(label => !nearbyLocalTags.some(tag => label.includes(tag)))
+        .join(' ');
       const titleText = normalizeLocationText(post.title);
-      // Check location against both visible post text and the original Blogger HTML.
-      const offerText = [titleText, contentText, rawContentText].join(' ');
 
-      const locationMatch = detectedLocationTerms.some(term => {
+      const locationCandidates = [
+        bloggerLocationText,
+        labelLocationText,
+        titleText,
+      ].filter(Boolean);
+
+      const matchedLocationTerm = detectedLocationTerms.find(term => {
         const normalizedTerm = normalizeLocationText(term);
         if (!normalizedTerm) return false;
-        return offerText.includes(normalizedTerm);
+        return locationCandidates.some(candidate => candidate.includes(normalizedTerm));
       });
 
-      const postLocation = extractMapCoordinates(post.rawContent);
-      const distanceKmValue = postLocation
-        ? distanceKm(coords, postLocation)
-        : null;
+      const postLocation = post.locationCoordinates || null;
+      const distanceKmValue = postLocation ? distanceKm(coords, postLocation) : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
 
-      // Nearby should be strong in both signals:
-      // 1) GPS/map distance within 200 km, OR
-      // 2) a matching location name in the offer text.
-      // Text location remains valid even when map coordinates are missing,
-      // malformed, or point somewhere unexpected.
-      const nearbyMatch = distanceMatch || locationMatch;
+      // Until a road-routing provider is configured, do not claim a text match
+      // is a valid 300 km road-distance match. Coordinate distance is retained
+      // only when the Blogger Location field supplies coordinates.
+      const nearbyMatch = Boolean(matchedLocationTerm) || distanceMatch;
 
       if (isNearbyDebugPost) {
         console.log('[Nearby debug]', {
@@ -1322,19 +1363,27 @@ export default function App() {
       const hasLocalOfferTag = nearbyLocalTags.some(tag => allTagText.includes(tag));
       if (!hasLocalOfferTag) return false;
 
-      const contentText = normalizeLocationTextForPolling(post.content || '');
-      const rawContentText = normalizeLocationTextForPolling(post.rawContent || '');
+      // Same location priority used by the main Nearby loader:
+      // Blogger Location -> tags/labels -> title.
+      const bloggerLocationText = normalizeLocationTextForPolling(post.locationName || '');
+      const labelLocationText = normalizedLabels
+        .filter(label => !nearbyLocalTags.some(tag => label.includes(tag)))
+        .join(' ');
       const titleText = normalizeLocationTextForPolling(post.title);
-      // Check both visible text and original Blogger HTML for location terms.
-      const offerText = [titleText, contentText, rawContentText].join(' ');
+
+      const locationCandidates = [
+        bloggerLocationText,
+        labelLocationText,
+        titleText,
+      ].filter(Boolean);
 
       const locationMatch = detectedLocationTerms.some(term => {
         const normalizedTerm = normalizeLocationTextForPolling(term);
         if (!normalizedTerm) return false;
-        return offerText.includes(normalizedTerm);
+        return locationCandidates.some(candidate => candidate.includes(normalizedTerm));
       });
 
-      const postLocation = extractMapCoordinates(post.rawContent);
+      const postLocation = post.locationCoordinates || null;
       const distanceKmValue = postLocation
         ? distanceKm(coords, postLocation)
         : null;
