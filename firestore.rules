@@ -29,10 +29,21 @@ service cloud.firestore {
         && request.resource.data.request is string
         && request.resource.data.requestId == requestId
         && request.resource.data.createdAt is timestamp
+        && (!exists(/databases/$(database)/documents/offerRequestLimits/$(request.auth.uid))
+          || get(/databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)).data.lastRequestAt + duration.value(24, 'h') <= request.time)
         && getAfter(
           /databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)
         ).data.requestId == requestId;
       allow read, update, delete: if false;
+    }
+
+    match /notificationStates/{userId} {
+      allow read, create, update:
+        if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['dismissedPostIds'])
+        && request.resource.data.dismissedPostIds is list;
+      allow delete: if false;
     }
 
     match /offerRequestLimits/{userId} {
