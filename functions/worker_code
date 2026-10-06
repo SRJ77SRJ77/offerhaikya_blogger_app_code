@@ -1,9 +1,9 @@
 const FEED_URL = "https://www.offerhaikya.com/feeds/posts/default";
-const WORKER_VERSION = "LIVE_PUSH_TEST_V1";
+const WORKER_VERSION = "PRODUCTION_DEDUP_V1";
 
-// LIVE PUSH TEST ONLY.
-// This Worker sends Expo push notifications for the latest Blogger post to matched users.
-// It does NOT write Firestore notification state yet.
+// PRODUCTION NOTIFICATION WORKER.
+// Sends Expo push notifications only for a Blogger post that has not already been processed.
+// Firestore notification state is written only after Expo accepts the push request.
 
 const GPS_FRESH_MS = 5 * 60 * 1000;
 
@@ -564,9 +564,9 @@ const sendExpoPushNotifications = async (messages) => {
   };
 };
 
-const runLivePushTest = async (env) => {
+const getLatestBloggerPost = async () => {
   const feedResponse = await fetch(
-    FEED_URL + "?alt=json&max-results=500&ohk_cloudflare_push_test=" + Date.now(),
+    FEED_URL + "?alt=json&max-results=500&ohk_cloudflare_notification=" + Date.now(),
     {
       headers: {
         "Cache-Control": "no-cache, no-store, max-age=0",
@@ -576,22 +576,32 @@ const runLivePushTest = async (env) => {
   );
 
   if (!feedResponse.ok) {
-    throw new Error("Unable to read Offerhaikya Blogger feed: HTTP " + feedResponse.status);
+    throw new Error(
+      "Unable to read Offerhaikya Blogger feed: HTTP " +
+      feedResponse.status
+    );
   }
 
   const posts = parseFeed(await feedResponse.json());
+
   if (!posts.length) {
-    return { ok: false, mode: "LIVE_PUSH_TEST", message: "Blogger feed is empty." };
+    throw new Error("Blogger feed is empty.");
   }
 
-  const accessToken = await getFirebaseAccessToken(env);
-  const eligibleUsers = await getEligibleUsers(env, accessToken);
-  const post = posts[0];
-  const matches = findNotificationMatches(post, eligibleUsers);
-  const matchedUsers = matches.filter((item) => item.matched);
-  const matchedIds = new Set(matchedUsers.map((item) => item.userId));
+  return {
+    posts,
+    post: posts[0],
+  };
+};
 
-  const messages = eligibleUsers
+const buildPushMessages = (post, eligibleUsers, matches) => {
+  const matchedIds = new Set(
+    matches
+      .filter((item) => item.matched)
+      .map((item) => item.userId)
+  );
+
+  return eligibleUsers
     .filter((user) => matchedIds.has(user.userId))
     .map((user) => ({
       to: user.token,
@@ -615,15 +625,66 @@ const runLivePushTest = async (env) => {
         offerType: isOfflineOffer(post) ? "OFFLINE" : "ONLINE",
       },
     }));
+};
+
+const runProductionNotification = async (env) => {
+  const { posts, post } = await getLatestBloggerPost();
+  const accessToken = await getFirebaseAccessToken(env);
+  const state = await getNotificationState(env, accessToken);
+
+  if (!state) {
+    return {
+      ok: true,
+      mode: "PRODUCTION_NOTIFICATION",
+      workerVersion: WORKER_VERSION,
+      bloggerPosts: posts.length,
+      latestPostId: post.id,
+      latestPostTitle: post.title,
+      processed: false,
+      pushSent: 0,
+      firestoreStateChanged: false,
+      message:
+        "Notification state is not initialized. Seed the current latest Blogger post before enabling automatic notifications.",
+    };
+  }
+
+  if (state.lastProcessedPostId === post.id) {
+    return {
+      ok: true,
+      mode: "PRODUCTION_NOTIFICATION",
+      workerVersion: WORKER_VERSION,
+      bloggerPosts: posts.length,
+      latestPostId: post.id,
+      latestPostTitle: post.title,
+      processed: false,
+      duplicate: true,
+      pushSent: 0,
+      firestoreStateChanged: false,
+      message:
+        "This Blogger post was already processed. No push notification was sent.",
+    };
+  }
+
+  const eligibleUsers = await getEligibleUsers(env, accessToken);
+  const matches = findNotificationMatches(post, eligibleUsers);
+  const matchedUsers = matches.filter((item) => item.matched);
+  const messages = buildPushMessages(post, eligibleUsers, matches);
 
   const expo = await sendExpoPushNotifications(messages);
 
+  await writeNotificationState(env, accessToken, {
+    lastProcessedPostId: post.id,
+    lastProcessedPublishedAt: post.publishedAt || "",
+    lastProcessedAt: new Date().toISOString(),
+  });
+
   return {
     ok: true,
-    mode: "LIVE_PUSH_TEST",
+    mode: "PRODUCTION_NOTIFICATION",
     workerVersion: WORKER_VERSION,
     bloggerPosts: posts.length,
-    testedPost: {
+    processed: true,
+    post: {
       postId: post.id,
       title: post.title,
       offerType: isOfflineOffer(post) ? "OFFLINE" : "ONLINE",
@@ -635,10 +696,40 @@ const runLivePushTest = async (env) => {
     matches,
     pushSent: expo.sent,
     expoResponse: expo.responses,
-    firestoreStateChanged: false,
-    message: "LIVE push test completed. No Firestore notification state was changed.",
+    firestoreStateChanged: true,
+    message:
+      "New Blogger post processed. Push notifications were sent to matched users and the post was recorded in Firestore.",
   };
 };
+
+const seedCurrentPost = async (env) => {
+  const { posts, post } = await getLatestBloggerPost();
+  const accessToken = await getFirebaseAccessToken(env);
+
+  const state = await writeNotificationState(env, accessToken, {
+    lastProcessedPostId: post.id,
+    lastProcessedPublishedAt: post.publishedAt || "",
+    lastProcessedAt: new Date().toISOString(),
+  });
+
+  return {
+    ok: true,
+    mode: "SEED_CURRENT_POST",
+    workerVersion: WORKER_VERSION,
+    bloggerPosts: posts.length,
+    seededPost: {
+      postId: post.id,
+      title: post.title,
+      publishedAt: post.publishedAt,
+    },
+    firestoreStateChanged: true,
+    pushSent: 0,
+    message:
+      "Current latest Blogger post was recorded as already processed. No push notification was sent.",
+    state,
+  };
+};
+
 
 // --------------------------------------------------
 // SAFE TEST
@@ -758,7 +849,26 @@ export default {
       }
 
       if (request.method === "POST") {
-        const result = await runLivePushTest(env);
+        const mode = url.searchParams.get("mode") || "production";
+        const secret = url.searchParams.get("secret") || "";
+
+        if (mode === "seed") {
+          if (secret !== env.WEBHOOK_SECRET) {
+            return new Response("Unauthorized", { status: 401 });
+          }
+
+          const result = await seedCurrentPost(env);
+
+          return new Response(
+            JSON.stringify(result, null, 2),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+
+        const result = await runProductionNotification(env);
 
         return new Response(
           JSON.stringify(result, null, 2),
