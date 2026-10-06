@@ -1404,7 +1404,59 @@ export default function App() {
       detectedLocationTerms: string[],
     ) => {
       if (!coords) return false;
-      return matchesNearbyOffer(post, coords, detectedLocationTerms);
+
+      const normalizedLabels = [...post.labels, post.label]
+        .map(label => normalizeLocationTextForPolling(label))
+        .filter(Boolean);
+      const nearbyLocalTags = ['offline offer', 'local offer'];
+      if (!nearbyLocalTags.some(tag => normalizedLabels.join(' ').includes(tag))) {
+        return false;
+      }
+
+      const locationCandidates = [
+        normalizeLocationTextForPolling(post.locationName || ''),
+        ...normalizedLabels.filter(label =>
+          !nearbyLocalTags.some(tag => label.includes(tag)),
+        ),
+        normalizeLocationTextForPolling(post.title),
+      ].filter(Boolean);
+
+      const knownLocations = [
+        'belagavi', 'belgaum', 'belgaon',
+        'kolhapur', 'goa', 'panaji',
+        'mumbai', 'pune', 'bengaluru', 'bangalore',
+      ];
+
+      const locationCandidate = locationCandidates.find(candidate =>
+        knownLocations.some(location =>
+          candidate === location || candidate.includes(location),
+        ),
+      );
+
+      let postLocation = post.locationCoordinates || null;
+
+      if (!postLocation && locationCandidate) {
+        try {
+          const result = await Location.geocodeAsync(locationCandidate);
+          const first = result?.[0];
+          if (
+            Number.isFinite(Number(first?.latitude)) &&
+            Number.isFinite(Number(first?.longitude))
+          ) {
+            postLocation = {
+              latitude: Number(first.latitude),
+              longitude: Number(first.longitude),
+            };
+          }
+        } catch {
+          // Best effort during background polling.
+        }
+      }
+
+      if (!postLocation) return false;
+
+      const distance = distanceKm(coords, postLocation);
+      return distance <= NEARBY_RADIUS_KM;
     };
 
     const checkForNearbyPostUpdates = async () => {
