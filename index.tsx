@@ -1007,7 +1007,7 @@ export default function App() {
       post: Post,
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
-    ) => {
+    ): Promise<number | null> => {
       const isNearbyDebugPost =
         /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
       const normalizedLabels = [...post.labels, post.label]
@@ -1016,7 +1016,7 @@ export default function App() {
       const nearbyLocalTags = ['offline offer', 'local offer'];
       const allTagText = normalizedLabels.join(' ');
       const hasLocalOfferTag = nearbyLocalTags.some(tag => allTagText.includes(tag));
-      if (!hasLocalOfferTag) return false;
+      if (!hasLocalOfferTag) return null;
 
       // Location priority:
       // 1) Blogger Location field
@@ -1409,7 +1409,7 @@ export default function App() {
       post: Post,
       coords: { latitude: number; longitude: number } | null,
       detectedLocationTerms: string[],
-    ) => {
+    ): Promise<number | null> => {
       if (!coords) return null;
 
       const normalizedLabels = [...post.labels, post.label]
