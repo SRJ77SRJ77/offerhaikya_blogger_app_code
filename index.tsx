@@ -306,6 +306,7 @@ export default function App() {
   const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -684,9 +685,9 @@ export default function App() {
   }, []);
 
   const loadMorePosts = useCallback(async () => {
-    if (!hasMorePosts || loading || searching) return;
+    if (!hasMorePosts || loading || searching || loadingMore) return;
     try {
-      setSearching(true);
+      setLoadingMore(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
       const nextPage = paginationPageRef.current + 1;
       const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
@@ -698,15 +699,10 @@ export default function App() {
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
-      setSearching(false);
+      setLoadingMore(false);
     }
-  }, [hasMorePosts, loading, searching, query]);
+  }, [hasMorePosts, loading, searching, loadingMore, query]);
 
-  const goToPage = (nextPage: number) => {
-    if (nextPage < 1 || nextPage === page || (!hasMorePosts && nextPage > page)) return;
-    const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-    loadPosts(activeSearch, nextPage, true);
-  };
 
   const syncPushTokenForRegisteredUser = async () => {
     try {
@@ -4990,15 +4986,21 @@ export default function App() {
         ListFooterComponent={
           visiblePosts.length > 0 ? (
             <>
-                            <View style={styles.pagination}>
-                <TouchableOpacity disabled={page === 1} onPress={() => goToPage(page - 1)} style={[styles.pageButton, page === 1 && styles.disabledButton]}>
-                  <Text style={styles.pageButtonText}>Previous</Text>
-                </TouchableOpacity>
-                <Text style={styles.pageNumber}>{page}</Text>
-                <TouchableOpacity disabled={!hasMorePosts} onPress={() => goToPage(page + 1)} style={[styles.pageButton, !hasMorePosts && styles.disabledButton]}>
-                  <Text style={styles.pageButtonText}>Next</Text>
-                </TouchableOpacity>
-              </View>
+              {hasMorePosts ? (
+                <View style={styles.loadMoreWrap}>
+                  <TouchableOpacity
+                    style={[styles.loadMoreButton, loadingMore && styles.disabledButton]}
+                    onPress={loadMorePosts}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <ActivityIndicator size="small" color={WHITE} />
+                    ) : (
+                      <Text style={styles.loadMoreButtonText}>Load More Offers</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ) : null}
               <View style={styles.footer}>
                 <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
@@ -5712,10 +5714,9 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
-  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 18 },
-  pageButton: { minHeight: 36, minWidth: 82, paddingHorizontal: 16, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  pageButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
-  pageNumber: { minWidth: 28, textAlign: 'center', fontSize: 14, fontWeight: '900', color: TEXT },
+  loadMoreWrap: { alignItems: 'center', paddingVertical: 18 },
+  loadMoreButton: { minHeight: 36, paddingHorizontal: 20, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  loadMoreButtonText: { color: WHITE, fontSize: 12, fontWeight: '900' },
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 13, fontWeight: '900' },
   footerBrandDark: { color: WHITE },
