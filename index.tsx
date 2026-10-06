@@ -73,6 +73,7 @@ const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
 const PROFILE_CACHE_PREFIX = 'offerhaikya_profile_';
 const HAS_REGISTERED_ACCOUNT_KEY = 'offerhaikya_has_registered_account';
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
+const ALL_POSTS_TAG = '__all_posts__';
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const ADD_OFFERS_WHATSAPP_URL = '';
@@ -293,6 +294,7 @@ export default function App() {
   const [tagPageLoading, setTagPageLoading] = useState(false);
   const [tagPageLoadingMore, setTagPageLoadingMore] = useState(false);
   const tagPageAllPostsRef = useRef<Post[]>([]);
+  const tagPageStartPageRef = useRef(1);
   const tagPagePageRef = useRef(1);
   const [tagPageHasMore, setTagPageHasMore] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
@@ -1732,29 +1734,62 @@ export default function App() {
     }
   };
 
-  const loadTagPosts = useCallback(async (tag: string) => {
+  const loadTagPosts = useCallback(async (tag: string, startPage = 1) => {
     try {
       setTagPageLoading(true);
       const allPosts = await getAllPostsForNearby();
-      const normalizedTag = tag.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
-      const matches = allPosts.filter(post =>
-        post.labels.some(label =>
-          label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() === normalizedTag,
-        ),
-      );
+      const matches = tag === ALL_POSTS_TAG
+        ? allPosts
+        : (() => {
+            const normalizedTag = tag.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+            return allPosts.filter(post =>
+              post.labels.some(label =>
+                label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() === normalizedTag,
+              ),
+            );
+          })();
 
-      // Tags page starts with 20. Load More reveals the next 20, then the next 20, etc.
       tagPageAllPostsRef.current = matches;
-      tagPagePageRef.current = 1;
-      setTagPagePosts(matches.slice(0, PAGE_SIZE));
-      setTagPageHasMore(matches.length > PAGE_SIZE);
+      tagPageStartPageRef.current = startPage;
+      tagPagePageRef.current = startPage;
+
+      const start = (startPage - 1) * PAGE_SIZE;
+      const firstBatch = matches.slice(start, start + PAGE_SIZE);
+      setTagPagePosts(firstBatch);
+      setTagPageHasMore(start + firstBatch.length < matches.length);
     } catch {
       tagPageAllPostsRef.current = [];
-      tagPagePageRef.current = 1;
+      tagPageStartPageRef.current = startPage;
+      tagPagePageRef.current = startPage;
       setTagPagePosts([]);
       setTagPageHasMore(false);
     } finally {
       setTagPageLoading(false);
+    }
+  }, []);
+
+  const refreshTagPosts = useCallback(async (tag: string) => {
+    try {
+      const allPosts = await getAllPostsForNearby();
+      const matches = tag === ALL_POSTS_TAG
+        ? allPosts
+        : (() => {
+            const normalizedTag = tag.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+            return allPosts.filter(post =>
+              post.labels.some(label =>
+                label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() === normalizedTag,
+              ),
+            );
+          })();
+
+      const start = (tagPageStartPageRef.current - 1) * PAGE_SIZE;
+      const end = tagPagePageRef.current * PAGE_SIZE;
+
+      tagPageAllPostsRef.current = matches;
+      setTagPagePosts(matches.slice(start, end));
+      setTagPageHasMore(end < matches.length);
+    } catch {
+      // Keep the currently displayed tag-page posts if a refresh fails.
     }
   }, []);
 
@@ -1772,22 +1807,39 @@ export default function App() {
     setTagPageLoadingMore(false);
   }, [tagPageHasMore, tagPageLoading, tagPageLoadingMore]);
 
+  const openAllPostsContinuation = useCallback(() => {
+    tagPageStartPageRef.current = 2;
+    tagPagePageRef.current = 2;
+    setTagPage(ALL_POSTS_TAG);
+    setActiveLabel(ALL_POSTS_TAG);
+    setQuery('');
+    setSuggestions([]);
+    setTagPageDropdownOpen(false);
+  }, []);
+
   useEffect(() => {
     if (!tagPage) return;
 
     const text = query.trim();
     const timer = setTimeout(async () => {
       if (!text) {
-        await loadTagPosts(tagPage);
+        const startPage = tagPageStartPageRef.current;
+        await loadTagPosts(tagPage, startPage);
+        tagPageStartPageRef.current = 1;
         return;
       }
 
       try {
         setTagPageLoading(true);
         const results = await getFeed(text, 1);
+        tagPageAllPostsRef.current = results;
+        tagPageStartPageRef.current = 1;
+        tagPagePageRef.current = 1;
         setTagPagePosts(results);
+        setTagPageHasMore(results.length === PAGE_SIZE);
       } catch {
         setTagPagePosts([]);
+        setTagPageHasMore(false);
       } finally {
         setTagPageLoading(false);
       }
@@ -1800,11 +1852,11 @@ export default function App() {
     if (!tagPage || query.trim()) return;
 
     const interval = setInterval(() => {
-      void loadTagPosts(tagPage);
+      void refreshTagPosts(tagPage);
     }, MAIN_AUTO_SYNC_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [tagPage, query, loadTagPosts]);
+  }, [tagPage, query, refreshTagPosts]);
 
   const getNotificationsStorageKey = (uid: string) =>
     NOTIFICATIONS_STORAGE_PREFIX + uid;
@@ -5055,13 +5107,15 @@ export default function App() {
                 <View style={styles.loadMoreWrap}>
                   <TouchableOpacity
                     style={[styles.loadMoreButton, loadingMore && styles.disabledButton]}
-                    onPress={loadMorePosts}
+                    onPress={page === 1 ? openAllPostsContinuation : loadMorePosts}
                     disabled={loadingMore}
                   >
                     {loadingMore ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
-                      <Text style={styles.loadMoreButtonText}>Load More Offers</Text>
+                      <Text style={styles.loadMoreButtonText}>
+                        {page === 1 ? 'View All Posts' : 'Load More Offers'}
+                      </Text>
                     )}
                   </TouchableOpacity>
                 </View>
