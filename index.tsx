@@ -4701,6 +4701,8 @@ export default function App() {
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
                       onPress={() => {
+                        tagPageStartPageRef.current = 1;
+                        tagPagePageRef.current = 1;
                         setTagPage(label);
                         setActiveLabel(label);
                         setQuery('');
@@ -4729,6 +4731,8 @@ export default function App() {
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
                       onPress={() => {
+                        tagPageStartPageRef.current = 1;
+                        tagPagePageRef.current = 1;
                         setTagPage(label);
                         setActiveLabel(label);
                         setQuery('');
@@ -4780,6 +4784,8 @@ export default function App() {
                           pauseTagAutoScroll();
                           setTagPageDropdownOpen(false);
                           if (item === 'All') {
+                            tagPageStartPageRef.current = 1;
+                            tagPagePageRef.current = 1;
                             setTagPage(null);
                             setActiveLabel('All');
                             setQuery('');
@@ -4787,6 +4793,8 @@ export default function App() {
                             loadPosts('', 1);
                             return;
                           }
+                          tagPageStartPageRef.current = 1;
+                          tagPagePageRef.current = 1;
                           setTagPage(item);
                           setActiveLabel(item);
                           setQuery('');
@@ -4841,6 +4849,8 @@ export default function App() {
                   <TouchableOpacity
                     style={styles.tagPageDropdownButton}
                     onPress={() => {
+                      tagPageStartPageRef.current = 1;
+                      tagPagePageRef.current = 1;
                       setTagPage(null);
                       setQuery('');
                       setSuggestions([]);
@@ -4855,7 +4865,7 @@ export default function App() {
                     onPress={() => setTagPageDropdownOpen(value => !value)}
                   >
                     <Text style={[styles.tagPageDropdownText, darkMode && styles.darkText]} numberOfLines={1}>
-                      Tags - {tagPage || 'All'}
+                      Tags - {tagPage === ALL_POSTS_TAG ? 'All Posts' : (tagPage || 'All')}
                     </Text>
                     <Text style={[styles.tagPageDropdownArrow, darkMode && styles.darkText]}>
                       {tagPageDropdownOpen ? '▴' : '▾'}
@@ -4887,7 +4897,9 @@ export default function App() {
                               loadPosts('', 1);
                               return;
                             }
-                            setTagPage(item);
+                            tagPageStartPageRef.current = 1;
+                          tagPagePageRef.current = 1;
+                          setTagPage(item);
                             setActiveLabel(item);
                             setQuery('');
                             setSuggestions([]);
@@ -4918,7 +4930,7 @@ export default function App() {
               tagPageLoading ? null : (
                 <View style={styles.state}>
                   <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No offers found</Text>
-                  <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No posts are currently tagged with #{tagPage}.</Text>
+                  <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>{tagPage === ALL_POSTS_TAG ? 'No offers are currently available.' : `No posts are currently tagged with #${tagPage}.`}</Text>
                 </View>
               )
             }
@@ -4969,7 +4981,9 @@ export default function App() {
                     loadPosts('', 1);
                     return;
                   }
-                  setTagPage(item);
+                  tagPageStartPageRef.current = 1;
+                          tagPagePageRef.current = 1;
+                          setTagPage(item);
                   setActiveLabel(item);
                   setQuery('');
                   setSuggestions([]);
