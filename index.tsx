@@ -305,6 +305,7 @@ export default function App() {
   const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -677,9 +678,9 @@ export default function App() {
   }, []);
 
   const loadMorePosts = useCallback(async () => {
-    if (!hasMorePosts || loading || searching) return;
+    if (!hasMorePosts || loading || searching || loadingMore) return;
     try {
-      setSearching(true);
+      setLoadingMore(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
       const nextPage = page + 1;
       const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
@@ -690,9 +691,9 @@ export default function App() {
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
-      setSearching(false);
+      setLoadingMore(false);
     }
-  }, [hasMorePosts, loading, searching, query, page]);
+  }, [hasMorePosts, loading, searching, loadingMore, query, page]);
 
   const syncPushTokenForRegisteredUser = async () => {
     try {
@@ -4979,11 +4980,11 @@ export default function App() {
               {hasMorePosts ? (
                  <View style={styles.loadMoreWrap}>
                    <TouchableOpacity
-                     style={[styles.loadMoreButton, searching && styles.disabledButton]}
+                     style={[styles.loadMoreButton, loadingMore && styles.disabledButton]}
                      onPress={() => { void loadMorePosts(); }}
-                     disabled={searching}
+                     disabled={loadingMore}
                    >
-                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
+                     {loadingMore ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
                    </TouchableOpacity>
                  </View>
                ) : null}
