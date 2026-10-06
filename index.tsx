@@ -1825,7 +1825,6 @@ export default function App() {
       if (!text) {
         const startPage = tagPageStartPageRef.current;
         await loadTagPosts(tagPage, startPage);
-        tagPageStartPageRef.current = 1;
         return;
       }
 
