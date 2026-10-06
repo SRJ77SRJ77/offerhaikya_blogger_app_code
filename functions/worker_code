@@ -1,7 +1,13 @@
 const FEED_URL = "https://www.offerhaikya.com/feeds/posts/default";
 
+// SAFE TEST ONLY.
+// This Worker reads Blogger + Firebase users and reports notification matches.
+// It NEVER sends push notifications and NEVER writes Firestore state.
+
+const GPS_FRESH_MS = 5 * 60 * 1000;
+
 const stripHtml = (value = "") =>
-  value
+  String(value)
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<[^>]+>/g, " ")
@@ -13,24 +19,104 @@ const stripHtml = (value = "") =>
     .trim();
 
 const firstImage = (html = "") => {
-  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const match = String(html).match(/<img[^>]+src=["']([^"']+)["']/i);
   return match?.[1] || "";
 };
 
 const highResImage = (url = "") =>
-  url
+  String(url)
     .replace(/\/s\d+(-c)?\//i, "/s800/")
     .replace(/=w\d+(-h\d+)?(-p)?/i, "=s800")
     .replace(/\/w\d+(-h\d+)?\//i, "/s800/");
+
+const normalizeText = (value = "") =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const extractMapCoordinates = (html = "") => {
+  const text = String(html);
+  const coordinateMatch = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  if (coordinateMatch) {
+    return {
+      latitude: Number(coordinateMatch[1]),
+      longitude: Number(coordinateMatch[2]),
+    };
+  }
+
+  const queryMatch = text.match(/[?&](?:q|query)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/i);
+  if (queryMatch) {
+    return {
+      latitude: Number(queryMatch[1]),
+      longitude: Number(queryMatch[2]),
+    };
+  }
+
+  return null;
+};
+
+const extractBloggerLocation = (entry, content = "") => {
+  const rawLocation = entry?.location || entry?.["gd$where"] || entry?.["georss$where"];
+  const location = Array.isArray(rawLocation) ? rawLocation[0] : rawLocation;
+
+  const name =
+    location?.name?.$t ||
+    location?.name ||
+    location?.["gd$name"]?.$t ||
+    location?.["gd$name"] ||
+    location?.valueString ||
+    location?.["valueString"] ||
+    entry?.["gd$where"]?.name?.$t ||
+    entry?.["gd$where"]?.name ||
+    entry?.["gd$where"]?.valueString ||
+    "";
+
+  const pointText =
+    location?.["georss$point"]?.$t ||
+    location?.["georss$point"] ||
+    entry?.["georss$point"]?.$t ||
+    entry?.["georss$point"] ||
+    "";
+
+  const pointParts = String(pointText).trim().split(/[ ,]+/).filter(Boolean);
+  const pointLatitude = Number(pointParts[0]);
+  const pointLongitude = Number(pointParts[1]);
+
+  const latitude = Number(
+    location?.lat ??
+    location?.latitude ??
+    pointLatitude ??
+    NaN
+  );
+
+  const longitude = Number(
+    location?.lng ??
+    location?.longitude ??
+    pointLongitude ??
+    NaN
+  );
+
+  const coordinates =
+    Number.isFinite(latitude) && Number.isFinite(longitude)
+      ? { latitude, longitude }
+      : extractMapCoordinates(content);
+
+  return {
+    name: String(name || "").trim(),
+    coordinates,
+  };
+};
 
 const parseFeed = (data) => {
   const entries = data?.feed?.entry || [];
 
   return entries.map((entry, index) => {
     const links = entry.link || [];
-    const alternate = links.find(
-      (item) => item.rel === "alternate"
-    );
+    const alternate = links.find((item) => item.rel === "alternate");
 
     const content =
       entry.content?.$t ||
@@ -41,56 +127,28 @@ const parseFeed = (data) => {
       .map((item) => item.term)
       .filter(Boolean);
 
+    const location = extractBloggerLocation(entry, content);
+
     return {
       id: entry.id?.$t || String(index),
-      title:
-        entry.title?.$t ||
-        "New Offerhaikya offer",
-
-      url:
-        alternate?.href ||
-        "https://www.offerhaikya.com",
-
-      publishedAt:
-        entry.published?.$t ||
-        entry.updated?.$t ||
-        "",
-
-      date:
-        entry.published?.$t ||
-        entry.updated?.$t ||
-        "",
-
-      label:
-        labels[0] ||
-        "Offers",
-
+      title: entry.title?.$t || "New Offerhaikya offer",
+      url: alternate?.href || "https://www.offerhaikya.com",
+      publishedAt: entry.published?.$t || entry.updated?.$t || "",
+      date: entry.published?.$t || entry.updated?.$t || "",
+      label: labels[0] || "Offers",
       labels,
-
-      image: highResImage(
-        firstImage(content) ||
-        entry.media$thumbnail?.url ||
-        ""
-      ),
-
-      excerpt:
-        stripHtml(
-          entry.summary?.$t ||
-          content
-        ).slice(0, 180),
-
-      content:
-        stripHtml(content),
-
-      rawContent:
-        content,
+      image: highResImage(firstImage(content) || entry.media$thumbnail?.url || ""),
+      excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
+      content: stripHtml(content),
+      rawContent: content,
+      locationName: location.name,
+      locationCoordinates: location.coordinates || undefined,
     };
   });
 };
 
-
 // --------------------------------------------------
-// BASE64URL
+// FIREBASE AUTH
 // --------------------------------------------------
 
 const base64UrlEncode = (input) => {
@@ -100,10 +158,7 @@ const base64UrlEncode = (input) => {
       : new Uint8Array(input);
 
   let binary = "";
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
+  for (const byte of bytes) binary += String.fromCharCode(byte);
 
   return btoa(binary)
     .replace(/\+/g, "-")
@@ -111,19 +166,13 @@ const base64UrlEncode = (input) => {
     .replace(/=+$/g, "");
 };
 
-
-// --------------------------------------------------
-// FIREBASE SERVICE ACCOUNT ACCESS TOKEN
-// --------------------------------------------------
-
 const pemToArrayBuffer = (pem) => {
-  const base64 = pem
+  const base64 = String(pem)
     .replace("-----BEGIN PRIVATE KEY-----", "")
     .replace("-----END PRIVATE KEY-----", "")
     .replace(/\s/g, "");
 
   const binary = atob(base64);
-
   const bytes = new Uint8Array(binary.length);
 
   for (let i = 0; i < binary.length; i++) {
@@ -133,111 +182,64 @@ const pemToArrayBuffer = (pem) => {
   return bytes.buffer;
 };
 
-
 const getFirebaseAccessToken = async (env) => {
-  const serviceAccount =
-    JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
-
+  const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
   const now = Math.floor(Date.now() / 1000);
 
-  const header = {
-    alg: "RS256",
-    typ: "JWT",
-  };
-
+  const header = { alg: "RS256", typ: "JWT" };
   const payload = {
     iss: serviceAccount.client_email,
-    scope:
-      "https://www.googleapis.com/auth/datastore",
-    aud:
-      "https://oauth2.googleapis.com/token",
+    scope: "https://www.googleapis.com/auth/datastore",
+    aud: "https://oauth2.googleapis.com/token",
     iat: now,
     exp: now + 3600,
   };
 
-  const encodedHeader =
-    base64UrlEncode(
-      JSON.stringify(header)
-    );
-
-  const encodedPayload =
-    base64UrlEncode(
-      JSON.stringify(payload)
-    );
-
   const unsignedToken =
-    encodedHeader +
+    base64UrlEncode(JSON.stringify(header)) +
     "." +
-    encodedPayload;
+    base64UrlEncode(JSON.stringify(payload));
 
-  const privateKey =
-    await crypto.subtle.importKey(
-      "pkcs8",
-      pemToArrayBuffer(
-        serviceAccount.private_key
-      ),
-      {
-        name: "RSASSA-PKCS1-v1_5",
-        hash: "SHA-256",
-      },
-      false,
-      ["sign"]
-    );
+  const privateKey = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(serviceAccount.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
 
-  const signature =
-    await crypto.subtle.sign(
-      "RSASSA-PKCS1-v1_5",
-      privateKey,
-      new TextEncoder().encode(
-        unsignedToken
-      )
-    );
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    privateKey,
+    new TextEncoder().encode(unsignedToken)
+  );
 
-  const jwt =
-    unsignedToken +
-    "." +
-    base64UrlEncode(signature);
+  const jwt = unsignedToken + "." + base64UrlEncode(signature);
 
-  const response =
-    await fetch(
-      "https://oauth2.googleapis.com/token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded",
-        },
-        body:
-          "grant_type=" +
-          encodeURIComponent(
-            "urn:ietf:params:oauth:grant-type:jwt-bearer"
-          ) +
-          "&assertion=" +
-          encodeURIComponent(jwt),
-      }
-    );
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body:
+      "grant_type=" +
+      encodeURIComponent("urn:ietf:params:oauth:grant-type:jwt-bearer") +
+      "&assertion=" +
+      encodeURIComponent(jwt),
+  });
 
   if (!response.ok) {
-    const body =
-      await response.text();
-
     throw new Error(
       "Firebase OAuth failed: HTTP " +
       response.status +
       " " +
-      body
+      (await response.text())
     );
   }
 
-  const data =
-    await response.json();
-
-  return data.access_token;
+  return (await response.json()).access_token;
 };
 
-
 // --------------------------------------------------
-// FIRESTORE DOCUMENT
+// FIRESTORE HELPERS
 // --------------------------------------------------
 
 const firestoreDocumentUrl = (env, path) =>
@@ -246,269 +248,94 @@ const firestoreDocumentUrl = (env, path) =>
   "/databases/(default)/documents/" +
   path;
 
-
-// --------------------------------------------------
-// FIRESTORE VALUE CONVERTER
-// --------------------------------------------------
-
-const firestoreValue = (value) => {
-  if (value === null) {
-    return { nullValue: null };
-  }
-
-  if (typeof value === "string") {
-    return { stringValue: value };
-  }
-
-  if (typeof value === "boolean") {
-    return { booleanValue: value };
-  }
-
-  if (typeof value === "number") {
-    if (Number.isInteger(value)) {
-      return {
-        integerValue: String(value),
-      };
-    }
-
-    return {
-      doubleValue: value,
-    };
-  }
-
-  if (Array.isArray(value)) {
-    return {
-      arrayValue: {
-        values: value.map(
-          firestoreValue
-        ),
-      },
-    };
-  }
-
-  if (typeof value === "object") {
-    const fields = {};
-
-    for (const [key, item] of Object.entries(value)) {
-      fields[key] =
-        firestoreValue(item);
-    }
-
-    return {
-      mapValue: {
-        fields,
-      },
-    };
-  }
-
-  return { nullValue: null };
-};
-
-
-// --------------------------------------------------
-// FIRESTORE VALUE READER
-// --------------------------------------------------
-
 const readFirestoreValue = (value) => {
   if (!value) return null;
-
-  if ("stringValue" in value) {
-    return value.stringValue;
-  }
-
-  if ("booleanValue" in value) {
-    return value.booleanValue;
-  }
-
-  if ("integerValue" in value) {
-    return Number(value.integerValue);
-  }
-
-  if ("doubleValue" in value) {
-    return value.doubleValue;
-  }
-
-  if ("timestampValue" in value) {
-    return value.timestampValue;
-  }
-
-  if ("nullValue" in value) {
-    return null;
-  }
+  if ("stringValue" in value) return value.stringValue;
+  if ("booleanValue" in value) return value.booleanValue;
+  if ("integerValue" in value) return Number(value.integerValue);
+  if ("doubleValue" in value) return value.doubleValue;
+  if ("timestampValue" in value) return value.timestampValue;
+  if ("nullValue" in value) return null;
 
   if ("arrayValue" in value) {
-    return (
-      value.arrayValue.values || []
-    ).map(readFirestoreValue);
+    return (value.arrayValue.values || []).map(readFirestoreValue);
   }
 
   if ("mapValue" in value) {
     const result = {};
-
-    for (
-      const [key, item]
-      of Object.entries(
-        value.mapValue.fields || {}
-      )
-    ) {
-      result[key] =
-        readFirestoreValue(item);
+    for (const [key, item] of Object.entries(value.mapValue.fields || {})) {
+      result[key] = readFirestoreValue(item);
     }
-
     return result;
   }
 
   return null;
 };
 
-
-const firestoreDocumentToObject = (
-  document
-) => {
+const firestoreDocumentToObject = (document) => {
   const result = {};
-
-  for (
-    const [key, value]
-    of Object.entries(
-      document?.fields || {}
-    )
-  ) {
-    result[key] =
-      readFirestoreValue(value);
+  for (const [key, value] of Object.entries(document?.fields || {})) {
+    result[key] = readFirestoreValue(value);
   }
-
   return result;
 };
 
+const getNotificationState = async (env, accessToken) => {
+  const response = await fetch(
+    firestoreDocumentUrl(env, "notificationState/bloggerFeed"),
+    { headers: { Authorization: "Bearer " + accessToken } }
+  );
 
-// --------------------------------------------------
-// READ NOTIFICATION STATE
-// --------------------------------------------------
-
-const getNotificationState = async (
-  env,
-  accessToken
-) => {
-  const response =
-    await fetch(
-      firestoreDocumentUrl(
-        env,
-        "notificationState/bloggerFeed"
-      ),
-      {
-        headers: {
-          Authorization:
-            "Bearer " + accessToken,
-        },
-      }
-    );
-
-  if (response.status === 404) {
-    return null;
-  }
+  if (response.status === 404) return null;
 
   if (!response.ok) {
-    const body =
-      await response.text();
-
     throw new Error(
       "Firestore state read failed: HTTP " +
       response.status +
       " " +
-      body
+      (await response.text())
     );
   }
 
-  const document =
-    await response.json();
-
-  return firestoreDocumentToObject(
-    document
-  );
+  return firestoreDocumentToObject(await response.json());
 };
 
-
-// --------------------------------------------------
-// READ ELIGIBLE USERS
-// --------------------------------------------------
-
-
-const getEligibleUsers = async (
-  env,
-  accessToken
-) => {
+const getEligibleUsers = async (env, accessToken) => {
   const url =
     "https://firestore.googleapis.com/v1/projects/" +
     env.FIREBASE_PROJECT_ID +
     "/databases/(default)/documents/users?pageSize=100";
 
-  const response =
-    await fetch(url, {
-      headers: {
-        Authorization:
-          "Bearer " + accessToken,
-      },
-    });
+  const response = await fetch(url, {
+    headers: { Authorization: "Bearer " + accessToken },
+  });
 
   if (!response.ok) {
-    const errorBody =
-      await response.text();
-
     throw new Error(
       "Firestore users read failed: HTTP " +
       response.status +
       " " +
-      errorBody
+      (await response.text())
     );
   }
 
-  const result =
-    await response.json();
-
-  const documents =
-    result.documents || [];
-
-  console.log(
-    "DIAGNOSTIC users returned:",
-    documents.length
-  );
-
+  const result = await response.json();
+  const documents = result.documents || [];
   const users = [];
 
   for (const document of documents) {
-    const data =
-      firestoreDocumentToObject(
-        document
-      );
-
-    console.log(
-      "DIAGNOSTIC user:",
-      JSON.stringify({
-        registrationCompleted:
-          data?.registrationCompleted,
-        notificationsEnabled:
-          data?.notificationsEnabled,
-        hasExpoToken:
-          typeof data?.expoPushToken ===
-          "string" &&
-          data.expoPushToken.startsWith(
-            "ExponentPushToken["
-          ),
-      })
-    );
+    const data = firestoreDocumentToObject(document);
 
     if (
       data?.registrationCompleted === true &&
       data?.notificationsEnabled === true &&
       typeof data?.expoPushToken === "string" &&
-      data.expoPushToken.startsWith(
-        "ExponentPushToken["
-      )
+      data.expoPushToken.startsWith("ExponentPushToken[")
     ) {
       users.push({
+        userId: String(document.name || "").split("/").pop(),
         data,
-        token:
-          data.expoPushToken,
+        token: data.expoPushToken,
       });
     }
   }
@@ -516,365 +343,331 @@ const getEligibleUsers = async (
   return users;
 };
 
-
 // --------------------------------------------------
-// MATCHING LOGIC
+// LOCATION + OFFER MATCHING
 // --------------------------------------------------
 
-const normalizeCategory = (value) =>
-  String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+const isFiniteCoordinate = (value) =>
+  value &&
+  Number.isFinite(Number(value.latitude)) &&
+  Number.isFinite(Number(value.longitude));
 
+const getUserLocationInfo = (user) => {
+  const data = user?.data || {};
+  const now = Date.now();
 
-const findNotificationTargets = (
-  post,
-  eligibleUsers,
-  isUpdate
-) => {
-  const normalizedPostLabels =
-    new Set(
-      post.labels
-        .map(normalizeCategory)
-        .filter(Boolean)
-    );
+  const storedLocation = isFiniteCoordinate(data.location)
+    ? {
+        latitude: Number(data.location.latitude),
+        longitude: Number(data.location.longitude),
+      }
+    : null;
 
-  return eligibleUsers
-    .filter((user) => {
-      const favoritePostIds =
-        Array.isArray(
-          user.data?.favoritePostIds
-        )
-          ? user.data.favoritePostIds.map(
-              (id) => String(id)
-            )
-          : [];
+  const manualLocation = isFiniteCoordinate(data.manualLocationCoordinates)
+    ? {
+        latitude: Number(data.manualLocationCoordinates.latitude),
+        longitude: Number(data.manualLocationCoordinates.longitude),
+      }
+    : null;
 
-      const interestedCategories =
-        Array.isArray(
-          user.data?.interestedCategories
-        )
-          ? user.data.interestedCategories
-              .map(normalizeCategory)
-              .filter(Boolean)
-          : [];
+  const updatedAtMs = data.locationUpdatedAt
+    ? Date.parse(String(data.locationUpdatedAt))
+    : NaN;
 
-      const favoriteMatch =
-        isUpdate &&
-        favoritePostIds.includes(
-          post.id
-        );
+  const recentGps =
+    data.locationSource === "gps" &&
+    Number.isFinite(updatedAtMs) &&
+    now - updatedAtMs >= 0 &&
+    now - updatedAtMs <= GPS_FRESH_MS &&
+    storedLocation;
 
-      const categoryMatch =
-        interestedCategories.some(
-          (category) =>
-            normalizedPostLabels.has(
-              category
-            )
-        );
+  if (recentGps) {
+    return {
+      mode: "CURRENT_GPS",
+      coordinates: storedLocation,
+      label:
+        data.locationLabel ||
+        data.areaCity ||
+        "",
+      updatedAt: data.locationUpdatedAt || "",
+    };
+  }
 
-      return (
-        favoriteMatch ||
-        categoryMatch
-      );
-    })
-    .map((user) => user.token);
+  const fallbackCoordinates = manualLocation || storedLocation;
+
+  return {
+    mode: "SAVED_LOCATION",
+    coordinates: fallbackCoordinates,
+    label:
+      data.locationLabel ||
+      data.areaCity ||
+      data.manualLocationLabel ||
+      "",
+    updatedAt: data.locationUpdatedAt || "",
+  };
 };
 
+const isOfflineOffer = (post) => {
+  const labels = (post.labels || []).map(normalizeText);
 
-// --------------------------------------------------
-// SAFE TEST MODE
-// --------------------------------------------------
+  return labels.some((label) =>
+    [
+      "offline offer",
+      "offline",
+      "local offer",
+      "local",
+    ].includes(label)
+  );
+};
 
-const runSafeTest = async (
-  env
-) => {
-  const feedResponse =
-    await fetch(
-      FEED_URL +
-        "?alt=json&max-results=500&ohk_cloudflare_test=" +
-        Date.now(),
-      {
-        headers: {
-          "Cache-Control":
-            "no-cache, no-store, max-age=0",
-          Pragma:
-            "no-cache",
-        },
+const locationTermsFromUser = (userLocation, userData) => {
+  const values = [
+    userLocation?.label,
+    userData?.locationLabel,
+    userData?.areaCity,
+    userData?.manualLocationLabel,
+  ];
+
+  return [...new Set(
+    values
+      .map(normalizeText)
+      .filter(Boolean)
+  )];
+};
+
+const getOfflineMatch = (post, user) => {
+  const userData = user.data || {};
+  const locationInfo = getUserLocationInfo(user);
+
+  const userTerms = locationTermsFromUser(locationInfo, userData);
+
+  if (!userTerms.length) {
+    return {
+      matched: false,
+      reason: "NO_USER_LOCATION_TEXT",
+      locationMode: locationInfo.mode,
+      userLocation: locationInfo.label || "",
+    };
+  }
+
+  const fields = [
+    ["TITLE", post.title],
+    ["TAGS", (post.labels || []).join(" ")],
+    ["LOCATION", post.locationName],
+    ["DESCRIPTION", post.content],
+  ];
+
+  for (const [field, value] of fields) {
+    const normalizedField = normalizeText(value);
+
+    for (const term of userTerms) {
+      if (term && normalizedField.includes(term)) {
+        return {
+          matched: true,
+          reason: "LOCATION_MATCH_" + field,
+          matchedTerm: term,
+          locationMode: locationInfo.mode,
+          userLocation: locationInfo.label || "",
+        };
       }
-    );
+    }
+  }
+
+  return {
+    matched: false,
+    reason: "NO_LOCATION_MATCH",
+    locationMode: locationInfo.mode,
+    userLocation: locationInfo.label || "",
+  };
+};
+
+const getOnlineMatch = (post, user) => {
+  const interestedCategories = Array.isArray(user.data?.interestedCategories)
+    ? user.data.interestedCategories.map(normalizeText).filter(Boolean)
+    : [];
+
+  const postLabels = (post.labels || []).map(normalizeText).filter(Boolean);
+
+  for (const category of interestedCategories) {
+    if (postLabels.includes(category)) {
+      return {
+        matched: true,
+        reason: "CATEGORY_MATCH",
+        matchedCategory: category,
+      };
+    }
+  }
+
+  return {
+    matched: false,
+    reason: interestedCategories.length
+      ? "NO_CATEGORY_MATCH"
+      : "NO_INTERESTED_CATEGORIES",
+  };
+};
+
+const findNotificationMatches = (post, eligibleUsers) => {
+  const offline = isOfflineOffer(post);
+
+  return eligibleUsers.map((user) => {
+    const match = offline
+      ? getOfflineMatch(post, user)
+      : getOnlineMatch(post, user);
+
+    return {
+      userId: user.userId,
+      tokenEnding: user.token.slice(-8),
+      offerType: offline ? "OFFLINE" : "ONLINE",
+      matched: match.matched,
+      reason: match.reason,
+      matchedTerm: match.matchedTerm || null,
+      matchedCategory: match.matchedCategory || null,
+      locationMode: match.locationMode || null,
+      userLocation: match.userLocation || null,
+    };
+  });
+};
+
+// --------------------------------------------------
+// SAFE TEST
+// --------------------------------------------------
+
+const runSafeTest = async (env) => {
+  const feedResponse = await fetch(
+    FEED_URL +
+      "?alt=json&max-results=500&ohk_cloudflare_test=" +
+      Date.now(),
+    {
+      headers: {
+        "Cache-Control": "no-cache, no-store, max-age=0",
+        Pragma: "no-cache",
+      },
+    }
+  );
 
   if (!feedResponse.ok) {
     throw new Error(
-      "Unable to read Offerhaikya Blogger feed"
+      "Unable to read Offerhaikya Blogger feed: HTTP " +
+      feedResponse.status
     );
   }
 
-  const posts =
-    parseFeed(
-      await feedResponse.json()
-    );
+  const posts = parseFeed(await feedResponse.json());
 
   if (!posts.length) {
     return {
       ok: true,
-      message:
-        "Blogger feed is empty.",
+      mode: "SAFE_TEST_NO_PUSH",
+      message: "Blogger feed is empty.",
+      pushSent: false,
     };
   }
 
-  const accessToken =
-    await getFirebaseAccessToken(
-      env
-    );
+  const accessToken = await getFirebaseAccessToken(env);
+  const state = await getNotificationState(env, accessToken);
+  const eligibleUsers = await getEligibleUsers(env, accessToken);
 
-  const state =
-    await getNotificationState(
-      env,
-      accessToken
-    );
+  // Safe test evaluates the latest Blogger posts even when there are no new posts.
+  // This lets us test matching without publishing another offer.
+  const testPosts = posts.slice(0, 10);
 
-  const previousPosts =
-    state?.posts || {};
+  const results = testPosts.map((post) => {
+    const matches = findNotificationMatches(post, eligibleUsers);
+    const matched = matches.filter((item) => item.matched);
 
-  const currentPosts =
-    Object.fromEntries(
-      posts.map((post) => [
-        post.id,
-        {
-          title: post.title,
-
-          fingerprint:
-            JSON.stringify({
-              title:
-                post.title,
-
-              content:
-                post.content,
-
-              labels:
-                post.labels,
-
-              image:
-                post.image,
-            }),
-        },
-      ])
-    );
-
-  const newPosts =
-    posts.filter(
-      (post) =>
-        !previousPosts[post.id]
-    );
-
-  const updatedPosts =
-    posts.filter((post) => {
-      const previous =
-        previousPosts[post.id];
-
-      return (
-        Boolean(previous) &&
-        previous.fingerprint !==
-          currentPosts[post.id]
-            .fingerprint
-      );
-    });
-
-  const changedPosts = [
-    ...newPosts,
-    ...updatedPosts,
-  ].filter(
-    (post, index, list) =>
-      list.findIndex(
-        (item) =>
-          item.id === post.id
-      ) === index
-  );
-
-  const eligibleUsers =
-  await getEligibleUsers(
-    env,
-    accessToken
-  );
-
-  const results =
-    changedPosts.map((post) => {
-      const isUpdate =
-        Boolean(
-          previousPosts[post.id]
-        );
-
-      const targetTokens =
-        findNotificationTargets(
-          post,
-          eligibleUsers,
-          isUpdate
-        );
-
-      return {
-        postId: post.id,
-        title: post.title,
-        type: isUpdate
-          ? "UPDATE"
-          : "NEW",
-        labels: post.labels,
-        matchingUsers:
-          new Set(
-            targetTokens
-          ).size,
-      };
-    });
+    return {
+      postId: post.id,
+      title: post.title,
+      offerType: isOfflineOffer(post) ? "OFFLINE" : "ONLINE",
+      labels: post.labels,
+      locationName: post.locationName || "",
+      matchedUsers: matched.length,
+      noMatchUsers: matches.length - matched.length,
+      matches,
+    };
+  });
 
   return {
     ok: true,
-
     mode: "SAFE_TEST_NO_PUSH",
-
-    bloggerPosts:
-      posts.length,
-
-    stateInitialized:
-      Boolean(
-        state?.initialized
-      ),
-
-    newPosts:
-      newPosts.length,
-
-    updatedPosts:
-      updatedPosts.length,
-
-    changedPosts:
-      changedPosts.length,
-
-    eligibleUsers:
-      eligibleUsers.length,
-
+    bloggerPosts: posts.length,
+    testedPosts: testPosts.length,
+    stateExists: Boolean(state),
+    eligibleUsers: eligibleUsers.length,
     results,
-
     pushSent: false,
-
+    firestoreStateChanged: false,
     message:
-      "Cloudflare test completed. No push notifications were sent and Firestore state was not changed.",
+      "Safe matching test completed. No push notifications were sent and Firestore state was not changed.",
   };
 };
 
-
 // --------------------------------------------------
-// WEB WORKER
+// WORKER
 // --------------------------------------------------
 
 export default {
   async fetch(request, env) {
     try {
-      const url =
-        new URL(request.url);
+      const url = new URL(request.url);
 
-      // Health check
       if (
         request.method === "GET" &&
-        !url.searchParams.has(
-          "hub.mode"
-        )
+        !url.searchParams.has("hub.mode")
       ) {
         return new Response(
           "Offerhaikya Cloudflare Worker is running.",
           {
             status: 200,
-            headers: {
-              "Content-Type":
-                "text/plain",
-            },
+            headers: { "Content-Type": "text/plain" },
           }
         );
       }
 
-      // Blogger WebSub verification
       if (
         request.method === "GET" &&
-        url.searchParams.get(
-          "hub.mode"
-        ) === "subscribe"
+        url.searchParams.get("hub.mode") === "subscribe"
       ) {
         const verifyToken =
-          url.searchParams.get(
-            "hub.verify_token"
-          ) || "";
+          url.searchParams.get("hub.verify_token") || "";
 
-        if (
-          verifyToken !==
-          env.WEBHOOK_SECRET
-        ) {
-          return new Response(
-            "Verification failed",
-            {
-              status: 403,
-            }
-          );
+        if (verifyToken !== env.WEBHOOK_SECRET) {
+          return new Response("Verification failed", { status: 403 });
         }
 
         return new Response(
-          url.searchParams.get(
-            "hub.challenge"
-          ) || "",
+          url.searchParams.get("hub.challenge") || "",
           {
             status: 200,
-            headers: {
-              "Content-Type":
-                "text/plain",
-            },
+            headers: { "Content-Type": "text/plain" },
           }
         );
       }
 
-      // Safe manual/WebSub test
-      if (
-        request.method === "POST"
-      ) {
-        const result =
-          await runSafeTest(env);
+      if (request.method === "POST") {
+        const result = await runSafeTest(env);
 
         return new Response(
-          JSON.stringify(
-            result,
-            null,
-            2
-          ),
+          JSON.stringify(result, null, 2),
           {
             status: 200,
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
 
-      return new Response(
-        "Method not allowed",
-        {
-          status: 405,
-        }
-      );
-
+      return new Response("Method not allowed", { status: 405 });
     } catch (error) {
       console.error(error);
 
       return new Response(
         JSON.stringify({
           ok: false,
-          error:
-            error?.message ||
-            String(error),
+          error: error?.message || String(error),
         }),
         {
           status: 500,
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
