@@ -1496,18 +1496,23 @@ export default function App() {
           // add newly eligible nearby posts, and remove posts that no longer
           // satisfy the Nearby rules.
           const refreshed = current
-            .map(post => latestById.get(post.id) || post)
-            .filter(post => {
-              if (!latestById.has(post.id)) return true;
-              return latestMatchIds.has(post.id);
-            });
+            .map(post => {
+              const latest = latestById.get(post.id);
+              if (!latest) return post;
+              const distance = latestNearbyMatches.find(item => item.id === post.id)?.nearbyDistanceKm;
+              return distance === undefined
+                ? null
+                : { ...latest, nearbyDistanceKm: distance };
+            })
+            .filter((post): post is Post => post !== null);
 
           const refreshedIds = new Set(refreshed.map(post => post.id));
           const additions = latestNearbyMatches.filter(
             post => !refreshedIds.has(post.id),
           );
 
-          const merged = [...additions, ...refreshed];
+          const merged = [...additions, ...refreshed]
+            .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
           const cached = nearbyCacheRef.current;
 
           if (cached) {
