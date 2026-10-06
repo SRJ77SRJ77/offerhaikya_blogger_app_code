@@ -2008,7 +2008,7 @@ export default function App() {
       try {
         await setDoc(
           doc(db, 'notificationStates', user.uid),
-          { dismissedPostIds: dismissed },
+          { dismissedPostIds: arrayUnion(postId) },
           { merge: true },
         );
       } catch (error) {
