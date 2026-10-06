@@ -876,6 +876,41 @@ export default {
     try {
       const url = new URL(request.url);
 
+      if (request.method === "GET" && url.searchParams.get("mode") === "test-push") {
+        const secret = url.searchParams.get("secret") || "";
+
+        if (secret !== env.WEBHOOK_SECRET) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        const token = "ExponentPushToken[lHI2_POg8Ev8EA1lIUPofQ0]";
+
+        const result = await sendExpoPushNotifications([
+          {
+            to: token,
+            sound: "default",
+            title: "Offerhaikya Test",
+            body: "If you received this, push notifications are working.",
+            data: {
+              test: true,
+              message: "Offerhaikya fresh token test",
+            },
+          },
+        ]);
+
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            mode: "TEST_PUSH",
+            result,
+          }, null, 2),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
       if (request.method === "GET" && url.searchParams.get("mode") === "receipts") {
         const secret = url.searchParams.get("secret") || "";
 
