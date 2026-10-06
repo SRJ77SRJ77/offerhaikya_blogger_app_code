@@ -691,10 +691,21 @@ export default function App() {
     try {
       setLoadingMore(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      const nextPage = paginationPageRef.current + 1;
-      const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
+
+      // Always request the next batch from the number of offers currently shown.
+      // 20 shown -> start at 21 -> append the next 20 -> 40 shown.
+      const currentCount = posts.length;
+      const startIndex = currentCount + 1;
       const result = await fetchFeedFromNetwork(activeSearch, startIndex);
-      setPosts(current => [...current, ...result]);
+
+      setPosts(current => {
+        const existingIds = new Set(current.map(item => item.id));
+        const newPosts = result.filter(item => !existingIds.has(item.id));
+        return [...current, ...newPosts];
+      });
+
+      const nextTotal = currentCount + result.length;
+      const nextPage = Math.floor(nextTotal / PAGE_SIZE) || 1;
       setPage(nextPage);
       paginationPageRef.current = nextPage;
       setHasMorePosts(result.length === PAGE_SIZE);
@@ -704,7 +715,7 @@ export default function App() {
       loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [hasMorePosts, loading, searching, loadingMore, query]);
+  }, [hasMorePosts, loading, searching, loadingMore, query, posts.length]);
 
 
   const syncPushTokenForRegisteredUser = async () => {
