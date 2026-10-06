@@ -293,6 +293,7 @@ export default function App() {
   const [tagPageLoading, setTagPageLoading] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const paginationPageRef = useRef(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
@@ -648,6 +649,8 @@ export default function App() {
       if (cached) {
         setPosts(cached);
         setPage(pageNumber);
+      paginationPageRef.current = pageNumber;
+        paginationPageRef.current = pageNumber;
         setHasMorePosts(cached.length === PAGE_SIZE);
         setLoading(false);
         setSearching(false);
@@ -681,18 +684,19 @@ export default function App() {
     try {
       setSearching(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      const nextPage = page + 1;
+      const nextPage = paginationPageRef.current + 1;
       const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
       const result = await fetchFeedFromNetwork(activeSearch, startIndex);
       setPosts(current => [...current, ...result]);
       setPage(nextPage);
+      paginationPageRef.current = nextPage;
       setHasMorePosts(result.length === PAGE_SIZE);
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
       setSearching(false);
     }
-  }, [hasMorePosts, loading, searching, query, page]);
+  }, [hasMorePosts, loading, searching, query]);
 
   const syncPushTokenForRegisteredUser = async () => {
     try {
@@ -1534,7 +1538,7 @@ export default function App() {
 
     const syncNow = () => {
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      loadPosts(activeSearch, page);
+      loadPosts(activeSearch, paginationPageRef.current);
     };
 
     const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
@@ -1546,7 +1550,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [registrationOpen, query, page, loadPosts]);
+  }, [registrationOpen, query, loadPosts]);
 
   useEffect(() => {
     const text = query.trim();
