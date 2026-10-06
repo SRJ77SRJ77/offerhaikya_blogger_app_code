@@ -1543,8 +1543,11 @@ export default function App() {
     if (registrationOpen) return;
 
     const syncNow = () => {
+      // Do not replace an already expanded Load More list during auto-refresh.
+      if (paginationPageRef.current > 1) return;
+
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      loadPosts(activeSearch, paginationPageRef.current);
+      loadPosts(activeSearch, 1);
     };
 
     const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
