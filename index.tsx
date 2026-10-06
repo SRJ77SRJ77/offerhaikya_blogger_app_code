@@ -725,17 +725,18 @@ export default function App() {
   }, [hasMorePosts, loading, searching, loadingMore, query, posts.length]);
 
 
-  const syncPushTokenForRegisteredUser = async () => {
+  const syncPushTokenForCurrentUser = async () => {
     try {
       if (!registrationCompleted) return;
 
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser || firebaseUser.isAnonymous) return;
+      if (!firebaseUser) return;
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'Offerhaikya',
-          importance: Notifications.AndroidImportance.DEFAULT,
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
         });
       }
 
@@ -789,13 +790,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!registrationCompleted) return;
+    if (!authReady) return;
 
     let cancelled = false;
 
     const setup = async () => {
       if (cancelled) return;
-      await syncPushTokenForRegisteredUser();
+      await syncPushTokenForCurrentUser();
     };
 
     void setup();
@@ -803,7 +804,7 @@ export default function App() {
     const tokenSubscription = Notifications.addPushTokenListener(async token => {
       try {
         const firebaseUser = auth.currentUser;
-        if (!firebaseUser || firebaseUser.isAnonymous || cancelled) return;
+        if (!firebaseUser || cancelled) return;
 
         await setDoc(
           doc(db, 'users', firebaseUser.uid),
@@ -823,7 +824,7 @@ export default function App() {
       cancelled = true;
       tokenSubscription.remove();
     };
-  }, [registrationCompleted]);
+  }, [authReady]);
 
 
 
