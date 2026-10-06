@@ -293,6 +293,7 @@ export default function App() {
   const [tagPageLoading, setTagPageLoading] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const pageRef = useRef(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
@@ -649,6 +650,7 @@ export default function App() {
       if (cached) {
         setPosts(cached);
         setPage(pageNumber);
+      pageRef.current = pageNumber;
         setHasMorePosts(cached.length === PAGE_SIZE);
         setLoading(false);
         setSearching(false);
@@ -687,6 +689,7 @@ export default function App() {
       const result = await fetchFeedFromNetwork(activeSearch, startIndex);
       setPosts(current => [...current, ...result]);
       setPage(nextPage);
+      pageRef.current = nextPage;
       setHasMorePosts(result.length === PAGE_SIZE);
     } catch {
       setError('Could not load more offers. Please try again.');
@@ -1535,7 +1538,7 @@ export default function App() {
 
     const syncNow = () => {
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      loadPosts(activeSearch, page);
+      loadPosts(activeSearch, pageRef.current);
     };
 
     const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
@@ -1547,7 +1550,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [registrationOpen, query, page, loadPosts]);
+  }, [registrationOpen, query, loadPosts]);
 
   useEffect(() => {
     const text = query.trim();
