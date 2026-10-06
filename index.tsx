@@ -64,7 +64,7 @@ const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
-const LOCATION_CHECK_INTERVAL_MS = 30 * 1000;
+const LOCATION_CHECK_INTERVAL_MS = 15 * 1000;
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
@@ -969,6 +969,11 @@ export default function App() {
 
     const loadNearbyOffers = async () => {
       try {
+        // locationRefreshKey means the device location state changed or the
+        // app returned to the foreground. Never trust the previous Nearby cache.
+        if (locationRefreshKey > 0) {
+          nearbyCacheRef.current = null;
+        }
         const permission = await Location.getForegroundPermissionsAsync();
 
         let coords: { latitude: number; longitude: number } | null = null;
@@ -980,75 +985,83 @@ export default function App() {
           if (!cancelled) setLocationServicesEnabled(servicesEnabled);
 
           if (servicesEnabled) {
-            const current = await Location.getLastKnownPositionAsync({
-              maxAge: 5 * 60 * 1000,
-              requiredAccuracy: 5000,
-            }) || await Location.getCurrentPositionAsync({
-              accuracy: Location.Accuracy.Balanced,
-            });
-
-            if (cancelled) return;
-
-            coords = {
-              latitude: current.coords.latitude,
-              longitude: current.coords.longitude,
-            };
-            setUserLocation(coords);
-
             try {
-              const places = await Location.reverseGeocodeAsync(coords);
-              const place = places?.[0];
-              detectedLocationLabel =
-                place?.district ||
-                place?.city ||
-                place?.subregion ||
-                place?.region ||
-                '';
-              detectedLocationTerms = buildLocationTerms(place);
+              const lastKnown = await Location.getLastKnownPositionAsync({
+                maxAge: 2 * 60 * 1000,
+                requiredAccuracy: 5000,
+              });
 
-              if (
-                detectedLocationLabel &&
-                /belagavi|belgaum|belgaon/i.test(detectedLocationLabel)
-              ) {
-                detectedLocationTerms = Array.from(
-                  new Set([
-                    ...detectedLocationTerms,
-                    'belagavi',
-                    'belgaum',
-                    'belgaon',
-                    'belagavi district',
-                    'belgaum district',
-                  ]),
-                );
+              const current = lastKnown || await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+              });
+
+              if (!cancelled && current?.coords) {
+                coords = {
+                  latitude: current.coords.latitude,
+                  longitude: current.coords.longitude,
+                };
+                setUserLocation(coords);
+
+                try {
+                  const places = await Location.reverseGeocodeAsync(coords);
+                  const place = places?.[0];
+                  detectedLocationLabel =
+                    place?.district ||
+                    place?.city ||
+                    place?.subregion ||
+                    place?.region ||
+                    '';
+                  detectedLocationTerms = buildLocationTerms(place);
+
+                  if (
+                    detectedLocationLabel &&
+                    /belagavi|belgaum|belgaon/i.test(detectedLocationLabel)
+                  ) {
+                    detectedLocationTerms = Array.from(
+                      new Set([
+                        ...detectedLocationTerms,
+                        'belagavi',
+                        'belgaum',
+                        'belgaon',
+                        'belagavi district',
+                        'belgaum district',
+                      ]),
+                    );
+                  }
+                } catch {
+                  // Keep the coordinates even if reverse geocoding is temporarily unavailable.
+                  detectedLocationLabel = '';
+                  detectedLocationTerms = [];
+                }
+
+                // Save the latest real device location for registered users.
+                try {
+                  const firebaseUser = auth.currentUser;
+                  if (firebaseUser && !firebaseUser.isAnonymous) {
+                    await setDoc(
+                      doc(db, 'users', firebaseUser.uid),
+                      {
+                        location: coords,
+                        locationSource: 'gps',
+                        locationLabel: detectedLocationLabel,
+                        locationUpdatedAt: new Date().toISOString(),
+                      },
+                      { merge: true },
+                    );
+                  }
+                } catch {
+                  // Best-effort location storage.
+                }
               }
             } catch {
-              detectedLocationLabel = '';
-              detectedLocationTerms = [];
-            }
-
-            // Save the latest GPS location for registered users.
-            try {
-              const firebaseUser = auth.currentUser;
-              if (firebaseUser && !firebaseUser.isAnonymous) {
-                await setDoc(
-                  doc(db, 'users', firebaseUser.uid),
-                  {
-                    location: coords,
-                    locationSource: 'gps',
-                    locationLabel: detectedLocationLabel,
-                    locationUpdatedAt: new Date().toISOString(),
-                  },
-                  { merge: true },
-                );
-              }
-            } catch {
-              // Best-effort location storage.
+              // GPS can be temporarily unavailable even though Location Services are ON.
+              // Fall through to the saved Firebase location instead of losing Nearby.
             }
           }
         }
 
-        // If GPS is unavailable or denied, use the optional Area / City
-        // saved during registration.
+        // If current device Location is unavailable, use the registered user's
+        // saved Firebase location. Current device GPS always has priority.
         if (!coords) {
           try {
             const firebaseUser = auth.currentUser;
@@ -1061,24 +1074,23 @@ export default function App() {
                 ? profileSnapshot.data()
                 : null;
 
-              const manualCoords = profileData?.manualLocationCoordinates;
+              const savedCoords = profileData?.location || profileData?.manualLocationCoordinates;
               const manualAreaCity = String(profileData?.areaCity || '').trim();
 
               if (
-                manualCoords &&
-                Number.isFinite(Number(manualCoords.latitude)) &&
-                Number.isFinite(Number(manualCoords.longitude))
+                savedCoords &&
+                Number.isFinite(Number(savedCoords.latitude)) &&
+                Number.isFinite(Number(savedCoords.longitude))
               ) {
                 coords = {
-                  latitude: Number(manualCoords.latitude),
-                  longitude: Number(manualCoords.longitude),
+                  latitude: Number(savedCoords.latitude),
+                  longitude: Number(savedCoords.longitude),
                 };
-                detectedLocationLabel = manualAreaCity;
+                detectedLocationLabel =
+                  String(profileData?.locationLabel || manualAreaCity || '').trim();
                 detectedLocationTerms = [];
 
                 try {
-                  // Use the same reverse-geocoded location-term logic as the
-                  // current GPS path, while preserving the saved Area / City.
                   const places = await Location.reverseGeocodeAsync(coords);
                   const place = places?.[0];
 
@@ -1105,23 +1117,24 @@ export default function App() {
                     place?.city ||
                     place?.subregion ||
                     place?.region ||
+                    detectedLocationLabel ||
                     manualAreaCity;
                 } catch {
-                  // If reverse geocoding the saved coordinates fails,
-                  // still apply the same alias expansion to the saved city.
                   detectedLocationTerms = buildLocationTerms({
-                    city: manualAreaCity,
-                    name: manualAreaCity,
+                    city: manualAreaCity || detectedLocationLabel,
+                    name: manualAreaCity || detectedLocationLabel,
                   });
                 }
 
-                setUserLocation(coords);
-                setLocationLabel(detectedLocationLabel);
-                setLocationTerms(detectedLocationTerms);
+                if (!cancelled) {
+                  setUserLocation(coords);
+                  setLocationLabel(detectedLocationLabel);
+                  setLocationTerms(detectedLocationTerms);
+                }
               }
             }
           } catch {
-            // Best-effort manual location fallback.
+            // Best-effort Firebase location fallback.
           }
         }
 
@@ -1197,7 +1210,9 @@ export default function App() {
           detectedLocationTerms.slice().sort().join('|');
 
         const cachedNearby = nearbyCacheRef.current;
+        const forceNearbyRefresh = locationRefreshKey > 0;
         if (
+          !forceNearbyRefresh &&
           cachedNearby &&
           cachedNearby.key === nearbyCacheKey &&
           Date.now() - cachedNearby.savedAt <= NEARBY_CACHE_TTL_MS
@@ -1421,6 +1436,7 @@ export default function App() {
               enterLocalOffers();
             }
             startNearbyPreloader();
+            nearbyCacheRef.current = null;
             setLocationRefreshKey(value => value + 1);
           }
           return;
@@ -1438,6 +1454,7 @@ export default function App() {
         // Keep the 5-minute popup deadline, but silently check Location every 30 seconds.
         // Each 30-second check also refreshes Nearby so the priority stays:
         // current device location -> saved location -> latest offers normally.
+        nearbyCacheRef.current = null;
         setLocationRefreshKey(value => value + 1);
         if (Date.now() < locationPromptSnoozeUntilRef.current) return;
 
@@ -1494,7 +1511,8 @@ export default function App() {
 
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        showLocationPromptIfNeeded();
+        nearbyCacheRef.current = null;
+        void showLocationPromptIfNeeded();
       }
     });
 
