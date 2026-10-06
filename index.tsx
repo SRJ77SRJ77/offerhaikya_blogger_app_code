@@ -1344,8 +1344,8 @@ export default function App() {
             const distance = nearbyResults[index];
             return distance === null ? null : { ...post, nearbyDistanceKm: distance };
           })
-          .filter((post): post is Post => post !== null)
-          .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
+          .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null)
+          .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm);
 
         nearbyCacheRef.current = {
           key: nearbyCacheKey,
@@ -1481,8 +1481,8 @@ export default function App() {
             const distance = latestNearbyResults[index];
             return distance === null ? null : { ...post, nearbyDistanceKm: distance };
           })
-          .filter((post): post is Post => post !== null)
-          .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
+          .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null)
+          .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm);
 
         setNearbyPosts(current => {
           const latestById = new Map(
@@ -1504,7 +1504,7 @@ export default function App() {
                 ? null
                 : { ...latest, nearbyDistanceKm: distance };
             })
-            .filter((post): post is Post => post !== null);
+            .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null);
 
           const refreshedIds = new Set(refreshed.map(post => post.id));
           const additions = latestNearbyMatches.filter(
@@ -1512,7 +1512,7 @@ export default function App() {
           );
 
           const merged = [...additions, ...refreshed]
-            .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
+            .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm);
           const cached = nearbyCacheRef.current;
 
           if (cached) {
