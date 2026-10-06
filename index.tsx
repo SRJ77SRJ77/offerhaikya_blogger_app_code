@@ -727,8 +727,6 @@ export default function App() {
 
   const syncPushTokenForCurrentUser = async () => {
     try {
-      if (!registrationCompleted) return;
-
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) return;
 
