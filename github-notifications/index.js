@@ -5,6 +5,7 @@ const FEED_URL = 'https://www.offerhaikya.com/feeds/posts/default';
 const STATE_PATH = 'notificationState/bloggerFeed';
 const NEARBY_RADIUS_KM = 300;
 const NOTIFICATION_LOGIC_VERSION = 2;
+const WEBHOOK_POST_URL = String(process.env.WEBHOOK_POST_URL || '').trim();
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 if (!getApps().length) {
@@ -219,6 +220,14 @@ const run = async () => {
           labels: post.labels,
           image: post.image,
         }),
+        notificationSent: Boolean(
+          previousPosts[post.id]?.notificationSent
+        ) && previousPosts[post.id]?.fingerprint === JSON.stringify({
+          title: post.title,
+          content: post.content,
+          labels: post.labels,
+          image: post.image,
+        }),
       },
     ]),
   );
@@ -247,7 +256,18 @@ const run = async () => {
       ? posts.slice(0, 1)
       : [];
 
-  const changedPosts = [...newPosts, ...updatedPosts, ...retryLatestForLogicFix].filter(
+  const webhookPost = WEBHOOK_POST_URL
+    ? posts.find(post => post.url === WEBHOOK_POST_URL)
+    : null;
+
+  const webhookPosts = webhookPost ? [webhookPost] : [];
+
+  const changedPosts = [
+    ...newPosts,
+    ...updatedPosts,
+    ...retryLatestForLogicFix,
+    ...webhookPosts,
+  ].filter(
     (post, index, list) => list.findIndex(item => item.id === post.id) === index,
   );
 
@@ -256,6 +276,8 @@ const run = async () => {
     previousPosts: Object.keys(previousPosts).length,
     newPosts: newPosts.length,
     updatedPosts: updatedPosts.length,
+    webhookPost: WEBHOOK_POST_URL || null,
+    webhookMatched: Boolean(webhookPost),
     changedPosts: changedPosts.length,
   });
 
@@ -287,7 +309,7 @@ const run = async () => {
   console.log('Eligible users with Expo tokens:', eligibleUsers.length);
 
   for (const post of changedPosts) {
-    const isUpdate = Boolean(previousPosts[post.id]);
+    const isUpdate = previousPosts[post.id]?.notificationSent === true;
     const local = isLocalOffer(post);
     const normalizedLabels = new Set(post.labels.map(normalizeText).filter(Boolean));
 
@@ -344,6 +366,8 @@ const run = async () => {
     console.log('Prepared notification batch:', { postId: post.id, title: post.title, local, recipients: messages.length });
     if (messages.length) {
       await sendExpoPushMessages(messages);
+
+      currentPosts[post.id].notificationSent = true;
 
       const notificationWrites = targetUsers.map(user => {
         const uid = user.data?.uid || user.userId || null;
