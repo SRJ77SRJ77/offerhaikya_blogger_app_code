@@ -293,7 +293,6 @@ export default function App() {
   const [tagPageLoading, setTagPageLoading] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const pageRef = useRef(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [detail, setDetail] = useState<Post | null>(null);
   const [favorites, setFavorites] = useState<Post[]>([]);
@@ -306,7 +305,6 @@ export default function App() {
   const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -650,7 +648,6 @@ export default function App() {
       if (cached) {
         setPosts(cached);
         setPage(pageNumber);
-      pageRef.current = pageNumber;
         setHasMorePosts(cached.length === PAGE_SIZE);
         setLoading(false);
         setSearching(false);
@@ -680,23 +677,22 @@ export default function App() {
   }, []);
 
   const loadMorePosts = useCallback(async () => {
-    if (!hasMorePosts || loading || searching || loadingMore) return;
+    if (!hasMorePosts || loading || searching) return;
     try {
-      setLoadingMore(true);
+      setSearching(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
       const nextPage = page + 1;
       const startIndex = (nextPage - 1) * PAGE_SIZE + 1;
       const result = await fetchFeedFromNetwork(activeSearch, startIndex);
       setPosts(current => [...current, ...result]);
       setPage(nextPage);
-      pageRef.current = nextPage;
       setHasMorePosts(result.length === PAGE_SIZE);
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
-      setLoadingMore(false);
+      setSearching(false);
     }
-  }, [hasMorePosts, loading, searching, loadingMore, query, page]);
+  }, [hasMorePosts, loading, searching, query, page]);
 
   const syncPushTokenForRegisteredUser = async () => {
     try {
@@ -1538,7 +1534,7 @@ export default function App() {
 
     const syncNow = () => {
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      loadPosts(activeSearch, pageRef.current);
+      loadPosts(activeSearch, page);
     };
 
     const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
@@ -1550,7 +1546,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [registrationOpen, query, loadPosts]);
+  }, [registrationOpen, query, page, loadPosts]);
 
   useEffect(() => {
     const text = query.trim();
@@ -4983,11 +4979,11 @@ export default function App() {
               {hasMorePosts ? (
                  <View style={styles.loadMoreWrap}>
                    <TouchableOpacity
-                     style={[styles.loadMoreButton, loadingMore && styles.disabledButton]}
+                     style={[styles.loadMoreButton, searching && styles.disabledButton]}
                      onPress={() => { void loadMorePosts(); }}
-                     disabled={loadingMore}
+                     disabled={searching}
                    >
-                     {loadingMore ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
+                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
                    </TouchableOpacity>
                  </View>
                ) : null}
