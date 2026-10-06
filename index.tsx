@@ -2965,6 +2965,13 @@ export default function App() {
     }, 3000);
   };
 
+  const resetMainFeedToFirstPage = useCallback(() => {
+    setPage(1);
+    paginationPageRef.current = 1;
+    setHasMorePosts(true);
+    loadPosts('', 1);
+  }, [loadPosts]);
+
   const goToHomeTab = () => {
     closeMenu();
     setDetail(null);
@@ -2975,8 +2982,7 @@ export default function App() {
     setActiveLabel('All');
     setQuery('');
     setSuggestions([]);
-    setPage(1);
-    loadPosts('', 1);
+    resetMainFeedToFirstPage();
     mainListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
@@ -4488,8 +4494,7 @@ export default function App() {
             setActiveLabel('All');
             setQuery('');
             setSuggestions([]);
-            setPage(1);
-            loadPosts('', 1);
+            resetMainFeedToFirstPage();
           }}
           accessibilityLabel="Go to home"
         >
