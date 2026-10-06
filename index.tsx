@@ -307,6 +307,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
   const [suggestions, setSuggestions] = useState<Post[]>([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -685,7 +686,8 @@ export default function App() {
   }, []);
 
   const loadMorePosts = useCallback(async () => {
-    if (!hasMorePosts || loading || searching || loadingMore) return;
+    if (!hasMorePosts || loading || searching || loadingMore || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     try {
       setLoadingMore(true);
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
@@ -699,6 +701,7 @@ export default function App() {
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
   }, [hasMorePosts, loading, searching, loadingMore, query]);
@@ -1543,8 +1546,8 @@ export default function App() {
     if (registrationOpen) return;
 
     const syncNow = () => {
-      // Do not replace an already expanded Load More list during auto-refresh.
-      if (paginationPageRef.current > 1) return;
+      // Never let auto-refresh race with Load More and overwrite appended offers.
+      if (loadingMoreRef.current || paginationPageRef.current > 1) return;
 
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
       loadPosts(activeSearch, 1);
