@@ -373,6 +373,7 @@ export default function App() {
   const locationPermissionRequestActiveRef = useRef(false);
   const localOffersPermissionPendingRef = useRef(false);
   const returnHomeAfterLocationSettingsRef = useRef(false);
+  const returnHomeToNearbyAfterLocationRef = useRef(false);
   const locationReadyRef = useRef<boolean | null>(null);
   const [offerRequestOpen, setOfferRequestOpen] = useState(false);
   const [offerRequestName, setOfferRequestName] = useState('');
@@ -1225,6 +1226,21 @@ export default function App() {
             }
           }
           finishNearbyPreloader();
+
+          if (!cancelled && returnHomeToNearbyAfterLocationRef.current) {
+            returnHomeToNearbyAfterLocationRef.current = false;
+            setTimeout(() => {
+              if (cancelled) return;
+              goToHomeTab();
+              setTimeout(() => {
+                if (cancelled) return;
+                mainListRef.current?.scrollToOffset({
+                  offset: nearbySectionOffsetRef.current,
+                  animated: true,
+                });
+              }, 450);
+            }, 400);
+          }
           return;
         }
 
@@ -1251,6 +1267,24 @@ export default function App() {
         }
 
         finishNearbyPreloader();
+
+        if (!cancelled && returnHomeToNearbyAfterLocationRef.current) {
+          returnHomeToNearbyAfterLocationRef.current = false;
+
+          // Let the Nearby preload GIF complete first, then land on the
+          // Home page and scroll directly to the Nearby section.
+          setTimeout(() => {
+            if (cancelled) return;
+            goToHomeTab();
+            setTimeout(() => {
+              if (cancelled) return;
+              mainListRef.current?.scrollToOffset({
+                offset: nearbySectionOffsetRef.current,
+                animated: true,
+              });
+            }, 450);
+          }, 400);
+        }
       } catch {
         if (!cancelled) {
           setNearbyPosts([]);
@@ -1426,9 +1460,11 @@ export default function App() {
           // device Location change while the app is open is detected immediately.
 
           if (!wasLocationReady) {
+            returnHomeToNearbyAfterLocationRef.current = true;
+
             if (returnHomeAfterLocationSettingsRef.current) {
               returnHomeAfterLocationSettingsRef.current = false;
-              goToHomeTab();
+              // Nearby navigation is handled after the fresh Nearby load completes.
             } else if (localOffersPermissionPendingRef.current) {
               localOffersPermissionPendingRef.current = false;
               enterLocalOffers();
@@ -3076,8 +3112,10 @@ export default function App() {
 
       if (permission.status === 'granted') {
         locationPromptSnoozeUntilRef.current = 0;
+        returnHomeToNearbyAfterLocationRef.current = true;
         if (localOffersPermissionPendingRef.current) {
           localOffersPermissionPendingRef.current = false;
+          returnHomeToNearbyAfterLocationRef.current = false;
           enterLocalOffers();
         } else {
           startNearbyPreloader();
