@@ -291,6 +291,10 @@ export default function App() {
   const [tagPage, setTagPage] = useState<string | null>(null);
   const [tagPagePosts, setTagPagePosts] = useState<Post[]>([]);
   const [tagPageLoading, setTagPageLoading] = useState(false);
+  const [tagPageLoadingMore, setTagPageLoadingMore] = useState(false);
+  const tagPageAllPostsRef = useRef<Post[]>([]);
+  const tagPagePageRef = useRef(1);
+  const [tagPageHasMore, setTagPageHasMore] = useState(false);
   const [tagPageDropdownOpen, setTagPageDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
   const paginationPageRef = useRef(1);
@@ -1738,13 +1742,35 @@ export default function App() {
           label.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() === normalizedTag,
         ),
       );
-      setTagPagePosts(matches);
+
+      // Tags page starts with 20. Load More reveals the next 20, then the next 20, etc.
+      tagPageAllPostsRef.current = matches;
+      tagPagePageRef.current = 1;
+      setTagPagePosts(matches.slice(0, PAGE_SIZE));
+      setTagPageHasMore(matches.length > PAGE_SIZE);
     } catch {
+      tagPageAllPostsRef.current = [];
+      tagPagePageRef.current = 1;
       setTagPagePosts([]);
+      setTagPageHasMore(false);
     } finally {
       setTagPageLoading(false);
     }
   }, []);
+
+  const loadMoreTagPosts = useCallback(() => {
+    if (!tagPageHasMore || tagPageLoading || tagPageLoadingMore) return;
+
+    setTagPageLoadingMore(true);
+    const nextPage = tagPagePageRef.current + 1;
+    const start = (nextPage - 1) * PAGE_SIZE;
+    const nextBatch = tagPageAllPostsRef.current.slice(start, start + PAGE_SIZE);
+
+    setTagPagePosts(current => [...current, ...nextBatch]);
+    tagPagePageRef.current = nextPage;
+    setTagPageHasMore(start + nextBatch.length < tagPageAllPostsRef.current.length);
+    setTagPageLoadingMore(false);
+  }, [tagPageHasMore, tagPageLoading, tagPageLoadingMore]);
 
   useEffect(() => {
     if (!tagPage) return;
@@ -4843,6 +4869,23 @@ export default function App() {
                   <Text style={[styles.stateText, darkMode && styles.darkMutedText]}>No posts are currently tagged with #{tagPage}.</Text>
                 </View>
               )
+            }
+            ListFooterComponent={
+              tagPagePosts.length > 0 && tagPageHasMore ? (
+                <View style={styles.loadMoreWrap}>
+                  <TouchableOpacity
+                    style={styles.loadMoreButton}
+                    onPress={loadMoreTagPosts}
+                    disabled={tagPageLoadingMore}
+                  >
+                    {tagPageLoadingMore ? (
+                      <ActivityIndicator size="small" color={WHITE} />
+                    ) : (
+                      <Text style={styles.loadMoreButtonText}>Load More Offers</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ) : null
             }
           />
         </View>
