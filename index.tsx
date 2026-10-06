@@ -990,7 +990,9 @@ export default function App() {
       // Until a road-routing provider is configured, do not claim a text match
       // is a valid 300 km road-distance match. Coordinate distance is retained
       // only when the Blogger Location field supplies coordinates.
-      const nearbyMatch = Boolean(matchedLocationTerm) || distanceMatch;
+      // A location name only identifies the destination. It must never bypass
+      // the distance check.
+      const nearbyMatch = distanceMatch;
 
       if (isNearbyDebugPost) {
         console.log('[Nearby debug]', {
@@ -1180,39 +1182,8 @@ export default function App() {
           }
         }
 
-        // After logout the Firebase user becomes anonymous, so the previous
-        // account's Firestore location is no longer readable. Keep the last
-        // resolved location locally so Nearby can continue across logout.
-        if (!coords) {
-          try {
-            const savedLocationRaw = await AsyncStorage.getItem(SAVED_LOCATION_STORAGE_KEY);
-            if (savedLocationRaw) {
-              const savedLocation = JSON.parse(savedLocationRaw);
-              if (
-                savedLocation?.coords &&
-                Number.isFinite(Number(savedLocation.coords.latitude)) &&
-                Number.isFinite(Number(savedLocation.coords.longitude))
-              ) {
-                coords = {
-                  latitude: Number(savedLocation.coords.latitude),
-                  longitude: Number(savedLocation.coords.longitude),
-                };
-                detectedLocationLabel = String(savedLocation.label || '');
-                detectedLocationTerms = Array.isArray(savedLocation.terms)
-                  ? savedLocation.terms.map((term: any) => String(term)).filter(Boolean)
-                  : [];
-                if (!cancelled) {
-                  setUserLocation(coords);
-                  setLocationLabel(detectedLocationLabel);
-                  setLocationTerms(detectedLocationTerms);
-                }
-              }
-            }
-          } catch {
-            // Best-effort local location fallback.
-          }
-        }
-
+        // Guests without a live GPS location do not reuse a stale local location.
+        // Registered users use Firebase as the saved-location fallback above.
         if (coords) {
           try {
             await AsyncStorage.setItem(
@@ -1389,7 +1360,9 @@ export default function App() {
         : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-      const nearbyMatch = locationMatch || distanceMatch;
+      // A location name only identifies the destination. It must never bypass
+      // the distance check.
+      const nearbyMatch = distanceMatch;
 
       if (isNearbyDebugPost) {
         console.log('[Nearby debug]', {
