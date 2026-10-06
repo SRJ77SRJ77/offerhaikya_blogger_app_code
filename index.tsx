@@ -146,27 +146,44 @@ const extractMapCoordinates = (html = ''): { latitude: number; longitude: number
 };
 
 const extractBloggerLocation = (entry: any, content = '') => {
-  const location = entry?.location || entry?.['gd$where'] || entry?.['georss$where'];
+  const rawLocation = entry?.location || entry?.['gd$where'] || entry?.['georss$where'];
+  const location = Array.isArray(rawLocation) ? rawLocation[0] : rawLocation;
+
   const name =
     location?.name?.$t ||
     location?.name ||
     location?.['gd$name']?.$t ||
     location?.['gd$name'] ||
+    location?.valueString ||
+    location?.['valueString'] ||
     entry?.['gd$where']?.name?.$t ||
     entry?.['gd$where']?.name ||
+    entry?.['gd$where']?.valueString ||
     '';
+
+  const pointText =
+    location?.['georss$point']?.$t ||
+    location?.['georss$point'] ||
+    entry?.['georss$point']?.$t ||
+    entry?.['georss$point'] ||
+    '';
+
+  const pointParts = String(pointText).trim().split(/[ ,]+/).filter(Boolean);
+  const pointLatitude = Number(pointParts[0]);
+  const pointLongitude = Number(pointParts[1]);
 
   const latitude = Number(
     location?.lat ??
     location?.latitude ??
-    location?.['georss$point']?.lat ??
     location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t ??
+    pointLatitude ??
     NaN,
   );
   const longitude = Number(
     location?.lng ??
     location?.longitude ??
-    location?.['georss$point']?.lng ??
+    location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t ??
+    pointLongitude ??
     NaN,
   );
 
@@ -944,7 +961,48 @@ export default function App() {
       return Array.from(new Set(expanded.map(normalizeLocationText).filter(Boolean)));
     };
 
-    const matchesNearbyOffer = (
+    const nearbyGeocodeCache = new Map<string, { latitude: number; longitude: number } | null>();
+
+    const resolveOfferLocationCoordinates = async (
+      candidates: string[],
+    ): Promise<{ latitude: number; longitude: number } | null> => {
+      for (const candidate of candidates) {
+        const normalized = normalizeLocationText(candidate);
+        if (!normalized) continue;
+
+        const knownLocation = Object.keys(locationAliases).find(key =>
+          normalized === key || normalized.includes(key),
+        );
+        const query = knownLocation || candidate;
+        const cacheKey = normalizeLocationText(query);
+
+        if (nearbyGeocodeCache.has(cacheKey)) {
+          const cached = nearbyGeocodeCache.get(cacheKey);
+          if (cached) return cached;
+          continue;
+        }
+
+        try {
+          const results = await Location.geocodeAsync(query);
+          const first = results?.[0];
+          const latitude = Number(first?.latitude);
+          const longitude = Number(first?.longitude);
+          const resolved =
+            Number.isFinite(latitude) && Number.isFinite(longitude)
+              ? { latitude, longitude }
+              : null;
+
+          nearbyGeocodeCache.set(cacheKey, resolved);
+          if (resolved) return resolved;
+        } catch {
+          nearbyGeocodeCache.set(cacheKey, null);
+        }
+      }
+
+      return null;
+    };
+
+    const matchesNearbyOffer = async (
       post: Post,
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
@@ -961,18 +1019,17 @@ export default function App() {
 
       // Location priority:
       // 1) Blogger Location field
-      // 2) Labels/tags
+      // 2) Tags / labels
       // 3) Title
-      // Never scan the description for Nearby location matching.
+      // Description is intentionally not scanned.
       const bloggerLocationText = normalizeLocationText(post.locationName || '');
-      const labelLocationText = normalizedLabels
-        .filter(label => !nearbyLocalTags.some(tag => label.includes(tag)))
-        .join(' ');
+      const labelLocationCandidates = normalizedLabels
+        .filter(label => !nearbyLocalTags.some(tag => label.includes(tag)));
       const titleText = normalizeLocationText(post.title);
 
       const locationCandidates = [
         bloggerLocationText,
-        labelLocationText,
+        ...labelLocationCandidates,
         titleText,
       ].filter(Boolean);
 
@@ -982,17 +1039,35 @@ export default function App() {
         return locationCandidates.some(candidate => candidate.includes(normalizedTerm));
       });
 
-      const postLocation = post.locationCoordinates || null;
+      // Prefer coordinates supplied by Blogger Location.
+      // If Blogger only supplies a name, geocode that name. This prevents
+      // Goa/Kolhapur posts from disappearing just because Blogger omitted
+      // explicit coordinates in the feed.
+      let postLocation = post.locationCoordinates || null;
+
+      if (!postLocation) {
+        const locationCandidatesForGeocoding = [
+          bloggerLocationText,
+          ...labelLocationCandidates,
+          titleText,
+        ];
+
+        const detectedCandidate = locationCandidatesForGeocoding.find(candidate =>
+          Object.keys(locationAliases).some(key =>
+            candidate === key || candidate.includes(key),
+          ),
+        );
+
+        const geocodeCandidates = detectedCandidate
+          ? [detectedCandidate]
+          : locationCandidatesForGeocoding.slice(0, 3);
+
+        postLocation = await resolveOfferLocationCoordinates(geocodeCandidates);
+      }
+
       const distanceKmValue = postLocation ? distanceKm(coords, postLocation) : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-
-      // Until a road-routing provider is configured, do not claim a text match
-      // is a valid 300 km road-distance match. Coordinate distance is retained
-      // only when the Blogger Location field supplies coordinates.
-      // A location name only identifies the destination. It must never bypass
-      // the distance check.
-      const nearbyMatch = distanceMatch;
 
       if (isNearbyDebugPost) {
         console.log('[Nearby debug]', {
@@ -1005,11 +1080,10 @@ export default function App() {
           userLocation: coords,
           distanceKm: distanceKmValue,
           distanceMatch,
-          result: nearbyMatch,
         });
       }
 
-      return nearbyMatch;
+      return distanceMatch;
     };
 
     const loadNearbyOffers = async () => {
@@ -1259,9 +1333,12 @@ export default function App() {
 
         const allPosts = await getAllPostsForNearby();
 
-        const matches = allPosts.filter(post =>
-          matchesNearbyOffer(post, coords, detectedLocationTerms)
+        const nearbyResults = await Promise.all(
+          allPosts.map(post =>
+            matchesNearbyOffer(post, coords, detectedLocationTerms),
+          ),
         );
+        const matches = allPosts.filter((_, index) => nearbyResults[index]);
 
         nearbyCacheRef.current = {
           key: nearbyCacheKey,
@@ -1321,65 +1398,13 @@ export default function App() {
     const normalizeLocationTextForPolling = (value = '') =>
       value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 
-    const matchesNearbyOfferForPolling = (
+    const matchesNearbyOfferForPolling = async (
       post: Post,
-      coords: { latitude: number; longitude: number },
+      coords: { latitude: number; longitude: number } | null,
       detectedLocationTerms: string[],
     ) => {
-      const isNearbyDebugPost = /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
-      const normalizedLabels = [...post.labels, post.label]
-        .map(label => normalizeLocationTextForPolling(label))
-        .filter(Boolean);
-      const nearbyLocalTags = ['offline offer', 'local offer'];
-      const allTagText = normalizedLabels.join(' ');
-      const hasLocalOfferTag = nearbyLocalTags.some(tag => allTagText.includes(tag));
-      if (!hasLocalOfferTag) return false;
-
-      // Same location priority used by the main Nearby loader:
-      // Blogger Location -> tags/labels -> title.
-      const bloggerLocationText = normalizeLocationTextForPolling(post.locationName || '');
-      const labelLocationText = normalizedLabels
-        .filter(label => !nearbyLocalTags.some(tag => label.includes(tag)))
-        .join(' ');
-      const titleText = normalizeLocationTextForPolling(post.title);
-
-      const locationCandidates = [
-        bloggerLocationText,
-        labelLocationText,
-        titleText,
-      ].filter(Boolean);
-
-      const locationMatch = detectedLocationTerms.some(term => {
-        const normalizedTerm = normalizeLocationTextForPolling(term);
-        if (!normalizedTerm) return false;
-        return locationCandidates.some(candidate => candidate.includes(normalizedTerm));
-      });
-
-      const postLocation = post.locationCoordinates || null;
-      const distanceKmValue = postLocation
-        ? distanceKm(coords, postLocation)
-        : null;
-      const distanceMatch =
-        distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-      // A location name only identifies the destination. It must never bypass
-      // the distance check.
-      const nearbyMatch = distanceMatch;
-
-      if (isNearbyDebugPost) {
-        console.log('[Nearby debug]', {
-          title: post.title,
-          labels: post.labels,
-          locationTerms: detectedLocationTerms,
-          locationMatch,
-          postLocation,
-          userLocation: coords,
-          distanceKm: distanceKmValue,
-          distanceMatch,
-          result: nearbyMatch,
-        });
-      }
-
-      return nearbyMatch;
+      if (!coords) return false;
+      return matchesNearbyOffer(post, coords, detectedLocationTerms);
     };
 
     const checkForNearbyPostUpdates = async () => {
@@ -1387,8 +1412,13 @@ export default function App() {
         const latestPosts = await fetchFeedFromNetwork('', 1);
         if (cancelled) return;
 
-        const latestNearbyMatches = latestPosts.filter(post =>
-          matchesNearbyOfferForPolling(post, userLocation, locationTerms),
+        const latestNearbyResults = await Promise.all(
+          latestPosts.map(post =>
+            matchesNearbyOfferForPolling(post, userLocation, locationTerms),
+          ),
+        );
+        const latestNearbyMatches = latestPosts.filter(
+          (_, index) => latestNearbyResults[index],
         );
 
         setNearbyPosts(current => {
