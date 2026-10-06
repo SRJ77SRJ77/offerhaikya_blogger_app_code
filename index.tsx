@@ -698,6 +698,12 @@ export default function App() {
     }
   }, [hasMorePosts, loading, searching, query]);
 
+  const goToPage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage === page || (!hasMorePosts && nextPage > page)) return;
+    const activeSearch = query.trim().length >= 1 ? query.trim() : '';
+    loadPosts(activeSearch, nextPage);
+  };
+
   const syncPushTokenForRegisteredUser = async () => {
     try {
       if (!registrationCompleted) return;
@@ -4980,17 +4986,15 @@ export default function App() {
         ListFooterComponent={
           visiblePosts.length > 0 ? (
             <>
-              {hasMorePosts ? (
-                 <View style={styles.loadMoreWrap}>
-                   <TouchableOpacity
-                     style={[styles.loadMoreButton, searching && styles.disabledButton]}
-                     onPress={() => { void loadMorePosts(); }}
-                     disabled={searching}
-                   >
-                     {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.loadMoreButtonText}>Load More</Text>}
-                   </TouchableOpacity>
-                 </View>
-               ) : null}
+                            <View style={styles.pagination}>
+                <TouchableOpacity disabled={page === 1} onPress={() => goToPage(page - 1)} style={[styles.pageButton, page === 1 && styles.disabledButton]}>
+                  <Text style={styles.pageButtonText}>Previous</Text>
+                </TouchableOpacity>
+                <Text style={styles.pageNumber}>{page}</Text>
+                <TouchableOpacity disabled={!hasMorePosts} onPress={() => goToPage(page + 1)} style={[styles.pageButton, !hasMorePosts && styles.disabledButton]}>
+                  <Text style={styles.pageButtonText}>Next</Text>
+                </TouchableOpacity>
+              </View>
               <View style={styles.footer}>
                 <Text style={[styles.footerBrand, darkMode && styles.footerBrandDark]}>Offerhaikya</Text>
                 <Text style={[styles.footerText, darkMode && styles.darkMutedText]}>Fresh offers. Simple browsing.</Text>
@@ -5704,9 +5708,10 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
-  loadMoreWrap: { alignItems: 'center', paddingHorizontal: 18, paddingVertical: 14 },
-  loadMoreButton: { minHeight: 36, paddingHorizontal: 20, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  loadMoreButtonText: { color: WHITE, fontSize: 12, fontWeight: '900' },
+  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, paddingVertical: 18 },
+  pageButton: { minHeight: 36, minWidth: 82, paddingHorizontal: 16, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  pageButtonText: { color: WHITE, fontSize: 13, fontWeight: '900' },
+  pageNumber: { minWidth: 28, textAlign: 'center', fontSize: 14, fontWeight: '900', color: TEXT },
   footer: { alignItems: 'center', paddingVertical: 24 },
   footerBrand: { color: TEXT, fontSize: 13, fontWeight: '900' },
   footerBrandDark: { color: WHITE },
