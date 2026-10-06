@@ -78,6 +78,9 @@ const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Pe
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
+const NOTIFICATION_DISMISSED_STORAGE_PREFIX = 'offerhaikya_notification_dismissed_';
+const NOTIFICATION_MAX_ITEMS = 10;
+const NOTIFICATION_MIN_ITEMS = 3;
 const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
 Notifications.setNotificationHandler({
@@ -306,6 +309,7 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Post[]>([]);
+  const dismissedNotificationIdsRef = useRef<Set<string>>(new Set());
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
@@ -1860,6 +1864,9 @@ export default function App() {
   const getNotificationsStorageKey = (uid: string) =>
     NOTIFICATIONS_STORAGE_PREFIX + uid;
 
+  const getNotificationDismissedStorageKey = (uid: string) =>
+    NOTIFICATION_DISMISSED_STORAGE_PREFIX + uid;
+
   const notificationPostFromData = (data: any): Post | null => {
     if (!data?.postId || !data?.postTitle || !data?.postUrl) return null;
 
@@ -1880,58 +1887,70 @@ export default function App() {
     };
   };
 
-  const loadNotificationsForUser = async (user: any) => {
-    if (!user?.uid || user.isAnonymous) {
-      try {
-        const dismissedAt = Number(
-          (await AsyncStorage.getItem(GUEST_NOTIFICATION_DISMISSED_KEY)) || '0'
-        );
-        const remaining = GUEST_NOTIFICATION_REMINDER_MS - (Date.now() - dismissedAt);
-        if (remaining > 0) {
-          setNotifications([]);
-          return;
-        }
-        if (dismissedAt) {
-          await AsyncStorage.removeItem(GUEST_NOTIFICATION_DISMISSED_KEY);
-        }
-      } catch {
-        // Guest reminder state is best-effort.
-      }
-      setNotifications(posts.slice(0, 3));
-      return;
+  const loadNotificationDismissals = async (user: any) => {
+    const dismissed = new Set<string>();
+
+    if (!user?.uid) {
+      dismissedNotificationIdsRef.current = dismissed;
+      return dismissed;
     }
 
     try {
       const stored = await AsyncStorage.getItem(
-        getNotificationsStorageKey(user.uid),
+        getNotificationDismissedStorageKey(user.uid),
       );
       const localParsed = stored ? JSON.parse(stored) : [];
-      const localNotifications: Post[] = Array.isArray(localParsed)
-        ? localParsed.filter(item => item && item.id)
-        : [];
-
-      let cloudNotifications: Post[] = [];
-      try {
-        const snapshot = await getDocs(
-          firestoreQuery(
-            collection(db, 'notifications'),
-            where('uid', '==', user.uid),
-          ),
-        );
-
-        cloudNotifications = snapshot.docs
-          .map(notificationDoc => notificationPostFromData(notificationDoc.data()))
-          .filter((item): item is Post => Boolean(item));
-      } catch (error) {
-        console.log('Firebase notification history load error:', error);
+      if (Array.isArray(localParsed)) {
+        localParsed.forEach(item => {
+          if (item) dismissed.add(String(item));
+        });
       }
+    } catch {
+      // Local dismissal state is best-effort.
+    }
 
-      const merged = [...cloudNotifications, ...localNotifications]
-        .filter((item, index, list) => list.findIndex(other => other.id === item.id) === index)
-        .slice(0, 50);
+    if (!user.isAnonymous) {
+      try {
+        const stateSnapshot = await getDoc(doc(db, 'notificationStates', user.uid));
+        const cloudDismissed = stateSnapshot.exists()
+          ? stateSnapshot.data()?.dismissedPostIds
+          : [];
+        if (Array.isArray(cloudDismissed)) {
+          cloudDismissed.forEach(item => {
+            if (item) dismissed.add(String(item));
+          });
+        }
+      } catch (error) {
+        console.log('Notification dismissal state load error:', error);
+      }
+    }
 
-      setNotifications(merged);
-      void persistNotificationsForUser(user, merged);
+    dismissedNotificationIdsRef.current = dismissed;
+
+    try {
+      await AsyncStorage.setItem(
+        getNotificationDismissedStorageKey(user.uid),
+        JSON.stringify(Array.from(dismissed).slice(-500)),
+      );
+    } catch {
+      // Local persistence is best-effort.
+    }
+
+    return dismissed;
+  };
+
+  const getLatestBellNotifications = (sourcePosts: Post[]) => {
+    const dismissed = dismissedNotificationIdsRef.current;
+    return sourcePosts
+      .filter(post => !dismissed.has(post.id))
+      .slice(0, NOTIFICATION_MAX_ITEMS);
+  };
+
+  const loadNotificationsForUser = async (user: any) => {
+    try {
+      await loadNotificationDismissals(user);
+      const latest = getLatestBellNotifications(posts);
+      setNotifications(latest);
     } catch {
       setNotifications([]);
     }
@@ -1946,7 +1965,7 @@ export default function App() {
     try {
       await AsyncStorage.setItem(
         getNotificationsStorageKey(user.uid),
-        JSON.stringify(nextNotifications.slice(0, 50)),
+        JSON.stringify(nextNotifications.slice(0, NOTIFICATION_MAX_ITEMS)),
       );
     } catch (error) {
       console.log('Notifications save error:', error);
@@ -1954,13 +1973,15 @@ export default function App() {
   };
 
   const addReceivedNotification = (post: Post) => {
+    if (dismissedNotificationIdsRef.current.has(post.id)) return;
+
     const user = auth.currentUser;
 
     setNotifications(current => {
       const next = [
         post,
         ...current.filter(item => item.id !== post.id),
-      ].slice(0, 50);
+      ].slice(0, NOTIFICATION_MAX_ITEMS);
 
       if (user && !user.isAnonymous) {
         void persistNotificationsForUser(user, next);
@@ -1970,47 +1991,70 @@ export default function App() {
     });
   };
 
-  useEffect(() => {
+  const dismissNotification = async (postId: string) => {
+    dismissedNotificationIdsRef.current.add(postId);
+    setNotifications(current => current.filter(item => item.id !== postId));
+
     const user = auth.currentUser;
-    void loadNotificationsForUser(user);
-  }, [authReady, registrationCompleted, posts]);
+    if (!user?.uid) return;
 
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user || !user.isAnonymous) return;
+    const dismissed = Array.from(dismissedNotificationIdsRef.current).slice(-500);
+    try {
+      await AsyncStorage.setItem(
+        getNotificationDismissedStorageKey(user.uid),
+        JSON.stringify(dismissed),
+      );
+    } catch (error) {
+      console.log('Notification dismissal save error:', error);
+    }
 
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const scheduleGuestReminder = async () => {
+    if (!user.isAnonymous) {
       try {
-        const dismissedAt = Number(
-          (await AsyncStorage.getItem(GUEST_NOTIFICATION_DISMISSED_KEY)) || '0'
+        await setDoc(
+          doc(db, 'notificationStates', user.uid),
+          { dismissedPostIds: dismissed },
+          { merge: true },
         );
-        const remaining = dismissedAt
-          ? GUEST_NOTIFICATION_REMINDER_MS - (Date.now() - dismissedAt)
-          : 0;
+      } catch (error) {
+        console.log('Cloud notification dismissal save error:', error);
+      }
+    }
+  };
 
-        if (remaining <= 0) {
-          setNotifications(posts.slice(0, 3));
-          return;
+  useEffect(() => {
+    if (!authReady) return;
+    void loadNotificationsForUser(auth.currentUser);
+  }, [authReady, registrationCompleted]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    setNotifications(getLatestBellNotifications(posts));
+  }, [posts, authReady]);
+
+  useEffect(() => {
+    if (!authReady) return;
+
+    let cancelled = false;
+    const syncLatestNotifications = async () => {
+      try {
+        const latest = await fetchFeedFromNetwork('', 1, true);
+        if (!cancelled) {
+          setNotifications(getLatestBellNotifications(latest));
         }
-
-        setNotifications([]);
-        timer = setTimeout(() => {
-          void AsyncStorage.removeItem(GUEST_NOTIFICATION_DISMISSED_KEY);
-          setNotifications(posts.slice(0, 3));
-        }, remaining);
       } catch {
-        setNotifications(posts.slice(0, 3));
+        // Bell refresh is best-effort and must never affect the feed.
       }
     };
 
-    void scheduleGuestReminder();
+    const interval = setInterval(() => {
+      void syncLatestNotifications();
+    }, MAIN_AUTO_SYNC_INTERVAL_MS);
 
     return () => {
-      if (timer) clearTimeout(timer);
+      cancelled = true;
+      clearInterval(interval);
     };
-  }, [authReady, posts]);
+  }, [authReady]);
 
   useEffect(() => {
     const receivedSubscription =
@@ -2019,7 +2063,7 @@ export default function App() {
           notification.request.content.data,
         );
 
-        if (post && auth.currentUser && !auth.currentUser.isAnonymous) {
+        if (post) {
           addReceivedNotification(post);
         }
       });
@@ -2032,7 +2076,6 @@ export default function App() {
       if (!post) return;
 
       addReceivedNotification(post);
-      void loadNotificationsForUser(auth.currentUser);
       setNotificationsOpen(false);
       openDetail(post);
     };
@@ -3208,9 +3251,7 @@ export default function App() {
           setOfferRequestName('');
           setOfferRequestContact('');
           setOfferRequestText('');
-          setTimeout(() => {
-            setOfferRequestError('');
-          }, 0);
+          Alert.alert('Request Offer', 'You can send another offer request after 24 hours. Thank you.');
           return;
         }
       }
@@ -3248,13 +3289,8 @@ export default function App() {
     } catch (error: any) {
       console.log('Offer request submit error:', error);
       setOfferRequestSubmitting(false);
-      setOfferRequestError('');
-      setOfferRequestSuccess(true);
-
-      setTimeout(() => {
-        setOfferRequestOpen(false);
-        setOfferRequestSuccess(false);
-      }, 900);
+      setOfferRequestSuccess(false);
+      setOfferRequestError('Could not submit your request. Please try again.');
     }
   };
 
@@ -3378,10 +3414,7 @@ export default function App() {
                 <TouchableOpacity
                   style={styles.favoriteRemove}
                   onPress={() => {
-                    setNotifications(current => current.filter(notification => notification.id !== item.id));
-                    if (auth.currentUser?.isAnonymous) {
-                      void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
-                    }
+                    void dismissNotification(item.id);
                   }}
                   accessibilityLabel="Remove notification"
                 >
