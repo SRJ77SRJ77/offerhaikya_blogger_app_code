@@ -1410,14 +1410,14 @@ export default function App() {
       coords: { latitude: number; longitude: number } | null,
       detectedLocationTerms: string[],
     ) => {
-      if (!coords) return false;
+      if (!coords) return null;
 
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationTextForPolling(label))
         .filter(Boolean);
       const nearbyLocalTags = ['offline offer', 'local offer'];
       if (!nearbyLocalTags.some(tag => normalizedLabels.join(' ').includes(tag))) {
-        return false;
+        return null;
       }
 
       const locationCandidates = [
@@ -1460,7 +1460,7 @@ export default function App() {
         }
       }
 
-      if (!postLocation) return false;
+      if (!postLocation) return null;
 
       const distance = distanceKm(coords, postLocation);
       return distance <= NEARBY_RADIUS_KM ? distance : null;
