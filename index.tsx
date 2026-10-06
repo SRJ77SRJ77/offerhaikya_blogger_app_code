@@ -65,8 +65,6 @@ const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 60 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
 const LOCATION_CHECK_INTERVAL_MS = 30 * 1000;
-const GUEST_NOTIFICATION_REMINDER_MS = 5 * 60 * 1000;
-const GUEST_NOTIFICATION_DISMISSED_KEY = 'offerhaikya_guest_notifications_dismissed_at';
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
@@ -80,7 +78,6 @@ const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
 const NOTIFICATION_DISMISSED_STORAGE_PREFIX = 'offerhaikya_notification_dismissed_';
 const NOTIFICATION_MAX_ITEMS = 10;
-const NOTIFICATION_MIN_ITEMS = 3;
 const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
 Notifications.setNotificationHandler({
@@ -3356,9 +3353,6 @@ export default function App() {
         activeOpacity={1}
         onPress={() => {
           setNotificationsOpen(false);
-          if (auth.currentUser?.isAnonymous) {
-            void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
-          }
         }}
       />
       <View style={[styles.favoritePopup, darkMode && styles.favoritePopupDark]}>
@@ -3368,9 +3362,6 @@ export default function App() {
           </View>
           <TouchableOpacity style={styles.favoriteClose} onPress={() => {
           setNotificationsOpen(false);
-          if (auth.currentUser?.isAnonymous) {
-            void AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_KEY, String(Date.now()));
-          }
         }}>
             <Text style={[styles.favoriteCloseText, darkMode && styles.headerIconDark]}>×</Text>
           </TouchableOpacity>
