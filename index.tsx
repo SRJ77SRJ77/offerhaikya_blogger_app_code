@@ -103,6 +103,7 @@ type Post = {
   rawContent: string;
   locationName?: string;
   locationCoordinates?: { latitude: number; longitude: number };
+  nearbyDistanceKm?: number;
 };
 
 const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
@@ -1083,7 +1084,7 @@ export default function App() {
         });
       }
 
-      return distanceMatch;
+      return distanceMatch ? distanceKmValue : null;
     };
 
     const loadNearbyOffers = async () => {
@@ -1338,7 +1339,13 @@ export default function App() {
             matchesNearbyOffer(post, coords, detectedLocationTerms),
           ),
         );
-        const matches = allPosts.filter((_, index) => nearbyResults[index]);
+        const matches = allPosts
+          .map((post, index) => {
+            const distance = nearbyResults[index];
+            return distance === null ? null : { ...post, nearbyDistanceKm: distance };
+          })
+          .filter((post): post is Post => post !== null)
+          .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
 
         nearbyCacheRef.current = {
           key: nearbyCacheKey,
@@ -1456,7 +1463,7 @@ export default function App() {
       if (!postLocation) return false;
 
       const distance = distanceKm(coords, postLocation);
-      return distance <= NEARBY_RADIUS_KM;
+      return distance <= NEARBY_RADIUS_KM ? distance : null;
     };
 
     const checkForNearbyPostUpdates = async () => {
@@ -1469,9 +1476,13 @@ export default function App() {
             matchesNearbyOfferForPolling(post, userLocation, locationTerms),
           ),
         );
-        const latestNearbyMatches = latestPosts.filter(
-          (_, index) => latestNearbyResults[index],
-        );
+        const latestNearbyMatches = latestPosts
+          .map((post, index) => {
+            const distance = latestNearbyResults[index];
+            return distance === null ? null : { ...post, nearbyDistanceKm: distance };
+          })
+          .filter((post): post is Post => post !== null)
+          .sort((a, b) => (a.nearbyDistanceKm ?? Infinity) - (b.nearbyDistanceKm ?? Infinity));
 
         setNearbyPosts(current => {
           const latestById = new Map(
@@ -3478,6 +3489,27 @@ export default function App() {
           />
         </Svg>
       </TouchableOpacity>
+      {item.nearbyDistanceKm !== undefined ? (
+        <View style={styles.cardDistance}>
+          <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+              stroke={TEXT}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+              stroke={TEXT}
+              strokeWidth={2}
+            />
+          </Svg>
+          <Text style={styles.cardDistanceText} numberOfLines={1}>
+            {Math.round(item.nearbyDistanceKm)} km
+          </Text>
+        </View>
+      ) : null}
       {getExpiryLabel(item) ? (
         <View style={styles.cardExpiry}>
           <Text style={styles.cardExpiryText} numberOfLines={1}>
@@ -5797,6 +5829,8 @@ const styles = StyleSheet.create({
   cardImage: { width: '100%', height: 125, backgroundColor: '#eeeeee' },
   cardHeart: { position: 'absolute', top: 8, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cardShare: { position: 'absolute', top: 48, right: 8, zIndex: 3, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  cardDistance: { position: 'absolute', top: 88, right: 8, zIndex: 3, maxWidth: '62%', minHeight: 22, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)', flexDirection: 'row', alignItems: 'center', gap: 3 },
+  cardDistanceText: { color: MUTED, fontSize: 9, fontWeight: '900' },
   cardExpiry: { position: 'absolute', top: 8, left: 8, zIndex: 3, maxWidth: '62%', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.92)' },
   cardExpiryText: { color: ACCENT, fontSize: 9, fontWeight: '900' },
   detailTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
