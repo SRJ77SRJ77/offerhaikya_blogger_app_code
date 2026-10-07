@@ -171,7 +171,6 @@ a{color:inherit;text-decoration:none}
   .ohk-bottom-nav{display:none}
   .ohk-app{padding-bottom:0}
   .ohk-footer{padding-bottom:30px}
-}
   .ohk-header-inner{padding:0 18px}
   .ohk-content{padding-left:30px;padding-right:30px}
   .ohk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
