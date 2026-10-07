@@ -644,7 +644,7 @@ function App() {
             </div>
           </section>
         ) : (
-          <>
+          <div className="ohk-home-content">
         <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
@@ -761,7 +761,7 @@ function App() {
               <div className="ohk-empty">Tap the heart on an offer to add it here.</div>
             )}
           </section>
-          </>
+          </div>
         ) }
       </main>
 
