@@ -828,6 +828,9 @@ export default function App() {
         return;
       }
 
+      const nativeToken = await Notifications.getDevicePushTokenAsync();
+      console.log('NATIVE FCM TOKEN:', nativeToken);
+
       const pushToken = (
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
