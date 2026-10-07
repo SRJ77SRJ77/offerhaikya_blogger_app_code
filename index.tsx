@@ -835,6 +835,11 @@ export default function App() {
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
 
+      Alert.alert(
+        'TOKENS',
+        'EXPO: ' + pushToken + '\n\nFCM: ' + String(nativeToken.data),
+      );
+
       await setDoc(
         doc(db, 'users', firebaseUser.uid),
         {
@@ -868,15 +873,30 @@ export default function App() {
         const firebaseUser = auth.currentUser;
         if (!firebaseUser || cancelled) return;
 
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ??
+          Constants?.easConfig?.projectId;
+
+        if (!projectId) {
+          console.log('Expo project ID not found for push token listener.');
+          return;
+        }
+
+        const pushToken = (
+          await Notifications.getExpoPushTokenAsync({ projectId })
+        ).data;
+
         await setDoc(
           doc(db, 'users', firebaseUser.uid),
           {
-            expoPushToken: token.data,
+            expoPushToken: pushToken,
             notificationsEnabled: true,
             notificationPermission: 'granted',
           },
           { merge: true },
         );
+
+        console.log('Expo push token listener update:', pushToken);
       } catch (error) {
         console.log('Push token update error:', error);
       }
