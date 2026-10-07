@@ -620,6 +620,31 @@ function App() {
       </nav>
 
       <main>
+        {detail ? (
+          <section className="ohk-detail-page">
+            <div className="ohk-detail-page-inner">
+              <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
+              <span className="ohk-card-label">{detail.label}</span>
+              <h1>{detail.title}</h1>
+              <div className="ohk-detail-meta">
+                <span>{detail.date}</span>
+                <button onClick={() => toggleSave(detail.id)}>{saved[detail.id] ? '♥' : '♡'}</button>
+                <button onClick={() => navigator.clipboard?.writeText(window.location.href)}><Icon name="share" size={19} /></button>
+              </div>
+              {detail.image ? <img className="ohk-detail-cover" src={detail.image} alt="" /> : null}
+              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: detail.rawContent || '<p>' + detail.excerpt + '</p>' }} />
+            </div>
+          </section>
+        ) : sitePage ? (
+          <section className="ohk-detail-page">
+            <div className="ohk-info-page">
+              <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
+              <h1>{getSitePage(sitePage)?.title || sitePage.replaceAll('-', ' ')}</h1>
+              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: getSitePage(sitePage)?.content || '<p>Page content is not available yet in Blogger.</p>' }} />
+            </div>
+          </section>
+        ) : (
+          <>
         <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
@@ -736,7 +761,8 @@ function App() {
               <div className="ohk-empty">Tap the heart on an offer to add it here.</div>
             )}
           </section>
-        </section>
+          </>
+        )}
       </main>
 
       <footer className="ohk-footer">
@@ -765,28 +791,6 @@ function App() {
         ))}
       </nav>
 
-      {detail ? (
-        <div className="ohk-detail-overlay" onClick={() => setDetail(null)}>
-          <article className="ohk-detail" onClick={(event) => event.stopPropagation()}>
-            <header>
-              <button onClick={() => setDetail(null)}><Icon name="close" /></button>
-              <h2>{detail.title}</h2>
-              <button onClick={() => setDark((value) => !value)}>{dark ? '☀' : '☾'}</button>
-            </header>
-            <div className="ohk-detail-body">
-              <span className="ohk-card-label">{detail.label}</span>
-              <h1>{detail.title}</h1>
-              <div className="ohk-detail-meta">
-                <span>{detail.date}</span>
-                <button onClick={() => toggleSave(detail.id)}>{saved[detail.id] ? '♥' : '♡'}</button>
-                <button onClick={() => navigator.clipboard?.writeText(detail.url)}><Icon name="share" size={19} /></button>
-              </div>
-              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: detail.rawContent || `<p>${detail.excerpt}</p>` }} />
-            </div>
-          </article>
-        </div>
-      ) : null}
-
       {notificationsOpen ? (
         <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
@@ -803,7 +807,7 @@ function App() {
               <div className="ohk-favorite-list">
                 {notifications.slice(0, 10).map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
-                    <button className="ohk-favorite-item-main" onClick={() => { setNotificationsOpen(false); setDetail(item) }}>
+                    <button className="ohk-favorite-item-main" onClick={() => { setNotificationsOpen(false); openPost(item) }}>
                       {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
                       <span>{item.title}</span>
                     </button>
@@ -832,7 +836,7 @@ function App() {
               <div className="ohk-favorite-list">
                 {posts.filter((post) => saved[post.id]).map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
-                    <button className="ohk-favorite-item-main" onClick={() => { setWishlistOpen(false); setDetail(item) }}>
+                    <button className="ohk-favorite-item-main" onClick={() => { setWishlistOpen(false); openPost(item) }}>
                       {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
                       <span>{item.title}</span>
                     </button>
@@ -852,12 +856,65 @@ function App() {
               <h2>Create Account</h2>
             </div>
             <p className="ohk-registration-intro">
-              Location checked first. Now create your Offerhaikya account to personalize offers.
+              Create your Offerhaikya account to personalize offers and continue.
             </p>
             <input value={registrationName} onChange={(event) => setRegistrationName(event.target.value)} placeholder="Name *" />
             <input value={registrationPhone} onChange={(event) => setRegistrationPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit phone number *" inputMode="numeric" />
             <input value={registrationEmail} onChange={(event) => setRegistrationEmail(event.target.value)} placeholder="Email *" type="email" />
-            <button className="ohk-primary-button" onClick={() => setRegistrationOpen(false)}>Continue</button>
+            <button className="ohk-primary-button" onClick={() => {
+              setRegistrationOpen(false)
+              setLocationPromptOpen(true)
+              sessionStorage.setItem('offerhaikya_location_registration_shown', 'true')
+            }}>Continue</button>
+          </div>
+        </div>
+      ) : null}
+
+      {locationPromptOpen ? (
+        <div className="ohk-modal-backdrop" onClick={() => setLocationPromptOpen(false)}>
+          <div className="ohk-modal ohk-location-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-modal-head">
+              <h2>Find Nearby Offers</h2>
+              <button onClick={() => setLocationPromptOpen(false)}><Icon name="close" /></button>
+            </div>
+            <p className="ohk-registration-intro">Allow location access to see offers near you. You can choose this later.</p>
+            <button className="ohk-primary-button" onClick={() => { setLocationPromptOpen(false); requestLocation() }}><Icon name="location" size={18} /> Allow Location</button>
+            <button className="ohk-secondary-button" onClick={() => setLocationPromptOpen(false)}>Maybe Later</button>
+            {locationMessage ? <span className="ohk-location-message">{locationMessage}</span> : null}
+          </div>
+        </div>
+      ) : null}
+
+      {profileOpen ? (
+        <div className="ohk-modal-backdrop" onClick={() => setProfileOpen(false)}>
+          <div className="ohk-modal ohk-profile-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-modal-head">
+              <h2>{authMode === 'choice' ? 'Profile' : authMode === 'login' ? 'Login' : 'Create Account'}</h2>
+              <button onClick={() => setProfileOpen(false)}><Icon name="close" /></button>
+            </div>
+            {authMode === 'choice' ? (
+              <>
+                <p className="ohk-registration-intro">Login or create your Offerhaikya account.</p>
+                <button className="ohk-primary-button" onClick={() => setAuthMode('login')}>Login</button>
+                <button className="ohk-secondary-button" onClick={() => setAuthMode('signup')}>Create Account</button>
+              </>
+            ) : authMode === 'login' ? (
+              <>
+                <input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} placeholder="Email *" type="email" />
+                <input value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Password *" type="password" />
+                <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Login</button>
+                <button className="ohk-link-button" onClick={() => setAuthMode('choice')}>← Back</button>
+              </>
+            ) : (
+              <>
+                <input placeholder="Name *" />
+                <input placeholder="10-digit phone number *" inputMode="numeric" />
+                <input placeholder="Email *" type="email" />
+                <input placeholder="Password *" type="password" />
+                <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Create Account</button>
+                <button className="ohk-link-button" onClick={() => setAuthMode('choice')}>← Back</button>
+              </>
+            )}
           </div>
         </div>
       ) : null}
