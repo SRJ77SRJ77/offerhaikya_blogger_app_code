@@ -1,1 +1,739 @@
-Logs
+10-07 18:13:12.231 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup33 (../../devices/platform/soc/a84000.i2c/i2c-3/3-005a/wakeup/wakeup33): Permission denied
+10-07 18:13:12.238 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup23 (../../devices/platform/soc/soc:qcom,kgsl-hyp/subsys2/wakeup/wakeup23): Permission denied
+10-07 18:13:12.239 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.239 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.244 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup8 (../../devices/platform/soc/soc:qcom,pmic_glink_log/wakeup/wakeup8): Permission denied
+10-07 18:13:12.248 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup31 (../../devices/platform/soc/a300000.qcom,turing/subsys6/wakeup/wakeup31): Permission denied
+10-07 18:13:12.248 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup21 (../../devices/platform/soc/soc:qcom,ipa_fws/subsys1/wakeup/wakeup21): Permission denied
+10-07 18:13:12.248 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup6 (../../devices/platform/soc/soc:qcom,smp2p_sleepstate/wakeup/wakeup6): Permission denied
+10-07 18:13:12.248 E/android.system.suspend-service(  708): Error opening kernel wakelock stats for: wakeup11 (../../devices/virtual/fastrpc/adsprpc-smd-secure/wakeup11): Permission denied
+10-07 18:13:12.250 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.251 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.259 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.259 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.268 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.268 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.276 E/FileUtils(26976): err write to mi_exception_log
+10-07 18:13:12.278 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.278 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.285 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.285 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.288 E/ProcessManager( 1927): error write exception log
+10-07 18:13:12.297 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.297 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.310 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.310 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.322 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.322 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.332 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.332 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.348 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.348 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.363 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.363 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.405 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.405 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.406 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.406 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.411 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.411 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.423 D/ACDB-LOADER( 1118): Error: ACDB_CMD_GET_PERSISTENT_AUDPROC_INSTANCE_COMMON_TABLE_SIZE returned -18
+10-07 18:13:12.423 D/ACDB-LOADER( 1118): Error: Invalid Audproc persist size = -18
+10-07 18:13:12.426 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.426 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.433 E/FileUtils( 8021): err write to mi_exception_log
+10-07 18:13:12.436 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.436 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.442 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.444 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.449 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.450 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.460 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.461 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.466 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.466 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.470 D/ACDB-LOADER( 1118): Error: ACDB_CMD_GET_AUDPROC_INSTANCE_GAIN_DEP_STEP_TABLE_SIZE Returned = -19
+10-07 18:13:12.470 D/ACDB-LOADER( 1118): Error: ACDB AudProc vol returned = -19
+10-07 18:13:12.474 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.475 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.483 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.484 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.491 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.491 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.499 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.499 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.506 E/FileUtils(10893): err write to mi_exception_log
+10-07 18:13:12.508 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.508 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.513 E/audio_hw_extn( 1118): audio_extn_perf_lock_release: Perf lock release error 
+10-07 18:13:12.517 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.517 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.526 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.526 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.529 D/[gf_ca_entry]( 1993): [gf_ta_send_modified_cmd_req] begin token 2049, cmd_id=1016
+10-07 18:13:12.533 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.533 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.542 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.542 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.550 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.551 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.558 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.558 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.566 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.566 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.574 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.574 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.583 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.584 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.592 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.592 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.600 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.600 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.608 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.609 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.616 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.616 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.625 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.625 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.633 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.634 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.641 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.641 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.650 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.650 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.658 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.658 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.667 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.667 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.674 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.675 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.693 D/FingerprintAuthTimeData( 1927): getInstance
+10-07 18:13:12.693 W/FingerprintAuthTimeData( 1927): handleAcquiredInfo
+10-07 18:13:12.694 D/[gf_ca_entry]( 1993): [gf_ta_send_modified_cmd_req] begin token 2050, cmd_id=1016
+10-07 18:13:12.695 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.695 I/IPCThreadState( 1435): oneway function results for code 904 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.695 I/IPCThreadState( 1435): oneway function results for code 903 on binder at 0xb400007c4c2155c0 will be dropped but finished with status 1 (Unknown error -1)
+10-07 18:13:12.713 E/FileUtils(28340): err write to mi_exception_log
+10-07 18:13:12.755 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:12.797 E/FileUtils( 4083): err write to mi_exception_log
+10-07 18:13:12.821 E/FileUtils( 1015): err write to mi_exception_log
+10-07 18:13:12.833 I/MiuiWallpaper-MiuiKeyguardPictorialWallpaper(26976): updateVisible keyguard failed, visible = falsejava.lang.NoSuchMethodException: android.app.WallpaperManager.updateWallpaperWindows [interface android.os.IBinder, boolean]
+10-07 18:13:12.844 E/FileUtils( 4083): err write to mi_exception_log
+10-07 18:13:12.858 E/FileUtils( 4083): err write to mi_exception_log
+10-07 18:13:12.872 E/FileUtils(26976): err write to mi_exception_log
+10-07 18:13:12.905 E/FileUtils(26327): err write to mi_exception_log
+10-07 18:13:12.927 E/FileUtils( 7946): err write to mi_exception_log
+10-07 18:13:12.967 E/ProcessManager( 1927): error write exception log
+10-07 18:13:12.967 E/FileUtils(10893): err write to mi_exception_log
+10-07 18:13:12.991 E/FileUtils( 7946): err write to mi_exception_log
+10-07 18:13:12.993 E/FileUtils( 4083): err write to mi_exception_log
+10-07 18:13:13.064 E/FileUtils(31321): err write to mi_exception_log
+10-07 18:13:13.088 E/ProcessManager( 1927): error write exception log
+10-07 18:13:13.126 D/BoundBrokerSvc(10893): onRebind: Intent { act=com.google.android.gms.auth.aang.events.services.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+10-07 18:13:13.162 E/com.miui.appmanager.AppManageUtils( 8710): startScan error
+10-07 18:13:13.162 E/com.miui.appmanager.AppManageUtils( 8710): java.lang.NoSuchMethodException: android.net.wifi.IWifiManager$Stub$Proxy.startScan [class java.lang.String]
+10-07 18:13:13.216 E/ProcessManager( 1927): error write exception log
+10-07 18:13:13.252 E/FileUtils(25605): err write to mi_exception_log
+10-07 18:13:13.254 E/ProcessManager( 1927): error write exception log
+10-07 18:13:13.255 W/FirebaseRemoteConfig( 2958): No value of type 'FirebaseRemoteConfigValue' exists for parameter key 'cancelUninstallWhenScreenOn'.
+10-07 18:13:13.273 D/BoundBrokerSvc(10893): onBind: Intent { act=com.google.android.gms.auth.service.START pkg=com.google.android.gms }
+10-07 18:13:13.273 D/BoundBrokerSvc(10893): Loading bound service for intent: Intent { act=com.google.android.gms.auth.service.START pkg=com.google.android.gms }
+10-07 18:13:13.334 E/FileUtils( 2594): err write to mi_exception_log
+10-07 18:13:13.398 E/FileUtils(16766): err write to mi_exception_log
+10-07 18:13:13.571 E/FileUtils(26537): err write to mi_exception_log
+10-07 18:13:13.572 E/FileUtils(16766): err write to mi_exception_log
+10-07 18:13:13.716 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:15.535 E/PowerKeeper.Thermal( 8021): ProcessInfo java.lang.NumberFormatException: For input string: "CPU usage from 176433ms to 3875ms ago (2026-10-07 18"
+10-07 18:13:16.829 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:16.833 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:17.139 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:17.310 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:18.730 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:18.734 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:18.906 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:21.147 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:21.320 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:21.762 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:23.012 D/BoundBrokerSvc(10893): onBind: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-07 18:13:23.012 D/BoundBrokerSvc(10893): Loading bound service for intent: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-07 18:13:24.041 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:24.044 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:24.766 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:24.936 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:25.152 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:25.245 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:13:25.321 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:27.775 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:27.779 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:27.959 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:29.159 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:29.302 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:29.305 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:29.305 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:29.305 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:29.331 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:30.795 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:30.805 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:30.985 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:31.252 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:31.254 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:33.163 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:33.333 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:33.823 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:33.826 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:34.000 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:36.638 E/ActivityStarterImpl( 1927): Error: Activity class {com.tsng.hidemyapplist/com.tsng.hidemyapplist.MainActivityLauncher} does not exist.
+10-07 18:13:36.870 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:13:36.911 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:13:37.166 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:37.342 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:38.073 D/BoundBrokerSvc(10893): onUnbind: Intent { act=com.google.android.gms.potokens.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+10-07 18:13:38.461 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:38.463 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:38.566 E/Cm      (25974): Network error
+10-07 18:13:39.797 I/SmartPower: com.google.process.gservices/10165(25296)( 1927): idle->background(330002ms) R(alarm start) adj=955.
+10-07 18:13:39.803 D/AlarmManager( 1927): mPendingIntent -> PendingIntent{e926341: PendingIntentRecord{3d840e6 com.google.android.gms/com.google.android.gms.auth_authzen__phone startService}}
+10-07 18:13:39.816 I/Authzen (10893): [DeviceStateSyncManager] The server is in sync with current state. Nothing to do
+10-07 18:13:41.168 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:41.344 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:42.799 I/SmartPower: com.google.process.gservices/10165(25296)( 1927): background->idle(3002ms) R(alarm start) adj=955.
+10-07 18:13:42.859 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:43.029 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:45.173 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:45.345 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:45.669 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:45.671 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:45.875 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:46.045 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:48.889 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:48.901 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:49.062 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:49.176 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:49.346 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:51.906 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:51.910 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:52.080 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:52.878 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:52.881 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:53.178 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:53.354 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:54.919 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:54.922 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:13:55.098 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:55.251 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:13:55.541 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:55.541 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:55.542 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:55.542 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:55.543 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:55.543 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:13:57.182 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:57.357 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:57.932 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:13:58.106 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:00.006 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:00.088 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:00.090 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:00.184 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:00.946 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:00.956 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:01.116 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:01.186 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:01.358 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:03.962 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:04.131 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:05.192 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:05.368 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:06.974 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:07.144 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:07.296 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:07.299 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:08.582 E/Cm      (25974): Network error
+10-07 18:14:09.202 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:09.377 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:11.720 W/BatteryExternalStatsWorker( 1927): error reading Bluetooth stats: 11
+10-07 18:14:12.193 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:12.370 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:13.211 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:13.387 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:14.503 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:14.506 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:16.023 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:16.028 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:16.201 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:17.219 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:17.388 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:18.770 E/jvol    (10893): java.lang.RuntimeException: ManagedChannel allocation site
+10-07 18:14:18.770 E/jvol    (10893): java.lang.RuntimeException: ManagedChannel allocation site
+10-07 18:14:19.027 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:19.034 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:19.217 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:21.222 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:21.397 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:21.714 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:21.717 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:22.057 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:25.069 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:25.070 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:25.256 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:14:25.400 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:28.076 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:28.081 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:28.254 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:28.923 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:28.926 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:29.231 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:29.409 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:31.091 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:31.093 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:31.273 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:33.234 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:33.410 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:34.110 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:34.114 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:34.286 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:36.136 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:36.139 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:37.095 E/ActivityStarterImpl( 1927): Error: Activity class {com.tsng.hidemyapplist/com.tsng.hidemyapplist.MainActivityLauncher} does not exist.
+10-07 18:14:37.134 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:37.145 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:37.367 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:14:37.406 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:14:37.410 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:38.602 E/Cm      (25974): Network error
+10-07 18:14:40.138 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:40.143 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:40.322 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:41.244 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:41.421 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:43.155 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:43.163 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:43.332 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:43.345 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:43.349 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:45.245 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:45.422 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:46.165 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:46.340 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:49.183 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:49.188 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:49.423 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:49.557 W/PushService( 8184): [Tid:56] [Job] shutdown the connection. 9, java.net.SocketException: Connection reset
+10-07 18:14:49.572 W/PushService( 8184): java.net.SocketException: Broken pipe
+10-07 18:14:49.572 W/PushService( 8184): [Tid:56] update the connection status. connected -> disconnected : ERROR_READ_ERROR 
+10-07 18:14:49.575 W/PushService( 8184): [Tid:56] update the client 5 status. binded->unbind CLOSE ERROR_READ_ERROR null null
+10-07 18:14:49.578 W/PushService( 8184): [Tid:56] update the connection status. disconnected -> connecting : ERROR_OK 
+10-07 18:14:49.852 W/PushService( 8184): [Tid:1755] update the connection status. connecting -> connected : ERROR_OK 
+10-07 18:14:49.855 W/PushService( 8184): [Tid:56] update the client 5 status. unbind->binding unknown ERROR_OK null null
+10-07 18:14:49.950 W/PushService( 8184): [Tid:56] update the client 5 status. binding->binded OPEN ERROR_OK null null
+10-07 18:14:50.553 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:50.556 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:52.201 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:52.217 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:52.373 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:53.254 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:53.423 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:55.221 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:55.222 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:55.261 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:14:55.395 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:57.263 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:57.434 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:57.760 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:57.762 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:14:58.231 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:14:58.233 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:14:58.403 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:00.006 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:00.188 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:01.270 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:01.444 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:04.263 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:04.967 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:04.970 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:05.277 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:05.452 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:08.620 E/Cm      (25974): Network error
+10-07 18:15:09.299 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:09.470 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:10.996 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:10.999 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:11.647 I/ActivityThread(30780): installProviderAuthoritiesLocked allowBlocking call_log
+10-07 18:15:12.175 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:12.177 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:12.194 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:12.372 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:13.303 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:13.471 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:17.321 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:17.490 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:19.331 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:19.383 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:19.387 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:21.331 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:21.500 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:22.348 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:25.269 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:15:25.334 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:25.509 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:26.590 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:26.593 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:29.339 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:29.511 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:31.378 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:31.547 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:33.350 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:33.521 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:33.801 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:33.803 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:34.389 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:34.564 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:37.368 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:37.569 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:37.575 E/ActivityStarterImpl( 1927): Error: Activity class {com.tsng.hidemyapplist/com.tsng.hidemyapplist.MainActivityLauncher} does not exist.
+10-07 18:15:37.826 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:15:37.882 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:15:38.636 E/Cm      (25974): Network error
+10-07 18:15:40.420 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:40.436 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:40.612 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:41.010 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:41.014 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:41.374 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:41.548 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:43.431 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:43.601 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:45.380 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:45.557 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:46.450 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:46.451 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:46.634 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:48.218 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:48.221 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:49.391 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:49.475 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:49.650 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:53.402 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:53.577 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:54.100 I/AlarmManager(10893): setExactAndAllowWhileIdle [name: FcmRetry type: 2 triggerAtMillis: 283220330]
+10-07 18:15:54.188 I/Finsky  (31594): [851] FCM Handling notificationId=[CTrYZUDatm6BMoQBUkVRVUVTVF9TT1VSQ0VfQ09NTUVSQ0VfcGxheV9jcm1fbGl0ZTo6MjAyNi0xMC0wNzo6UExBWV9GRVNUX1E0X0dBTUVTX0xFQUdVRVNfRlJFRUZJUkVNQVhfUFJFUkVHX1AxRlRfQTBDSFMwMDAwMFlJUExLSUE1Ojpub192YXJpYW50]
+10-07 18:15:55.274 I/AlarmManager(10893): setExactAndAllowWhileIdle [name: FcmRetry type: 2 triggerAtMillis: 283221505]
+10-07 18:15:55.282 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:15:55.282 I/Finsky  (31594): [851] FCM Handling notificationId=[CVGaAvPWxu43]
+10-07 18:15:55.431 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:55.434 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:55.507 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:55.508 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:55.680 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:57.410 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:57.590 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:58.517 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:15:58.520 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:58.689 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:15:59.297 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:15:59.299 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:00.003 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:00.181 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:01.414 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:01.588 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:02.643 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:02.646 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:03.276 E/msys    ( 7301): E[N WA]_WAJMNSStreamImplOnMNSFailure(298)=>[LogLevel:I] WAJMNSStream/impl/callback/onMNSFailure/p=0xb40000796da5c480 (error=MNSTCPSocketReceive(): Received EOF)
+10-07 18:16:03.367 E/FileUtils( 1927): err open mi_exception_log errno=2
+10-07 18:16:03.367 E/FileUtils( 1927): err write to mi_exception_log
+10-07 18:16:04.550 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:04.556 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:04.735 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:05.421 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:05.597 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:07.574 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:07.577 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:07.759 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:08.653 E/Cm      (25974): Network error
+10-07 18:16:09.426 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:09.598 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:09.853 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:09.857 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:10.581 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:10.585 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:10.760 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:12.195 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:12.374 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:13.431 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:13.609 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:13.611 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:13.613 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:13.786 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:16.627 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:16.633 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:16.803 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:17.066 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:17.068 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:17.435 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:17.609 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:19.638 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:19.642 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:19.814 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:20.525 E/jvol    (10893): java.lang.RuntimeException: ManagedChannel allocation site
+10-07 18:16:21.446 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:21.618 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:22.660 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:22.662 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:22.844 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:24.279 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:24.282 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:25.291 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:16:25.451 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:25.621 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:25.691 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:25.697 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:25.859 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:29.304 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:29.305 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:29.305 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:29.308 E/msys    (20910): E[N mns:TigonMNS]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:29.460 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:29.630 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:31.486 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:31.488 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:31.710 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:31.711 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:31.884 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:33.471 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:33.648 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:37.475 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:37.649 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:37.737 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:38.024 E/ActivityStarterImpl( 1927): Error: Activity class {com.tsng.hidemyapplist/com.tsng.hidemyapplist.MainActivityLauncher} does not exist.
+10-07 18:16:38.126 I/AlarmManager(10893): setExactAndAllowWhileIdle [name: FcmRetry type: 2 triggerAtMillis: 283264357]
+10-07 18:16:38.200 I/AdvertisingIdClient(10893): getting error as 17: API: ClientTelemetry.API is not available on this device. Connection failed with: ConnectionResult{statusCode=API_DISABLED_FOR_CONNECTION, resolution=null, message=null, clientMethodKey=null}
+10-07 18:16:38.224 E/FileUtils(10856): err write to mi_exception_log
+10-07 18:16:38.298 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:16:38.347 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:16:38.426 E/FileUtils(10856): err write to mi_exception_log
+10-07 18:16:38.433 I/FLTFireMsgService(10856): FlutterFirebaseMessagingBackgroundService started!
+10-07 18:16:38.440 W/FirebaseMessaging(10856): Notification Channel set in AndroidManifest.xml has not been created by the app. Default value will be used.
+10-07 18:16:38.670 E/Cm      (25974): Network error
+10-07 18:16:38.701 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:38.705 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:38.886 E/flutter (10856): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [firebase_messaging/unknown] Unable to detect current Android Activity.
+10-07 18:16:38.886 E/flutter (10856): #3      MethodChannelFirebaseMessaging.requestPermission (package:firebase_messaging_platform_interface/src/method_channel/method_channel_messaging.dart:296)
+10-07 18:16:38.941 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:16:40.755 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:40.757 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:40.932 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:41.481 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:41.650 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:43.779 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:43.781 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:43.955 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:45.491 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:45.669 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:45.911 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:45.914 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:46.784 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:46.785 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:46.966 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:49.495 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:49.669 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:49.812 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:49.820 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:49.994 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:52.826 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:53.123 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:53.126 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:16:55.300 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:16:55.991 E/FileUtils( 4517): err write to mi_exception_log
+10-07 18:16:56.004 E/TAZ     (31323): [ERROR] already initialized
+10-07 18:16:56.152 D/nativeloader(12696): InitVndkspLibrariesProduct: android.hardware.common-V2-ndk.so:android.hardware.common-V2-ndk_platform.so:android.hardware.common.fmq-V1-ndk.so:android.hardware.common.fmq-V1-ndk_platform.so:android.hardware.graphics.allocator-V2-ndk.so:android.hardware.graphics.allocator-V2-ndk_platform.so:android.hardware.graphics.common-V4-ndk.so:android.hardware.graphics.common-V4-ndk_platform.so:android.hardware.graphics.common@1.0.so:android.hardware.graphics.common@1.1.so:android.hardware.graphics.common@1.2.so:android.hardware.graphics.composer3-V1-ndk.so:android.hardware.graphics.composer3-V1-ndk_platform.so:android.hardware.graphics.mapper@2.0.so:android.hardware.graphics.mapper@2.1.so:android.hardware.graphics.mapper@3.0.so:android.hardware.graphics.mapper@4.0.so:android.hardware.renderscript@1.0.so:android.hidl.memory.token@1.0.so:android.hidl.memory@1.0-impl.so:android.hidl.memory@1.0.so:android.hidl.safe_union@1.0.so:libRSCpuRef.so:libRSDriver.so:libRS_internal.so:libbase.so:libbcinfo.so:libblas.so:libc++.so:lib
+10-07 18:16:56.231 E/FileUtils(12696): err open mi_exception_log errno=2
+10-07 18:16:56.231 E/FileUtils(12696): err write to mi_exception_log
+10-07 18:16:56.557 I/SmartPower: com.google.process.gservices/10165(25296)( 1927): idle->background(193757ms) R(content provider start ContentProviderRecord{fd1dc4d u0 com.google.android.gsf/.gservices.GservicesProvider}) adj=250.
+10-07 18:16:56.869 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:57.377 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:57.513 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:57.689 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:58.864 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:58.879 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:16:59.045 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:16:59.558 I/SmartPower: com.google.process.gservices/10165(25296)( 1927): background->idle(3001ms) R(content provider start ContentProviderRecord{fd1dc4d u0 com.google.android.gsf/.gservices.GservicesProvider}) adj=915.
+10-07 18:17:00.003 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:00.181 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:00.334 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:00.335 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:01.529 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:01.698 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:01.875 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:01.879 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:02.067 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:04.899 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:04.904 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:05.075 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:05.533 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:05.708 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:07.544 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:07.547 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:07.903 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:08.071 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:08.685 E/Cm      (25974): Network error
+10-07 18:17:09.534 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:09.709 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:10.915 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:11.087 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:12.196 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:12.367 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:13.543 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:13.719 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:13.935 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:13.935 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:14.121 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:14.756 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:14.759 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:16.951 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:17.126 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:17.544 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:17.720 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:19.964 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:19.968 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:20.146 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:21.550 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:21.721 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:21.967 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:21.970 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:22.981 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:22.984 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:23.157 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:25.308 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:17:25.554 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:25.731 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:25.999 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:26.009 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:26.182 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:29.005 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:29.176 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:29.180 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:29.180 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:29.558 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:29.732 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:32.018 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:32.187 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:33.562 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:33.734 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:35.037 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:35.039 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:35.213 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:36.382 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:36.386 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:37.576 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:37.752 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:38.051 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:38.064 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:38.235 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:38.488 E/ActivityStarterImpl( 1927): Error: Activity class {com.tsng.hidemyapplist/com.tsng.hidemyapplist.MainActivityLauncher} does not exist.
+10-07 18:17:38.684 I/NetworkScheduler(10893): (REDACTED) Error inserting %s
+10-07 18:17:38.705 E/Cm      (25974): Network error
+10-07 18:17:41.065 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:41.071 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:17:41.250 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:41.581 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:41.753 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:43.588 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:43.591 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:44.074 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:44.250 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:45.584 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:45.754 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:47.088 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:47.256 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:48.881 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.881 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.883 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.883 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.889 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.889 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.891 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:48.891 E/SQLiteLog(16582): (284) automatic index on token_starts(user_id)
+10-07 18:17:49.599 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:49.773 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:50.100 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:50.272 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:50.799 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:50.802 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:53.114 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:53.287 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:53.604 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:53.772 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:55.319 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:17:56.126 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:56.294 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:57.613 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:57.782 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:58.008 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:58.012 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:17:59.140 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:17:59.310 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:00.005 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:00.184 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:01.617 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:01.793 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:02.153 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:02.326 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:05.215 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:05.217 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:05.636 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:05.810 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:08.723 E/Cm      (25974): Network error
+10-07 18:18:09.659 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:09.827 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:11.190 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:11.364 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:12.197 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:12.369 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:12.424 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:12.428 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:12.947 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:13.670 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:13.847 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:14.205 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:14.214 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:18:14.388 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:17.689 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:17.864 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:18.230 D/BoundBrokerSvc(10893): onUnbind: Intent { act=com.google.android.gms.auth.aang.events.services.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+10-07 18:18:19.633 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:19.637 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:20.248 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:18:20.248 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:20.419 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:21.695 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:21.865 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:23.254 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:23.259 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:18:23.427 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:25.326 E/PhoneAdapter( 4061): get ntnphones failed, exception: java.lang.IllegalStateException: Default phones haven't been made yet!
+10-07 18:18:25.700 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:25.875 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:26.277 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:18:26.285 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:26.460 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:26.841 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:26.844 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:26.940 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:29.286 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:29.457 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:29.702 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:29.875 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:32.301 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:32.308 W/System.err( 1927): java.lang.NoSuchMethodException: android.net.ConnectivityManager.setResloverInterfaceIdAndNetid [int, class java.lang.String]
+10-07 18:18:32.482 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:33.711 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:33.885 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:34.052 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:34.054 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:35.314 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:35.489 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:35.696 E/msys    (20910): E[N mns:DGWClient]_LogError(394)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+10-07 18:18:37.714 D/ArtChoreographerMonitor( 4083): invoke error.
+10-07 18:18:37.887 D/ArtChoreographerMonitor( 4083): invoke error.
+^C
+swastik@Swastik-ka-MacBook-Air OfferhaikyaApp % 
