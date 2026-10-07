@@ -196,7 +196,14 @@ function App() {
   const [specialDealsOpen, setSpecialDealsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(false)
-  const [locationStartupDone, setLocationStartupDone] = useState(false)
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [authMode, setAuthMode] = useState('choice')
+  const [preloaderVisible, setPreloaderVisible] = useState(true)
+  const [sitePage, setSitePage] = useState(null)
+  const [bloggerPages, setBloggerPages] = useState([])
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [registrationName, setRegistrationName] = useState('')
   const [registrationPhone, setRegistrationPhone] = useState('')
   const [registrationEmail, setRegistrationEmail] = useState('')
@@ -283,43 +290,62 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const alreadyShown = sessionStorage.getItem('offerhaikya_location_registration_shown') === 'true'
-    if (alreadyShown) return
-
-    let cancelled = false
-
-    const finishLocationFirst = () => {
-      if (cancelled) return
-      setLocationStartupDone(true)
-      setRegistrationOpen(true)
-      sessionStorage.setItem('offerhaikya_location_registration_shown', 'true')
-    }
-
-    if (!navigator.geolocation) {
-      finishLocationFirst()
-      return () => { cancelled = true }
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (cancelled) return
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        })
-        setLocationLabel('Your location')
-        finishLocationFirst()
-      },
-      () => {
-        finishLocationFirst()
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 },
-    )
-
-    return () => {
-      cancelled = true
-    }
+    const timer = window.setTimeout(() => setPreloaderVisible(false), 2000)
+    return () => window.clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (preloaderVisible) return
+    if (sessionStorage.getItem('offerhaikya_location_registration_shown') === 'true') return
+    setRegistrationOpen(true)
+  }, [preloaderVisible])
+
+  useEffect(() => {
+    let active = true
+    let script = null
+    const callbackName = "offerhaikyaPagesCallback_" + Date.now()
+    const cleanup = () => {
+      if (script) script.remove()
+      try { delete window[callbackName] } catch { window[callbackName] = undefined }
+    }
+    window[callbackName] = (data) => {
+      if (!active) return
+      setBloggerPages((data?.feed?.entry || []).map((entry) => ({
+        title: entry?.title?.$t || '',
+        content: entry?.content?.$t || '',
+        url: entry?.link?.find((item) => item.rel === 'alternate')?.href || '',
+      })))
+      cleanup()
+    }
+    script = document.createElement('script')
+    script.src = BLOG_URL + '/feeds/pages/default?alt=json-in-script&max-results=50&callback=' + callbackName
+    script.async = true
+    script.onerror = cleanup
+    document.head.appendChild(script)
+    return () => { active = false; cleanup() }
+  }, [])
+
+  useEffect(() => {
+    const syncRoute = () => {
+      const path = window.location.pathname.toLowerCase()
+      const postUrl = new URLSearchParams(window.location.search).get('url')
+      if (postUrl) {
+        const found = posts.find((post) => post.url === postUrl)
+        if (found) setDetail(found)
+        return
+      }
+      if (['/about-us', '/contact-us', '/privacy-policy', '/terms-and-condition'].includes(path)) {
+        setDetail(null)
+        setSitePage(path.slice(1))
+      } else if (path === '/' || path === '') {
+        setSitePage(null)
+        setDetail(null)
+      }
+    }
+    syncRoute()
+    window.addEventListener('popstate', syncRoute)
+    return () => window.removeEventListener('popstate', syncRoute)
+  }, [posts])
 
   useEffect(() => {
     localStorage.setItem('offerhaikya_favorites', JSON.stringify(saved))
@@ -341,6 +367,14 @@ function App() {
   }, [posts, query, activeLabel])
 
   const displayedPosts = filteredPosts.slice(0, visible)
+
+  const searchSuggestions = useMemo(() => {
+    const text = query.trim().toLowerCase()
+    if (!text) return []
+    return posts.filter((post) =>
+      `${post.title} ${post.labels.join(' ')} ${post.excerpt}`.toLowerCase().includes(text)
+    ).slice(0, 12)
+  }, [posts, query])
 
   const nearbyPosts = useMemo(() => {
     if (!userLocation) return []
