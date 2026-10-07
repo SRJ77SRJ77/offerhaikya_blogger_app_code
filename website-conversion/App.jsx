@@ -762,7 +762,7 @@ function App() {
             )}
           </section>
           </>
-        )}
+        ) }
       </main>
 
       <footer className="ohk-footer">
