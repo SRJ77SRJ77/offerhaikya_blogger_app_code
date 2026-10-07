@@ -183,6 +183,62 @@ const pemToArrayBuffer = (pem) => {
   return bytes.buffer;
 };
 
+const getFirebaseMessagingAccessToken = async (env) => {
+  const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = { alg: "RS256", typ: "JWT" };
+  const payload = {
+    iss: serviceAccount.client_email,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now,
+    exp: now + 3600,
+  };
+
+  const unsignedToken =
+    base64UrlEncode(JSON.stringify(header)) +
+    "." +
+    base64UrlEncode(JSON.stringify(payload));
+
+  const privateKey = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(serviceAccount.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    privateKey,
+    new TextEncoder().encode(unsignedToken)
+  );
+
+  const jwt = unsignedToken + "." + base64UrlEncode(signature);
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body:
+      "grant_type=" +
+      encodeURIComponent("urn:ietf:params:oauth:grant-type:jwt-bearer") +
+      "&assertion=" +
+      encodeURIComponent(jwt),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Firebase Messaging OAuth failed: HTTP " +
+        response.status +
+        " " +
+        (await response.text())
+    );
+  }
+
+  return (await response.json()).access_token;
+};
+
 const getFirebaseAccessToken = async (env) => {
   const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
   const now = Math.floor(Date.now() / 1000);
@@ -842,6 +898,67 @@ const runSafeTest = async (env) => {
 };
 
 
+const sendDirectFcmTest = async (env, fcmToken) => {
+  const token = String(fcmToken || "").trim();
+
+  if (!token) {
+    throw new Error("An FCM registration token is required.");
+  }
+
+  const accessToken = await getFirebaseMessagingAccessToken(env);
+  const endpoint =
+    "https://fcm.googleapis.com/v1/projects/" +
+    env.FIREBASE_PROJECT_ID +
+    "/messages:send";
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: {
+        token,
+        notification: {
+          title: "Offerhaikya FCM Test",
+          body: "Direct Firebase FCM test.",
+        },
+        data: {
+          test: "true",
+          source: "offerhaikya-direct-fcm-test",
+        },
+        android: {
+          priority: "HIGH",
+        },
+      },
+    }),
+  });
+
+  const text = await response.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      httpStatus: response.status,
+      response: data,
+    };
+  }
+
+  return {
+    ok: true,
+    httpStatus: response.status,
+    response: data,
+  };
+};
+
 const getExpoPushReceipts = async (ids) => {
   const response = await fetch("https://exp.host/--/api/v2/push/getReceipts", {
     method: "POST",
@@ -875,6 +992,38 @@ export default {
   async fetch(request, env) {
     try {
       const url = new URL(request.url);
+
+      if (
+        request.method === "POST" &&
+        url.searchParams.get("mode") === "fcm-test"
+      ) {
+        const secret = url.searchParams.get("secret") || "";
+
+        if (secret !== env.WEBHOOK_SECRET) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        const body = await request.json().catch(() => ({}));
+        const fcmToken = body?.fcmToken || "";
+
+        const result = await sendDirectFcmTest(env, fcmToken);
+
+        return new Response(
+          JSON.stringify(
+            {
+              ok: result.ok,
+              mode: "DIRECT_FCM_TEST",
+              result,
+            },
+            null,
+            2
+          ),
+          {
+            status: result.ok ? 200 : 502,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
 
       if (request.method === "GET" && url.searchParams.get("mode") === "test-push") {
         const secret = url.searchParams.get("secret") || "";
