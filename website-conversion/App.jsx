@@ -761,7 +761,8 @@ function App() {
               <div className="ohk-empty">Tap the heart on an offer to add it here.</div>
             )}
           </section>
-          </div>
+        </section>
+        </div>
         ) }
       </main>
 
