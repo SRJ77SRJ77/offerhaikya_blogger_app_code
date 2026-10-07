@@ -189,7 +189,14 @@ function App() {
   const [visible, setVisible] = useState(PAGE_SIZE)
   const [dark, setDark] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [categoryOpen, setCategoryOpen] = useState(false)
+  const [specialDealsOpen, setSpecialDealsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [registrationOpen, setRegistrationOpen] = useState(false)
+  const [locationStartupDone, setLocationStartupDone] = useState(false)
+  const [registrationName, setRegistrationName] = useState('')
+  const [registrationPhone, setRegistrationPhone] = useState('')
+  const [registrationEmail, setRegistrationEmail] = useState('')
   const [saved, setSaved] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_favorites') || '{}'))
   const [detail, setDetail] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
@@ -199,6 +206,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('home')
   const [notifications, setNotifications] = useState([])
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
 
   useEffect(() => {
@@ -258,6 +266,45 @@ function App() {
     return () => {
       active = false
       cleanup()
+    }
+  }, [])
+
+  useEffect(() => {
+    const alreadyShown = sessionStorage.getItem('offerhaikya_location_registration_shown') === 'true'
+    if (alreadyShown) return
+
+    let cancelled = false
+
+    const finishLocationFirst = () => {
+      if (cancelled) return
+      setLocationStartupDone(true)
+      setRegistrationOpen(true)
+      sessionStorage.setItem('offerhaikya_location_registration_shown', 'true')
+    }
+
+    if (!navigator.geolocation) {
+      finishLocationFirst()
+      return () => { cancelled = true }
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (cancelled) return
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        })
+        setLocationLabel('Your location')
+        finishLocationFirst()
+      },
+      () => {
+        finishLocationFirst()
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 },
+    )
+
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -375,13 +422,59 @@ function App() {
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
       <header className="ohk-header">
         <div className="ohk-header-inner">
-          <button className="ohk-header-button" onClick={() => setMenuOpen(true)} aria-label="Menu">
+          <button className="ohk-header-button ohk-menu-button" onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Icon name="menu" />
           </button>
 
           <button className="ohk-logo-button" onClick={goHome} aria-label="Offerhaikya home">
             <img src={LOGO_URL} alt="Offerhaikya" />
           </button>
+
+          <div className="ohk-header-dropdowns">
+            <div className="ohk-header-dropdown">
+              <button
+                className="ohk-header-dropdown-button"
+                onClick={() => {
+                  setCategoryOpen(value => !value)
+                  setSpecialDealsOpen(false)
+                }}
+              >
+                Categories <span>⌄</span>
+              </button>
+              {categoryOpen ? (
+                <div className="ohk-header-dropdown-menu">
+                  <button onClick={() => { selectTag('All'); setCategoryOpen(false) }}>All</button>
+                  {(bloggerTags.length ? bloggerTags : CATEGORY_ITEMS)
+                    .filter((item) => !SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === item.toLowerCase()))
+                    .map((item) => (
+                      <button key={item} onClick={() => { selectTag(item); setCategoryOpen(false) }}>{item}</button>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="ohk-header-dropdown">
+              <button
+                className="ohk-header-dropdown-button"
+                onClick={() => {
+                  setSpecialDealsOpen(value => !value)
+                  setCategoryOpen(false)
+                }}
+              >
+                Special Discounts <span>⌄</span>
+              </button>
+              {specialDealsOpen ? (
+                <div className="ohk-header-dropdown-menu">
+                  <button onClick={() => { selectTag('All'); setSpecialDealsOpen(false) }}>All</button>
+                  {(bloggerTags.length ? bloggerTags : SPECIAL_DEAL_ITEMS)
+                    .filter((item) => SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === item.toLowerCase()))
+                    .map((item) => (
+                      <button key={item} onClick={() => { selectTag(item); setSpecialDealsOpen(false) }}>{item}</button>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           <div className="ohk-header-actions">
             <button className="ohk-header-button" onClick={() => setDark((value) => !value)} aria-label="Dark mode">
@@ -393,7 +486,7 @@ function App() {
               {notifications.length ? <span>{notifications.length}</span> : null}
             </button>
 
-            <button className="ohk-header-button ohk-badge-button" onClick={() => document.getElementById('favorites')?.scrollIntoView({ behavior: 'smooth' })} aria-label="Favorites">
+            <button className="ohk-header-button ohk-badge-button" onClick={() => setWishlistOpen(true)} aria-label="Favorites">
               <Icon name="heart" size={21} />
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
             </button>
@@ -599,13 +692,76 @@ function App() {
       ) : null}
 
       {notificationsOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setNotificationsOpen(false)}>
-          <div className="ohk-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-modal-head">
+        <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
+          <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
-              <button onClick={() => setNotificationsOpen(false)}><Icon name="close" /></button>
+              <button onClick={() => setNotificationsOpen(false)}>×</button>
             </div>
-            <div className="ohk-empty">New offer notifications will appear here.</div>
+            {notifications.length === 0 ? (
+              <div className="ohk-favorite-empty">
+                <strong>No notifications yet</strong>
+                <span>New offer notifications will appear here.</span>
+              </div>
+            ) : (
+              <div className="ohk-favorite-list">
+                {notifications.slice(0, 10).map((item) => (
+                  <div className="ohk-favorite-item" key={item.id}>
+                    <button className="ohk-favorite-item-main" onClick={() => { setNotificationsOpen(false); setDetail(item) }}>
+                      {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
+                      <span>{item.title}</span>
+                    </button>
+                    <button className="ohk-favorite-remove" onClick={() => setNotifications(current => current.filter(post => post.id !== item.id))}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {wishlistOpen ? (
+        <div className="ohk-favorite-overlay" onClick={() => setWishlistOpen(false)}>
+          <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-favorite-popup-header">
+              <h2>Favorites</h2>
+              <button onClick={() => setWishlistOpen(false)}>×</button>
+            </div>
+            {posts.filter((post) => saved[post.id]).length === 0 ? (
+              <div className="ohk-favorite-empty">
+                <strong>No favorites yet</strong>
+                <span>Tap the heart on an offer to add it here.</span>
+              </div>
+            ) : (
+              <div className="ohk-favorite-list">
+                {posts.filter((post) => saved[post.id]).map((item) => (
+                  <div className="ohk-favorite-item" key={item.id}>
+                    <button className="ohk-favorite-item-main" onClick={() => { setWishlistOpen(false); setDetail(item) }}>
+                      {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
+                      <span>{item.title}</span>
+                    </button>
+                    <button className="ohk-favorite-remove" onClick={() => toggleSave(item.id)}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {registrationOpen ? (
+        <div className="ohk-modal-backdrop ohk-startup-backdrop">
+          <div className="ohk-modal ohk-registration-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-modal-head">
+              <h2>Create Account</h2>
+            </div>
+            <p className="ohk-registration-intro">
+              Location checked first. Now create your Offerhaikya account to personalize offers.
+            </p>
+            <input value={registrationName} onChange={(event) => setRegistrationName(event.target.value)} placeholder="Name *" />
+            <input value={registrationPhone} onChange={(event) => setRegistrationPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit phone number *" inputMode="numeric" />
+            <input value={registrationEmail} onChange={(event) => setRegistrationEmail(event.target.value)} placeholder="Email *" type="email" />
+            <button className="ohk-primary-button" onClick={() => setRegistrationOpen(false)}>Continue</button>
           </div>
         </div>
       ) : null}
