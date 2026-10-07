@@ -444,12 +444,36 @@ function App() {
     setTimeout(() => document.querySelector('.ohk-main-search-input')?.focus(), 50)
   }
 
+  const openPost = (post) => {
+    setDetail(post)
+    setSitePage(null)
+    setSearchOpen(false)
+    window.history.pushState({}, '', '/offer?url=' + encodeURIComponent(post.url))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const getSitePage = (type) => bloggerPages.find((item) => {
+    const title = item.title.toLowerCase()
+    if (type === 'about-us') return title.includes('about')
+    if (type === 'contact-us') return title.includes('contact')
+    if (type === 'privacy-policy') return title.includes('privacy')
+    if (type === 'terms-and-condition') return title.includes('term')
+    return false
+  })
+
+  const openSitePage = (type) => {
+    setDetail(null)
+    setSitePage(type)
+    window.history.pushState({}, '', '/' + type)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleBottomTab = (tab) => {
     if (tab === 'home') goHome()
     if (tab === 'local') {
       setActiveTab('local')
       document.getElementById('nearby')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (!userLocation) requestLocation()
+      if (!userLocation) setLocationPromptOpen(true)
     }
     if (tab === 'hot') {
       setActiveTab('hot')
@@ -467,7 +491,7 @@ function App() {
 
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
-      {loading ? (
+      {preloaderVisible ? (
         <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
           <div className="ohk-preloader-card">
             <img src={preloaderGif} alt="Loading Offerhaikya" />
@@ -545,6 +569,10 @@ function App() {
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
             </button>
 
+            <button className="ohk-header-button" onClick={() => { setProfileOpen(true); setAuthMode('choice') }} aria-label="Profile">
+              <Icon name="user" size={21} />
+            </button>
+
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
               <Icon name="search" size={21} />
             </button>
@@ -579,10 +607,14 @@ function App() {
 
       <nav className="ohk-tag-strip">
         <div className="ohk-tag-scroll">
-          {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
-            <button key={tag} className={activeLabel === tag ? 'active' : ''} onClick={() => selectTag(tag)}>
-              {tag}
-            </button>
+          {[0, 1].map((group) => (
+            <div className="ohk-tag-group" key={group}>
+              {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
+                <button key={group + '-' + tag} className={activeLabel === tag ? 'active' : ''} onClick={() => selectTag(tag)}>
+                  {tag}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </nav>
@@ -604,6 +636,16 @@ function App() {
                 aria-label="Search offers"
               />
               <button type="submit">GO</button>
+              {query.trim() ? (
+                <div className="ohk-search-suggestions">
+                  {searchSuggestions.length ? searchSuggestions.map((post) => (
+                    <button type="button" className="ohk-search-suggestion" key={post.id} onClick={() => openPost(post)}>
+                      {post.image ? <img src={post.image} alt="" /> : <span className="ohk-search-suggestion-image">Offer</span>}
+                      <span><strong>{post.title}</strong><small>{post.label}</small></span>
+                    </button>
+                  )) : <div className="ohk-search-no-results">No matching offers</div>}
+                </div>
+              ) : null}
             </form>
           </div>
         </section>
@@ -632,7 +674,7 @@ function App() {
               {nearbyPosts.length ? (
                 <div className="ohk-grid">
                   {nearbyPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={setDetail} dark={dark} nearby />
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} dark={dark} nearby />
                   ))}
                 </div>
               ) : (
@@ -701,10 +743,10 @@ function App() {
         <strong>Offerhaikya</strong>
         <span>Fresh offers. Simple browsing.</span>
         <div className="ohk-footer-links">
-          <a href="/p/about-us.html">About Us</a>
-          <a href="/p/contact-us.html">Contact Us</a>
-          <a href="/p/privacy-policy.html">Privacy Policy</a>
-          <a href="/p/terms-and-condition.html">Terms & Conditions</a>
+          <button onClick={() => openSitePage('about-us')}>About Us</button>
+          <button onClick={() => openSitePage('contact-us')}>Contact Us</button>
+          <button onClick={() => openSitePage('privacy-policy')}>Privacy Policy</button>
+          <button onClick={() => openSitePage('terms-and-condition')}>Terms & Conditions</button>
         </div>
       </footer>
 
