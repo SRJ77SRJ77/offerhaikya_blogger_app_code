@@ -8,11 +8,21 @@ a{color:inherit;text-decoration:none}
 .ohk-dark{background:#000;color:#eee}
 .ohk-header{height:60px;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:50}
 .ohk-dark .ohk-header{background:#000;border-color:#2b2b2b}
-.ohk-header-inner{height:100%;display:flex;align-items:center;padding:0 8px;max-width:1200px;margin:auto}
+.ohk-header-inner{height:100%;display:flex;align-items:center;padding:0 8px;max-width:1400px;margin:auto}
 .ohk-header-button{width:40px;height:44px;border:0;background:transparent;color:#202124;display:flex;align-items:center;justify-content:center;position:relative}
 .ohk-dark .ohk-header-button{color:#fff}
 .ohk-logo-button{border:0;background:transparent;height:52px;margin-left:8px;padding:0}
-.ohk-logo-button img{width:140px;height:48px;object-fit:contain}
+.ohk-logo-button img{width:180px;height:56px;object-fit:contain}
+.ohk-header-dropdowns{display:flex;align-items:center;gap:4px;margin-left:16px}
+.ohk-header-dropdown{position:relative}
+.ohk-header-dropdown-button{border:0;background:transparent;color:#202124;padding:10px 12px;font-size:14px;font-weight:900;white-space:nowrap}
+.ohk-dark .ohk-header-dropdown-button{color:#fff}
+.ohk-header-dropdown-button span{font-size:14px;margin-left:3px}
+.ohk-header-dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:210px;max-height:360px;overflow:auto;background:#fff;border:1px solid #e5e5e5;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.16);padding:6px;z-index:90}
+.ohk-dark .ohk-header-dropdown-menu{background:#171717;border-color:#333}
+.ohk-header-dropdown-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:7px;padding:9px 10px;color:#202124;font-size:13px;font-weight:700}
+.ohk-dark .ohk-header-dropdown-menu button{color:#eee}
+.ohk-header-dropdown-menu button:hover{background:#fff1e9;color:#ff5b01}
 .ohk-header-actions{margin-left:auto;display:flex;align-items:center}
 .ohk-badge-button>span{position:absolute;top:3px;right:1px;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#ff5b01;color:#fff;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center}
 .ohk-icon{display:block}
@@ -94,6 +104,29 @@ a{color:inherit;text-decoration:none}
 .ohk-bottom-nav button span:last-child{font-size:10px;font-weight:800;white-space:nowrap}
 .ohk-percent{font-size:24px!important;line-height:23px;font-weight:800!important}
 
+.ohk-favorite-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:130;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}
+.ohk-favorite-popup{width:min(500px,100%);max-height:min(650px,calc(100vh - 40px));margin:auto;background:#fff;border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.25);overflow:hidden}
+.ohk-dark .ohk-favorite-popup{background:#171717;color:#eee}
+.ohk-favorite-popup-header{height:58px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.ohk-dark .ohk-favorite-popup-header{border-color:#333}
+.ohk-favorite-popup-header h2{margin:0;font-size:20px;font-weight:900}
+.ohk-favorite-popup-header button{width:40px;height:40px;border:0;background:transparent;font-size:28px;line-height:1;color:inherit}
+.ohk-favorite-empty{padding:45px 20px;text-align:center;display:flex;flex-direction:column;gap:7px;color:#77747a}
+.ohk-favorite-empty strong{color:#202124;font-size:16px}
+.ohk-dark .ohk-favorite-empty strong{color:#fff}
+.ohk-favorite-list{padding:10px;overflow:auto}
+.ohk-favorite-item{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #eee}
+.ohk-dark .ohk-favorite-item{border-color:#333}
+.ohk-favorite-item-main{border:0;background:transparent;display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-align:left;color:inherit}
+.ohk-favorite-item-main img,.ohk-favorite-item-image{width:58px;height:58px;object-fit:cover;border-radius:7px;background:#eee;display:flex;align-items:center;justify-content:center;color:#77747a;font-size:10px;font-weight:800;flex:none}
+.ohk-favorite-item-main span{font-size:13px;line-height:18px;font-weight:800}
+.ohk-favorite-remove{width:34px;height:34px;border:0;background:transparent;color:#77747a;font-size:23px;flex:none}
+.ohk-registration-modal{max-width:500px}
+.ohk-registration-intro{margin:-5px 0 12px;color:#77747a;font-size:13px;line-height:19px}
+.ohk-registration-modal{display:flex;flex-direction:column;gap:12px}
+.ohk-registration-modal input{border:1px solid #ddd;border-radius:10px;padding:12px;outline:0}
+.ohk-dark .ohk-registration-modal input{background:#222;color:#fff;border-color:#444}
+
 .ohk-detail-overlay,.ohk-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:120;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}
 .ohk-detail{width:min(850px,100%);background:#fff;border-radius:12px;overflow:hidden;margin:auto;box-shadow:0 15px 40px rgba(0,0,0,.25)}
 .ohk-dark .ohk-detail{background:#171717;color:#eee}
@@ -120,6 +153,13 @@ a{color:inherit;text-decoration:none}
 .ohk-dark .ohk-request-modal input,.ohk-dark .ohk-request-modal textarea{background:#222;color:#fff;border-color:#444}
 .ohk-request-modal textarea{min-height:100px;resize:vertical}
 
+@media (min-width:768px) and (max-width:1023px){
+  .ohk-menu-button{display:flex}
+  .ohk-header-dropdowns{display:none}
+}
+@media (max-width:1023px){
+  .ohk-header-dropdowns{display:none}
+}
 @media (min-width:768px){
   .ohk-content{padding-left:20px;padding-right:20px}
   .ohk-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
@@ -127,6 +167,11 @@ a{color:inherit;text-decoration:none}
   .ohk-bottom-nav{height:76px}
 }
 @media (min-width:1024px){
+  .ohk-menu-button{display:none}
+  .ohk-bottom-nav{display:none}
+  .ohk-app{padding-bottom:0}
+  .ohk-footer{padding-bottom:30px}
+}
   .ohk-header-inner{padding:0 18px}
   .ohk-content{padding-left:30px;padding-right:30px}
   .ohk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
@@ -136,6 +181,10 @@ a{color:inherit;text-decoration:none}
 @media (min-width:1400px){
   .ohk-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
   .ohk-card-image{height:185px}
+}
+@media (max-width:767px){
+  .ohk-menu-button{display:flex}
+  .ohk-header-dropdowns{display:none}
 }
 @media (max-width:600px){
   .ohk-search-mobile-row{display:flex;padding:8px 10px;background:#fff;border-bottom:1px solid #eee;gap:5px}
