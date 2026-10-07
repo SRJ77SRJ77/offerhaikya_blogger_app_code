@@ -731,7 +731,7 @@ function App() {
               <>
                 <div className="ohk-grid">
                   {displayedPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={setDetail} dark={dark} />
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} dark={dark} />
                   ))}
                 </div>
 
