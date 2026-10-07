@@ -2629,6 +2629,7 @@ export default function App() {
       }
 
       await saveRegisteredProfile(registeredUser, profile);
+      await syncPushTokenForCurrentUser();
       await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
       await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
 
@@ -2888,6 +2889,7 @@ export default function App() {
       }
 
       await loadRegisteredProfile(credential.user);
+      await syncPushTokenForCurrentUser();
 
       signInSubmittingRef.current = false;
       registrationFlowActiveRef.current = false;
