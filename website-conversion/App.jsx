@@ -362,6 +362,15 @@ function App() {
     return [...new Set(all)]
   }, [posts])
 
+  const bloggerSpecialTags = useMemo(() => bloggerTags.filter((tag) => {
+    const value = tag.toLowerCase().trim()
+    if (value === 'offline offer' || value === 'online offer' || value === 'offline offers' || value === 'online offers') return false
+    return SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === value) ||
+      /deal|discount|sale|coupon|cashback|freebie|freebies|buy\s*1\s*get\s*1|under\s*[₹rs]/i.test(value)
+  }), [bloggerTags])
+
+  const bloggerCategoryTags = useMemo(() => bloggerTags.filter((tag) => !bloggerSpecialTags.includes(tag)), [bloggerTags, bloggerSpecialTags])
+
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
 
@@ -535,25 +544,15 @@ function App() {
 
           <div className="ohk-header-dropdowns">
             <div className="ohk-header-dropdown">
-              <button
-                className="ohk-header-dropdown-button"
-                onClick={() => {
-                  setCategoryOpen(value => !value)
-                  setSpecialDealsOpen(false)
-                }}
-              >
-                Categories <span>⌄</span>
+              <button className="ohk-header-dropdown-button">
+                <Icon name="tag" size={16} /> Categories
               </button>
-              {categoryOpen ? (
-                <div className="ohk-header-dropdown-menu">
-                  <button onClick={() => { selectTag('All'); setCategoryOpen(false) }}>All</button>
-                  {(bloggerTags.length ? bloggerTags : CATEGORY_ITEMS)
-                    .filter((item) => !SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === item.toLowerCase()))
-                    .map((item) => (
-                      <button key={item} onClick={() => { selectTag(item); setCategoryOpen(false) }}>{item}</button>
-                    ))}
-                </div>
-              ) : null}
+              <div className="ohk-header-dropdown-menu">
+                <button onClick={() => selectTag('All')}>All</button>
+                {(bloggerCategoryTags.length ? bloggerCategoryTags : CATEGORY_ITEMS).map((item) => (
+                  <button key={item} onClick={() => selectTag(item)}>{item}</button>
+                ))}
+              </div>
             </div>
 
             <div className="ohk-header-dropdown">
@@ -562,12 +561,10 @@ function App() {
               </button>
               {true ? (
                 <div className="ohk-header-dropdown-menu">
-                  <button onClick={() => { selectTag('All'); setSpecialDealsOpen(false) }}>All</button>
-                  {(bloggerTags.length ? bloggerTags : SPECIAL_DEAL_ITEMS)
-                    .filter((item) => SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === item.toLowerCase()))
-                    .map((item) => (
-                      <button key={item} onClick={() => { selectTag(item); setSpecialDealsOpen(false) }}>{item}</button>
-                    ))}
+                  <button onClick={() => selectTag('All')}>All</button>
+                  {(bloggerSpecialTags.length ? bloggerSpecialTags : SPECIAL_DEAL_ITEMS).map((item) => (
+                    <button key={item} onClick={() => selectTag(item)}>{item}</button>
+                  ))}
                 </div>
               ) : null}
             </div>
@@ -701,7 +698,7 @@ function App() {
                   {searchSuggestions.length ? searchSuggestions.map((post) => (
                     <button type="button" className="ohk-search-suggestion" key={post.id} onClick={() => openPost(post)}>
                       {post.image ? <img src={post.image} alt="" /> : <span className="ohk-search-suggestion-image">Offer</span>}
-                      <span><strong>{post.title}</strong><small>{post.label}</small></span>
+                      <span><strong>{post.title}</strong></span>
                     </button>
                   )) : <div className="ohk-search-no-results">No matching offers</div>}
                 </div>
