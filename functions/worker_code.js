@@ -883,7 +883,7 @@ export default {
           return new Response("Unauthorized", { status: 401 });
         }
 
-        const token = "ExponentPushToken[lHI2_POg8Ev8EA1lIUPofQ0]";
+        const token = "ExponentPushToken[mOlLAwB2puKFH03y7RDp0U]";
 
         const result = await sendExpoPushNotifications([
           {
