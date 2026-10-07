@@ -391,6 +391,7 @@ export default function App() {
   const [registrationCategoriesOpen, setRegistrationCategoriesOpen] = useState(false);
   const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
   const signInSubmittingRef = useRef(false);
+  const registrationPasswordRef = useRef('');
   const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState('');
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
@@ -2474,6 +2475,7 @@ export default function App() {
     setRegistrationError('');
     setRegistrationSuccess('');
     setRegistrationPassword('');
+      registrationPasswordRef.current = '';
     setRegistrationPasswordVisible(false);
     setRegistrationName('');
     setRegistrationContact('');
@@ -2491,8 +2493,8 @@ export default function App() {
   const validateRegistration = () => {
     const name = registrationName.trim();
     const contact = registrationContact.trim();
-    const email = registrationEmail.trim().toLowerCase();
-    const password = registrationPassword;
+    const email = (registrationEmailRef.current || registrationEmail).trim().toLowerCase();
+    const password = registrationPasswordRef.current || registrationPassword;
     const categories = registrationCategoriesRef.current.length
       ? registrationCategoriesRef.current
       : registrationCategories;
@@ -2737,6 +2739,7 @@ export default function App() {
     setRegistrationSuccess('');
     setRegistrationCategoriesOpen(false);
     setRegistrationPassword('');
+      registrationPasswordRef.current = '';
     setRegistrationPasswordVisible(false);
 
     try {
@@ -2895,6 +2898,7 @@ export default function App() {
       registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
       setRegistrationPassword('');
+      registrationPasswordRef.current = '';
       setRegistrationPasswordVisible(false);
       setRegistrationError('');
       setRegistrationSuccess('');
@@ -3014,6 +3018,9 @@ export default function App() {
 
       // Delete the Firebase Authentication account using the freshly re-authenticated user.
       await deleteUser(reauthenticated.user);
+      await signOut(auth).catch(() => {});
+      await signInAnonymously(auth);
+      await loadFavoritesForUser(auth.currentUser);
       await AsyncStorage.removeItem(HAS_REGISTERED_ACCOUNT_KEY);
 
       await AsyncStorage.setItem(SKIP_STORAGE_KEY, String(Date.now()));
@@ -3027,10 +3034,12 @@ export default function App() {
       setRegistrationContact('');
       setRegistrationEmail('');
       setRegistrationPassword('');
+      registrationPasswordRef.current = '';
       setRegistrationPasswordVisible(false);
       setRegistrationAreaCity('');
       setRegistrationCategories([]);
       setRegistrationCategoriesOpen(false);
+      setLocationRefreshKey(value => value + 1);
 
       registrationNameRef.current = '';
       registrationContactRef.current = '';
@@ -4526,7 +4535,10 @@ export default function App() {
                 <View style={styles.passwordInputWrap}>
                   <TextInput
                     value={registrationPassword}
-                    onChangeText={setRegistrationPassword}
+                    onChangeText={value => {
+                      registrationPasswordRef.current = value;
+                      setRegistrationPassword(value);
+                    }}
                     placeholder="Password *"
                     placeholderTextColor="#99969c"
                     style={styles.passwordInput}
