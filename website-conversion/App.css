@@ -37,10 +37,12 @@ a{color:inherit;text-decoration:none}
 @keyframes ohk-slide{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 
 .ohk-tag-strip{background:#ff5b01;position:relative;z-index:20}
-.ohk-tag-scroll{max-width:1200px;margin:auto;display:flex;gap:8px;overflow-x:auto;padding:11px 14px;scrollbar-width:none}
-.ohk-tag-scroll::-webkit-scrollbar{display:none}
+.ohk-tag-scroll{max-width:1200px;margin:auto;display:flex;width:max-content;animation:ohk-tags 24s linear infinite}
+.ohk-tag-group{display:flex;flex:none;gap:8px;padding:11px 14px}
 .ohk-tag-scroll button{border:0;background:transparent;color:#fff;padding:8px 5px;white-space:nowrap;font-size:14px;font-weight:800}
 .ohk-tag-scroll button.active{font-weight:900}
+.ohk-tag-strip{overflow:hidden}
+@keyframes ohk-tags{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 .ohk-hero{min-height:245px;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;padding:28px 20px}
 .ohk-hero:before{content:"";position:absolute;inset:0;background:rgba(108,108,254,.78)}
@@ -48,10 +50,18 @@ a{color:inherit;text-decoration:none}
 .ohk-hero-small{color:#fff;font-size:11px;font-weight:800;letter-spacing:1.2px;margin-bottom:8px}
 .ohk-hero h1{color:#fff;font-size:29px;line-height:35px;font-weight:900;margin:0}
 .ohk-hero p{color:#eeeeff;font-size:14px;line-height:21px;margin:8px 0 0}
-.ohk-search-box{margin:18px auto 0;background:#fff;min-height:52px;border-radius:12px;display:flex;align-items:center;padding:5px 5px 5px 14px;box-shadow:0 3px 8px rgba(0,0,0,.1);text-align:left}
+.ohk-search-box{margin:18px auto 0;background:#fff;min-height:52px;border-radius:12px;display:flex;align-items:center;padding:5px 5px 5px 14px;box-shadow:0 3px 8px rgba(0,0,0,.1);text-align:left;position:relative}
 .ohk-search-box>.ohk-icon{color:#77747a;flex:none}
 .ohk-search-box input{flex:1;border:0;outline:0;min-width:0;padding:12px 10px;color:#202124;background:transparent}
 .ohk-search-box button{width:42px;height:42px;border:0;border-radius:10px;background:#ff5b01;color:#fff;font-size:14px;font-weight:900}
+.ohk-search-suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:330px;overflow-y:auto;background:#fff;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:6px;z-index:100;text-align:left}
+.ohk-search-suggestion{width:100%;min-height:62px;border:0;border-bottom:1px solid #eee;background:#fff;display:flex;align-items:center;gap:10px;padding:7px 8px;text-align:left;color:#202124}
+.ohk-search-suggestion:hover{background:#fff4ee}
+.ohk-search-suggestion img,.ohk-search-suggestion-image{width:48px;height:48px;object-fit:cover;border-radius:7px;background:#eee;display:flex;align-items:center;justify-content:center;flex:none;color:#77747a;font-size:9px;font-weight:900}
+.ohk-search-suggestion>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ohk-search-suggestion strong{font-size:13px;line-height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ohk-search-suggestion small{font-size:10px;color:#77747a;font-weight:700}
+.ohk-search-no-results{padding:18px;text-align:center;color:#77747a;font-size:13px}
 .ohk-search-mobile-row{display:none}
 
 .ohk-content{max-width:1200px;margin:auto;padding:0 10px 30px}
@@ -95,7 +105,7 @@ a{color:inherit;text-decoration:none}
 .ohk-footer strong{font-size:22px;color:#ff5b01}
 .ohk-footer>span{color:#77747a;font-size:13px}
 .ohk-footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-top:10px}
-.ohk-footer-links a{font-size:12px;font-weight:700}
+.ohk-footer-links a,.ohk-footer-links button{font-size:12px;font-weight:700;border:0;background:transparent;color:inherit;padding:0}
 .ohk-bottom-nav{position:fixed;left:0;right:0;bottom:0;height:72px;background:#fff;border-top:1px solid #ddd;display:grid;grid-template-columns:repeat(5,1fr);z-index:60;padding-bottom:env(safe-area-inset-bottom)}
 .ohk-dark .ohk-bottom-nav{background:#000;border-color:#2b2b2b}
 .ohk-bottom-nav button{border:0;background:transparent;color:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0}
@@ -196,4 +206,30 @@ a{color:inherit;text-decoration:none}
   .ohk-nearby-prompt{align-items:flex-start;flex-direction:column}
   .ohk-nearby-prompt button{width:100%;justify-content:center}
   .ohk-footer-links{gap:12px}
+}
+
+
+.ohk-detail-page{max-width:1050px;margin:0 auto;padding:30px 20px 90px;min-height:60vh}
+.ohk-detail-page-inner,.ohk-info-page{background:#fff;border-radius:16px;padding:38px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.ohk-dark .ohk-detail-page-inner,.ohk-dark .ohk-info-page{background:#171717}
+.ohk-page-back{border:0;background:transparent;color:#ff5b01;font-weight:900;padding:0;margin-bottom:18px}
+.ohk-detail-page h1,.ohk-info-page h1{font-family:Rubik,Nunito,Arial,sans-serif;font-size:36px;line-height:1.3;margin:12px 0 20px}
+.ohk-detail-cover{width:100%;max-height:500px;object-fit:cover;border-radius:12px;margin:5px 0 28px}
+.ohk-detail-page .ohk-detail-html,.ohk-info-page .ohk-detail-html{font-family:Rubik,Nunito,Arial,sans-serif;font-size:16px;line-height:1.9;color:#4f4c52}
+.ohk-dark .ohk-detail-page .ohk-detail-html,.ohk-dark .ohk-info-page .ohk-detail-html{color:#eee}
+.ohk-detail-page .ohk-detail-html img,.ohk-info-page .ohk-detail-html img{max-width:100%;height:auto;border-radius:8px}
+.ohk-secondary-button{border:1px solid #ff5b01;border-radius:10px;background:transparent;color:#ff5b01;padding:11px 18px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px}
+.ohk-link-button{border:0;background:transparent;color:#ff5b01;font-weight:800;padding:6px}
+.ohk-location-message{font-size:12px;color:#77747a;text-align:center}
+.ohk-profile-modal,.ohk-location-modal{display:flex;flex-direction:column;gap:12px}
+.ohk-profile-modal input,.ohk-location-modal input{border:1px solid #ddd;border-radius:10px;padding:12px;outline:0}
+.ohk-dark .ohk-profile-modal input,.ohk-dark .ohk-location-modal input{background:#222;color:#fff;border-color:#444}
+@media(max-width:600px){
+  .ohk-detail-page{padding:18px 10px 80px}
+  .ohk-detail-page-inner,.ohk-info-page{padding:22px 16px;border-radius:12px}
+  .ohk-detail-page h1,.ohk-info-page h1{font-size:28px}
+  .ohk-detail-page .ohk-detail-html,.ohk-info-page .ohk-detail-html{font-size:15px;line-height:1.85}
+}
+@media(prefers-reduced-motion:reduce){
+  .ohk-tag-scroll{animation:none}
 }
