@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import logoImage from './assets/logo.png'
 import preloaderGif from './assets/Offer.gif'
+import faviconImage from './assets/favicon.png'
 
 const BLOG_URL = 'https://www.offerhaikya.com'
 const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=80'
@@ -268,6 +269,16 @@ function App() {
       active = false
       cleanup()
     }
+  }, [])
+
+  useEffect(() => {
+    let favicon = document.querySelector('link[rel="icon"]')
+    if (!favicon) {
+      favicon = document.createElement('link')
+      favicon.rel = 'icon'
+      document.head.appendChild(favicon)
+    }
+    favicon.href = faviconImage
   }, [])
 
   useEffect(() => {
