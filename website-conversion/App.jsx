@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import logoImage from './assets/logo.png'
+import preloaderGif from './assets/Offer.gif'
 
 const BLOG_URL = 'https://www.offerhaikya.com'
 const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=80'
@@ -11,8 +13,7 @@ const MUTED = '#77747a'
 const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
 
-const LOGO_URL = 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png'
-const HERO_URL = 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/5e10e76c-d5d4-40e6-9033-bf9720055ddf.jpg'
+const LOGO_URL = logoImage
 
 const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers']
 const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial']
@@ -420,6 +421,13 @@ function App() {
 
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
+      {loading ? (
+        <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
+          <div className="ohk-preloader-card">
+            <img src={preloaderGif} alt="Loading Offerhaikya" />
+          </div>
+        </div>
+      ) : null}
       <header className="ohk-header">
         <div className="ohk-header-inner">
           <button className="ohk-header-button ohk-menu-button" onClick={() => setMenuOpen(true)} aria-label="Menu">
