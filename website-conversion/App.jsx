@@ -3,6 +3,7 @@ import './App.css'
 import logoImage from './assets/logo.png'
 import preloaderGif from './assets/Offer.gif'
 import faviconImage from './assets/favicon.png'
+import bgImage from './assets/bg.jpg'
 
 const BLOG_URL = 'https://www.offerhaikya.com'
 const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=80'
@@ -553,7 +554,7 @@ function App() {
       </nav>
 
       <main>
-        <section className="ohk-hero" style={{ backgroundImage: `url("${HERO_URL}")` }}>
+        <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
             <h1>Find the best offers</h1>
