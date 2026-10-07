@@ -203,20 +203,61 @@ function App() {
 
   useEffect(() => {
     let active = true
+    let script = null
+    const callbackName = `offerhaikyaFeedCallback_${Date.now()}`
 
-    fetch(FEED_URL)
-      .then((response) => {
-        if (!response.ok) throw new Error('Feed request failed')
-        return response.json()
-      })
+    const cleanup = () => {
+      if (script) script.remove()
+      try {
+        delete window[callbackName]
+      } catch {
+        window[callbackName] = undefined
+      }
+    }
+
+    const loadFeed = () => new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup()
+        reject(new Error('Blogger feed timed out'))
+      }, 15000)
+
+      window[callbackName] = (data) => {
+        window.clearTimeout(timeout)
+        cleanup()
+        resolve(data)
+      }
+
+      script = document.createElement('script')
+      script.src = `${BLOG_URL}/feeds/posts/default?alt=json-in-script&max-results=80&callback=${callbackName}`
+      script.async = true
+      script.onerror = () => {
+        window.clearTimeout(timeout)
+        cleanup()
+        reject(new Error('Blogger feed could not be loaded'))
+      }
+      document.head.appendChild(script)
+    })
+
+    loadFeed()
       .then((data) => {
-        if (active) setPosts(parseFeed(data))
+        if (!active) return
+        const parsed = parseFeed(data)
+        setPosts(parsed)
+        console.log(`Offerhaikya Blogger: loaded ${parsed.length} posts`)
       })
-      .catch((error) => console.error('Offerhaikya Blogger feed:', error))
-      .finally(() => active && setLoading(false))
+      .catch((error) => {
+        if (active) {
+          console.error('Offerhaikya Blogger feed:', error)
+          setPosts([])
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
 
     return () => {
       active = false
+      cleanup()
     }
   }, [])
 
