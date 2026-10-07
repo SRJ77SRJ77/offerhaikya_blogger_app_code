@@ -134,6 +134,8 @@ function Icon({ name, size = 22 }) {
     mail: <><rect x="4" y="5.5" width="16" height="13" rx="1" /><path d="m4.5 6 7.5 6 7.5-6" /></>,
     close: <><path d="M5 5l14 14M19 5 5 19" /></>,
     moon: <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />,
+    tag: <><path d="M20 13 13 20 4 11V4h7l9 9Z" /><circle cx="8" cy="8" r="1.2" /></>,
+    percent: <><circle cx="7" cy="7" r="1.5" /><circle cx="17" cy="17" r="1.5" /><path d="m18 6-12 12" /></>,
   }
 
   return (
@@ -280,6 +282,10 @@ function App() {
   }, [])
 
   useEffect(() => {
+    document.title = 'Offerhaikya'
+  }, [])
+
+  useEffect(() => {
     let favicon = document.querySelector('link[rel="icon"]')
     if (!favicon) {
       favicon = document.createElement('link')
@@ -392,6 +398,25 @@ function App() {
 
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
+  }
+
+  const sharePost = async (post) => {
+    const shareUrl = post?.url || window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post?.title || 'Offerhaikya', url: shareUrl })
+        return
+      }
+    } catch {
+      // User cancelled native sharing; do not show an error.
+      return
+    }
+
+    try {
+      await navigator.clipboard?.writeText(shareUrl)
+    } catch {
+      window.prompt('Copy this offer link:', shareUrl)
+    }
   }
 
   const requestLocation = () => {
@@ -532,16 +557,10 @@ function App() {
             </div>
 
             <div className="ohk-header-dropdown">
-              <button
-                className="ohk-header-dropdown-button"
-                onClick={() => {
-                  setSpecialDealsOpen(value => !value)
-                  setCategoryOpen(false)
-                }}
-              >
-                Special Discounts <span>⌄</span>
+              <button className="ohk-header-dropdown-button">
+                <Icon name="percent" size={16} /> Special Discounts
               </button>
-              {specialDealsOpen ? (
+              {true ? (
                 <div className="ohk-header-dropdown-menu">
                   <button onClick={() => { selectTag('All'); setSpecialDealsOpen(false) }}>All</button>
                   {(bloggerTags.length ? bloggerTags : SPECIAL_DEAL_ITEMS)
@@ -552,6 +571,12 @@ function App() {
                 </div>
               ) : null}
             </div>
+          </div>
+
+          <div className="ohk-header-page-links">
+            <span className="ohk-header-separator" aria-hidden="true" />
+            <button onClick={() => openSitePage('about-us')}>About Us</button>
+            <button onClick={() => openSitePage('contact-us')}>Contact Us</button>
           </div>
 
           <div className="ohk-header-actions">
@@ -569,12 +594,12 @@ function App() {
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
             </button>
 
-            <button className="ohk-header-button" onClick={() => { setProfileOpen(true); setAuthMode('choice') }} aria-label="Profile">
-              <Icon name="user" size={21} />
-            </button>
-
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
               <Icon name="search" size={21} />
+            </button>
+
+            <button className="ohk-header-button ohk-profile-button" onClick={() => { setProfileOpen(true); setAuthMode('choice') }} aria-label="Profile">
+              <Icon name="user" size={21} />
             </button>
           </div>
         </div>
@@ -624,15 +649,26 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
-              <span className="ohk-card-label">{detail.label}</span>
+              <div className="ohk-detail-tags">
+                {detail.labels?.length ? detail.labels.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                )) : <span>{detail.label}</span>}
+              </div>
               <h1>{detail.title}</h1>
               <div className="ohk-detail-meta">
                 <span>{detail.date}</span>
                 <button onClick={() => toggleSave(detail.id)}>{saved[detail.id] ? '♥' : '♡'}</button>
-                <button onClick={() => navigator.clipboard?.writeText(window.location.href)}><Icon name="share" size={19} /></button>
+                <button onClick={() => sharePost(detail)} aria-label="Share offer"><Icon name="share" size={19} /></button>
               </div>
               {detail.image ? <img className="ohk-detail-cover" src={detail.image} alt="" /> : null}
-              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: detail.rawContent || '<p>' + detail.excerpt + '</p>' }} />
+              <div
+                className="ohk-detail-html"
+                dangerouslySetInnerHTML={{
+                  __html: detail.rawContent
+                    ? detail.rawContent.replace(/<img[^>]*>/i, '')
+                    : '<p>' + detail.excerpt + '</p>'
+                }}
+              />
             </div>
           </section>
         ) : sitePage ? (
@@ -649,7 +685,6 @@ function App() {
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
             <h1>Find the best offers</h1>
-            <p>New offers from Offerhaikya, updated automatically.</p>
 
             <form className="ohk-search-box" onSubmit={(event) => { event.preventDefault(); setVisible(PAGE_SIZE); setSearchOpen(false) }}>
               <Icon name="search" size={22} />
@@ -746,21 +781,6 @@ function App() {
             )}
           </section>
 
-          <section id="favorites" className="ohk-section ohk-favorites-section">
-            <div className="ohk-section-title">
-              <h2>Favorites</h2>
-              <span>{Object.values(saved).filter(Boolean).length} saved</span>
-            </div>
-            {Object.values(saved).some(Boolean) ? (
-              <div className="ohk-grid">
-                {posts.filter((post) => saved[post.id]).map((post) => (
-                  <OfferCard key={post.id} post={post} saved onSave={toggleSave} onOpen={setDetail} dark={dark} />
-                ))}
-              </div>
-            ) : (
-              <div className="ohk-empty">Tap the heart on an offer to add it here.</div>
-            )}
-          </section>
         </section>
         </div>
         ) }
