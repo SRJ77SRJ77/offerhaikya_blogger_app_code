@@ -405,6 +405,7 @@ export default function App() {
   const registrationFlowActiveRef = useRef(false);
   const authBootstrappedRef = useRef(false);
   const pendingDeleteAfterLoginRef = useRef(false);
+  const accountDeletionResetRef = useRef(false);
   const registrationNameRef = useRef('');
   const registrationContactRef = useRef('');
   const registrationEmailRef = useRef('');
@@ -2670,6 +2671,7 @@ export default function App() {
   };
 
   const loadRegisteredProfile = async (user: any) => {
+    if (accountDeletionResetRef.current) return;
     let data: any = null;
 
     try {
@@ -3016,6 +3018,9 @@ export default function App() {
       await AsyncStorage.removeItem(PROFILE_CACHE_PREFIX + uid);
       setFavorites([]);
 
+      // Block any delayed profile hydration from restoring deleted-account fields.
+      accountDeletionResetRef.current = true;
+
       // Delete the Firebase Authentication account using the freshly re-authenticated user.
       await deleteUser(reauthenticated.user);
       await signOut(auth).catch(() => {});
@@ -3047,6 +3052,25 @@ export default function App() {
       registrationAreaCityRef.current = '';
       registrationCategoriesRef.current = [];
       pendingDeleteAfterLoginRef.current = false;
+
+      // Clear once more after the auth transition has settled so every input is visibly blank.
+      setTimeout(() => {
+        setRegistrationName('');
+        setRegistrationContact('');
+        setRegistrationEmail('');
+        setRegistrationPassword('');
+        registrationPasswordRef.current = '';
+        setRegistrationPasswordVisible(false);
+        setRegistrationAreaCity('');
+        setRegistrationCategories([]);
+        setRegistrationCategoriesOpen(false);
+        registrationNameRef.current = '';
+        registrationContactRef.current = '';
+        registrationEmailRef.current = '';
+        registrationAreaCityRef.current = '';
+        registrationCategoriesRef.current = [];
+        accountDeletionResetRef.current = false;
+      }, 500);
 
       if (skipReminderTimerRef.current) {
         clearTimeout(skipReminderTimerRef.current);
