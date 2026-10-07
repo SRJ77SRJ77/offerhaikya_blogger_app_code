@@ -113,9 +113,9 @@ function getExpiryLabel(post) {
   const remainingDays = Math.floor(totalHours / 24)
   const hours = totalHours % 24
 
-  if (remainingDays > 0) return hours > 0 ? \`Expires in \${remainingDays}d \${hours}h\` : \`Expires in \${remainingDays}d\`
-  if (totalHours > 0) return minutes > 0 ? \`Expires in \${totalHours}h \${minutes}m\` : \`Expires in \${totalHours}h\`
-  return \`Expires in \${minutes}m\`
+  if (remainingDays > 0) return hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`
+  if (totalHours > 0) return minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`
+  return `Expires in ${minutes}m`
 }
 
 function Icon({ name, size = 22 }) {
@@ -144,7 +144,7 @@ function OfferCard({ post, saved, onSave, onOpen, dark, nearby }) {
   const expiry = getExpiryLabel(post)
 
   return (
-    <article className={\`ohk-card \${dark ? 'ohk-card-dark' : ''}\`}>
+    <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''}`}>
       <button className="ohk-card-heart" onClick={() => onSave(post.id)} aria-label="Save offer">
         {saved ? '♥' : '♡'}
       </button>
@@ -234,7 +234,7 @@ function App() {
 
     return posts.filter((post) => {
       const labelMatch = activeLabel === 'All' || post.labels.some((label) => label.toLowerCase() === activeLabel.toLowerCase())
-      const textMatch = !text || \`\${post.title} \${post.labels.join(' ')} \${post.excerpt}\`.toLowerCase().includes(text)
+      const textMatch = !text || `${post.title} ${post.labels.join(' ')} ${post.excerpt}`.toLowerCase().includes(text)
       return labelMatch && textMatch
     })
   }, [posts, query, activeLabel])
@@ -331,7 +331,7 @@ function App() {
   }
 
   return (
-    <div className={\`ohk-app \${dark ? 'ohk-dark' : ''}\`}>
+    <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
       <header className="ohk-header">
         <div className="ohk-header-inner">
           <button className="ohk-header-button" onClick={() => setMenuOpen(true)} aria-label="Menu">
@@ -400,7 +400,7 @@ function App() {
       </nav>
 
       <main>
-        <section className="ohk-hero" style={{ backgroundImage: \`url("\${HERO_URL}")\` }}>
+        <section className="ohk-hero" style={{ backgroundImage: `url("${HERO_URL}")` }}>
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
             <h1>Find the best offers</h1>
@@ -437,7 +437,7 @@ function App() {
           {userLocation ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>Filtered Nearby Offers{locationLabel ? \` - \${locationLabel.split(/[\\s,]+/)[0]}\` : ''}</h2>
+                <h2>Filtered Nearby Offers{locationLabel ? ` - ${locationLabel.split(/[\\s,]+/)[0]}` : ''}</h2>
                 <button onClick={requestLocation}>{locationLoading ? 'Updating...' : 'Update'}</button>
               </div>
 
@@ -466,7 +466,7 @@ function App() {
 
           <section id="deals" className="ohk-section">
             <div className="ohk-section-title">
-              <h2>{query ? \`Search: \${query}\` : activeLabel !== 'All' ? activeLabel : 'Latest Offers'}</h2>
+              <h2>{query ? `Search: ${query}` : activeLabel !== 'All' ? activeLabel : 'Latest Offers'}</h2>
               <span>{filteredPosts.length} offers</span>
             </div>
 
@@ -551,7 +551,7 @@ function App() {
                 <button onClick={() => toggleSave(detail.id)}>{saved[detail.id] ? '♥' : '♡'}</button>
                 <button onClick={() => navigator.clipboard?.writeText(detail.url)}><Icon name="share" size={19} /></button>
               </div>
-              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: detail.rawContent || \`<p>\${detail.excerpt}</p>\` }} />
+              <div className="ohk-detail-html" dangerouslySetInnerHTML={{ __html: detail.rawContent || `<p>${detail.excerpt}</p>` }} />
             </div>
           </article>
         </div>
