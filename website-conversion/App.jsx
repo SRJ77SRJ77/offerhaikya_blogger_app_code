@@ -559,14 +559,12 @@ function App() {
               <button className="ohk-header-dropdown-button">
                 <Icon name="percent" size={16} /> Special Discounts
               </button>
-              {true ? (
-                <div className="ohk-header-dropdown-menu">
+              <div className="ohk-header-dropdown-menu">
                   <button onClick={() => selectTag('All')}>All</button>
                   {(bloggerSpecialTags.length ? bloggerSpecialTags : SPECIAL_DEAL_ITEMS).map((item) => (
                     <button key={item} onClick={() => selectTag(item)}>{item}</button>
                   ))}
                 </div>
-              ) : null}
             </div>
           </div>
 
@@ -612,14 +610,14 @@ function App() {
 
             <div className="ohk-side-group">
               <h3>Categories</h3>
-              {(bloggerTags.length ? bloggerTags : CATEGORY_ITEMS).map((item) => (
+              {(bloggerCategoryTags.length ? bloggerCategoryTags : CATEGORY_ITEMS).map((item) => (
                 <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
               ))}
             </div>
 
             <div className="ohk-side-group">
               <h3>Special Deal Categories</h3>
-              {SPECIAL_DEAL_ITEMS.map((item) => (
+              {(bloggerSpecialTags.length ? bloggerSpecialTags : SPECIAL_DEAL_ITEMS).map((item) => (
                 <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
               ))}
             </div>
