@@ -23,10 +23,10 @@ Author Url:   https://templateify.com/
     <Variable name="sidebar.width" description="Sidebar Width" type="length" default="300px" min="250px" max="336px" value="300px"/>
 </Group>
 <Group description="Fonts">
-    <Variable name="main.font" description="Main Font" type="font" family="Nunito" default="normal 400 14px $(family)" value="normal 400 14px $(family)"/>
-    <Variable name="menu.font" description="Menu Font" type="font" family="Nunito" default="normal 400 14px $(family)" value="normal 400 14px $(family)"/>
-    <Variable name="title.font" description="Title Font" type="font" family="Nunito" default="normal 400 14px $(family)" value="normal 400 14px $(family)"/>
-    <Variable name="text.font" description="Text Font" type="font" family="Nunito" default="normal 400 14px $(family)" value="normal 400 14px $(family)"/>
+    <Variable name="main.font" description="Main Font" type="font" family="Nunito" default="normal 400 14px Nunito" value="normal 400 14px Nunito"/>
+    <Variable name="menu.font" description="Menu Font" type="font" family="Nunito" default="normal 400 14px Nunito" value="normal 400 14px Nunito"/>
+    <Variable name="title.font" description="Title Font" type="font" family="Nunito" default="normal 400 14px Nunito" value="normal 400 14px Nunito"/>
+    <Variable name="text.font" description="Text Font" type="font" family="Nunito" default="normal 400 14px Nunito" value="normal 400 14px Nunito"/>
 </Group>
 <Group description="Colors">
 	<Variable name="background.color" description="Body Background" type="color" default="#e5e6ea"  value="#e4e3e9"/>
@@ -116,24 +116,24 @@ Author Url:   https://templateify.com/
 </Group>
 <Group description="Fix Blur (Fonts)">
     <!-- Site Font -->
-    <Variable name="mainfont.italic" description="Main Font Italic" type="font" default="italic 400 14px $(main.font.family)" value="italic 400 14px $(family)"/>
-    <Variable name="mainfont.medium" description="Main Font Medium" type="font" default="normal 500 14px $(main.font.family)" value="normal 500 14px $(family)"/>
-    <Variable name="mainfont.mediumitalic" description="Main Font Medium Italic" type="font" default="italic 500 14px $(main.font.family)" value="italic 500 14px $(family)"/>
-    <Variable name="mainfont.bold" description="Main Font Bold" type="font" default="normal 700 14px $(main.font.family)" value="normal 700 14px $(family)"/>
-    <Variable name="mainfont.bolditalic" description="Main Font Bold Italic" type="font" default="italic 700 14px $(main.font.family)" value="italic 700 14px $(family)"/>
+    <Variable name="mainfont.italic" description="Main Font Italic" type="font" default="italic 400 14px Nunito" value="italic 400 14px Nunito"/>
+    <Variable name="mainfont.medium" description="Main Font Medium" type="font" default="normal 500 14px Nunito" value="normal 500 14px Nunito"/>
+    <Variable name="mainfont.mediumitalic" description="Main Font Medium Italic" type="font" default="italic 500 14px Nunito" value="italic 500 14px Nunito"/>
+    <Variable name="mainfont.bold" description="Main Font Bold" type="font" default="normal 700 14px Nunito" value="normal 700 14px Nunito"/>
+    <Variable name="mainfont.bolditalic" description="Main Font Bold Italic" type="font" default="italic 700 14px Nunito" value="italic 700 14px Nunito"/>
     <!-- Menu Font -->
-    <Variable name="menufont.bold" description="Menu Font Bold" type="font" default="normal 700 14px $(menu.font.family)" value="normal 700 14px $(family)"/>
-    <Variable name="menufont.bolditalic" description="Menu Font Bold Italic" type="font" default="italic 700 14px $(menu.font.family)" value="italic 700 14px $(family)"/>
+    <Variable name="menufont.bold" description="Menu Font Bold" type="font" default="normal 700 14px Nunito" value="normal 700 14px Nunito"/>
+    <Variable name="menufont.bolditalic" description="Menu Font Bold Italic" type="font" default="italic 700 14px Nunito" value="italic 700 14px Nunito"/>
     <!-- Title Font -->
-    <Variable name="titlefont.italic" description="Title Font Italic" type="font" default="italic 400 14px $(title.font.family)" value="italic 400 14px $(family)"/>
-    <Variable name="titlefont.bold" description="Title Font Bold" type="font" default="normal 700 14px $(title.font.family)" value="normal 700 14px $(family)"/>
-    <Variable name="titlefont.bolditalic" description="Title Font Bold Italic" type="font" default="italic 700 14px $(title.font.family)" value="italic 700 14px $(family)"/>
+    <Variable name="titlefont.italic" description="Title Font Italic" type="font" default="italic 400 14px Nunito" value="italic 400 14px Nunito"/>
+    <Variable name="titlefont.bold" description="Title Font Bold" type="font" default="normal 700 14px Nunito" value="normal 700 14px Nunito"/>
+    <Variable name="titlefont.bolditalic" description="Title Font Bold Italic" type="font" default="italic 700 14px Nunito" value="italic 700 14px Nunito"/>
     <!-- Text Font -->
-    <Variable name="textfont.italic" description="Text Font Italic" type="font" default="italic 400 14px $(text.font.family)" value="italic 400 14px $(family)"/>
-    <Variable name="textfont.bold" description="Text Font Bold" type="font" default="normal 700 14px $(text.font.family)" value="normal 700 14px $(family)"/>
-    <Variable name="textfont.bolditalic" description="Text Font Bold Italic" type="font" default="italic 700 14px $(text.font.family)" value="italic 700 14px $(family)"/>
+    <Variable name="textfont.italic" description="Text Font Italic" type="font" default="italic 400 14px Nunito" value="italic 400 14px Nunito"/>
+    <Variable name="textfont.bold" description="Text Font Bold" type="font" default="normal 700 14px Nunito" value="normal 700 14px Nunito"/>
+    <Variable name="textfont.bolditalic" description="Text Font Bold Italic" type="font" default="italic 700 14px Nunito" value="italic 700 14px Nunito"/>
 </Group>
-<Variable name="body.background" description="Background" type="background" color="$(background.color)" default="$(color) none repeat fixed top left" value="$(color) none repeat fixed top left"/>
+<Variable name="body.background" description="Background" type="background" color="#e4e3e9" default="$(color) none repeat fixed top left" value="$(color) none repeat fixed top left"/>
 <Variable name="body.background.color" description="Comments Background" hideEditor="true" type="color" default="transparent"  value="rgba(0,0,0,0)"/>
 <Variable name="body.title.color" description="Comments Color" hideEditor="true" type="color" default="#000000" value="#232f3e"/>
 <Variable name="body.text.color" description="Comments Text Color" hideEditor="true" type="color" default="#595959"  value="#626262"/>
@@ -192,51 +192,51 @@ Author Url:   https://templateify.com/
 
 /*-- CSS Variables --*/
 :root{
---body-font:'$(main.font.family)', Arial, sans-serif;
---menu-font:'$(menu.font.family)', Arial, sans-serif;
---title-font:'$(title.font.family)', Arial, sans-serif;
---text-font:'$(text.font.family)', Arial, sans-serif;
---body-bg-color:$(background.color);
+--body-font:'Nunito', Arial, sans-serif;
+--menu-font:'Nunito', Arial, sans-serif;
+--title-font:'Nunito', Arial, sans-serif;
+--text-font:'Nunito', Arial, sans-serif;
+--body-bg-color:#e4e3e9;
 --body-bg:$(body.background);
---outer-bg:$(outer.bg);
+--outer-bg:#f3f4f6;
 --main-color:#ff5b01;
 --main-color-lite:#ff5b0115;
 --title-color:#000000;
---title-hover-color:$(title.hover.color);
+--title-hover-color:#fe3a3a;
 --meta-color:#96939a;
 --text-color:#595959;
 --header-bg:#ffffff;
 --header-bg-superlite:#ffffff00;
 --header-color:#000000;
---header-hover-color:$(header.hover.color);
---submenu-bg:$(submenu.bg);
---submenu-color:$(submenu.color);
---submenu-hover-color:$(submenu.hover.color);
+--header-hover-color:#fe3a3a;
+--submenu-bg:#ffffff;
+--submenu-color:#232f3e;
+--submenu-hover-color:#fe3a3a;
 --headerbar-bg:$(headerbar.bg);
 --headerbar-bg-lite:$(headerbar.bg)ff;
 --headerbar-bg-superlite:$(headerbar.bg)00;
 --headerbar-color:$(headerbar.color);
 --headerbar-hover-color:$(headerbar.hover.color);
---mobilemenu-bg:$(mobilemenu.bg);
---mobilemenu-color:$(mobilemenu.color);
---mobilemenu-hover-color:$(mobilemenu.hover.color);
+--mobilemenu-bg:#ffffff;
+--mobilemenu-color:#232f3e;
+--mobilemenu-hover-color:#fe3a3a;
 --hero-bg:#6c6cfe;
 --hero-color:#ffffff;
 --hero-text-color:#f2eef9;
---hero-search-color:$(hero.search.color);
---widget-bg:$(widget.bg);
---widget-bg-superlite:$(widget.bg)00;
---widget-title-color:$(widget.title.color);
---love-color:$(love.color);
+--hero-search-color:#ffffff;
+--widget-bg:#ffffff;
+--widget-bg-superlite:#ffffff00;
+--widget-title-color:#232f3e;
+--love-color:#ffffff;
 --footer-bg:#000000;
 --footer-color:#ffffff;
---footer-hover-color:$(footer.hover.color);
+--footer-hover-color:#fe3a3a;
 --footer-text-color:#dbdbdb;
---footerbar-bg:$(footerbar.bg);
---footerbar-color:$(footerbar.color);
---footerbar-hover-color:$(footerbar.hover.color);
---cookie-bg:$(cookie.bg);
---cookie-color:$(cookie.color);
+--footerbar-bg:#000000;
+--footerbar-color:#ffffff;
+--footerbar-hover-color:#fe3a3a;
+--cookie-bg:#ffffff;
+--cookie-color:#595959;
 --button-bg:#ff5b01;
 --button-color:#ffffff;
 --light-weight:400;
@@ -248,48 +248,48 @@ Author Url:   https://templateify.com/
 --avatar-shadow:0px 1px 4px rgba(0,0,0,0.05);
 }
 html.is-dark{
---body-bg-color:$(dark.body.bg);
+--body-bg-color:#000000;
 --body-bg:$(body.background);
---outer-bg:$(dark1.bg);
+--outer-bg:#000000;
 --main-color:#ff5b01;
 --main-color-lite:rgba(255,255,255,0.03);
---title-color:$(dark.title);
+--title-color:#f8f6fa;
 --title-hover-color:#ff5b01;
---meta-color:$(dark.meta);
---text-color:$(dark.text);
---header-bg:$(dark1.bg);
---header-bg-superlite:$(dark1.bg)00;
---header-color:$(dark.title);
+--meta-color:#b4b2b6;
+--text-color:#c4c3c6;
+--header-bg:#000000;
+--header-bg-superlite:#00000000;
+--header-color:#f8f6fa;
 --header-hover-color:#ff5b01;
---submenu-bg:$(dark3.bg);
---submenu-color:$(dark.title);
+--submenu-bg:#272940;
+--submenu-color:#f8f6fa;
 --submenu-hover-color:#ff5b01;
---headerbar-bg:$(dark2.bg);
---headerbar-bg-lite:$(dark2.bg)ff;
---headerbar-bg-superlite:$(dark2.bg)00;
---headerbar-color:$(dark.title);
+--headerbar-bg:#000000;
+--headerbar-bg-lite:#000000ff;
+--headerbar-bg-superlite:#00000000;
+--headerbar-color:#f8f6fa;
 --headerbar-hover-color:#ff5b01;
---mobilemenu-bg:$(dark2.bg);
---mobilemenu-color:$(dark.title);
+--mobilemenu-bg:#000000;
+--mobilemenu-color:#f8f6fa;
 --mobilemenu-hover-color:#ff5b01;
---widget-bg:$(dark2.bg);
---widget-bg-superlite:$(dark2.bg)00;
---widget-title-color:$(dark.title);
+--widget-bg:#000000;
+--widget-bg-superlite:#00000000;
+--widget-title-color:#f8f6fa;
 --hero-bg:#6c6cfe;
 --hero-color:#ffffff;
 --hero-text-color:#f2eef9;
---hero-search-color:$(hero.search.color);
---love-color:$(dark.title);
---footer-bg:$(dark2.bg);
---footer-color:$(dark.title);
+--hero-search-color:#ffffff;
+--love-color:#f8f6fa;
+--footer-bg:#000000;
+--footer-color:#f8f6fa;
 --footer-hover-color:#ff5b01;
---footer-text-color:$(dark.text);
---footerbar-bg:$(dark1.bg);
---footerbar-color:$(dark.title);
+--footer-text-color:#c4c3c6;
+--footerbar-bg:#000000;
+--footerbar-color:#f8f6fa;
 --footerbar-hover-color:#ff5b01;
---cookie-bg:$(dark2.bg);
---cookie-color:$(dark.text);
---button-bg:$(dark.btn);
+--cookie-bg:#000000;
+--cookie-color:#c4c3c6;
+--button-bg:#fe3a3a;
 --button-color:#fff;
 --gray-bg:rgba(255,255,255,0.03);
 --border-color:rgba(255,255,255,0.05);
@@ -435,7 +435,7 @@ input[type="search"]::-webkit-search-cancel-button{
     position:relative
 }
  .row-x1{
-    width:$(row.width);
+    width:970px;
     max-width:100%
 }
  .row-x2{
@@ -485,7 +485,7 @@ input[type="search"]::-webkit-search-cancel-button{
 }
  #sidebar-wrapper{
     position:relative;
-    width:$(sidebar.width)
+    width:300px
 }
  .no-sidebar #sidebar-wrapper{
     display:none
@@ -894,7 +894,7 @@ input[type="search"]::-webkit-search-cancel-button{
  .main-header,.header-inner,.header-header{
     float:left;
     width:100%;
-    height:$(header.height);
+    height:60px;
     background-color:var(--header-bg)
 }
  .header-inner{
@@ -948,7 +948,7 @@ input[type="search"]::-webkit-search-cancel-button{
     position:absolute;
     top:0;
     right:0;
-    height:$(header.height);
+    height:60px;
     z-index:15
 }
  .rtl .flex-right{
@@ -959,7 +959,7 @@ input[type="search"]::-webkit-search-cancel-button{
     display:flex;
     align-items:center;
     flex-shrink:0;
-    height:$(header.height);
+    height:60px;
     overflow:hidden;
     margin:0 14px 0 0
 }
@@ -1000,7 +1000,7 @@ input[type="search"]::-webkit-search-cancel-button{
 }
  .main-nav{
     display:flex;
-    height:$(header.height)
+    height:60px
 }
  .main-nav > li{
     position:relative;
@@ -1033,7 +1033,7 @@ input[type="search"]::-webkit-search-cancel-button{
  .main-nav .sub-menu{
     position:absolute;
     left:0;
-    top:$(header.height);
+    top:60px;
     width:180px;
     background-color:var(--submenu-bg);
     z-index:25;
@@ -1259,9 +1259,9 @@ input[type="search"]::-webkit-search-cancel-button{
  #loveit-wrap{
     display:flex;
     position:absolute;
-    top:$(header.height);
+    top:60px;
     right:0;
-    width:$(sidebar.width);
+    width:300px;
     background-color:var(--submenu-bg);
     overflow:hidden;
     color:var(--meta-color);
@@ -1398,7 +1398,7 @@ input[type="search"]::-webkit-search-cancel-button{
     top:0;
     right:0;
     width:var(--search-width);
-    height:$(header.height);
+    height:60px;
     background-color:var(--header-bg);
     z-index:25;
     padding:0 0 0 14px
@@ -1660,7 +1660,7 @@ input[type="search"]::-webkit-search-cancel-button{
     visibility:visible
 }
  .sm-header{
-    height:$(header.height);
+    height:60px;
     background-color:var(--header-bg);
     overflow:hidden;
     display:flex;
@@ -1732,7 +1732,7 @@ input[type="search"]::-webkit-search-cancel-button{
 }
  .sm-flex{
     display:flex;
-    height:calc(100% - $(header.height));
+    height:calc(100% - 60px);
     flex-direction:column;
     justify-content:space-between;
     overflow:hidden;
@@ -2100,7 +2100,7 @@ h2.hero-title {
     justify-content:space-between
 }
  .product .entry-title{
-    font-size:$(title.size)
+    font-size:14px
 }
  .product .entry-title a{
     width:100%;
@@ -2273,7 +2273,7 @@ h2.hero-title {
     content:'\e5cb'
 }
  .item-post h1.entry-title{
-    font-size:$(itempost.title.size);
+    font-size:35px;
     font-weight:700
 }
  .p-eh .entry-meta{
@@ -2350,7 +2350,7 @@ h2.hero-title {
     float:left;
     width:100%;
     font-family:var(--text-font);
-    font-size:$(itempost.content.size);
+    font-size:15px;
     color:var(--text-color);
     line-height:1.6em;
     margin:25px 0 0
@@ -4087,7 +4087,7 @@ h2.hero-title {
     color:var(--title-hover-color)
 }
  .about-section .LinkList{
-    width:$(sidebar.width);
+    width:300px;
     display:flex;
     align-items:center;
     justify-content:flex-end;
@@ -4659,7 +4659,7 @@ h2.hero-title {
         display:none
     }
      .author-description .author-text,.comments .comment-content{
-        font-size:$(itempost.content.size)
+        font-size:15px
     }
      .related-content .products{
         grid-template-columns:repeat(3,1fr)
@@ -4947,3 +4947,4 @@ h2.hero-title {
 
 /* React conversion layer - preserves the Blogger theme visual system */
 .ohk-react-page{min-height:100vh;background:#f3f4f6;color:#202124;font-family:Nunito,Arial,sans-serif}.ohk-react-header{background:#fff;position:relative;z-index:20}.ohk-react-container{width:min(1170px,calc(100% - 40px));margin:0 auto}.ohk-react-header-inner{height:60px;display:flex;align-items:center;justify-content:space-between;gap:24px}.ohk-react-logo img{display:block;width:150px;height:auto;max-height:58px;object-fit:contain}.ohk-react-menu{display:flex;align-items:center;gap:22px;font-size:14px;font-weight:700}.ohk-react-menu a{color:#202124;text-decoration:none}.ohk-react-menu a:hover{color:#ff5b01}.ohk-react-actions{display:flex;align-items:center;gap:10px}.ohk-react-icon-btn{border:0;background:transparent;cursor:pointer;font-size:20px;padding:8px;color:#202124}.ohk-react-hero{background:#6c6cfe;color:#fff;position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center}.ohk-react-hero:before{content:"";position:absolute;inset:0;background:url('https://blogger.googleusercontent.com/img/a/AVvXsEgC30Rl_pU9A1X0vncm7yhCB_bGx2PV8k0xx3l286jfxzD7BereBCtXGnAHz7gYJ7UyP6I9OXLr7hPUSu6DUcYYJhvlArkhw2KiyQfK2gxoAGO4u-rmu68bJ5JT8spgpikfUOwqIdbl-PkzCV9nhInmWLOdvcgBipAQ9ZX0o7m8Q1Uv-jMNfS4o2r2-o6w=s1600') center/cover no-repeat;opacity:.22;filter:blur(2px)}.ohk-react-hero-content{position:relative;width:min(970px,calc(100% - 40px));margin:0 auto;text-align:center;padding:65px 0}.ohk-react-hero h1{font-size:42px;line-height:1.15;margin:0 0 10px;font-weight:800}.ohk-react-hero p{font-size:17px;margin:0 auto 28px;color:#f2eef9}.ohk-react-search{width:min(700px,100%);margin:auto;display:flex;background:#fff;border-radius:5px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.14)}.ohk-react-search input{flex:1;border:0;outline:0;padding:16px 18px;font:inherit;color:#202124}.ohk-react-search button{width:58px;border:0;background:#ff5b01;color:#fff;cursor:pointer;font-size:20px}.ohk-react-main{padding:35px 0 100px}.ohk-react-section-title{display:flex;align-items:center;justify-content:space-between;margin:0 0 20px}.ohk-react-section-title h2{margin:0;font-size:22px}.ohk-react-section-title a{color:#ff5b01;text-decoration:none;font-weight:700}.ohk-react-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.ohk-react-card{background:#fff;border-radius:6px;overflow:hidden;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:transform .2s ease,box-shadow .2s ease}.ohk-react-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.12)}.ohk-react-card-image{aspect-ratio:1/1;background:#eee;overflow:hidden}.ohk-react-card-image img{width:100%;height:100%;object-fit:cover;display:block}.ohk-react-card-body{padding:14px}.ohk-react-label{font-size:11px;font-weight:800;color:#ff5b01;text-transform:uppercase;margin-bottom:6px}.ohk-react-card h3{font-size:15px;line-height:1.4;margin:0 0 7px}.ohk-react-card-date{font-size:11px;color:#96939a}.ohk-react-save{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:#fff;color:#ff5b01;box-shadow:0 2px 8px rgba(0,0,0,.14);cursor:pointer;font-size:18px}.ohk-react-load{display:block;width:max-content;margin:30px auto 0;background:#ff5b01;color:#fff;border:0;border-radius:4px;padding:12px 26px;font-weight:800;cursor:pointer}.ohk-react-footer{background:#000;color:#fff;padding:22px 0}.ohk-react-footer-inner{display:flex;justify-content:space-between;gap:20px;align-items:center}.ohk-react-footer a{color:#fff;text-decoration:none;margin-left:18px;font-size:13px}@media(max-width:900px){.ohk-react-menu{display:none}.ohk-react-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ohk-react-hero h1{font-size:34px}}@media(max-width:560px){.ohk-react-container{width:min(100% - 24px,1170px)}.ohk-react-grid{grid-template-columns:1fr}.ohk-react-hero-content{padding:48px 0}.ohk-react-hero h1{font-size:30px}.ohk-react-footer-inner{flex-direction:column;text-align:center}.ohk-react-footer a{margin:0 8px}}
+\n#hero-wrapper.ohk-hero-real:before{background-image:var(--ohk-hero-image);filter:blur(2px)}\n.ohk-react-card-image .entry-image{opacity:1}\n.ohk-react-card-label{display:block;color:var(--main-color);font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:4px}.ohk-react-save{position:absolute;top:10px;right:10px;width:30px;height:30px;border:0;background-color:rgba(155,155,155,.2);border-radius:30px;z-index:10;cursor:pointer;color:#fff}.ohk-react-save:before{content:'\\e87e';font-family:'Material Icons Round';font-size:18px}.ohk-react-save.saved:before{content:'\\e87d'}.ohk-react-load-more{display:flex;align-items:center;justify-content:center;margin:25px 0 2px}.ohk-react-load-more button{background:var(--main-color);color:#fff;border:0;cursor:pointer;padding:0 20px;height:40px;font-size:14px;font-weight:700;border-radius:var(--radius)}.ohk-react-header-search{position:absolute;inset:0;background:var(--header-bg);z-index:30;display:flex;align-items:center}.ohk-react-header-search .main-search{width:100%}.ohk-react-header-search .search-form{width:100%;height:60px}.ohk-react-header-search .search-input{width:100%;height:60px;border:0;outline:0;background:transparent;color:var(--title-color);font:400 15px Nunito;padding:0 55px 0 10px}.ohk-react-header-search .search-close{position:absolute;right:0;top:0;width:50px;height:60px}.ohk-react-header-search .search-close:before{content:'\\e5cd';font-family:'Material Icons Round'}.ohk-react-menu-list .sub-menu{display:block}.ohk-react-socials{display:flex;align-items:center;gap:15px}.ohk-react-socials a{color:var(--headerbar-color);font-size:13px}.ohk-react-socials a:hover{color:var(--headerbar-hover-color)}.ohk-react-footer-menu{display:flex;flex-wrap:wrap;gap:20px}.ohk-react-footer-menu li{display:block}.ohk-react-footer-menu a{color:var(--footerbar-color)}.ohk-react-mobile-menu{display:none}@media only screen and (max-width:880px){.ohk-react-menu-list{display:none}.ohk-react-mobile-menu{display:flex}}\n
