@@ -837,27 +837,6 @@ export default function App() {
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
 
-      // TEMPORARY: remove this Alert after push notifications work.
-      Alert.alert(
-        'TOKENS',
-        'EXPO: ' + pushToken + '\n\nFCM: ' + fcmToken,
-        [
-          {
-            text: 'Copy FCM',
-            onPress: () => {
-              void Clipboard.setStringAsync(fcmToken);
-            },
-          },
-          {
-            text: 'Copy EXPO',
-            onPress: () => {
-              void Clipboard.setStringAsync(pushToken);
-            },
-          },
-          { text: 'Close', style: 'cancel' },
-        ],
-      );
-
       // Main save: this is the one the Worker needs.
       await setDoc(
         doc(db, 'users', firebaseUser.uid),
@@ -2257,7 +2236,19 @@ export default function App() {
 
   useEffect(() => {
     if (!authReady) return;
-    setNotifications(getLatestBellNotifications(posts));
+
+    setNotifications(current => {
+      const latest = getLatestBellNotifications(posts);
+      const latestIds = new Set(latest.map(post => post.id));
+
+      // Keep a push-received post even if the regular feed state has not
+      // refreshed it yet. The next feed refresh will naturally reconcile it.
+      const receivedOnly = current.filter(
+        post => !latestIds.has(post.id) && !dismissedNotificationIdsRef.current.has(post.id),
+      );
+
+      return [...receivedOnly, ...latest].slice(0, NOTIFICATION_MAX_ITEMS);
+    });
   }, [posts, authReady]);
 
   useEffect(() => {
@@ -2601,23 +2592,8 @@ export default function App() {
       areaCity: string;
     },
   ) => {
-    let manualLocationCoordinates: { latitude: number; longitude: number } | null = null;
-
-    if (profile.areaCity) {
-      try {
-        const geocoded = await Location.geocodeAsync(profile.areaCity);
-        const first = geocoded?.[0];
-        if (first?.latitude != null && first?.longitude != null) {
-          manualLocationCoordinates = {
-            latitude: first.latitude,
-            longitude: first.longitude,
-          };
-        }
-      } catch {
-        // Keep the manually entered location even if geocoding is unavailable.
-      }
-    }
-
+    // Save the account immediately. Location geocoding is best-effort and
+    // must never make registration/profile saving wait on a network lookup.
     await setDoc(
       doc(db, 'users', user.uid),
       {
@@ -2627,7 +2603,6 @@ export default function App() {
         email: profile.email,
         interestedCategories: profile.categories,
         areaCity: profile.areaCity,
-        manualLocationCoordinates,
         profileStatus: 'registered',
         registrationCompleted: true,
         updatedAt: new Date().toISOString(),
@@ -2648,6 +2623,30 @@ export default function App() {
         areaCity: profile.areaCity,
       }),
     );
+
+    // Geocode only after the profile is already saved, so this can never block
+    // the registration/login UI.
+    if (profile.areaCity) {
+      void Location.geocodeAsync(profile.areaCity)
+        .then(geocoded => {
+          const first = geocoded?.[0];
+          if (first?.latitude == null || first?.longitude == null) return;
+
+          return setDoc(
+            doc(db, 'users', user.uid),
+            {
+              manualLocationCoordinates: {
+                latitude: first.latitude,
+                longitude: first.longitude,
+              },
+            },
+            { merge: true },
+          );
+        })
+        .catch(() => {
+          // Manual location text remains saved even if geocoding is unavailable.
+        });
+    }
   };
 
   const submitRegistration = async () => {
@@ -2687,7 +2686,8 @@ export default function App() {
       }
 
       await saveRegisteredProfile(registeredUser, profile);
-      await syncPushTokenForCurrentUser();
+      // Push-token syncing is background work; do not make account creation wait for it.
+      void syncPushTokenForCurrentUser();
       await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
       await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
 
@@ -2949,7 +2949,8 @@ export default function App() {
       }
 
       await loadRegisteredProfile(credential.user);
-      await syncPushTokenForCurrentUser();
+      // Push-token syncing is background work; do not make login wait for it.
+      void syncPushTokenForCurrentUser();
 
       signInSubmittingRef.current = false;
       registrationFlowActiveRef.current = false;
