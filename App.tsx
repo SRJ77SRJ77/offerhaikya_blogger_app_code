@@ -2109,6 +2109,51 @@ export default function App() {
     return rows;
   }, [visiblePosts]);
 
+  const tagPageRows = useMemo(() => {
+    const rows: Post[][] = [];
+    for (let index = 0; index < tagPagePosts.length; index += 2) {
+      rows.push(tagPagePosts.slice(index, index + 2));
+    }
+    return rows;
+  }, [tagPagePosts]);
+
+  const searchTagPage = useCallback(async (text: string) => {
+    const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!normalized) return;
+
+    setTagPageLoading(true);
+    try {
+      const allPosts = await getAllPostsForNearby();
+      const score = (post: Post) => {
+        const title = post.title.toLowerCase();
+        const label = post.label.toLowerCase();
+        const labels = post.labels.join(' ').toLowerCase();
+        const content = post.content.toLowerCase();
+        let value = 0;
+        if (title === normalized) value += 3000;
+        if (title.startsWith(normalized)) value += 1800;
+        if (title.includes(normalized)) value += 1200;
+        if (label.includes(normalized)) value += 500;
+        if (labels.includes(normalized)) value += 350;
+        if (content.includes(normalized)) value += 120;
+        return value;
+      };
+      const matches = allPosts
+        .filter(post => score(post) > 0)
+        .sort((a, b) => score(b) - score(a));
+      tagPageAllPostsRef.current = matches;
+      tagPageStartPageRef.current = 1;
+      tagPagePageRef.current = 1;
+      setTagPagePosts(matches.slice(0, PAGE_SIZE));
+      setTagPageHasMore(matches.length > PAGE_SIZE);
+    } catch {
+      setTagPagePosts([]);
+      setTagPageHasMore(false);
+    } finally {
+      setTagPageLoading(false);
+    }
+  }, []);
+
   const loadHotOffers = async () => {
     try {
       setError('');
@@ -5412,14 +5457,19 @@ export default function App() {
 
       {tagPage ? (
         <View style={darkMode ? styles.darkPage : styles.pageWrap}>
-          <FlatList
-            data={tagPagePosts}
-            keyExtractor={item => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
+          <FlatList<Post[]>
+            data={tagPageRows}
+            keyExtractor={(row, index) => row[0]?.id || 'tag-row-' + index}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
-            renderItem={renderPost}
+            renderItem={({ item: row, index: rowIndex }) => (
+              <>
+                <View style={styles.row}>
+                  {row.map(item => renderPost({ item }))}
+                </View>
+                {(rowIndex + 1) % 3 === 0 ? <NativeAdCard /> : null}
+              </>
+            )}
             ListHeaderComponent={
               <>
                 <View style={styles.tagStrip}>
@@ -5486,17 +5536,50 @@ export default function App() {
                       onSubmitEditing={() => {
                         const text = query.trim();
                         if (!text) return;
+                        // Main-page-style live search suggestions remain visible
+                        // while typing; submit/GO shows ranked title-first results.
                         setSuggestions([]);
-                        void loadTagPosts(text);
+                        void searchTagPage(text);
                       }}
                     />
+                    {query.trim() && (
+                      <View style={styles.searchDropdown}>
+                        {suggestionLoading ? (
+                          <View style={styles.searchDropdownLoading}>
+                            <ActivityIndicator size="small" color={ACCENT} />
+                          </View>
+                        ) : suggestions.length > 0 ? (
+                          <ScrollView style={styles.searchSuggestionScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                            {suggestions.map(item => (
+                              <TouchableOpacity
+                                key={'tag-search-suggestion-' + item.id}
+                                style={styles.searchSuggestion}
+                                onPress={() => {
+                                  setSuggestions([]);
+                                  setQuery('');
+                                  setDetail(item);
+                                }}
+                              >
+                                {item.image ? <Image source={{ uri: item.image }} style={styles.searchSuggestionImage} /> : null}
+                                <View style={styles.searchSuggestionTextWrap}>
+                                  <Text style={styles.searchSuggestionTitle} numberOfLines={2}>{item.title}</Text>
+                                  <Text style={styles.searchSuggestionLabel} numberOfLines={1}>{item.label}</Text>
+                                </View>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        ) : (
+                          <Text style={styles.searchNoResult}>No matching offers</Text>
+                        )}
+                      </View>
+                    )}
                     <TouchableOpacity
                       style={styles.searchButton}
                       onPress={() => {
                         const text = query.trim();
                         if (!text) return;
                         setSuggestions([]);
-                        void loadTagPosts(text);
+                        void searchTagPage(text);
                       }}
                     >
                       {searching ? <ActivityIndicator size="small" color={WHITE} /> : <Text style={styles.searchButtonText}>GO</Text>}
