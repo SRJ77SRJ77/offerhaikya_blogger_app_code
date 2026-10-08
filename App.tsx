@@ -497,7 +497,7 @@ export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
-  const [nearbySort, setNearbySort] = useState<'distance' | 'latest'>('distance');
+  const [nearbySort, setNearbySort] = useState<'distance' | 'oldest' | 'newest'>('distance');
   const [nearbySortOpen, setNearbySortOpen] = useState(false);
   const [latestSort, setLatestSort] = useState<'nearExpiry' | 'oldest' | 'newest' | 'expired'>('newest');
   const [latestSortOpen, setLatestSortOpen] = useState(false);
@@ -2235,11 +2235,16 @@ export default function App() {
   };
 
   const sortedNearbyPosts = useMemo(() => {
+    const published = (post: Post) => {
+      const time = Date.parse(post.publishedAt || '');
+      return Number.isFinite(time) ? time : 0;
+    };
     return [...nearbyPosts].sort((a, b) => {
       if (nearbySort === 'distance') {
         return (a.nearbyDistanceKm ?? Number.POSITIVE_INFINITY) - (b.nearbyDistanceKm ?? Number.POSITIVE_INFINITY);
       }
-      return Date.parse(b.updatedAt || b.publishedAt || '') - Date.parse(a.updatedAt || a.publishedAt || '');
+      if (nearbySort === 'oldest') return published(a) - published(b);
+      return published(b) - published(a);
     });
   }, [nearbyPosts, nearbySort]);
 
@@ -6166,20 +6171,21 @@ export default function App() {
                       }}
                     >
                       <Text style={[styles.sortButtonText, darkMode && styles.darkText]}>
-                        Sort: {nearbySort === 'distance' ? 'Distance' : 'Latest Offer'} ▾
+                        Sort: {nearbySort === 'distance' ? 'Near to Far' : nearbySort === 'oldest' ? 'Old to New' : 'New to Old'} ▾
                       </Text>
                     </TouchableOpacity>
                     {nearbySortOpen ? (
                       <View style={[styles.sortMenu, darkMode && styles.sortMenuDark]}>
                         {[
-                          ['distance', 'Distance'],
-                          ['latest', 'Latest Offer'],
+                          ['distance', 'Near to Far'],
+                          ['oldest', 'Old to New'],
+                          ['newest', 'New to Old'],
                         ].map(([value, label]) => (
                           <TouchableOpacity
                             key={value}
                             style={styles.sortMenuItem}
                             onPress={() => {
-                              setNearbySort(value as 'distance' | 'latest');
+                              setNearbySort(value as 'distance' | 'oldest' | 'newest');
                               setNearbySortOpen(false);
                             }}
                           >
