@@ -811,9 +811,20 @@ const runProductionNotification = async (env) => {
     if (!processedVersions || typeof processedVersions !== "object" || Array.isArray(processedVersions)) processedVersions = {};
   } catch { processedVersions = {}; }
 
-  // Migrate older worker state without duplicate pushes.
+  // Migrate older worker state without duplicate pushes, while leaving
+  // posts published after the old checkpoint unmarked so they can be sent next.
   if (!state.processedPostVersionsJson) {
-    for (const item of posts) processedVersions[item.id] = String(item.updatedAt || item.publishedAt || "");
+    const oldCheckpoint = Date.parse(state.lastProcessedPublishedAt || "");
+    for (const item of posts) {
+      const publishedMs = Date.parse(item.publishedAt || "");
+      const isNewerThanCheckpoint =
+        Number.isFinite(oldCheckpoint) &&
+        Number.isFinite(publishedMs) &&
+        publishedMs > oldCheckpoint;
+      if (!isNewerThanCheckpoint) {
+        processedVersions[item.id] = String(item.updatedAt || item.publishedAt || "");
+      }
+    }
     await writeNotificationState(env, accessToken, {
       processedPostVersionsJson: JSON.stringify(processedVersions),
       lastProcessedAt: new Date().toISOString(),
@@ -822,7 +833,7 @@ const runProductionNotification = async (env) => {
       ok: true, mode: "PRODUCTION_NOTIFICATION", workerVersion: WORKER_VERSION,
       bloggerPosts: posts.length, processed: false, migratedState: true,
       pushSent: 0, firestoreStateChanged: true,
-      message: "Existing notification state migrated safely. New posts and later edits will be checked on the next trigger.",
+      message: "Existing notification state migrated safely. Any post published after the old checkpoint remains queued for the next trigger.",
     };
   }
 
