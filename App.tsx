@@ -47,6 +47,17 @@ import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, q
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import mobileAds, {
+  BannerAd,
+  BannerAdSize,
+  NativeAd,
+  NativeAdView,
+  NativeAsset,
+  NativeAssetType,
+  NativeMediaAspectRatio,
+  NativeMediaView,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
 const BLOG_URL = 'https://www.offerhaikya.com';
 const FEED_URL = BLOG_URL + '/feeds/posts/default';
@@ -351,8 +362,90 @@ const getAllPostsForNearby = async () => {
   return all;
 };
 
+
+const NativeAdCard = () => {
+  const [nativeAd, setNativeAd] = useState<NativeAd>();
+
+  useEffect(() => {
+    NativeAd.createForAdRequest(TestIds.GAM_NATIVE, {
+      aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
+    })
+      .then(setNativeAd)
+      .catch(error => {
+        console.log('Native ad load error:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!nativeAd) return;
+
+    return () => {
+      nativeAd.destroy();
+    };
+  }, [nativeAd]);
+
+  if (!nativeAd) {
+    return null;
+  }
+
+  return (
+    <NativeAdView nativeAd={nativeAd} style={styles.nativeAdContainer}>
+      <View style={styles.nativeAdInner}>
+        <View style={styles.nativeAdHeader}>
+          {nativeAd.icon ? (
+            <NativeAsset assetType={NativeAssetType.ICON}>
+              <Image source={{ uri: nativeAd.icon.url }} style={styles.nativeAdIcon} />
+            </NativeAsset>
+          ) : null}
+          <NativeAsset assetType={NativeAssetType.HEADLINE}>
+            <Text style={styles.nativeAdHeadline} numberOfLines={2}>{nativeAd.headline}</Text>
+          </NativeAsset>
+          <Text style={styles.nativeAdLabel}>AD</Text>
+        </View>
+
+        {nativeAd.advertiser ? (
+          <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+            <Text style={styles.nativeAdAdvertiser} numberOfLines={1}>{nativeAd.advertiser}</Text>
+          </NativeAsset>
+        ) : null}
+
+        {nativeAd.body ? (
+          <NativeAsset assetType={NativeAssetType.BODY}>
+            <Text style={styles.nativeAdBody} numberOfLines={2}>{nativeAd.body}</Text>
+          </NativeAsset>
+        ) : null}
+
+        <NativeMediaView style={styles.nativeAdMedia} />
+
+        {nativeAd.callToAction ? (
+          <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
+            <Text style={styles.nativeAdCta}>{nativeAd.callToAction}</Text>
+          </NativeAsset>
+        ) : null}
+      </View>
+    </NativeAdView>
+  );
+};
+
+const TestBannerAd = () => (
+  <View style={styles.bannerAdWrap}>
+    <BannerAd
+      unitId={TestIds.ADAPTIVE_BANNER}
+      size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+    />
+  </View>
+);
+
 export default function App() {
   const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    mobileAds()
+      .initialize()
+      .catch(error => {
+        console.log('Google Mobile Ads initialization error:', error);
+      });
+  }, []);
   const [posts, setPosts] = useState<Post[]>([]);
   const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
@@ -1999,6 +2092,14 @@ export default function App() {
         : posts.filter(post => post.label === activeLabel),
     [posts, hotOffersPosts, activeLabel],
   );
+
+  const mainPostRows = useMemo(() => {
+    const rows: Post[][] = [];
+    for (let index = 0; index < visiblePosts.length; index += 2) {
+      rows.push(visiblePosts.slice(index, index + 2));
+    }
+    return rows;
+  }, [visiblePosts]);
 
   const loadHotOffers = async () => {
     try {
@@ -4424,6 +4525,8 @@ export default function App() {
                 },
               } as any)}
             />
+            <NativeAdCard />
+
             {mapCoordinates ? (
               <View style={styles.mapSection}>
                 <Text style={[styles.mapTitle, darkMode && styles.darkText]}>Location</Text>
@@ -4462,6 +4565,8 @@ export default function App() {
                   </View>
                 )}
               </View>
+
+              <TestBannerAd />
 
               <View style={styles.infoRecommendationSection}>
                 <View style={styles.sectionRow}>
@@ -5488,13 +5593,18 @@ export default function App() {
         ref={mainListRef}
         style={darkMode ? styles.listDark : undefined}
         extraData={darkMode}
-        data={visiblePosts}
-        keyExtractor={item => item.id}
+        data={mainPostRows}
+        keyExtractor={row => row[0]?.id || 'main-row'}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
-        renderItem={renderPost}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+        renderItem={({ item: row, index: rowIndex }) => (
+          <>
+            <View style={styles.row}>
+              {row.map(item => renderPost({ item }))}
+            </View>
+            {(rowIndex + 1) % 3 === 0 ? <NativeAdCard /> : null}
+          </>
+        )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, darkMode && styles.contentDark]}
         ListHeaderComponentStyle={darkMode ? styles.contentDark : undefined}        ListHeaderComponent={
@@ -5579,9 +5689,12 @@ export default function App() {
                 </View>
                 <View>
                   {Array.from({ length: Math.ceil(Math.min(nearbyVisibleCount, nearbyPosts.length) / 2) }).map((_, rowIndex) => (
-                    <View style={styles.row} key={'nearby-row-' + rowIndex}>
-                      {nearbyPosts.slice(0, nearbyVisibleCount).slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
-                    </View>
+                    <React.Fragment key={'nearby-row-group-' + rowIndex}>
+                      <View style={styles.row}>
+                        {nearbyPosts.slice(0, nearbyVisibleCount).slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      </View>
+                      {(rowIndex + 1) % 4 === 0 ? <NativeAdCard /> : null}
+                    </React.Fragment>
                   ))}
                 </View>
                 {nearbyVisibleCount < nearbyPosts.length ? (
@@ -5600,6 +5713,8 @@ export default function App() {
                 ) : null}
               </>
             ) : null}
+
+            {nearbyPosts.length === 0 ? <NativeAdCard /> : null}
 
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {latestTotalCount || posts.length}</Text>
@@ -6352,6 +6467,74 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   registrationSkipButton: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   registrationSkipText: { color: MUTED, fontSize: 13, fontWeight: '700' },
   registrationWaitText: { color: MUTED, fontSize: 12, textAlign: 'center', paddingVertical: 12 },
+  nativeAdContainer: {
+    width: '100%',
+    backgroundColor: WHITE,
+    borderRadius: 12,
+    marginVertical: 12,
+    overflow: 'hidden',
+  },
+  nativeAdInner: {
+    padding: 12,
+  },
+  nativeAdHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  nativeAdIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+  },
+  nativeAdHeadline: {
+    flex: 1,
+    color: TEXT,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  nativeAdLabel: {
+    color: WHITE,
+    backgroundColor: ACCENT,
+    fontSize: 9,
+    fontWeight: '900',
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  nativeAdAdvertiser: {
+    color: MUTED,
+    fontSize: 11,
+    marginTop: 5,
+  },
+  nativeAdBody: {
+    color: MUTED,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 7,
+  },
+  nativeAdMedia: {
+    width: '100%',
+    aspectRatio: 1.9,
+    marginTop: 10,
+    borderRadius: 8,
+  },
+  nativeAdCta: {
+    color: WHITE,
+    backgroundColor: ACCENT,
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  bannerAdWrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 14,
+  },
   loadMoreWrap: { alignItems: 'center', paddingVertical: 18 },
   loadMoreButton: { minHeight: 36, paddingHorizontal: 20, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   loadMoreButtonText: { color: WHITE, fontSize: 12, fontWeight: '900' },
