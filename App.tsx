@@ -77,7 +77,8 @@ const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's 
 const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
 const NOTIFICATION_DISMISSED_STORAGE_PREFIX = 'offerhaikya_notification_dismissed_';
-const NOTIFICATION_MAX_ITEMS = 10;
+const GUEST_NOTIFICATION_REPEAT_MS = 10 * 60 * 60 * 1000;
+const GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY = 'offerhaikya_guest_notification_dismissed';
 const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
 Notifications.setNotificationHandler({
@@ -365,6 +366,7 @@ export default function App() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Post[]>([]);
   const dismissedNotificationIdsRef = useRef<Set<string>>(new Set());
+  const guestDismissedNotificationRef = useRef<Record<string, number>>({});
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
@@ -2077,7 +2079,6 @@ export default function App() {
 
   const notificationPostFromData = (data: any): Post | null => {
     if (!data?.postId || !data?.postTitle || !data?.postUrl) return null;
-
     return {
       id: String(data.postId),
       title: String(data.postTitle),
@@ -2085,9 +2086,7 @@ export default function App() {
       date: String(data.postDate || ''),
       publishedAt: String(data.publishedAt || ''),
       label: String(data.postLabel || 'Offers'),
-      labels: Array.isArray(data.postLabels)
-        ? data.postLabels.map((value: any) => String(value))
-        : [],
+      labels: Array.isArray(data.postLabels) ? data.postLabels.map((value: any) => String(value)) : [],
       image: typeof data.postImage === 'string' ? data.postImage : '',
       excerpt: String(data.postExcerpt || ''),
       content: String(data.postContent || ''),
@@ -2097,84 +2096,83 @@ export default function App() {
 
   const loadNotificationDismissals = async (user: any) => {
     const dismissed = new Set<string>();
-
     if (!user?.uid) {
       dismissedNotificationIdsRef.current = dismissed;
       return dismissed;
     }
 
-    try {
-      const stored = await AsyncStorage.getItem(
-        getNotificationDismissedStorageKey(user.uid),
-      );
-      const localParsed = stored ? JSON.parse(stored) : [];
-      if (Array.isArray(localParsed)) {
-        localParsed.forEach(item => {
-          if (item) dismissed.add(String(item));
-        });
+    if (user.isAnonymous) {
+      try {
+        const stored = await AsyncStorage.getItem(GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY);
+        const parsed = stored ? JSON.parse(stored) : {};
+        guestDismissedNotificationRef.current =
+          parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      } catch {
+        guestDismissedNotificationRef.current = {};
       }
-    } catch {
-      // Local dismissal state is best-effort.
+      dismissedNotificationIdsRef.current = dismissed;
+      return dismissed;
     }
 
-    if (!user.isAnonymous) {
-      try {
-        const stateSnapshot = await getDoc(doc(db, 'notificationStates', user.uid));
-        const cloudDismissed = stateSnapshot.exists()
-          ? stateSnapshot.data()?.dismissedPostIds
-          : [];
-        if (Array.isArray(cloudDismissed)) {
-          cloudDismissed.forEach(item => {
-            if (item) dismissed.add(String(item));
-          });
-        }
-      } catch (error) {
-        console.log('Notification dismissal state load error:', error);
-      }
+    try {
+      const stored = await AsyncStorage.getItem(getNotificationDismissedStorageKey(user.uid));
+      const localParsed = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(localParsed)) localParsed.forEach(item => item && dismissed.add(String(item)));
+    } catch {}
+
+    try {
+      const stateSnapshot = await getDoc(doc(db, 'notificationStates', user.uid));
+      const cloudDismissed = stateSnapshot.exists() ? stateSnapshot.data()?.dismissedPostIds : [];
+      if (Array.isArray(cloudDismissed)) cloudDismissed.forEach(item => item && dismissed.add(String(item)));
+    } catch (error) {
+      console.log('Notification dismissal state load error:', error);
     }
 
     dismissedNotificationIdsRef.current = dismissed;
-
     try {
-      await AsyncStorage.setItem(
-        getNotificationDismissedStorageKey(user.uid),
-        JSON.stringify(Array.from(dismissed).slice(-500)),
-      );
-    } catch {
-      // Local persistence is best-effort.
-    }
-
+      await AsyncStorage.setItem(getNotificationDismissedStorageKey(user.uid), JSON.stringify(Array.from(dismissed)));
+    } catch {}
     return dismissed;
   };
 
   const getLatestBellNotifications = (sourcePosts: Post[]) => {
     const dismissed = dismissedNotificationIdsRef.current;
-    return sourcePosts
-      .filter(post => !dismissed.has(post.id))
-      .slice(0, NOTIFICATION_MAX_ITEMS);
+    const user = auth.currentUser;
+    if (user?.isAnonymous) {
+      const now = Date.now();
+      return sourcePosts.filter(post => {
+        const dismissedAt = guestDismissedNotificationRef.current[post.id];
+        return !dismissedAt || now - dismissedAt >= GUEST_NOTIFICATION_REPEAT_MS;
+      });
+    }
+    return sourcePosts.filter(post => !dismissed.has(post.id));
   };
 
   const loadNotificationsForUser = async (user: any) => {
     try {
       await loadNotificationDismissals(user);
       const latest = getLatestBellNotifications(posts);
-      setNotifications(latest);
+
+      if (user && !user.isAnonymous) {
+        const stored = await AsyncStorage.getItem(getNotificationsStorageKey(user.uid));
+        const parsed = stored ? JSON.parse(stored) : [];
+        const storedNotifications = Array.isArray(parsed) ? parsed : [];
+        const merged = [...storedNotifications, ...latest].filter((item, index, all) =>
+          item?.id && all.findIndex(other => other?.id === item.id) === index,
+        );
+        setNotifications(merged);
+      } else {
+        setNotifications(latest);
+      }
     } catch {
       setNotifications([]);
     }
   };
 
-  const persistNotificationsForUser = async (
-    user: any,
-    nextNotifications: Post[],
-  ) => {
+  const persistNotificationsForUser = async (user: any, nextNotifications: Post[]) => {
     if (!user?.uid || user.isAnonymous) return;
-
     try {
-      await AsyncStorage.setItem(
-        getNotificationsStorageKey(user.uid),
-        JSON.stringify(nextNotifications.slice(0, NOTIFICATION_MAX_ITEMS)),
-      );
+      await AsyncStorage.setItem(getNotificationsStorageKey(user.uid), JSON.stringify(nextNotifications));
     } catch (error) {
       console.log('Notifications save error:', error);
     }
@@ -2182,51 +2180,117 @@ export default function App() {
 
   const addReceivedNotification = (post: Post) => {
     if (dismissedNotificationIdsRef.current.has(post.id)) return;
-
     const user = auth.currentUser;
-
     setNotifications(current => {
-      const next = [
-        post,
-        ...current.filter(item => item.id !== post.id),
-      ].slice(0, NOTIFICATION_MAX_ITEMS);
-
-      if (user && !user.isAnonymous) {
-        void persistNotificationsForUser(user, next);
-      }
-
+      const next = [post, ...current.filter(item => item.id !== post.id)];
+      if (user && !user.isAnonymous) void persistNotificationsForUser(user, next);
       return next;
     });
   };
 
   const dismissNotification = async (postId: string) => {
+    const user = auth.currentUser;
+
+    if (user?.isAnonymous) {
+      const nextGuestDismissed = { ...guestDismissedNotificationRef.current, [postId]: Date.now() };
+      guestDismissedNotificationRef.current = nextGuestDismissed;
+      setNotifications(current => current.filter(item => item.id !== postId));
+      try {
+        await AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY, JSON.stringify(nextGuestDismissed));
+      } catch (error) {
+        console.log('Guest notification dismissal save error:', error);
+      }
+      return;
+    }
+
     dismissedNotificationIdsRef.current.add(postId);
     setNotifications(current => current.filter(item => item.id !== postId));
-
-    const user = auth.currentUser;
     if (!user?.uid) return;
 
-    const dismissed = Array.from(dismissedNotificationIdsRef.current).slice(-500);
     try {
       await AsyncStorage.setItem(
         getNotificationDismissedStorageKey(user.uid),
-        JSON.stringify(dismissed),
+        JSON.stringify(Array.from(dismissedNotificationIdsRef.current)),
       );
     } catch (error) {
       console.log('Notification dismissal save error:', error);
     }
 
-    if (!user.isAnonymous) {
-      try {
-        await setDoc(
-          doc(db, 'notificationStates', user.uid),
-          { dismissedPostIds: arrayUnion(postId) },
-          { merge: true },
-        );
-      } catch (error) {
-        console.log('Cloud notification dismissal save error:', error);
-      }
+    try {
+      await setDoc(
+        doc(db, 'notificationStates', user.uid),
+        { dismissedPostIds: arrayUnion(postId) },
+        { merge: true },
+      );
+    } catch (error) {
+      console.log('Cloud notification dismissal save error:', error);
     }
+  };
+
+  const deleteAllNotifications = () => {
+    if (notifications.length === 0) return;
+
+    Alert.alert(
+      'Delete all notifications?',
+      'Are you sure you want to delete all notifications?',
+      [
+        { text: 'NO', style: 'cancel' },
+        {
+          text: 'YES',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              const user = auth.currentUser;
+              const ids = notifications.map(item => item.id).filter(Boolean);
+
+              if (user?.isAnonymous) {
+                const now = Date.now();
+                const nextGuestDismissed = { ...guestDismissedNotificationRef.current };
+                ids.forEach(id => { nextGuestDismissed[id] = now; });
+                guestDismissedNotificationRef.current = nextGuestDismissed;
+                try {
+                  await AsyncStorage.setItem(
+                    GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY,
+                    JSON.stringify(nextGuestDismissed),
+                  );
+                } catch (error) {
+                  console.log('Guest delete-all save error:', error);
+                }
+              } else if (user?.uid) {
+                ids.forEach(id => dismissedNotificationIdsRef.current.add(id));
+                try {
+                  await AsyncStorage.setItem(
+                    getNotificationDismissedStorageKey(user.uid),
+                    JSON.stringify(Array.from(dismissedNotificationIdsRef.current)),
+                  );
+                } catch (error) {
+                  console.log('Notification delete-all local save error:', error);
+                }
+                try {
+                  if (ids.length > 0) {
+                    await setDoc(
+                      doc(db, 'notificationStates', user.uid),
+                      { dismissedPostIds: arrayUnion(...ids) },
+                      { merge: true },
+                    );
+                  }
+                } catch (error) {
+                  console.log('Notification delete-all cloud save error:', error);
+                }
+                try {
+                  await AsyncStorage.removeItem(getNotificationsStorageKey(user.uid));
+                } catch (error) {
+                  console.log('Notification history clear error:', error);
+                }
+              }
+
+              setNotifications([]);
+              setNotificationsOpen(false);
+            })();
+          },
+        },
+      ],
+    );
   };
 
   useEffect(() => {
@@ -2240,14 +2304,16 @@ export default function App() {
     setNotifications(current => {
       const latest = getLatestBellNotifications(posts);
       const latestIds = new Set(latest.map(post => post.id));
-
-      // Keep a push-received post even if the regular feed state has not
-      // refreshed it yet. The next feed refresh will naturally reconcile it.
       const receivedOnly = current.filter(
         post => !latestIds.has(post.id) && !dismissedNotificationIdsRef.current.has(post.id),
       );
-
-      return [...receivedOnly, ...latest].slice(0, NOTIFICATION_MAX_ITEMS);
+      const merged = [...receivedOnly, ...latest];
+      const seen = new Set<string>();
+      return merged.filter(post => {
+        if (seen.has(post.id)) return false;
+        seen.add(post.id);
+        return true;
+      });
     });
   }, [posts, authReady]);
 
@@ -2259,7 +2325,20 @@ export default function App() {
       try {
         const latest = await fetchFeedFromNetwork('', 1, true);
         if (!cancelled) {
-          setNotifications(getLatestBellNotifications(latest));
+          setNotifications(current => {
+            const latestNotifications = getLatestBellNotifications(latest);
+            const latestIds = new Set(latestNotifications.map(post => post.id));
+            const receivedOnly = current.filter(
+              post => !latestIds.has(post.id) && !dismissedNotificationIdsRef.current.has(post.id),
+            );
+            const merged = [...receivedOnly, ...latestNotifications];
+            const seen = new Set<string>();
+            return merged.filter(post => {
+              if (seen.has(post.id)) return false;
+              seen.add(post.id);
+              return true;
+            });
+          });
         }
       } catch {
         // Bell refresh is best-effort and must never affect the feed.
@@ -3664,45 +3743,52 @@ export default function App() {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={notifications}
-            keyExtractor={item => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.favoriteList}
-            renderItem={({ item }) => (
-              <View style={[styles.favoriteItem, darkMode && styles.favoriteItemDark]}>
-                <TouchableOpacity
-                  style={styles.favoriteItemMain}
-                  onPress={() => {
-                    setNotificationsOpen(false);
-                    openDetail(item);
-                  }}
-                >
-                  {item.image ? (
-                    <Image source={{ uri: item.image }} style={styles.favoriteItemImage} />
-                  ) : (
-                    <View style={[styles.favoriteItemImage, styles.imageFallback]}>
-                      <Text style={styles.favoriteItemFallback}>Offer</Text>
+          <>
+            <FlatList
+              data={notifications}
+              keyExtractor={item => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.favoriteList}
+              renderItem={({ item }) => (
+                <View style={[styles.favoriteItem, darkMode && styles.favoriteItemDark]}>
+                  <TouchableOpacity
+                    style={styles.favoriteItemMain}
+                    onPress={() => {
+                      setNotificationsOpen(false);
+                      openDetail(item);
+                    }}
+                  >
+                    {item.image ? (
+                      <Image source={{ uri: item.image }} style={styles.favoriteItemImage} />
+                    ) : (
+                      <View style={[styles.favoriteItemImage, styles.imageFallback]}>
+                        <Text style={styles.favoriteItemFallback}>Offer</Text>
+                      </View>
+                    )}
+                    <View style={styles.favoriteItemText}>
+                      <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
+                        {item.title}
+                      </Text>
                     </View>
-                  )}
-                  <View style={styles.favoriteItemText}>
-                    <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
-                      {item.title}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.favoriteRemove}
-                  onPress={() => {
-                    void dismissNotification(item.id);
-                  }}
-                  accessibilityLabel="Remove notification"
-                >
-                  <Text style={styles.favoriteRemoveText}>×</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.favoriteRemove}
+                    onPress={() => { void dismissNotification(item.id); }}
+                    accessibilityLabel="Remove notification"
+                  >
+                    <Text style={styles.favoriteRemoveText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.notificationDeleteAllButton}
+              onPress={deleteAllNotifications}
+              accessibilityLabel="Delete all notifications"
+            >
+              <Text style={styles.notificationDeleteAllText}>Delete All</Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
     </View>
@@ -4964,7 +5050,7 @@ export default function App() {
             </Svg>
             {notifications.length > 0 ? (
               <View style={styles.favoriteBadge}>
-                <Text style={styles.favoriteBadgeText}>{notifications.length}</Text>
+                <Text style={styles.favoriteBadgeText}>{notifications.length >= 100 ? '99+' : notifications.length}</Text>
               </View>
             ) : null}
           </TouchableOpacity>
@@ -6072,6 +6158,8 @@ const styles = StyleSheet.create({
   favoriteItemLabel: { color: ACCENT, fontSize: 10, fontWeight: '800', marginTop: 4 },
   favoriteRemove: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   favoriteRemoveText: { color: '#e31b23', fontSize: 24, lineHeight: 24 },
+  notificationDeleteAllButton: { minHeight: 44, borderRadius: 10, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  notificationDeleteAllText: { color: WHITE, fontSize: 13, fontWeight: '900' },
   favoriteBadge: { position: 'absolute', top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#e31b23', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   favoriteBadgeText: { color: WHITE, fontSize: 9, fontWeight: '900' },
   profileOverlay: { ...StyleSheet.absoluteFill, zIndex: 210, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
