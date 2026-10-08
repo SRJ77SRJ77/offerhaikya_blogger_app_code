@@ -5848,11 +5848,9 @@ export default function App() {
                 >
                   <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
                   <Text style={styles.heroTitle}>Find the best offers</Text>
-                  {registrationCompleted && authUserKey ? (
-                    <Text style={styles.heroSubtitle}>
-                      Welcome back{(registrationName.trim() || auth.currentUser?.displayName?.trim()) ? `, ${registrationName.trim() || auth.currentUser?.displayName?.trim()}` : ''}! 👋
-                    </Text>
-                  ) : null}
+                  <Text style={styles.heroSubtitle}>
+                    Welcome {registrationCompleted && authUserKey ? (registrationName.trim() || auth.currentUser?.displayName?.trim() || 'there') : 'Guest'} 👋
+                  </Text>
                   <View style={styles.searchBox}>
                     <Text style={styles.searchIcon}>⌕</Text>
                     <TextInput
@@ -6087,11 +6085,9 @@ export default function App() {
             >
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
-              {registrationCompleted && authUserKey ? (
-                <Text style={styles.heroSubtitle}>
-                  Welcome back{(registrationName.trim() || auth.currentUser?.displayName?.trim()) ? `, ${registrationName.trim() || auth.currentUser?.displayName?.trim()}` : ''}! 👋
-                </Text>
-              ) : null}
+              <Text style={styles.heroSubtitle}>
+                Welcome {registrationCompleted && authUserKey ? (registrationName.trim() || auth.currentUser?.displayName?.trim() || 'there') : 'Guest'} 👋
+              </Text>
               <View style={styles.searchBox}>
                 <Text style={styles.searchIcon}>⌕</Text>
                 <TextInput
