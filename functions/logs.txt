@@ -1,0 +1,91 @@
+Review the following PR diff for bugs, readability issues, and edge cases. I’ll paste the diff below.
+
+Go ahead and paste the diff. I don't see it in your message yet, so it may not have come through.
+
+When you send it, it would help to know:
+
+Language/framework and what the change is meant to do, a sentence or two is enough. It lets me check the code against the intent, not just against itself.
+Anything you're specifically worried about, like concurrency, performance, or backwards compatibility.
+Surrounding context if the diff touches code it doesn't fully show (callers, types, config).
+
+I'll go through it for correctness bugs, edge cases (nulls, empty inputs, boundaries, error paths), readability and naming, and gaps in test coverage, and I'll flag which issues are blocking versus nice-to-have.
+
+{
+  "ok": true,
+  "mode": "EXPO_RECEIPT_CHECK",
+  "receiptIds": [
+    "01a116e4-11a8-76ba-9684-99c456b83cf5"
+  ],
+  "receipts": {
+    "data": {
+      "01a116e4-11a8-76ba-9684-99c456b83cf5": {
+        "status": "error",
+        "message": "The recipient device is not registered with FCM.",
+        "messageEnum": 7,
+        "messageParamValues": [],
+        "details": {
+          "error": "DeviceNotRegistered",
+          "errorCodeEnum": 3,
+          "sentAt": 1791385408
+        },
+        "__debug": {}
+      }
+    }
+  }
+}%    
+
+errors
+
+Diagnosing a device registration error from push notifications.
+
+This isn't a bug in your sending code. DeviceNotRegistered means FCM no longer recognizes the device token you sent to. Expo accepted the push (you got a ticket ID), but delivery failed when it reached FCM.
+
+Common causes
+
+The app was uninstalled or its data was cleared.
+The token was rotated or expired. Android tokens change after a reinstall, a restore, or long inactivity.
+The token is stale: it's stored in your DB but the user has since got a new one.
+It's a dev or test token, for example from an old build, an emulator, or a different app variant, that's now invalid.
+Less commonly, the token was issued under a different Firebase project or credentials than the ones configured for this build.
+
+What to do
+
+Delete that token from your database and stop sending to it. Expo's docs say not to retry on this error.
+Re-register tokens on every app launch. Call getExpoPushTokenAsync() (with your projectId) at startup and upsert it to your backend, so a rotated token replaces the old one.
+Process receipts automatically. Check them roughly 15 minutes after sending and prune tokens that fail:
+js
+for (const [id, receipt] of Object.entries(receipts.data)) {
+  if (receipt.status === 'error' && receipt.details?.error === 'DeviceNotRegistered') {
+    await db.pushTokens.deleteByReceiptId(id); // map receipt/ticket ID → token when you send
+  }
+}
+
+This requires storing the ticket-to-token mapping when you send, so you know which token each receipt belongs to.
+
+If this happens for every device, not just one, check that your FCM credentials (service account key) are uploaded correctly in EAS and match the Firebase project in the app's google-services.json.
+
+If you tell me whether it's one user's token or all of them, and whether this is a dev or production build, I can narrow it down. And whenever you're ready, the PR diff is still welcome.
+
+That menu has no Delete option, so don't use it. "Set up" only works when no key is assigned yet, which is why it said "already set up". "Select an existing…" only lists keys you already uploaded. It would not give you a way to upload the new one, and I don't want to guess about it.
+
+Use the website to replace the key
+
+Press Ctrl+C in the terminal to leave the menu.
+Open expo.dev and log in.
+Open your project OfferhaikyaApp, then Credentials in the left menu.
+Choose Android, then the application com.swastik.offerhaikya.
+Find the section FCM V1 service account key. It shows the current key, 6534d9a7…. Remove it there, then upload the new JSON file.
+Reload the page and check that the new key's Private Key ID is not 6534d9a7….
+
+If the website shows no remove or replace button either, tell me what you see on that page, and I'll tell you what to click.
+
+Don't let this block the test
+
+The key currently in EAS is for the right project, so it works. It is only exposed, so replacing it can wait. If this takes too long, skip it for now:
+
+Build the new app and install it.
+Copy the FCM token from the popup.
+Run the fcm-test command.
+Send me the response.
+
+I still need that result to know where the real problem is, and you can replace the keys right after.
