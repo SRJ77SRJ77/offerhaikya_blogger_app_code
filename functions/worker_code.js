@@ -1067,26 +1067,45 @@ export default {
           return new Response("Unauthorized", { status: 401 });
         }
 
-        const token = "ExponentPushToken[mOlLAwB2puKFH03y7RDp0U]";
+        // Optional: add &token=ExponentPushToken[...] to test one token only.
+        // Without it, the test goes to every eligible user token saved in Firestore.
+        const tokenParam = (url.searchParams.get("token") || "").trim();
+        let targets = [];
 
-        const result = await sendExpoPushNotifications([
-          {
-            to: token,
+        if (tokenParam) {
+          targets = [{ userId: "manual", token: tokenParam }];
+        } else {
+          const accessToken = await getFirebaseAccessToken(env);
+          targets = await getEligibleUsers(env, accessToken);
+        }
+
+        const result = await sendExpoPushNotifications(
+          targets.map((target) => ({
+            to: target.token,
             sound: "default",
             title: "Offerhaikya Test",
             body: "If you received this, push notifications are working.",
-            data: {
-              test: true,
-              message: "Offerhaikya fresh token test",
-            },
-          },
-        ]);
+            data: { test: true },
+          }))
+        );
+
+        const tickets = (Array.isArray(result.responses) ? result.responses : []).map(
+          (ticket, index) => ({
+            userId: targets[index]?.userId || "",
+            tokenEnding: String(targets[index]?.token || "").slice(-8),
+            status: ticket?.status || null,
+            receiptId: ticket?.id || null,
+            error: ticket?.details?.error || null,
+            message: ticket?.message || null,
+          })
+        );
 
         return new Response(
           JSON.stringify({
             ok: true,
             mode: "TEST_PUSH",
-            result,
+            targets: targets.length,
+            tickets,
           }, null, 2),
           {
             status: 200,
