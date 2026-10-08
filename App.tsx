@@ -1602,6 +1602,7 @@ export default function App() {
           if (cached) {
             nearbyCacheRef.current = {
               ...cached,
+              savedAt: Date.now(),
               posts: merged,
             };
           }
