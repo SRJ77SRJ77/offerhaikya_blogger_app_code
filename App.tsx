@@ -552,6 +552,7 @@ export default function App() {
   const [registrationSuccess, setRegistrationSuccess] = useState('');
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  const [authUserKey, setAuthUserKey] = useState('');
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
   const [authMode, setAuthMode] = useState<'register' | 'signIn'>('register');
   // true only when Firebase confirms registrationCompleted; skipped users use the Welcome form.
@@ -581,6 +582,9 @@ export default function App() {
   const [latestTotalCount, setLatestTotalCount] = useState(0);
   const nearbyVisibleCountRef = useRef(PAGE_SIZE);
   const nearbyLastUpdatedCheckRef = useRef(Date.now() - 60 * 1000);
+  const nearbyPollInFlightRef = useRef(false);
+  const locationCheckInFlightRef = useRef(false);
+  const mainFeedRefreshInFlightRef = useRef(false);
   const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
@@ -771,6 +775,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, user => {
       if (!authBootstrappedRef.current) return;
       if (cancelled) return;
+      setAuthUserKey(user?.uid || '');
       void loadAccountState(user);
       void loadFavoritesForUser(user);
     });
@@ -1699,10 +1704,9 @@ export default function App() {
       return distance <= NEARBY_RADIUS_KM ? distance : null;
     };
 
-    let nearbyPollInFlight = false;
     const checkForNearbyPostUpdates = async () => {
-      if (nearbyPollInFlight) return;
-      nearbyPollInFlight = true;
+      if (nearbyPollInFlightRef.current) return;
+      nearbyPollInFlightRef.current = true;
       try {
         const updatedMin = new Date(
           nearbyLastUpdatedCheckRef.current - 5000,
@@ -1798,7 +1802,7 @@ export default function App() {
       } catch {
         // Nearby polling is best-effort and must never interrupt the UI.
       } finally {
-        nearbyPollInFlight = false;
+        nearbyPollInFlightRef.current = false;
       }
     };
 
@@ -1819,7 +1823,6 @@ export default function App() {
 
     locationAutoStartedRef.current = true;
 
-    let locationCheckInFlight = false;
     const showLocationPromptIfNeeded = async () => {
       try {
         // Do not check or reopen the custom location prompt while the Android
@@ -1899,12 +1902,12 @@ export default function App() {
     };
 
     const runLocationCheck = async () => {
-      if (locationCheckInFlight) return;
-      locationCheckInFlight = true;
+      if (locationCheckInFlightRef.current) return;
+      locationCheckInFlightRef.current = true;
       try {
         await showLocationPromptIfNeeded();
       } finally {
-        locationCheckInFlight = false;
+        locationCheckInFlightRef.current = false;
       }
     };
 
@@ -2020,11 +2023,10 @@ export default function App() {
   useEffect(() => {
     if (registrationOpen) return;
 
-    let mainRefreshInFlight = false;
     const syncNow = async () => {
       // Never let auto-refresh race with Load More or reset an expanded list.
-      if (mainRefreshInFlight || loadingMoreRef.current || paginationPageRef.current > 1) return;
-      mainRefreshInFlight = true;
+      if (mainFeedRefreshInFlightRef.current || loadingMoreRef.current || paginationPageRef.current > 1) return;
+      mainFeedRefreshInFlightRef.current = true;
       try {
         const activeSearch = query.trim().length >= 1 ? query.trim() : '';
         if (activeSearch) {
@@ -2069,7 +2071,7 @@ export default function App() {
       } catch {
         // Keep the current latest list if background refresh fails.
       } finally {
-        mainRefreshInFlight = false;
+        mainFeedRefreshInFlightRef.current = false;
       }
     };
 
@@ -2826,7 +2828,7 @@ export default function App() {
       void loadNotificationsForUser(auth.currentUser);
     }, 350);
     return () => clearTimeout(timer);
-  }, [authReady, registrationCompleted]);
+  }, [authReady, registrationCompleted, authUserKey]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -3707,6 +3709,7 @@ export default function App() {
 
       // Delete the user's profile and favorites while Auth is still valid.
       await deleteDoc(doc(db, 'users', uid));
+      profileMemoryCache.delete(uid);
       await AsyncStorage.removeItem(getFavoritesStorageKey(uid));
       await AsyncStorage.removeItem(PROFILE_CACHE_PREFIX + uid);
       setFavorites([]);
