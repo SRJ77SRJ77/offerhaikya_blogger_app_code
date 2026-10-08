@@ -121,8 +121,18 @@ type Post = {
   notificationType?: 'new' | 'updated' | 'relevant';
 };
 
+// Data-access boundary: keep Blogger transport/cache logic separate from UI code,
+// so the feed provider can be replaced without rewriting screens.
+const FEED_CACHE_MAX_ENTRIES = 6;
+const FEED_TOTAL_CACHE_MAX_ENTRIES = 20;
 const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
 const feedTotalCountCache = new Map<string, number>();
+const feedRequestsInFlight = new Map<string, Promise<Post[]>>();
+// Coalesce concurrent full-feed scans without retaining thousands of full post
+// objects in memory; the visible Nearby/Latest and page caches remain bounded.
+let allPostsScanInFlight: Promise<Post[]> | null = null;
+// Per-account in-memory profile cache; persistent cache remains keyed by UID.
+const profileMemoryCache = new Map<string, Record<string, any>>();
 
 const stripHtml = (value = '') =>
   value
@@ -270,7 +280,7 @@ const parseFeed = (data: any): Post[] => {
 const getFeedCacheKey = (query = '', startIndex = 1) =>
   query.trim().toLowerCase() + '::' + startIndex;
 
-const fetchFeedFromNetwork = async (query = '', startIndex = 1, forceRefresh = false) => {
+const fetchFeedFromNetworkImpl = async (query = '', startIndex = 1, forceRefresh = false) => {
   const params = new URLSearchParams({
     alt: 'json',
     'max-results': String(PAGE_SIZE),
@@ -301,16 +311,44 @@ const fetchFeedFromNetwork = async (query = '', startIndex = 1, forceRefresh = f
 
   const data = await response.json();
   const posts = parseFeed(data);
-  feedCache.set(getFeedCacheKey(query, startIndex), {
-    posts,
-    savedAt: Date.now(),
-  });
+  const cacheKey = getFeedCacheKey(query, startIndex);
+  feedCache.delete(cacheKey);
+  feedCache.set(cacheKey, { posts, savedAt: Date.now() });
+  while (feedCache.size > FEED_CACHE_MAX_ENTRIES) {
+    const oldestKey = feedCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    feedCache.delete(oldestKey);
+  }
+
   const totalResults = Number(data?.feed?.['openSearch$totalResults']?.$t);
   if (Number.isFinite(totalResults)) {
-    feedTotalCountCache.set(query.trim().toLowerCase(), totalResults);
+    const totalKey = query.trim().toLowerCase();
+    feedTotalCountCache.delete(totalKey);
+    feedTotalCountCache.set(totalKey, totalResults);
+    while (feedTotalCountCache.size > FEED_TOTAL_CACHE_MAX_ENTRIES) {
+      const oldestKey = feedTotalCountCache.keys().next().value;
+      if (oldestKey === undefined) break;
+      feedTotalCountCache.delete(oldestKey);
+    }
   }
 
   return posts;
+};
+
+// Identical requests share one network operation; force-refresh requests are
+// deduplicated separately from normal cacheable requests.
+const fetchFeedFromNetwork = (query = '', startIndex = 1, forceRefresh = false): Promise<Post[]> => {
+  const requestKey = getFeedCacheKey(query, startIndex) + (forceRefresh ? "::refresh" : "::normal");
+  const existing = feedRequestsInFlight.get(requestKey);
+  if (existing) return existing;
+
+  const request = fetchFeedFromNetworkImpl(query, startIndex, forceRefresh).finally(() => {
+    if (feedRequestsInFlight.get(requestKey) === request) {
+      feedRequestsInFlight.delete(requestKey);
+    }
+  });
+  feedRequestsInFlight.set(requestKey, request);
+  return request;
 };
 
 const getCachedFeed = (query = '', startIndex = 1) => {
@@ -342,7 +380,7 @@ const prefetchFeed = async (query = '', startIndex = 1) => {
   }
 };
 
-const getAllPostsForNearby = async () => {
+const fetchAllPostsForNearbyImpl = async (): Promise<Post[]> => {
   const all: Post[] = [];
   const batchSize = 500;
   let startIndex = 1;
@@ -363,6 +401,15 @@ const getAllPostsForNearby = async () => {
   return all;
 };
 
+const getAllPostsForNearby = (): Promise<Post[]> => {
+  if (allPostsScanInFlight) return allPostsScanInFlight;
+
+  const request = fetchAllPostsForNearbyImpl().finally(() => {
+    if (allPostsScanInFlight === request) allPostsScanInFlight = null;
+  });
+  allPostsScanInFlight = request;
+  return request;
+};
 
 const NativeAdCard = () => {
   const [nativeAd, setNativeAd] = useState<NativeAd>();
@@ -571,11 +618,6 @@ export default function App() {
   const nearbyPreloaderSpin = useRef(new Animated.Value(0)).current;
   const [locationTerms, setLocationTerms] = useState<string[]>([]);
   const searchInputRef = useRef<TextInput>(null);
-  const tagScrollRef = useRef<ScrollView>(null);
-  const tagOffsetRef = useRef(0);
-  const tagContentWidthRef = useRef(0);
-  const tagPauseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tagPausedRef = useRef(false);
   const menuAnim = useRef(new Animated.Value(-320)).current;
   const bottomTabResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bottomTabRef = useRef<typeof bottomTab>(bottomTab);
@@ -731,7 +773,6 @@ export default function App() {
       if (cancelled) return;
       void loadAccountState(user);
       void loadFavoritesForUser(user);
-      void loadNotificationsForUser(user);
     });
 
     const bootstrapAuth = async () => {
@@ -1658,7 +1699,10 @@ export default function App() {
       return distance <= NEARBY_RADIUS_KM ? distance : null;
     };
 
+    let nearbyPollInFlight = false;
     const checkForNearbyPostUpdates = async () => {
+      if (nearbyPollInFlight) return;
+      nearbyPollInFlight = true;
       try {
         const updatedMin = new Date(
           nearbyLastUpdatedCheckRef.current - 5000,
@@ -1753,6 +1797,8 @@ export default function App() {
         });
       } catch {
         // Nearby polling is best-effort and must never interrupt the UI.
+      } finally {
+        nearbyPollInFlight = false;
       }
     };
 
@@ -1773,6 +1819,7 @@ export default function App() {
 
     locationAutoStartedRef.current = true;
 
+    let locationCheckInFlight = false;
     const showLocationPromptIfNeeded = async () => {
       try {
         // Do not check or reopen the custom location prompt while the Android
@@ -1851,6 +1898,16 @@ export default function App() {
       }
     };
 
+    const runLocationCheck = async () => {
+      if (locationCheckInFlight) return;
+      locationCheckInFlight = true;
+      try {
+        await showLocationPromptIfNeeded();
+      } finally {
+        locationCheckInFlight = false;
+      }
+    };
+
     const startLocationChecks = async () => {
       const permission = await Location.getForegroundPermissionsAsync();
       const servicesEnabled = await Location.hasServicesEnabledAsync();
@@ -1868,7 +1925,7 @@ export default function App() {
         locationPromptSnoozeUntilRef.current = 0;
         nearbyCacheRef.current = null;
         setLocationRefreshKey(value => value + 1);
-        void showLocationPromptIfNeeded();
+        void runLocationCheck();
       }
 
       // Keep checking every 30 seconds so turning device Location OFF
@@ -1876,10 +1933,10 @@ export default function App() {
       // If the user taps No, postponeLocationPrompt() starts the 5-minute retry.
       // The 30-second checker continues silently in the background.
       locationPromptSnoozeUntilRef.current = 0;
-      void showLocationPromptIfNeeded();
+      void runLocationCheck();
 
       locationCheckIntervalRef.current = setInterval(
-        showLocationPromptIfNeeded,
+        runLocationCheck,
         LOCATION_CHECK_INTERVAL_MS
       );
     };
@@ -1889,7 +1946,7 @@ export default function App() {
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         nearbyCacheRef.current = null;
-        void showLocationPromptIfNeeded();
+        void runLocationCheck();
         setLocationRefreshKey(value => value + 1);
       }
     });
@@ -1910,8 +1967,11 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let categoriesSyncInFlight = false;
 
     const syncBloggerCategories = async () => {
+      if (cancelled || categoriesSyncInFlight) return;
+      categoriesSyncInFlight = true;
       try {
         const response = await fetch(FEED_URL + '?alt=json&max-results=500');
         if (!response.ok) throw new Error('Unable to load Blogger categories');
@@ -1938,6 +1998,8 @@ export default function App() {
         }
       } catch {
         // Keep fallback categories/tags when Blogger is temporarily unavailable.
+      } finally {
+        categoriesSyncInFlight = false;
       }
     };
 
@@ -1958,17 +2020,18 @@ export default function App() {
   useEffect(() => {
     if (registrationOpen) return;
 
+    let mainRefreshInFlight = false;
     const syncNow = async () => {
       // Never let auto-refresh race with Load More or reset an expanded list.
-      if (loadingMoreRef.current || paginationPageRef.current > 1) return;
-
-      const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      if (activeSearch) {
-        loadPosts(activeSearch, 1);
-        return;
-      }
-
+      if (mainRefreshInFlight || loadingMoreRef.current || paginationPageRef.current > 1) return;
+      mainRefreshInFlight = true;
       try {
+        const activeSearch = query.trim().length >= 1 ? query.trim() : '';
+        if (activeSearch) {
+          await loadPosts(activeSearch, 1, true);
+          return;
+        }
+
         const params = new URLSearchParams({
           alt: 'json',
           'max-results': String(PAGE_SIZE),
@@ -1986,13 +2049,27 @@ export default function App() {
         const data = await response.json();
         const refreshed = parseFeed(data);
         const totalResults = Number(data?.feed?.['openSearch$totalResults']?.$t);
-        if (Number.isFinite(totalResults)) setLatestTotalCount(totalResults);
+        if (Number.isFinite(totalResults)) {
+          setLatestTotalCount(totalResults);
+          feedTotalCountCache.set('', totalResults);
+        }
+        // Keep the latest cache synchronized with the refreshed Home feed.
+        const latestKey = getFeedCacheKey('', 1);
+        feedCache.delete(latestKey);
+        feedCache.set(latestKey, { posts: refreshed, savedAt: Date.now() });
+        while (feedCache.size > FEED_CACHE_MAX_ENTRIES) {
+          const oldestKey = feedCache.keys().next().value;
+          if (oldestKey === undefined) break;
+          feedCache.delete(oldestKey);
+        }
         setPosts(refreshed);
         setPage(1);
         paginationPageRef.current = 1;
         setHasMorePosts(refreshed.length === PAGE_SIZE);
       } catch {
         // Keep the current latest list if background refresh fails.
+      } finally {
+        mainRefreshInFlight = false;
       }
     };
 
@@ -2115,29 +2192,6 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [query, posts, loadPosts]);
-
-  const pauseTagAutoScroll = useCallback(() => {
-    tagPausedRef.current = true;
-    if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
-    tagPauseRef.current = setTimeout(() => {
-      tagPausedRef.current = false;
-    }, 4500);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (tagPausedRef.current || !tagContentWidthRef.current) return;
-      const loopWidth = tagContentWidthRef.current / 2;
-      let next = tagOffsetRef.current + 1;
-      if (next >= loopWidth) next = 0;
-      tagOffsetRef.current = next;
-      tagScrollRef.current?.scrollTo({ x: next, animated: false });
-    }, 28);
-    return () => {
-      clearInterval(timer);
-      if (tagPauseRef.current) clearTimeout(tagPauseRef.current);
-    };
-  }, []);
 
   const labels = useMemo(() => {
     const values = posts.map(post => post.label).filter(Boolean);
@@ -2766,7 +2820,12 @@ export default function App() {
 
   useEffect(() => {
     if (!authReady) return;
-    void loadNotificationsForUser(auth.currentUser);
+
+    // Notification reconciliation can scan Blogger data; let the UI render first.
+    const timer = setTimeout(() => {
+      void loadNotificationsForUser(auth.currentUser);
+    }, 350);
+    return () => clearTimeout(timer);
   }, [authReady, registrationCompleted]);
 
   useEffect(() => {
@@ -3142,10 +3201,17 @@ export default function App() {
       areaCity: string;
     },
   ) => {
-    // Save the account immediately. Location geocoding is best-effort and
-    // must never make registration/profile saving wait on a network lookup.
-    // Cache the profile first so registration/login/profile screens never wait
-    // for a Firestore round trip before showing the saved fields.
+    // Data-access boundary: profile persistence is isolated here so a future
+    // database provider can replace Firestore without changing the profile UI.
+    // Keep both memory and persistent caches synchronized before background sync.
+    profileMemoryCache.set(user.uid, {
+      uid: user.uid,
+      name: profile.name,
+      contact: profile.contact,
+      email: profile.email,
+      interestedCategories: profile.categories,
+      areaCity: profile.areaCity,
+    });
     await AsyncStorage.setItem(
       PROFILE_CACHE_PREFIX + user.uid,
       JSON.stringify({
@@ -3310,10 +3376,17 @@ export default function App() {
       registrationCategoriesRef.current = categories;
     };
 
-    // Show cached profile immediately.
+    // Show in-memory data synchronously first, then hydrate from persistent cache.
+    const memoryCachedProfile = profileMemoryCache.get(user.uid);
+    if (memoryCachedProfile) applyProfile(memoryCachedProfile);
+
     try {
       const cached = await AsyncStorage.getItem(PROFILE_CACHE_PREFIX + user.uid);
-      if (cached) applyProfile(JSON.parse(cached));
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        profileMemoryCache.set(user.uid, parsed);
+        applyProfile(parsed);
+      }
     } catch (error) {
       console.log('Profile cache read error:', error);
     }
@@ -3323,18 +3396,20 @@ export default function App() {
       .then(async snapshot => {
         if (!snapshot.exists() || accountDeletionResetRef.current) return;
         const data = snapshot.data();
+        const refreshedProfile = {
+          uid: user.uid,
+          name: data.name || '',
+          contact: data.contact || '',
+          email: data.email || user.email || '',
+          interestedCategories: Array.isArray(data.interestedCategories)
+            ? data.interestedCategories
+            : [],
+          areaCity: data.areaCity || '',
+        };
+        profileMemoryCache.set(user.uid, refreshedProfile);
         await AsyncStorage.setItem(
           PROFILE_CACHE_PREFIX + user.uid,
-          JSON.stringify({
-            uid: user.uid,
-            name: data.name || '',
-            contact: data.contact || '',
-            email: data.email || user.email || '',
-            interestedCategories: Array.isArray(data.interestedCategories)
-              ? data.interestedCategories
-              : [],
-            areaCity: data.areaCity || '',
-          }),
+          JSON.stringify(refreshedProfile),
         );
         applyProfile(data);
       })
@@ -3754,9 +3829,13 @@ export default function App() {
               setRegistrationError('');
               pendingDeleteAfterLoginRef.current = false;
 
+              const previousUserId = auth.currentUser?.uid;
               await signOut(auth);
+              if (previousUserId) profileMemoryCache.delete(previousUserId);
 
               // Immediately remove the previous user's data from the visible form.
+              setNotifications([]);
+              setNotificationsOpen(false);
               setFavorites([]);
               setProfileStatus('skipped');
               setRegistrationCompleted(false);
@@ -3780,7 +3859,8 @@ export default function App() {
 
               // Create a separate guest session after logout.
               await signInAnonymously(auth);
-              await loadFavoritesForUser(auth.currentUser);
+              // Guest browsing can resume while guest favorites hydrate from storage.
+              void loadFavoritesForUser(auth.currentUser);
               // Re-run the location/nearby flow for the guest session. The
               // 30-second checker will prefer current GPS, then saved location.
               setLocationRefreshKey(value => value + 1);
@@ -5720,22 +5800,15 @@ export default function App() {
               <>
                 <View style={styles.tagStrip}>
                   <ScrollView
-                    ref={tagScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.chips}
-                    onContentSizeChange={width => { tagContentWidthRef.current = width; }}
-                    onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
-                    onTouchStart={pauseTagAutoScroll}
-                    onMomentumScrollBegin={pauseTagAutoScroll}
-                    onScrollBeginDrag={pauseTagAutoScroll}
                     scrollEventThrottle={16}
                   >
-                    {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
+                    {(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS).map((item, index) => (
                       <TouchableOpacity
                         key={'tag-page-' + item + '-' + index}
                         onPress={() => {
-                          pauseTagAutoScroll();
                           setTagPageDropdownOpen(false);
                           if (item === 'All') {
                             tagPageStartPageRef.current = 1;
@@ -5944,22 +6017,15 @@ export default function App() {
 <View style={darkMode ? styles.darkPage : styles.pageWrap}>
         <View style={styles.tagStrip}>
           <ScrollView
-            ref={tagScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips}
-            onContentSizeChange={width => { tagContentWidthRef.current = width; }}
-            onScroll={event => { tagOffsetRef.current = event.nativeEvent.contentOffset.x; }}
-            onTouchStart={pauseTagAutoScroll}
-            onMomentumScrollBegin={pauseTagAutoScroll}
-            onScrollBeginDrag={pauseTagAutoScroll}
             scrollEventThrottle={16}
           >
-            {[(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS), (bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS)].flat().map((item, index) => (
+            {(bloggerTags.length > 0 ? bloggerTags : DIRECT_TAGS).map((item, index) => (
               <TouchableOpacity
                 key={item + '-' + index}
                 onPress={() => {
-                  pauseTagAutoScroll();
                   if (item === 'All') {
                     setTagPage(null);
                     setActiveLabel('All');
