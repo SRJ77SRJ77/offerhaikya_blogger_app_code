@@ -25,6 +25,7 @@ import {
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
 import * as Location from 'expo-location';
+import * as IntentLauncher from 'expo-intent-launcher';
 import Svg, { Path } from 'react-native-svg';
 import { useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,7 +77,7 @@ const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 15 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
-const LOCATION_CHECK_INTERVAL_MS = 15 * 1000;
+const LOCATION_CHECK_INTERVAL_MS = 30 * 1000;
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
@@ -342,24 +343,18 @@ const prefetchFeed = async (query = '', startIndex = 1) => {
 };
 
 const getAllPostsForNearby = async () => {
-  const all: Post[] = [];
-  const batchSize = 500;
-  let startIndex = 1;
-
-  for (let pageIndex = 0; pageIndex < 20; pageIndex += 1) {
-    const response = await fetch(
-      FEED_URL + '?alt=json&max-results=' + batchSize + '&start-index=' + startIndex,
-    );
-    if (!response.ok) throw new Error('Unable to load nearby offers');
-
-    const batch = parseFeed(await response.json());
-    all.push(...batch);
-
-    if (batch.length < batchSize) break;
-    startIndex += batchSize;
-  }
-
-  return all;
+  const response = await fetch(
+    FEED_URL + '?alt=json&max-results=500&start-index=1&ohk_nearby=' + Date.now(),
+    {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, max-age=0',
+        'Pragma': 'no-cache',
+      },
+    },
+  );
+  if (!response.ok) throw new Error('Unable to load nearby offers');
+  return parseFeed(await response.json());
 };
 
 
@@ -1977,11 +1972,6 @@ export default function App() {
         return;
       }
 
-      if (normalizedQuery.length < 2) {
-        setSuggestions([]);
-        return;
-      }
-
       const scoreSuggestion = (post: Post) => {
         const title = post.title.toLowerCase();
         const label = post.label.toLowerCase();
@@ -1990,13 +1980,13 @@ export default function App() {
 
         let score = 0;
 
-        if (title === normalizedQuery) score += 1000;
-        if (title.startsWith(normalizedQuery)) score += 500;
-        if (title.includes(normalizedQuery)) score += 300;
-        if (label === normalizedQuery) score += 250;
-        if (label.includes(normalizedQuery)) score += 180;
-        if (labels.includes(normalizedQuery)) score += 140;
-        if (content.includes(normalizedQuery)) score += 80;
+        if (title === normalizedQuery) score += 3000;
+        if (title.startsWith(normalizedQuery)) score += 1800;
+        if (title.includes(normalizedQuery)) score += 1200;
+        if (label === normalizedQuery) score += 700;
+        if (label.includes(normalizedQuery)) score += 500;
+        if (labels.includes(normalizedQuery)) score += 350;
+        if (content.includes(normalizedQuery)) score += 120;
 
         const words = normalizedQuery.split(' ').filter(Boolean);
         const matchedWords = words.filter(word =>
@@ -2020,19 +2010,37 @@ export default function App() {
 
         let combined = localMatches;
 
-        if (combined.length < 6) {
-          try {
-            const remoteResults = await getFeed(text, 1);
-            const existingIds = new Set(combined.map(post => post.id));
+        try {
+          const remoteResults = await getFeed(text, 1);
+          const existingIds = new Set(combined.map(post => post.id));
 
-            for (const post of remoteResults) {
-              if (!existingIds.has(post.id)) {
-                combined.push(post);
-                existingIds.add(post.id);
-              }
+          for (const post of remoteResults) {
+            if (!existingIds.has(post.id)) {
+              combined.push(post);
+              existingIds.add(post.id);
             }
+          }
+        } catch {
+          // Keep local suggestions when Blogger search is unavailable.
+        }
+
+        // Blogger's q search can miss older/title-specific posts. When the
+        // ranked set is still empty, scan the nearby/latest feed once and rank
+        // locally with title priority.
+        if (combined.length === 0) {
+          try {
+            const allSearchPosts = await getAllPostsForNearby();
+            const existingIds = new Set<string>();
+            combined = allSearchPosts
+              .filter(post => scoreSuggestion(post) > 0)
+              .sort((a, b) => scoreSuggestion(b) - scoreSuggestion(a))
+              .filter(post => {
+                if (existingIds.has(post.id)) return false;
+                existingIds.add(post.id);
+                return true;
+              });
           } catch {
-            // Keep local suggestions when Blogger search is unavailable.
+            // Keep an empty suggestion list if the fallback search fails.
           }
         }
 
@@ -2051,7 +2059,7 @@ export default function App() {
       } finally {
         setSuggestionLoading(false);
       }
-    }, 250);
+    }, 60);
 
     return () => clearTimeout(timer);
   }, [query, posts, loadPosts]);
@@ -2420,6 +2428,11 @@ export default function App() {
               const user = auth.currentUser;
               const ids = notifications.map(item => item.id).filter(Boolean);
 
+              // Clear the visible UI immediately. Persistence happens in the
+              // background so Delete All never blocks the popup for seconds.
+              setNotifications([]);
+              setNotificationsOpen(false);
+
               if (user?.isAnonymous) {
                 const now = Date.now();
                 const nextGuestDismissed = { ...guestDismissedNotificationRef.current };
@@ -2461,8 +2474,6 @@ export default function App() {
                 }
               }
 
-              setNotifications([]);
-              setNotificationsOpen(false);
             })();
           },
         },
@@ -2850,7 +2861,22 @@ export default function App() {
   ) => {
     // Save the account immediately. Location geocoding is best-effort and
     // must never make registration/profile saving wait on a network lookup.
-    await setDoc(
+    // Cache the profile first so registration/login/profile screens never wait
+    // for a Firestore round trip before showing the saved fields.
+    await AsyncStorage.setItem(
+      PROFILE_CACHE_PREFIX + user.uid,
+      JSON.stringify({
+        uid: user.uid,
+        name: profile.name,
+        contact: profile.contact,
+        email: profile.email,
+        interestedCategories: profile.categories,
+        areaCity: profile.areaCity,
+      }),
+    );
+
+    // Firestore is persisted in the background so the UI stays responsive.
+    void setDoc(
       doc(db, 'users', user.uid),
       {
         uid: user.uid,
@@ -2864,21 +2890,9 @@ export default function App() {
         updatedAt: new Date().toISOString(),
       },
       { merge: true },
-    );
-
-    // Keep a non-sensitive local copy of profile fields for this Firebase UID.
-    // Password is never stored here.
-    await AsyncStorage.setItem(
-      PROFILE_CACHE_PREFIX + user.uid,
-      JSON.stringify({
-        uid: user.uid,
-        name: profile.name,
-        contact: profile.contact,
-        email: profile.email,
-        interestedCategories: profile.categories,
-        areaCity: profile.areaCity,
-      }),
-    );
+    ).catch(error => {
+      console.log('Profile background save error:', error);
+    });
 
     // Geocode only after the profile is already saved, so this can never block
     // the registration/login UI.
@@ -2941,8 +2955,9 @@ export default function App() {
         ).user;
       }
 
+      // Auth is complete. Save the local profile immediately and let Firestore
+      // and push-token work continue in the background.
       await saveRegisteredProfile(registeredUser, profile);
-      // Push-token syncing is background work; do not make account creation wait for it.
       void syncPushTokenForCurrentUser();
       await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
       await AsyncStorage.removeItem(SKIP_STORAGE_KEY);
@@ -2964,7 +2979,7 @@ export default function App() {
         setRegistrationSuccess('');
         setRegistrationPassword('');
         setRegistrationPasswordVisible(false);
-      }, 1200);
+      }, 450);
     } catch (error: any) {
       console.log('Registration error:', error);
 
@@ -2983,14 +2998,48 @@ export default function App() {
 
   const loadRegisteredProfile = async (user: any) => {
     if (accountDeletionResetRef.current) return;
-    let data: any = null;
 
+    const applyProfile = (data: any) => {
+      if (accountDeletionResetRef.current) return;
+      const profile = data || {};
+      const name = String(profile.name || user.displayName || '');
+      const contact = String(profile.contact || '').replace(/^91/, '');
+      const email = String(profile.email || user.email || '');
+      const areaCity = String(profile.areaCity || '');
+      const categories = Array.isArray(profile.interestedCategories)
+        ? profile.interestedCategories
+        : [];
+
+      setProfileStatus('registered');
+      setRegistrationCompleted(true);
+      setProfileMode(true);
+      setAuthMode('register');
+      setRegistrationName(name);
+      setRegistrationContact(contact);
+      setRegistrationEmail(email);
+      setRegistrationAreaCity(areaCity);
+      setRegistrationCategories(categories);
+
+      registrationNameRef.current = name;
+      registrationContactRef.current = contact;
+      registrationEmailRef.current = email;
+      registrationAreaCityRef.current = areaCity;
+      registrationCategoriesRef.current = categories;
+    };
+
+    // Show cached profile immediately.
     try {
-      const snapshot = await getDoc(doc(db, 'users', user.uid));
-      if (snapshot.exists()) {
-        data = snapshot.data();
+      const cached = await AsyncStorage.getItem(PROFILE_CACHE_PREFIX + user.uid);
+      if (cached) applyProfile(JSON.parse(cached));
+    } catch (error) {
+      console.log('Profile cache read error:', error);
+    }
 
-        // Refresh the local non-sensitive profile cache from Firestore.
+    // Refresh from Firestore in the background.
+    void getDoc(doc(db, 'users', user.uid))
+      .then(async snapshot => {
+        if (!snapshot.exists() || accountDeletionResetRef.current) return;
+        const data = snapshot.data();
         await AsyncStorage.setItem(
           PROFILE_CACHE_PREFIX + user.uid,
           JSON.stringify({
@@ -3004,47 +3053,14 @@ export default function App() {
             areaCity: data.areaCity || '',
           }),
         );
-      }
-    } catch (error) {
-      console.log('Profile Firestore read error:', error);
-    }
-
-    if (!data) {
-      try {
-        const cached = await AsyncStorage.getItem(
-          PROFILE_CACHE_PREFIX + user.uid,
-        );
-        data = cached ? JSON.parse(cached) : null;
-      } catch (error) {
-        console.log('Profile cache read error:', error);
-      }
-    }
-
-    data = data || {};
-
-    const name = String(data.name || user.displayName || '');
-    const contact = String(data.contact || '').replace(/^91/, '');
-    const email = String(data.email || user.email || '');
-    const areaCity = String(data.areaCity || '');
-    const categories = Array.isArray(data.interestedCategories)
-      ? data.interestedCategories
-      : [];
-
-    setProfileStatus('registered');
-    setRegistrationCompleted(true);
-    setProfileMode(true);
-    setAuthMode('register');
-    setRegistrationName(name);
-    setRegistrationContact(contact);
-    setRegistrationEmail(email);
-    setRegistrationAreaCity(areaCity);
-    setRegistrationCategories(categories);
-
-    registrationNameRef.current = name;
-    registrationContactRef.current = contact;
-    registrationEmailRef.current = email;
-    registrationAreaCityRef.current = areaCity;
-    registrationCategoriesRef.current = categories;
+        applyProfile(data);
+      })
+      .catch(error => {
+        console.log('Profile Firestore read error:', error);
+        // If there was no cache, still show the Firebase account email immediately.
+        if (!auth.currentUser || accountDeletionResetRef.current) return;
+        applyProfile({ email: auth.currentUser.email || '' });
+      });
   };
 
   const openProfile = async () => {
@@ -3204,8 +3220,9 @@ export default function App() {
         return;
       }
 
-      await loadRegisteredProfile(credential.user);
-      // Push-token syncing is background work; do not make login wait for it.
+      // Close the login UI immediately after Firebase authentication succeeds.
+      // Profile hydration continues in the background from cache/Firestore.
+      void loadRegisteredProfile(credential.user);
       void syncPushTokenForCurrentUser();
 
       signInSubmittingRef.current = false;
@@ -3242,10 +3259,8 @@ export default function App() {
       }
 
       registrationFlowActiveRef.current = false;
-            setTimeout(() => {
-        signInSubmittingRef.current = false;
-        setRegistrationSubmitting(false);
-      }, 2000);
+      signInSubmittingRef.current = false;
+      setRegistrationSubmitting(false);
     }
   };
 
@@ -3560,14 +3575,33 @@ export default function App() {
         return;
       }
 
-      // If device Location is OFF, guide the user to Settings instead of
-      // repeatedly triggering the OS permission dialog.
+      // If device Location Services are OFF, send the user directly to
+      // Android Location Settings. This is the exact action needed to turn
+      // device Location ON.
       if (!servicesEnabled) {
+        try {
+          if (Platform.OS === 'android') {
+            await IntentLauncher.startActivityAsync(
+              IntentLauncher.ActivityAction.LOCATION_SOURCE_SETTINGS,
+            );
+          } else {
+            await Linking.openSettings();
+          }
+        } catch {
+          // The 30-second checker will detect Location when the user enables it.
+        }
         scheduleLocationPromptRetry();
         return;
       }
 
+      // If Android has permanently denied app permission, open the app's
+      // Settings page so the user can enable Location permission manually.
       if (currentPermission.canAskAgain === false) {
+        try {
+          await Linking.openSettings();
+        } catch {
+          // Keep the periodic checker alive.
+        }
         scheduleLocationPromptRetry();
         return;
       }
@@ -4143,15 +4177,46 @@ export default function App() {
   }, [infoPage]);
 
   useEffect(() => {
-    if (!detail) return;
-
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setDetail(null);
-      return true;
+      if (detail) {
+        setDetail(null);
+        return true;
+      }
+      if (tagPage) {
+        setTagPage(null);
+        setTagPageDropdownOpen(false);
+        setQuery('');
+        setSuggestions([]);
+        setActiveLabel('All');
+        return true;
+      }
+      if (infoPage) {
+        setInfoPage(null);
+        return true;
+      }
+      if (menuOpen) {
+        closeMenu();
+        return true;
+      }
+      if (notificationsOpen) {
+        setNotificationsOpen(false);
+        return true;
+      }
+      if (wishlistOpen) {
+        setWishlistOpen(false);
+        return true;
+      }
+      if (registrationOpen) {
+        setRegistrationOpen(false);
+        setProfileMode(false);
+        setRegistrationCategoriesOpen(false);
+        return true;
+      }
+      return false;
     });
 
     return () => subscription.remove();
-  }, [detail]);
+  }, [detail, tagPage, infoPage, menuOpen, notificationsOpen, wishlistOpen, registrationOpen]);
 
   useEffect(() => {
     if (!detail) {
@@ -5714,7 +5779,7 @@ export default function App() {
               </>
             ) : null}
 
-            {nearbyPosts.length === 0 ? <NativeAdCard /> : null}
+            {!userLocation && !nearbyPreloaderOpen ? <NativeAdCard /> : null}
 
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {latestTotalCount || posts.length}</Text>
