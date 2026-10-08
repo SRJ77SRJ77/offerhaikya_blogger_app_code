@@ -2368,14 +2368,17 @@ export default function App() {
   const getLatestBellNotifications = (sourcePosts: Post[]) => {
     const dismissed = dismissedNotificationIdsRef.current;
     const user = auth.currentUser;
+    const latestTen = sourcePosts.slice(0, 10);
+
     if (user?.isAnonymous) {
       const now = Date.now();
-      return sourcePosts.filter(post => {
+      return latestTen.filter(post => {
         const dismissedAt = guestDismissedNotificationRef.current[post.id];
         return !dismissedAt || now - dismissedAt >= GUEST_NOTIFICATION_REPEAT_MS;
       });
     }
-    return sourcePosts.filter(post => !dismissed.has(post.id));
+
+    return latestTen.filter(post => !dismissed.has(post.id));
   };
 
   const loadNotificationsForUser = async (user: any) => {
@@ -2387,7 +2390,43 @@ export default function App() {
         const stored = await AsyncStorage.getItem(getNotificationsStorageKey(user.uid));
         const parsed = stored ? JSON.parse(stored) : [];
         const storedNotifications = Array.isArray(parsed) ? parsed : [];
-        const merged = [...storedNotifications, ...latest].filter((item, index, all) =>
+
+        // Keep the newest 10 posts as the base. Then add older posts that are
+        // relevant to this user by interested category or Nearby location.
+        let relevant: Post[] = [];
+        try {
+          const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
+          const profile = profileSnapshot.exists() ? profileSnapshot.data() : {};
+          const categories = Array.isArray(profile.interestedCategories)
+            ? profile.interestedCategories.map((item: any) =>
+                String(item).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(),
+              ).filter(Boolean)
+            : [];
+
+          const allPosts = await getAllPostsForNearby();
+          const categoryMatches = allPosts.filter(post => {
+            const labels = [post.label, ...post.labels]
+              .map(item => String(item).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
+              .filter(Boolean);
+            return categories.some(category =>
+              labels.some(label => label === category || label.includes(category) || category.includes(label)),
+            );
+          });
+
+          const nearbyMatches = nearbyPosts;
+          const seen = new Set<string>();
+          relevant = [...categoryMatches, ...nearbyMatches].filter(post => {
+            if (latest.some(item => item.id === post.id)) return false;
+            if (dismissedNotificationIdsRef.current.has(post.id)) return false;
+            if (seen.has(post.id)) return false;
+            seen.add(post.id);
+            return true;
+          });
+        } catch (error) {
+          console.log('Relevant notification refresh error:', error);
+        }
+
+        const merged = [...storedNotifications, ...latest, ...relevant].filter((item, index, all) =>
           item?.id && all.findIndex(other => other?.id === item.id) === index,
         );
         setNotifications(merged);
@@ -3117,6 +3156,14 @@ export default function App() {
     setRegistrationPasswordVisible(false);
 
     try {
+      // Never show an old Nearby loading overlay while opening Profile.
+      if (nearbyPreloaderTimerRef.current) clearTimeout(nearbyPreloaderTimerRef.current);
+      if (nearbyPreloaderFinishTimerRef.current) clearTimeout(nearbyPreloaderFinishTimerRef.current);
+      nearbyPreloaderOpenRef.current = false;
+      nearbyPreloaderTimedOutRef.current = true;
+      setNearbyPreloaderOpen(false);
+      setNearbyPreloaderProgress(0);
+
       const user = auth.currentUser;
       const hasRegisteredAccount = (await AsyncStorage.getItem(HAS_REGISTERED_ACCOUNT_KEY)) === 'true';
 
