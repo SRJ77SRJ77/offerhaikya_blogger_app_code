@@ -786,6 +786,7 @@ export default function App() {
   }, [hasMorePosts, loading, searching, loadingMore, query, posts.length]);
 
 
+  
   const syncPushTokenForCurrentUser = async () => {
     try {
       const firebaseUser = auth.currentUser;
@@ -830,16 +831,34 @@ export default function App() {
 
       const nativeToken = await Notifications.getDevicePushTokenAsync();
       console.log('NATIVE FCM TOKEN:', nativeToken);
+      const fcmToken = String(nativeToken.data);
 
       const pushToken = (
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
 
+      // TEMPORARY: remove this Alert after push notifications work.
       Alert.alert(
         'TOKENS',
-        'EXPO: ' + pushToken + '\n\nFCM: ' + String(nativeToken.data),
+        'EXPO: ' + pushToken + '\n\nFCM: ' + fcmToken,
+        [
+          {
+            text: 'Copy FCM',
+            onPress: () => {
+              void Clipboard.setStringAsync(fcmToken);
+            },
+          },
+          {
+            text: 'Copy EXPO',
+            onPress: () => {
+              void Clipboard.setStringAsync(pushToken);
+            },
+          },
+          { text: 'Close', style: 'cancel' },
+        ],
       );
 
+      // Main save: this is the one the Worker needs.
       await setDoc(
         doc(db, 'users', firebaseUser.uid),
         {
@@ -851,10 +870,23 @@ export default function App() {
       );
 
       console.log('Expo push token:', pushToken);
+
+      // Extra save in its own try/catch, so a Firestore rules problem
+      // on this field can never block the main save above.
+      try {
+        await setDoc(
+          doc(db, 'users', firebaseUser.uid),
+          { fcmToken },
+          { merge: true },
+        );
+      } catch (fcmSaveError) {
+        console.log('FCM token save error:', fcmSaveError);
+      }
     } catch (error) {
       console.log('Push notification sync error:', error);
     }
   };
+
 
   useEffect(() => {
     if (!authReady) return;
@@ -6152,3 +6184,7 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   xLogo: { color: WHITE, fontSize: 17, fontWeight: '900' },
   socialLogo: { width: 19, height: 19 },
 });
+
+
+
+
