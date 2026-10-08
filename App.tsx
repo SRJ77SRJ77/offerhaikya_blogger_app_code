@@ -3380,7 +3380,10 @@ export default function App() {
 
     // Show in-memory data synchronously first, then hydrate from persistent cache.
     const memoryCachedProfile = profileMemoryCache.get(user.uid);
-    if (memoryCachedProfile) applyProfile(memoryCachedProfile);
+    if (memoryCachedProfile) {
+      applyProfile(memoryCachedProfile);
+      setProfileLoading(false);
+    }
 
     try {
       const cached = await AsyncStorage.getItem(PROFILE_CACHE_PREFIX + user.uid);
@@ -3388,6 +3391,7 @@ export default function App() {
         const parsed = JSON.parse(cached);
         profileMemoryCache.set(user.uid, parsed);
         applyProfile(parsed);
+        setProfileLoading(false);
       }
     } catch (error) {
       console.log('Profile cache read error:', error);
