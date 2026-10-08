@@ -838,7 +838,45 @@ export default function App() {
         return;
       }
 
-      const result = await fetchFeedFromNetwork(search, startIndex);
+      let result = await fetchFeedFromNetwork(search, startIndex);
+
+      // For search, Blogger's q endpoint can rank description matches ahead of
+      // title matches or miss a title entirely. Use the same title-first local
+      // ranking as the live dropdown when the direct result is weak.
+      if (search.trim()) {
+        const normalized = search.toLowerCase().replace(/\s+/g, ' ').trim();
+        const score = (post: Post) => {
+          const title = post.title.toLowerCase();
+          const label = post.label.toLowerCase();
+          const labels = post.labels.join(' ').toLowerCase();
+          const content = post.content.toLowerCase();
+          let value = 0;
+          if (title === normalized) value += 3000;
+          if (title.startsWith(normalized)) value += 1800;
+          if (title.includes(normalized)) value += 1200;
+          if (label.includes(normalized)) value += 500;
+          if (labels.includes(normalized)) value += 350;
+          if (content.includes(normalized)) value += 120;
+          return value;
+        };
+
+        result = result
+          .filter(post => score(post) > 0)
+          .sort((a, b) => score(b) - score(a));
+
+        if (result.length === 0) {
+          try {
+            const allSearchPosts = await getAllPostsForNearby();
+            result = allSearchPosts
+              .filter(post => score(post) > 0)
+              .sort((a, b) => score(b) - score(a))
+              .slice(0, PAGE_SIZE);
+          } catch {
+            // Keep the direct Blogger search result if the fallback fails.
+          }
+        }
+      }
+
       setPosts(result);
       setLatestTotalCount(feedTotalCountCache.get(search.trim().toLowerCase()) ?? result.length);
       setPage(pageNumber);
