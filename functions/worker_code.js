@@ -439,6 +439,40 @@ const getEligibleUsers = async (env, accessToken) => {
 // LOCATION + OFFER MATCHING
 // --------------------------------------------------
 
+const distanceKm = (a, b) => {
+  const lat1 = Number(a?.latitude);
+  const lon1 = Number(a?.longitude);
+  const lat2 = Number(b?.latitude);
+  const lon2 = Number(b?.longitude);
+
+  if (
+    !Number.isFinite(lat1) ||
+    !Number.isFinite(lon1) ||
+    !Number.isFinite(lat2) ||
+    !Number.isFinite(lon2)
+  ) {
+    return Infinity;
+  }
+
+  const earthRadiusKm = 6371;
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+
+  const sinLat = Math.sin(dLat / 2);
+  const sinLon = Math.sin(dLon / 2);
+
+  const h =
+    sinLat * sinLat +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      sinLon *
+      sinLon;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+};
+
 const isFiniteCoordinate = (value) =>
   value &&
   Number.isFinite(Number(value.latitude)) &&
