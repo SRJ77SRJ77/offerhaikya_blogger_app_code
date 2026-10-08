@@ -1,5 +1,5 @@
 const FEED_URL = "https://www.offerhaikya.com/feeds/posts/default";
-const WORKER_VERSION = "PRODUCTION_DEDUP_V1";
+const WORKER_VERSION = "PRODUCTION_VERSION_AWARE_V2";
 
 // PRODUCTION NOTIFICATION WORKER.
 // Sends Expo push notifications only for a Blogger post that has not already been processed.
@@ -135,6 +135,7 @@ const parseFeed = (data) => {
       title: entry.title?.$t || "New Offerhaikya offer",
       url: alternate?.href || "https://www.offerhaikya.com",
       publishedAt: entry.published?.$t || entry.updated?.$t || "",
+      updatedAt: entry.updated?.$t || entry.published?.$t || "",
       date: entry.published?.$t || entry.updated?.$t || "",
       label: labels[0] || "Offers",
       labels,
@@ -754,7 +755,7 @@ const getLatestBloggerPost = async () => {
   };
 };
 
-const buildPushMessages = (post, eligibleUsers, matches) => {
+const buildPushMessages = (post, eligibleUsers, matches, notificationType = "new") => {
   const matchedIds = new Set(
     matches
       .filter((item) => item.matched)
@@ -766,14 +767,16 @@ const buildPushMessages = (post, eligibleUsers, matches) => {
     .map((user) => ({
       to: user.token,
       sound: "default",
-      title: post.title,
-      body: post.excerpt || "A new Offerhaikya offer is available.",
+      title: notificationType === "updated" ? "Offer Updated: " + post.title : post.title,
+      body: notificationType === "updated" ? "An offer you may like has been updated." : (post.excerpt || "A new Offerhaikya offer is available."),
       data: {
         postId: post.id,
         title: post.title,
         url: post.url,
         date: post.date,
         publishedAt: post.publishedAt,
+        updatedAt: post.updatedAt || post.publishedAt || "",
+        notificationType,
         label: post.label,
         labels: post.labels,
         image: post.image,
@@ -788,77 +791,88 @@ const buildPushMessages = (post, eligibleUsers, matches) => {
 };
 
 const runProductionNotification = async (env) => {
-  const { posts, post } = await getLatestBloggerPost();
+  const { posts } = await getLatestBloggerPost();
   const accessToken = await getFirebaseAccessToken(env);
   const state = await getNotificationState(env, accessToken);
 
   if (!state) {
     return {
-      ok: true,
-      mode: "PRODUCTION_NOTIFICATION",
-      workerVersion: WORKER_VERSION,
-      bloggerPosts: posts.length,
-      latestPostId: post.id,
-      latestPostTitle: post.title,
-      processed: false,
-      pushSent: 0,
+      ok: true, mode: "PRODUCTION_NOTIFICATION", workerVersion: WORKER_VERSION,
+      bloggerPosts: posts.length, latestPostId: posts[0]?.id || "",
+      latestPostTitle: posts[0]?.title || "", processed: false, pushSent: 0,
       firestoreStateChanged: false,
-      message:
-        "Notification state is not initialized. Seed the current latest Blogger post before enabling automatic notifications.",
+      message: "Notification state is not initialized. Seed the current Blogger feed before enabling automatic notifications.",
     };
   }
 
-  if (state.lastProcessedPostId === post.id) {
+  let processedVersions = {};
+  try {
+    processedVersions = JSON.parse(state.processedPostVersionsJson || "{}");
+    if (!processedVersions || typeof processedVersions !== "object" || Array.isArray(processedVersions)) processedVersions = {};
+  } catch { processedVersions = {}; }
+
+  // Migrate older worker state without duplicate pushes.
+  if (!state.processedPostVersionsJson) {
+    for (const item of posts) processedVersions[item.id] = String(item.updatedAt || item.publishedAt || "");
+    await writeNotificationState(env, accessToken, {
+      processedPostVersionsJson: JSON.stringify(processedVersions),
+      lastProcessedAt: new Date().toISOString(),
+    });
     return {
-      ok: true,
-      mode: "PRODUCTION_NOTIFICATION",
-      workerVersion: WORKER_VERSION,
-      bloggerPosts: posts.length,
-      latestPostId: post.id,
-      latestPostTitle: post.title,
-      processed: false,
-      duplicate: true,
-      pushSent: 0,
-      firestoreStateChanged: false,
-      message:
-        "This Blogger post was already processed. No push notification was sent.",
+      ok: true, mode: "PRODUCTION_NOTIFICATION", workerVersion: WORKER_VERSION,
+      bloggerPosts: posts.length, processed: false, migratedState: true,
+      pushSent: 0, firestoreStateChanged: true,
+      message: "Existing notification state migrated safely. New posts and later edits will be checked on the next trigger.",
     };
   }
 
-  const eligibleUsers = await getEligibleUsers(env, accessToken);
-  const matches = findNotificationMatches(post, eligibleUsers);
-  const matchedUsers = matches.filter((item) => item.matched);
-  const messages = buildPushMessages(post, eligibleUsers, matches);
+  // A changed Blogger updatedAt is a new version of the same post.
+  const candidate = posts.find(item => {
+    const version = String(item.updatedAt || item.publishedAt || "");
+    return !Object.prototype.hasOwnProperty.call(processedVersions, item.id) ||
+      String(processedVersions[item.id] || "") !== version;
+  });
 
+  if (!candidate) {
+    return {
+      ok: true, mode: "PRODUCTION_NOTIFICATION", workerVersion: WORKER_VERSION,
+      bloggerPosts: posts.length, processed: false, duplicate: true,
+      pushSent: 0, firestoreStateChanged: false,
+      message: "No new Blogger post or edited post version was found.",
+    };
+  }
+
+  const previousVersion = processedVersions[candidate.id];
+  const notificationType = previousVersion === undefined ? "new" : "updated";
+  const eligibleUsers = await getEligibleUsers(env, accessToken);
+  const matches = findNotificationMatches(candidate, eligibleUsers);
+  const matchedUsers = matches.filter(item => item.matched);
+  const messages = buildPushMessages(candidate, eligibleUsers, matches, notificationType);
   const expo = await sendExpoPushNotifications(messages);
 
+  processedVersions[candidate.id] = String(candidate.updatedAt || candidate.publishedAt || "");
   await writeNotificationState(env, accessToken, {
-    lastProcessedPostId: post.id,
-    lastProcessedPublishedAt: post.publishedAt || "",
+    lastProcessedPostId: candidate.id,
+    lastProcessedPublishedAt: candidate.publishedAt || "",
+    lastProcessedUpdatedAt: candidate.updatedAt || candidate.publishedAt || "",
     lastProcessedAt: new Date().toISOString(),
+    processedPostVersionsJson: JSON.stringify(processedVersions),
   });
 
   return {
-    ok: true,
-    mode: "PRODUCTION_NOTIFICATION",
-    workerVersion: WORKER_VERSION,
-    bloggerPosts: posts.length,
-    processed: true,
+    ok: true, mode: "PRODUCTION_NOTIFICATION", workerVersion: WORKER_VERSION,
+    bloggerPosts: posts.length, processed: true, notificationType,
     post: {
-      postId: post.id,
-      title: post.title,
-      offerType: isOfflineOffer(post) ? "OFFLINE" : "ONLINE",
-      labels: post.labels,
-      locationName: post.locationName || "",
+      postId: candidate.id, title: candidate.title,
+      offerType: isOfflineOffer(candidate) ? "OFFLINE" : "ONLINE",
+      labels: candidate.labels, locationName: candidate.locationName || "",
+      updatedAt: candidate.updatedAt || candidate.publishedAt || "",
     },
-    eligibleUsers: eligibleUsers.length,
-    matchedUsers: matchedUsers.length,
-    matches,
-    pushSent: expo.sent,
-    expoResponse: expo.responses,
+    eligibleUsers: eligibleUsers.length, matchedUsers: matchedUsers.length,
+    matches, pushSent: expo.sent, expoResponse: expo.responses,
     firestoreStateChanged: true,
-    message:
-      "New Blogger post processed. Push notifications were sent to matched users and the post was recorded in Firestore.",
+    message: (notificationType === "updated" ? "Edited Blogger post" : "New Blogger post") +
+      " processed. Push notifications were sent to matched users and the post version was recorded in Firestore.",
   };
 };
 
@@ -866,10 +880,15 @@ const seedCurrentPost = async (env) => {
   const { posts, post } = await getLatestBloggerPost();
   const accessToken = await getFirebaseAccessToken(env);
 
+  const processedPostVersions = {};
+  for (const item of posts) processedPostVersions[item.id] = String(item.updatedAt || item.publishedAt || "");
+
   const state = await writeNotificationState(env, accessToken, {
     lastProcessedPostId: post.id,
     lastProcessedPublishedAt: post.publishedAt || "",
+    lastProcessedUpdatedAt: post.updatedAt || post.publishedAt || "",
     lastProcessedAt: new Date().toISOString(),
+    processedPostVersionsJson: JSON.stringify(processedPostVersions),
   });
 
   return {
