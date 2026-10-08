@@ -497,7 +497,7 @@ export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
-  const [nearbySort, setNearbySort] = useState<'distance' | 'oldest' | 'newest'>('distance');
+  const [nearbySort, setNearbySort] = useState<'distance' | 'oldest' | 'newest'>('newest');
   const [nearbySortOpen, setNearbySortOpen] = useState(false);
   const [latestSort, setLatestSort] = useState<'nearExpiry' | 'oldest' | 'newest' | 'expired'>('newest');
   const [latestSortOpen, setLatestSortOpen] = useState(false);
@@ -2235,23 +2235,23 @@ export default function App() {
   };
 
   const sortedNearbyPosts = useMemo(() => {
-    const published = (post: Post) => {
-      const time = Date.parse(post.publishedAt || '');
+    const sortDate = (post: Post) => {
+      const time = Date.parse(post.updatedAt || post.publishedAt || '');
       return Number.isFinite(time) ? time : 0;
     };
     return [...nearbyPosts].sort((a, b) => {
       if (nearbySort === 'distance') {
         return (a.nearbyDistanceKm ?? Number.POSITIVE_INFINITY) - (b.nearbyDistanceKm ?? Number.POSITIVE_INFINITY);
       }
-      if (nearbySort === 'oldest') return published(a) - published(b);
-      return published(b) - published(a);
+      if (nearbySort === 'oldest') return sortDate(a) - sortDate(b);
+      return sortDate(b) - sortDate(a);
     });
   }, [nearbyPosts, nearbySort]);
 
   const sortedVisiblePosts = useMemo(() => {
     const items = [...visiblePosts];
     const published = (post: Post) => {
-      const time = Date.parse(post.publishedAt || '');
+      const time = Date.parse(post.updatedAt || post.publishedAt || '');
       return Number.isFinite(time) ? time : 0;
     };
     const expiry = (post: Post) => getPostExpiryTime(post);
