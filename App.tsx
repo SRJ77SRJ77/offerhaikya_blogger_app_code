@@ -556,7 +556,7 @@ export default function App() {
   const [localOfferEmptyOpen, setLocalOfferEmptyOpen] = useState(false);
   const [localOffersDisabled, setLocalOffersDisabled] = useState(false);
   const [localOfferEmptyCountdown, setLocalOfferEmptyCountdown] = useState(5);
-  const mainListRef = useRef<FlatList<Post>>(null);
+  const mainListRef = useRef<FlatList<Post[]>>(null);
   const nearbyCacheRef = useRef<{ key: string; savedAt: number; posts: Post[] } | null>(null);
   const nearbySectionOffsetRef = useRef(0);
   const nearbyPreloaderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
