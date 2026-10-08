@@ -106,9 +106,11 @@ type Post = {
   locationName?: string;
   locationCoordinates?: { latitude: number; longitude: number };
   nearbyDistanceKm?: number;
+  updatedAt?: string;
 };
 
 const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
+const feedTotalCountCache = new Map<string, number>();
 
 const stripHtml = (value = '') =>
   value
@@ -240,6 +242,7 @@ const parseFeed = (data: any): Post[] => {
       url: alternate?.href || BLOG_URL,
       date: formatDate(entry.published?.$t || entry.updated?.$t || ''),
       publishedAt: entry.published?.$t || entry.updated?.$t || '',
+      updatedAt: entry.updated?.$t || entry.published?.$t || '',
       label: labels[0] || 'Offers',
       labels,
       image: highResImage(firstImage(content) || entry.media$thumbnail?.url),
@@ -289,6 +292,10 @@ const fetchFeedFromNetwork = async (query = '', startIndex = 1, forceRefresh = f
     posts,
     savedAt: Date.now(),
   });
+  const totalResults = Number(data?.feed?.['openSearch$totalResults']?.$t);
+  if (Number.isFinite(totalResults)) {
+    feedTotalCountCache.set(query.trim().toLowerCase(), totalResults);
+  }
 
   return posts;
 };
@@ -424,6 +431,10 @@ export default function App() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [nearbyVisibleCount, setNearbyVisibleCount] = useState(PAGE_SIZE);
+  const [latestTotalCount, setLatestTotalCount] = useState(0);
+  const nearbyVisibleCountRef = useRef(PAGE_SIZE);
+  const nearbyLastUpdatedCheckRef = useRef(Date.now() - 60 * 1000);
   const [nearbyPreloaderOpen, setNearbyPreloaderOpen] = useState(false);
   const [nearbyPreloaderProgress, setNearbyPreloaderProgress] = useState(0);
   const [locationRefreshKey, setLocationRefreshKey] = useState(0);
@@ -723,6 +734,7 @@ export default function App() {
 
       if (cached) {
         setPosts(cached);
+        setLatestTotalCount(feedTotalCountCache.get(search.trim().toLowerCase()) ?? cached.length);
         setPage(pageNumber);
         paginationPageRef.current = pageNumber;
         setHasMorePosts(cached.length === PAGE_SIZE);
@@ -739,6 +751,7 @@ export default function App() {
 
       const result = await fetchFeedFromNetwork(search, startIndex);
       setPosts(result);
+      setLatestTotalCount(feedTotalCountCache.get(search.trim().toLowerCase()) ?? result.length);
       setPage(pageNumber);
       paginationPageRef.current = pageNumber;
       setHasMorePosts(result.length === PAGE_SIZE);
@@ -1372,6 +1385,9 @@ export default function App() {
         }
 
         const allPosts = await getAllPostsForNearby();
+        nearbyVisibleCountRef.current = PAGE_SIZE;
+        setNearbyVisibleCount(PAGE_SIZE);
+        nearbyLastUpdatedCheckRef.current = Date.now();
 
         const nearbyResults = await Promise.all(
           allPosts.map(post =>
@@ -1442,7 +1458,7 @@ export default function App() {
     let cancelled = false;
 
     const normalizeLocationTextForPolling = (value = '') =>
-      value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+      value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\\s+/g, ' ').trim();
 
     const matchesNearbyOfferForPolling = async (
       post: Post,
@@ -1507,41 +1523,62 @@ export default function App() {
 
     const checkForNearbyPostUpdates = async () => {
       try {
-        const latestPosts = await fetchFeedFromNetwork('', 1);
-        if (cancelled) return;
+        const updatedMin = new Date(
+          nearbyLastUpdatedCheckRef.current - 5000,
+        ).toISOString();
+
+        const params = new URLSearchParams({
+          alt: 'json',
+          'max-results': '500',
+          orderby: 'updated',
+          'updated-min': updatedMin,
+          ohk_refresh: String(Date.now()),
+        });
+
+        const response = await fetch(FEED_URL + '?' + params.toString(), {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, max-age=0',
+            'Pragma': 'no-cache',
+          },
+        });
+
+        if (!response.ok || cancelled) return;
+
+        const data = await response.json();
+        const updatedPosts = parseFeed(data);
+        nearbyLastUpdatedCheckRef.current = Date.now();
+
+        if (updatedPosts.length === 0) return;
 
         const latestNearbyResults = await Promise.all(
-          latestPosts.map(post =>
+          updatedPosts.map(post =>
             matchesNearbyOfferForPolling(post, userLocation, locationTerms),
           ),
         );
-        const latestNearbyMatches = latestPosts
+
+        const latestNearbyMatches = updatedPosts
           .map((post, index) => {
             const distance = latestNearbyResults[index];
             return distance === null ? null : { ...post, nearbyDistanceKm: distance };
           })
-          .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null)
-          .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm);
+          .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null);
 
         setNearbyPosts(current => {
-          const latestById = new Map(
-            latestPosts.map(post => [post.id, post]),
+          const changedById = new Map(
+            updatedPosts.map(post => [post.id, post]),
           );
-          const latestMatchIds = new Set(
-            latestNearbyMatches.map(post => post.id),
+          const changedNearbyById = new Map(
+            latestNearbyMatches.map(post => [post.id, post]),
           );
 
-          // Replace refreshed posts so label/content changes are reflected,
-          // add newly eligible nearby posts, and remove posts that no longer
-          // satisfy the Nearby rules.
           const refreshed = current
             .map(post => {
-              const latest = latestById.get(post.id);
+              const latest = changedById.get(post.id);
               if (!latest) return post;
-              const distance = latestNearbyMatches.find(item => item.id === post.id)?.nearbyDistanceKm;
-              return distance === undefined
-                ? null
-                : { ...latest, nearbyDistanceKm: distance };
+
+              const nearbyMatch = changedNearbyById.get(post.id);
+              return nearbyMatch || null;
             })
             .filter((post): post is Post & { nearbyDistanceKm: number } => post !== null);
 
@@ -1551,9 +1588,16 @@ export default function App() {
           );
 
           const merged = [...additions, ...refreshed]
-            .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm);
-          const cached = nearbyCacheRef.current;
+            .sort((a, b) => {
+              const aUpdated = Date.parse(a.updatedAt || a.publishedAt || '');
+              const bUpdated = Date.parse(b.updatedAt || b.publishedAt || '');
+              if (Number.isFinite(aUpdated) && Number.isFinite(bUpdated) && aUpdated !== bUpdated) {
+                return bUpdated - aUpdated;
+              }
+              return a.nearbyDistanceKm - b.nearbyDistanceKm;
+            });
 
+          const cached = nearbyCacheRef.current;
           if (cached) {
             nearbyCacheRef.current = {
               ...cached,
@@ -1583,8 +1627,7 @@ export default function App() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [registrationOpen, userLocation, locationTerms, nearbyPosts]);
-
+  }, [registrationOpen, userLocation, locationTerms]);
   useEffect((): void | (() => void) => {
     if (registrationOpen || locationAutoStartedRef.current) {
       return;
@@ -1777,12 +1820,42 @@ export default function App() {
   useEffect(() => {
     if (registrationOpen) return;
 
-    const syncNow = () => {
-      // Never let auto-refresh race with Load More and overwrite appended offers.
+    const syncNow = async () => {
+      // Never let auto-refresh race with Load More or reset an expanded list.
       if (loadingMoreRef.current || paginationPageRef.current > 1) return;
 
       const activeSearch = query.trim().length >= 1 ? query.trim() : '';
-      loadPosts(activeSearch, 1);
+      if (activeSearch) {
+        loadPosts(activeSearch, 1);
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          alt: 'json',
+          'max-results': String(PAGE_SIZE),
+          orderby: 'updated',
+          ohk_refresh: String(Date.now()),
+        });
+        const response = await fetch(FEED_URL + '?' + params.toString(), {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, max-age=0',
+            'Pragma': 'no-cache',
+          },
+        });
+        if (!response.ok) throw new Error('Latest refresh failed');
+        const data = await response.json();
+        const refreshed = parseFeed(data);
+        const totalResults = Number(data?.feed?.['openSearch$totalResults']?.$t);
+        if (Number.isFinite(totalResults)) setLatestTotalCount(totalResults);
+        setPosts(refreshed);
+        setPage(1);
+        paginationPageRef.current = 1;
+        setHasMorePosts(refreshed.length === PAGE_SIZE);
+      } catch {
+        // Keep the current latest list if background refresh fails.
+      }
     };
 
     const interval = setInterval(syncNow, MAIN_AUTO_SYNC_INTERVAL_MS);
@@ -5499,22 +5572,35 @@ export default function App() {
                   }}
                 >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers
+                    Nearby Offers ({nearbyPosts.length})
                   </Text>
-
                 </View>
                 <View>
-                  {Array.from({ length: Math.ceil(nearbyPosts.length / 2) }).map((_, rowIndex) => (
+                  {Array.from({ length: Math.ceil(Math.min(nearbyVisibleCount, nearbyPosts.length) / 2) }).map((_, rowIndex) => (
                     <View style={styles.row} key={'nearby-row-' + rowIndex}>
-                      {nearbyPosts.slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                      {nearbyPosts.slice(0, nearbyVisibleCount).slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
                     </View>
                   ))}
                 </View>
+                {nearbyVisibleCount < nearbyPosts.length ? (
+                  <View style={styles.loadMoreWrap}>
+                    <TouchableOpacity
+                      style={styles.loadMoreButton}
+                      onPress={() => {
+                        const nextCount = Math.min(nearbyVisibleCountRef.current + PAGE_SIZE, nearbyPosts.length);
+                        nearbyVisibleCountRef.current = nextCount;
+                        setNearbyVisibleCount(nextCount);
+                      }}
+                    >
+                      <Text style={styles.loadMoreButtonText}>Load More Offers</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
               </>
             ) : null}
 
             <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers</Text>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers ({latestTotalCount || posts.length})</Text>
             </View>
           </>
         }
