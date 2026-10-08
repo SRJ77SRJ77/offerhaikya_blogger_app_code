@@ -6223,8 +6223,7 @@ export default function App() {
               </>
             ) : null}
 
-            {!userLocation && !nearbyPreloaderOpen ? <NativeAdCard /> : null}
-
+  
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {(latestTotalCount || posts.length) >= 100 ? '99+' : (latestTotalCount || posts.length)}</Text>
               <View style={{ position: 'relative' }}>
