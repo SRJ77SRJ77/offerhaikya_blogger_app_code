@@ -20,6 +20,7 @@ import {
   ToastAndroid,
   Share,
   Alert,
+  BackHandler,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import * as Clipboard from 'expo-clipboard';
@@ -3966,6 +3967,17 @@ export default function App() {
   }, [infoPage]);
 
   useEffect(() => {
+    if (!detail) return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setDetail(null);
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [detail]);
+
+  useEffect(() => {
     if (!detail) {
       setDetailPagePosts([]);
       setDetailPagePostsLoading(false);
@@ -4098,7 +4110,7 @@ export default function App() {
               localOffersDisabled && styles.bottomNavItemDisabled,
             ]}
             onPress={goToLocalOffersTab}
-            accessibilityLabel="Local Offers"
+            accessibilityLabel="Nearby Offers"
           >
             <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
               <Path
@@ -4114,7 +4126,7 @@ export default function App() {
                 strokeWidth={2}
               />
             </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Local Offers</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Nearby Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -5487,7 +5499,7 @@ export default function App() {
                   }}
                 >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Filtered Nearby Offers{locationLabel ? ' - ' + locationLabel.split(/[\s,]+/)[0] : ''}
+                    Nearby Offers
                   </Text>
 
                 </View>
@@ -5736,7 +5748,7 @@ export default function App() {
           <View style={styles.localOfferEmptyPopup}>
             <Text style={styles.localOfferEmptyTitle}>No offer found nearby</Text>
             <Text style={styles.localOfferEmptyText}>
-              No local offers found in your nearby area right now. Please check again later.
+              No nearby offers found in your area right now. Please check again later.
             </Text>
             <TouchableOpacity
               style={styles.registrationButton}
