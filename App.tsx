@@ -2484,21 +2484,26 @@ export default function App() {
   };
 
   const notificationPostFromData = (data: any): Post | null => {
-    if (!data?.postId || !data?.postTitle || !data?.postUrl) return null;
+    const postId = data?.postId || data?.id;
+    const postTitle = data?.postTitle || data?.title;
+    const postUrl = data?.postUrl || data?.url;
+    if (!postId || !postTitle || !postUrl) return null;
     return {
-      id: String(data.postId),
-      title: String(data.postTitle),
-      url: String(data.postUrl),
-      date: String(data.postDate || ''),
-      publishedAt: String(data.publishedAt || ''),
-      updatedAt: String(data.updatedAt || data.publishedAt || ''),
+      id: String(postId),
+      title: String(postTitle),
+      url: String(postUrl),
+      date: String(data.postDate || data.date || ''),
+      publishedAt: String(data.publishedAt || data.postDate || data.date || ''),
+      updatedAt: String(data.updatedAt || data.publishedAt || data.postDate || data.date || ''),
       notificationType: data.notificationType === 'updated' ? 'updated' : data.notificationType === 'relevant' ? 'relevant' : 'new',
-      label: String(data.postLabel || 'Offers'),
-      labels: Array.isArray(data.postLabels) ? data.postLabels.map((value: any) => String(value)) : [],
-      image: typeof data.postImage === 'string' ? data.postImage : '',
-      excerpt: String(data.postExcerpt || ''),
-      content: String(data.postContent || ''),
-      rawContent: String(data.postRawContent || ''),
+      label: String(data.postLabel || data.label || 'Offers'),
+      labels: Array.isArray(data.postLabels || data.labels) ? (data.postLabels || data.labels).map((value: any) => String(value)) : [],
+      image: typeof (data.postImage || data.image) === 'string' ? (data.postImage || data.image) : '',
+      excerpt: String(data.postExcerpt || data.excerpt || ''),
+      content: String(data.postContent || data.content || ''),
+      rawContent: String(data.postRawContent || data.rawContent || ''),
+      locationName: typeof data.locationName === 'string' ? data.locationName : undefined,
+      locationCoordinates: data.locationCoordinates && typeof data.locationCoordinates === 'object' ? data.locationCoordinates : undefined,
     };
   };
 
@@ -2605,7 +2610,13 @@ export default function App() {
           console.log('Relevant notification refresh error:', error);
         }
 
-        const merged = [...storedNotifications, ...latest, ...relevant].filter((item, index, all) =>
+        // If the feed has a newer version of a stored notification, prefer
+        // the current feed version. Otherwise keep push metadata such as "updated".
+        const retainedStored = storedNotifications.filter(stored =>
+          !latest.some(current => current.id === stored.id &&
+            notificationVersionKey(current) !== notificationVersionKey(stored)),
+        );
+        const merged = [...retainedStored, ...latest, ...relevant].filter((item, index, all) =>
           item?.id && !isNotificationDismissed(item) && all.findIndex(other => other?.id === item.id) === index,
         );
         setNotifications(merged);
