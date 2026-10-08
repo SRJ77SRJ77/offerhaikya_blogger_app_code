@@ -5589,12 +5589,12 @@ export default function App() {
           </ScrollView>
         </View>
 
-      <FlatList
+      <FlatList<Post[]>
         ref={mainListRef}
         style={darkMode ? styles.listDark : undefined}
         extraData={darkMode}
         data={mainPostRows}
-        keyExtractor={row => row[0]?.id || 'main-row'}
+        keyExtractor={(row, index) => row[0]?.id || `main-row-${index}`}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
         renderItem={({ item: row, index: rowIndex }) => (
