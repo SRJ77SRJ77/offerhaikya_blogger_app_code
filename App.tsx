@@ -4817,7 +4817,8 @@ export default function App() {
             </Text>
           </TouchableOpacity>
 
-        </View>     </SafeAreaView>
+        </View>
+      </SafeAreaView>
     );
   }
 
