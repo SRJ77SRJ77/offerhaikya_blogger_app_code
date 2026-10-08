@@ -1995,7 +1995,15 @@ export default function App() {
           });
         });
 
-        // Keep the Stores group visible even while Blogger labels are syncing.\n        ['Stores', 'Belagavi Store', 'Goa Store'].forEach(label => {\n          if (!seen.has(label)) {\n            seen.add(label);\n            categories.push(label);\n          }\n        });\n\n        if (!cancelled) {
+        // Keep the Stores group visible even while Blogger labels are syncing.
+        ['Stores', 'Belagavi Store', 'Goa Store'].forEach(label => {
+          if (!seen.has(label)) {
+            seen.add(label);
+            categories.push(label);
+          }
+        });
+
+        if (!cancelled) {
           setBloggerCategories(categories);
           setBloggerTags(categories);
         }
