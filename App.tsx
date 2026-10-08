@@ -90,7 +90,6 @@ const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's 
 const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
 const NOTIFICATION_DISMISSED_STORAGE_PREFIX = 'offerhaikya_notification_dismissed_';
-const GUEST_NOTIFICATION_REPEAT_MS = 10 * 60 * 60 * 1000;
 const GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY = 'offerhaikya_guest_notification_dismissed';
 const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
@@ -119,6 +118,7 @@ type Post = {
   locationCoordinates?: { latitude: number; longitude: number };
   nearbyDistanceKm?: number;
   updatedAt?: string;
+  notificationType?: 'new' | 'updated' | 'relevant';
 };
 
 const feedCache = new Map<string, { posts: Post[]; savedAt: number }>();
@@ -2474,6 +2474,15 @@ export default function App() {
   const getNotificationDismissedStorageKey = (uid: string) =>
     NOTIFICATION_DISMISSED_STORAGE_PREFIX + uid;
 
+  const notificationVersionKey = (post: Post) =>
+    String(post.id) + '::' + String(post.updatedAt || post.publishedAt || 'unknown');
+
+  const isNotificationDismissed = (post: Post) => {
+    const key = notificationVersionKey(post);
+    return dismissedNotificationIdsRef.current.has(key) ||
+      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, key);
+  };
+
   const notificationPostFromData = (data: any): Post | null => {
     if (!data?.postId || !data?.postTitle || !data?.postUrl) return null;
     return {
@@ -2482,6 +2491,8 @@ export default function App() {
       url: String(data.postUrl),
       date: String(data.postDate || ''),
       publishedAt: String(data.publishedAt || ''),
+      updatedAt: String(data.updatedAt || data.publishedAt || ''),
+      notificationType: data.notificationType === 'updated' ? 'updated' : data.notificationType === 'relevant' ? 'relevant' : 'new',
       label: String(data.postLabel || 'Offers'),
       labels: Array.isArray(data.postLabels) ? data.postLabels.map((value: any) => String(value)) : [],
       image: typeof data.postImage === 'string' ? data.postImage : '',
@@ -2533,19 +2544,20 @@ export default function App() {
   };
 
   const getLatestBellNotifications = (sourcePosts: Post[]) => {
-    const dismissed = dismissedNotificationIdsRef.current;
-    const user = auth.currentUser;
     const latestTen = sourcePosts.slice(0, 10);
-
-    if (user?.isAnonymous) {
-      const now = Date.now();
-      return latestTen.filter(post => {
-        const dismissedAt = guestDismissedNotificationRef.current[post.id];
-        return !dismissedAt || now - dismissedAt >= GUEST_NOTIFICATION_REPEAT_MS;
+    return latestTen
+      .filter(post => !isNotificationDismissed(post))
+      .map(post => {
+        const versionKey = notificationVersionKey(post);
+        const hasOlderDismissal =
+          Object.keys(guestDismissedNotificationRef.current).some(key =>
+            key.startsWith(String(post.id) + '::') && key !== versionKey,
+          ) ||
+          Array.from(dismissedNotificationIdsRef.current).some(key =>
+            key.startsWith(String(post.id) + '::') && key !== versionKey,
+          );
+        return hasOlderDismissal ? { ...post, notificationType: 'updated' as const } : post;
       });
-    }
-
-    return latestTen.filter(post => !dismissed.has(post.id));
   };
 
   const loadNotificationsForUser = async (user: any) => {
@@ -2584,7 +2596,7 @@ export default function App() {
           const seen = new Set<string>();
           relevant = [...categoryMatches, ...nearbyMatches].filter(post => {
             if (latest.some(item => item.id === post.id)) return false;
-            if (dismissedNotificationIdsRef.current.has(post.id)) return false;
+            if (isNotificationDismissed(post)) return false;
             if (seen.has(post.id)) return false;
             seen.add(post.id);
             return true;
@@ -2594,7 +2606,7 @@ export default function App() {
         }
 
         const merged = [...storedNotifications, ...latest, ...relevant].filter((item, index, all) =>
-          item?.id && all.findIndex(other => other?.id === item.id) === index,
+          item?.id && !isNotificationDismissed(item) && all.findIndex(other => other?.id === item.id) === index,
         );
         setNotifications(merged);
       } else {
@@ -2615,7 +2627,7 @@ export default function App() {
   };
 
   const addReceivedNotification = (post: Post) => {
-    if (dismissedNotificationIdsRef.current.has(post.id)) return;
+    if (isNotificationDismissed(post)) return;
     const user = auth.currentUser;
     setNotifications(current => {
       const next = [post, ...current.filter(item => item.id !== post.id)];
@@ -2624,11 +2636,13 @@ export default function App() {
     });
   };
 
-  const dismissNotification = async (postId: string) => {
+  const dismissNotification = async (post: Post) => {
     const user = auth.currentUser;
+    const postId = String(post.id);
+    const versionKey = notificationVersionKey(post);
 
     if (user?.isAnonymous) {
-      const nextGuestDismissed = { ...guestDismissedNotificationRef.current, [postId]: Date.now() };
+      const nextGuestDismissed = { ...guestDismissedNotificationRef.current, [versionKey]: Date.now() };
       guestDismissedNotificationRef.current = nextGuestDismissed;
       setNotifications(current => current.filter(item => item.id !== postId));
       try {
@@ -2639,7 +2653,7 @@ export default function App() {
       return;
     }
 
-    dismissedNotificationIdsRef.current.add(postId);
+    dismissedNotificationIdsRef.current.add(versionKey);
     setNotifications(current => current.filter(item => item.id !== postId));
     if (!user?.uid) return;
 
@@ -2655,7 +2669,7 @@ export default function App() {
     try {
       await setDoc(
         doc(db, 'notificationStates', user.uid),
-        { dismissedPostIds: arrayUnion(postId) },
+        { dismissedPostIds: arrayUnion(versionKey) },
         { merge: true },
       );
     } catch (error) {
@@ -2677,7 +2691,7 @@ export default function App() {
           onPress: () => {
             void (async () => {
               const user = auth.currentUser;
-              const ids = notifications.map(item => item.id).filter(Boolean);
+              const dismissedKeys = notifications.map(item => notificationVersionKey(item)).filter(Boolean);
 
               // Clear the visible UI immediately. Persistence happens in the
               // background so Delete All never blocks the popup for seconds.
@@ -2687,7 +2701,7 @@ export default function App() {
               if (user?.isAnonymous) {
                 const now = Date.now();
                 const nextGuestDismissed = { ...guestDismissedNotificationRef.current };
-                ids.forEach(id => { nextGuestDismissed[id] = now; });
+                dismissedKeys.forEach(key => { nextGuestDismissed[key] = now; });
                 guestDismissedNotificationRef.current = nextGuestDismissed;
                 try {
                   await AsyncStorage.setItem(
@@ -2698,7 +2712,7 @@ export default function App() {
                   console.log('Guest delete-all save error:', error);
                 }
               } else if (user?.uid) {
-                ids.forEach(id => dismissedNotificationIdsRef.current.add(id));
+                dismissedKeys.forEach(key => dismissedNotificationIdsRef.current.add(key));
                 try {
                   await AsyncStorage.setItem(
                     getNotificationDismissedStorageKey(user.uid),
@@ -2708,10 +2722,10 @@ export default function App() {
                   console.log('Notification delete-all local save error:', error);
                 }
                 try {
-                  if (ids.length > 0) {
+                  if (dismissedKeys.length > 0) {
                     await setDoc(
                       doc(db, 'notificationStates', user.uid),
-                      { dismissedPostIds: arrayUnion(...ids) },
+                      { dismissedPostIds: arrayUnion(...dismissedKeys) },
                       { merge: true },
                     );
                   }
@@ -2744,7 +2758,7 @@ export default function App() {
       const latest = getLatestBellNotifications(posts);
       const latestIds = new Set(latest.map(post => post.id));
       const receivedOnly = current.filter(
-        post => !latestIds.has(post.id) && !dismissedNotificationIdsRef.current.has(post.id),
+        post => !latestIds.has(post.id) && !isNotificationDismissed(post),
       );
       const merged = [...receivedOnly, ...latest];
       const seen = new Set<string>();
@@ -2768,7 +2782,7 @@ export default function App() {
             const latestNotifications = getLatestBellNotifications(latest);
             const latestIds = new Set(latestNotifications.map(post => post.id));
             const receivedOnly = current.filter(
-              post => !latestIds.has(post.id) && !dismissedNotificationIdsRef.current.has(post.id),
+              post => !latestIds.has(post.id) && !isNotificationDismissed(post),
             );
             const merged = [...receivedOnly, ...latestNotifications];
             const seen = new Set<string>();
@@ -4216,7 +4230,7 @@ export default function App() {
           <>
             <FlatList
               data={notifications}
-              keyExtractor={item => item.id}
+              keyExtractor={item => notificationVersionKey(item)}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.favoriteList}
               renderItem={({ item }) => (
@@ -4237,13 +4251,13 @@ export default function App() {
                     )}
                     <View style={styles.favoriteItemText}>
                       <Text style={[styles.favoriteItemTitle, darkMode && styles.darkText]} numberOfLines={2}>
-                        {item.title}
+                        {item.notificationType === 'updated' ? 'Updated: ' : ''}{item.title}
                       </Text>
                     </View>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.favoriteRemove}
-                    onPress={() => { void dismissNotification(item.id); }}
+                    onPress={() => { void dismissNotification(item); }}
                     accessibilityLabel="Remove notification"
                   >
                     <Text style={styles.favoriteRemoveText}>×</Text>
@@ -6046,7 +6060,7 @@ export default function App() {
                   }}
                 >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers - Total {nearbyPosts.length}
+                    Nearby Offers - Total {nearbyPosts.length >= 100 ? '99+' : nearbyPosts.length}
                   </Text>
                   <View style={{ position: 'relative' }}>
                     <TouchableOpacity
@@ -6111,7 +6125,7 @@ export default function App() {
             {!userLocation && !nearbyPreloaderOpen ? <NativeAdCard /> : null}
 
             <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {latestTotalCount || posts.length}</Text>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {(latestTotalCount || posts.length) >= 100 ? '99+' : (latestTotalCount || posts.length)}</Text>
               <View style={{ position: 'relative' }}>
                 <TouchableOpacity
                   style={[styles.sortButton, darkMode && styles.sortButtonDark]}
