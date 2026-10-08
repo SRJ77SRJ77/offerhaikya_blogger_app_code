@@ -4709,6 +4709,47 @@ export default function App() {
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
           <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
+            onPress={openOfferRequestTab}
+            accessibilityLabel="Request offer"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4 5.5H20V18.5H4V5.5Z"
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M4.5 6L12 12L19.5 6"
+                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text
+              style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'request' && styles.bottomNavLabelActive]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+            >
+              Request Offer
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'hot' && styles.bottomNavItemActive]}
+            onPress={goToHotOffersTab}
+            accessibilityLabel="Hot Offers"
+          >
+            <Text style={[styles.bottomNavPercentIcon, darkMode && styles.bottomNavPercentIconDark, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'hot' && styles.bottomNavLabelActive]}>
+              Hot Offers
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
             onPress={goToHomeTab}
             accessibilityLabel="Home"
@@ -4754,48 +4795,6 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'hot' && styles.bottomNavItemActive]}
-            onPress={goToHotOffersTab}
-            accessibilityLabel="Hot Offers"
-          >
-            <Text style={[styles.bottomNavPercentIcon, darkMode && styles.bottomNavPercentIconDark, bottomTab === 'hot' && styles.bottomNavPercentIconActive]}>%</Text>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'hot' && styles.bottomNavLabelActive]}>
-              Hot Offers
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
-            onPress={openOfferRequestTab}
-            accessibilityLabel="Request offer"
-          >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M4 5.5H20V18.5H4V5.5Z"
-                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M4.5 6L12 12L19.5 6"
-                stroke={bottomTab === 'request' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            <Text
-              style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'request' && styles.bottomNavLabelActive]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.78}
-            >
-              Request Offer
-            </Text>
-          </TouchableOpacity>
-
-
-          <TouchableOpacity
             style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
             onPress={goToSearchTab}
             accessibilityLabel="Search"
@@ -4818,8 +4817,7 @@ export default function App() {
             </Text>
           </TouchableOpacity>
 
-        </View>
-      </SafeAreaView>
+        </View>     </SafeAreaView>
     );
   }
 
