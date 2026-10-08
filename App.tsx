@@ -450,6 +450,10 @@ export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [hotOffersPosts, setHotOffersPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
+  const [nearbySort, setNearbySort] = useState<'distance' | 'latest'>('distance');
+  const [nearbySortOpen, setNearbySortOpen] = useState(false);
+  const [latestSort, setLatestSort] = useState<'nearExpiry' | 'oldest' | 'newest' | 'expired'>('newest');
+  const [latestSortOpen, setLatestSortOpen] = useState(false);
   const [activeLabel, setActiveLabel] = useState('All');
   const [tagPage, setTagPage] = useState<string | null>(null);
   const [tagPagePosts, setTagPagePosts] = useState<Post[]>([]);
@@ -2018,26 +2022,30 @@ export default function App() {
 
       const scoreSuggestion = (post: Post) => {
         const title = post.title.toLowerCase();
+        const location = (post.locationName || '').toLowerCase();
+        const description = post.content.toLowerCase();
         const label = post.label.toLowerCase();
         const labels = post.labels.join(' ').toLowerCase();
-        const content = post.content.toLowerCase();
 
         let score = 0;
 
         if (title === normalizedQuery) score += 3000;
         if (title.startsWith(normalizedQuery)) score += 1800;
         if (title.includes(normalizedQuery)) score += 1200;
+        if (location === normalizedQuery) score += 1000;
+        if (location.includes(normalizedQuery)) score += 800;
         if (label === normalizedQuery) score += 700;
         if (label.includes(normalizedQuery)) score += 500;
         if (labels.includes(normalizedQuery)) score += 350;
-        if (content.includes(normalizedQuery)) score += 120;
+        if (description.includes(normalizedQuery)) score += 120;
 
         const words = normalizedQuery.split(' ').filter(Boolean);
         const matchedWords = words.filter(word =>
           title.includes(word) ||
+          location.includes(word) ||
+          description.includes(word) ||
           label.includes(word) ||
-          labels.includes(word) ||
-          content.includes(word)
+          labels.includes(word)
         );
 
         score += matchedWords.length * 35;
@@ -2161,6 +2169,75 @@ export default function App() {
     return rows;
   }, [tagPagePosts]);
 
+  const getPostExpiryTime = (post: Post) => {
+    const expiryTag = post.labels.find(label => /^E\d+$/i.test(label.trim()));
+    if (!expiryTag || !post.publishedAt) return null;
+    const days = Number(expiryTag.trim().slice(1));
+    const publishedTime = Date.parse(post.publishedAt);
+    if (!Number.isFinite(days) || days <= 0 || !Number.isFinite(publishedTime)) return null;
+    return publishedTime + days * 24 * 60 * 60 * 1000;
+  };
+
+  const sortedNearbyPosts = useMemo(() => {
+    return [...nearbyPosts].sort((a, b) => {
+      if (nearbySort === 'distance') {
+        return (a.nearbyDistanceKm ?? Number.POSITIVE_INFINITY) - (b.nearbyDistanceKm ?? Number.POSITIVE_INFINITY);
+      }
+      return Date.parse(b.updatedAt || b.publishedAt || '') - Date.parse(a.updatedAt || a.publishedAt || '');
+    });
+  }, [nearbyPosts, nearbySort]);
+
+  const sortedVisiblePosts = useMemo(() => {
+    const items = [...visiblePosts];
+    const published = (post: Post) => {
+      const time = Date.parse(post.publishedAt || '');
+      return Number.isFinite(time) ? time : 0;
+    };
+    const expiry = (post: Post) => getPostExpiryTime(post);
+    const isExpired = (post: Post) => {
+      const time = expiry(post);
+      return time !== null && time <= expiryNow;
+    };
+
+    if (latestSort === 'oldest') return items.sort((a, b) => published(a) - published(b));
+    if (latestSort === 'newest') return items.sort((a, b) => published(b) - published(a));
+
+    if (latestSort === 'expired') {
+      return items.sort((a, b) => {
+        const aExpired = isExpired(a);
+        const bExpired = isExpired(b);
+        if (aExpired !== bExpired) return aExpired ? -1 : 1;
+        const aExpiry = expiry(a);
+        const bExpiry = expiry(b);
+        if (aExpiry === null && bExpiry !== null) return 1;
+        if (aExpiry !== null && bExpiry === null) return -1;
+        if (aExpiry !== null && bExpiry !== null && aExpiry !== bExpiry) return aExpiry - bExpiry;
+        return published(b) - published(a);
+      });
+    }
+
+    return items.sort((a, b) => {
+      const aExpiry = expiry(a);
+      const bExpiry = expiry(b);
+      const aExpired = aExpiry !== null && aExpiry <= expiryNow;
+      const bExpired = bExpiry !== null && bExpiry <= expiryNow;
+
+      if (aExpired !== bExpired) return aExpired ? 1 : -1;
+      if (aExpiry === null && bExpiry !== null) return 1;
+      if (aExpiry !== null && bExpiry === null) return -1;
+      if (aExpiry !== null && bExpiry !== null && aExpiry !== bExpiry) return aExpiry - bExpiry;
+      return published(b) - published(a);
+    });
+  }, [visiblePosts, latestSort, expiryNow]);
+
+  const sortedMainPostRows = useMemo(() => {
+    const rows: Post[][] = [];
+    for (let index = 0; index < sortedVisiblePosts.length; index += 2) {
+      rows.push(sortedVisiblePosts.slice(index, index + 2));
+    }
+    return rows;
+  }, [sortedVisiblePosts]);
+
   const searchTagPage = useCallback(async (text: string) => {
     const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim();
     if (!normalized) return;
@@ -2170,16 +2247,27 @@ export default function App() {
       const allPosts = await getAllPostsForNearby();
       const score = (post: Post) => {
         const title = post.title.toLowerCase();
+        const location = (post.locationName || '').toLowerCase();
+        const description = post.content.toLowerCase();
         const label = post.label.toLowerCase();
         const labels = post.labels.join(' ').toLowerCase();
-        const content = post.content.toLowerCase();
         let value = 0;
         if (title === normalized) value += 3000;
         if (title.startsWith(normalized)) value += 1800;
         if (title.includes(normalized)) value += 1200;
+        if (location === normalized) value += 1000;
+        if (location.includes(normalized)) value += 800;
         if (label.includes(normalized)) value += 500;
         if (labels.includes(normalized)) value += 350;
-        if (content.includes(normalized)) value += 120;
+        if (description.includes(normalized)) value += 120;
+        const words = normalized.split(' ').filter(Boolean);
+        value += words.filter(word =>
+          title.includes(word) ||
+          location.includes(word) ||
+          description.includes(word) ||
+          label.includes(word) ||
+          labels.includes(word)
+        ).length * 35;
         return value;
       };
       const matches = allPosts
@@ -2316,21 +2404,56 @@ export default function App() {
         return;
       }
 
+      const normalized = text.toLowerCase().replace(/\\s+/g, ' ').trim();
+      const score = (post: Post) => {
+        const title = post.title.toLowerCase();
+        const location = (post.locationName || '').toLowerCase();
+        const description = post.content.toLowerCase();
+        const label = post.label.toLowerCase();
+        const labels = post.labels.join(' ').toLowerCase();
+        let value = 0;
+        if (title === normalized) value += 3000;
+        if (title.startsWith(normalized)) value += 1800;
+        if (title.includes(normalized)) value += 1200;
+        if (location === normalized) value += 1000;
+        if (location.includes(normalized)) value += 800;
+        if (label.includes(normalized)) value += 500;
+        if (labels.includes(normalized)) value += 350;
+        if (description.includes(normalized)) value += 120;
+        const words = normalized.split(' ').filter(Boolean);
+        value += words.filter(word =>
+          title.includes(word) ||
+          location.includes(word) ||
+          description.includes(word) ||
+          label.includes(word) ||
+          labels.includes(word)
+        ).length * 35;
+        return value;
+      };
+
       try {
         setTagPageLoading(true);
-        const results = await getFeed(text, 1);
-        tagPageAllPostsRef.current = results;
+        let source = tagPageAllPostsRef.current;
+
+        if (source.length === 0) {
+          source = await getAllPostsForNearby();
+        }
+
+        const results = source
+          .filter(post => score(post) > 0)
+          .sort((a, b) => score(b) - score(a));
+
         tagPageStartPageRef.current = 1;
         tagPagePageRef.current = 1;
-        setTagPagePosts(results);
-        setTagPageHasMore(results.length === PAGE_SIZE);
+        setTagPagePosts(results.slice(0, PAGE_SIZE));
+        setTagPageHasMore(results.length > PAGE_SIZE);
       } catch {
         setTagPagePosts([]);
         setTagPageHasMore(false);
       } finally {
         setTagPageLoading(false);
       }
-    }, 300);
+    }, 60);
 
     return () => clearTimeout(timer);
   }, [tagPage, query, loadTagPosts]);
@@ -5832,7 +5955,7 @@ export default function App() {
         ref={mainListRef}
         style={darkMode ? styles.listDark : undefined}
         extraData={darkMode}
-        data={mainPostRows}
+        data={sortedMainPostRows}
         keyExtractor={(row, index) => row[0]?.id || `main-row-${index}`}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
@@ -5925,12 +6048,44 @@ export default function App() {
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
                     Nearby Offers - Total {nearbyPosts.length}
                   </Text>
+                  <View style={{ position: 'relative' }}>
+                    <TouchableOpacity
+                      style={[styles.sortButton, darkMode && styles.sortButtonDark]}
+                      onPress={() => {
+                        setNearbySortOpen(value => !value);
+                        setLatestSortOpen(false);
+                      }}
+                    >
+                      <Text style={[styles.sortButtonText, darkMode && styles.darkText]}>
+                        Sort: {nearbySort === 'distance' ? 'Distance' : 'Latest Offer'} ▾
+                      </Text>
+                    </TouchableOpacity>
+                    {nearbySortOpen ? (
+                      <View style={[styles.sortMenu, darkMode && styles.sortMenuDark]}>
+                        {[
+                          ['distance', 'Distance'],
+                          ['latest', 'Latest Offer'],
+                        ].map(([value, label]) => (
+                          <TouchableOpacity
+                            key={value}
+                            style={styles.sortMenuItem}
+                            onPress={() => {
+                              setNearbySort(value as 'distance' | 'latest');
+                              setNearbySortOpen(false);
+                            }}
+                          >
+                            <Text style={[styles.sortMenuItemText, nearbySort === value && styles.sortMenuItemTextActive]}>{label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
                 </View>
                 <View>
                   {Array.from({ length: Math.ceil(Math.min(nearbyVisibleCount, nearbyPosts.length) / 2) }).map((_, rowIndex) => (
                     <React.Fragment key={'nearby-row-group-' + rowIndex}>
                       <View style={styles.row}>
-                        {nearbyPosts.slice(0, nearbyVisibleCount).slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
+                        {sortedNearbyPosts.slice(0, nearbyVisibleCount).slice(rowIndex * 2, rowIndex * 2 + 2).map(item => renderPost({ item }))}
                       </View>
                       {(rowIndex + 1) % 4 === 0 ? <NativeAdCard /> : null}
                     </React.Fragment>
@@ -5957,6 +6112,40 @@ export default function App() {
 
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {latestTotalCount || posts.length}</Text>
+              <View style={{ position: 'relative' }}>
+                <TouchableOpacity
+                  style={[styles.sortButton, darkMode && styles.sortButtonDark]}
+                  onPress={() => {
+                    setLatestSortOpen(value => !value);
+                    setNearbySortOpen(false);
+                  }}
+                >
+                  <Text style={[styles.sortButtonText, darkMode && styles.darkText]}>
+                    Sort: {latestSort === 'nearExpiry' ? 'Near Expiry' : latestSort === 'oldest' ? 'Old to New' : latestSort === 'newest' ? 'New to Old' : 'Expired'} ▾
+                  </Text>
+                </TouchableOpacity>
+                {latestSortOpen ? (
+                  <View style={[styles.sortMenu, styles.sortMenuLatest, darkMode && styles.sortMenuDark]}>
+                    {[
+                      ['nearExpiry', 'Near Expiry'],
+                      ['oldest', 'Old to New'],
+                      ['newest', 'New to Old'],
+                      ['expired', 'Expired'],
+                    ].map(([value, label]) => (
+                      <TouchableOpacity
+                        key={value}
+                        style={styles.sortMenuItem}
+                        onPress={() => {
+                          setLatestSort(value as 'nearExpiry' | 'oldest' | 'newest' | 'expired');
+                          setLatestSortOpen(false);
+                        }}
+                      >
+                        <Text style={[styles.sortMenuItemText, latestSort === value && styles.sortMenuItemTextActive]}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
             </View>
           </>
         }
@@ -6447,6 +6636,15 @@ const styles = StyleSheet.create({
   tagPageBackButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   tagPageBackText: { color: TEXT, fontSize: 34, lineHeight: 34 },
   tagPageTitle: { flex: 1, color: TEXT, fontSize: 20, fontWeight: '900', marginRight: 8 },
+  sortButton: { minHeight: 36, maxWidth: 185, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: WHITE },
+  sortButtonDark: { backgroundColor: '#222222', borderColor: '#444444' },
+  sortButtonText: { color: TEXT, fontSize: 11, fontWeight: '900' },
+  sortMenu: { position: 'absolute', top: 40, right: 0, minWidth: 150, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, overflow: 'hidden', elevation: 8, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, zIndex: 100 },
+  sortMenuLatest: { minWidth: 165 },
+  sortMenuDark: { backgroundColor: '#222222', borderColor: '#444444' },
+  sortMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
+  sortMenuItemText: { color: TEXT, fontSize: 12, fontWeight: '700' },
+  sortMenuItemTextActive: { color: ACCENT, fontWeight: '900' },
   tagPageDropdownButton: { minWidth: 72, height: 38, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: WHITE },
   tagPageDropdownText: { color: TEXT, fontSize: 13, fontWeight: '900' },
   tagPageDropdownArrow: { color: TEXT, fontSize: 17, lineHeight: 18, marginLeft: 5 },
