@@ -343,18 +343,24 @@ const prefetchFeed = async (query = '', startIndex = 1) => {
 };
 
 const getAllPostsForNearby = async () => {
-  const response = await fetch(
-    FEED_URL + '?alt=json&max-results=500&start-index=1&ohk_nearby=' + Date.now(),
-    {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, max-age=0',
-        'Pragma': 'no-cache',
-      },
-    },
-  );
-  if (!response.ok) throw new Error('Unable to load nearby offers');
-  return parseFeed(await response.json());
+  const all: Post[] = [];
+  const batchSize = 500;
+  let startIndex = 1;
+
+  for (let pageIndex = 0; pageIndex < 20; pageIndex += 1) {
+    const response = await fetch(
+      FEED_URL + '?alt=json&max-results=' + batchSize + '&start-index=' + startIndex,
+    );
+    if (!response.ok) throw new Error('Unable to load nearby offers');
+
+    const batch = parseFeed(await response.json());
+    all.push(...batch);
+
+    if (batch.length < batchSize) break;
+    startIndex += batchSize;
+  }
+
+  return all;
 };
 
 
