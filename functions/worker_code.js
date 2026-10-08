@@ -531,12 +531,31 @@ const getOfflineMatch = (post, user) => {
   const userData = user.data || {};
   const locationInfo = getUserLocationInfo(user);
 
+  // Coordinates are the primary nearby check. This is important when the
+  // saved/current user label is a small area name such as "Camp" while the
+  // Blogger offer uses a city name or only has a map location.
+  if (isFiniteCoordinate(locationInfo.coordinates) && isFiniteCoordinate(post.locationCoordinates)) {
+    const km = distanceKm(locationInfo.coordinates, post.locationCoordinates);
+
+    if (km <= 300) {
+      return {
+        matched: true,
+        reason: "COORDINATE_MATCH",
+        distanceKm: Number(km.toFixed(1)),
+        locationMode: locationInfo.mode,
+        userLocation: locationInfo.label || "",
+      };
+    }
+  }
+
+  // Text matching remains as a fallback for offers without usable map
+  // coordinates.
   const userTerms = locationTermsFromUser(locationInfo, userData);
 
   if (!userTerms.length) {
     return {
       matched: false,
-      reason: "NO_USER_LOCATION_TEXT",
+      reason: "NO_USER_LOCATION_TEXT_OR_COORDINATES",
       locationMode: locationInfo.mode,
       userLocation: locationInfo.label || "",
     };
@@ -602,8 +621,24 @@ const findNotificationMatches = (post, eligibleUsers) => {
   const offline = isOfflineOffer(post);
 
   return eligibleUsers.map((user) => {
+    const interestedCategories = Array.isArray(user.data?.interestedCategories)
+      ? user.data.interestedCategories.map(normalizeText).filter(Boolean)
+      : [];
+
+    const wantsOfflineOffers = interestedCategories.some((category) =>
+      category === "offline offer" ||
+      category === "offline offers"
+    );
+
+    // Offline/local notifications require BOTH the user's Offline Offer
+    // category preference and a nearby/location match.
     const match = offline
-      ? getOfflineMatch(post, user)
+      ? wantsOfflineOffers
+        ? getOfflineMatch(post, user)
+        : {
+            matched: false,
+            reason: "NO_OFFLINE_CATEGORY_SUBSCRIPTION",
+          }
       : getOnlineMatch(post, user);
 
     return {
