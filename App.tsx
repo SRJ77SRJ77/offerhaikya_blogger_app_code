@@ -5044,7 +5044,7 @@ export default function App() {
             </View>
           </View>
         )}
-        contentContainerStyle={{ paddingBottom: 104 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
         />
         <Modal
           visible={sharePostUrl !== null}
@@ -6071,6 +6071,11 @@ export default function App() {
         keyExtractor={(row, index) => row[0]?.id || `main-row-${index}`}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
+        removeClippedSubviews={Platform.OS === 'android'}
+        initialNumToRender={6}
+        maxToRenderPerBatch={4}
+        updateCellsBatchingPeriod={40}
+        windowSize={7}
         renderItem={({ item: row, index: rowIndex }) => (
           <>
             <View style={styles.row}>
@@ -6211,8 +6216,13 @@ export default function App() {
                     <TouchableOpacity
                       style={styles.loadMoreButton}
                       onPress={() => {
-                        const nextCount = Math.min(nearbyVisibleCountRef.current + PAGE_SIZE, nearbyPosts.length);
+                        const nextCount = Math.min(
+                          nearbyVisibleCountRef.current + PAGE_SIZE,
+                          nearbyPosts.length,
+                        );
                         nearbyVisibleCountRef.current = nextCount;
+                        // Do not change nearbySort here. The selected sort is
+                        // applied to the complete Nearby list before slicing.
                         setNearbyVisibleCount(nextCount);
                       }}
                     >
