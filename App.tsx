@@ -5572,7 +5572,7 @@ export default function App() {
                   }}
                 >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers - Total ${nearbyPosts.length}
+                    Nearby Offers - Total {nearbyPosts.length}
                   </Text>
                 </View>
                 <View>
@@ -5600,7 +5600,7 @@ export default function App() {
             ) : null}
 
             <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total ${latestTotalCount || posts.length}</Text>
+              <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {latestTotalCount || posts.length}</Text>
             </View>
           </>
         }
