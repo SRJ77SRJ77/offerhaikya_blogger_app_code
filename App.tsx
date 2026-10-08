@@ -83,9 +83,9 @@ const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
 const PROFILE_CACHE_PREFIX = 'offerhaikya_profile_';
 const HAS_REGISTERED_ACCOUNT_KEY = 'offerhaikya_has_registered_account';
-const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers'];
+const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers', 'Stores', 'Belagavi Store', 'Goa Store'];
 const ALL_POSTS_TAG = '__all_posts__';
-const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial'];
+const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial', 'Stores', 'Belagavi Store', 'Goa Store'];
 const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies'];
 const ADD_OFFERS_WHATSAPP_URL = '';
 const NOTIFICATIONS_STORAGE_PREFIX = 'offerhaikya_notifications_';
@@ -1995,7 +1995,7 @@ export default function App() {
           });
         });
 
-        if (!cancelled) {
+        // Keep the Stores group visible even while Blogger labels are syncing.\n        ['Stores', 'Belagavi Store', 'Goa Store'].forEach(label => {\n          if (!seen.has(label)) {\n            seen.add(label);\n            categories.push(label);\n          }\n        });\n\n        if (!cancelled) {
           setBloggerCategories(categories);
           setBloggerTags(categories);
         }
