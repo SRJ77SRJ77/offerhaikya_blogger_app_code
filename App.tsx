@@ -287,7 +287,8 @@ const fetchFeedFromNetwork = async (query = '', startIndex = 1, forceRefresh = f
   );
   if (!response.ok) throw new Error('Unable to load posts');
 
-  const posts = parseFeed(await response.json());
+  const data = await response.json();
+  const posts = parseFeed(data);
   feedCache.set(getFeedCacheKey(query, startIndex), {
     posts,
     savedAt: Date.now(),
