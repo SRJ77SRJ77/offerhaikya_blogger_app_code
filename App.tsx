@@ -2561,7 +2561,14 @@ export default function App() {
           Array.from(dismissedNotificationIdsRef.current).some(key =>
             key.startsWith(String(post.id) + '::') && key !== versionKey,
           );
-        return hasOlderDismissal ? { ...post, notificationType: 'updated' as const } : post;
+        const receivedUpdate = notifications.some(item =>
+          item.id === post.id &&
+          notificationVersionKey(item) === versionKey &&
+          item.notificationType === 'updated',
+        );
+        return hasOlderDismissal || receivedUpdate
+          ? { ...post, notificationType: 'updated' as const }
+          : post;
       });
   };
 
