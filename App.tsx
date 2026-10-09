@@ -2028,7 +2028,7 @@ export default function App() {
               const logoRegion = logoStart >= 0 ? source.slice(logoStart, logoStart + 12000) : '';
               const darkLogoMatch = logoRegion.match(/data-dark-src=['\"]([^'\"]+)['\"]/i);
               const darkLogoCandidate = darkLogoMatch ? decodeMenuText(darkLogoMatch[1]) : '';
-              if (/^https?:\\/\\//i.test(darkLogoCandidate) && !cancelled) {
+              if (/^https?:\/\//i.test(darkLogoCandidate) && !cancelled) {
                 setBloggerDarkLogoUri(darkLogoCandidate);
               }
             }
