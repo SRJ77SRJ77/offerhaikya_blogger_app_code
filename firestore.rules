@@ -19,6 +19,19 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /notificationStates/{userId} {
+      // A signed-in user can read and update only their own bell-dismissal list.
+      allow read:
+        if request.auth != null
+        && request.auth.uid == userId;
+      allow create, update:
+        if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['dismissedPostIds'])
+        && request.resource.data.dismissedPostIds is list;
+      allow delete: if false;
+    }
+
     match /offerRequests/{requestId} {
       // Request and rolling-limit marker are written together atomically.
       allow create:
