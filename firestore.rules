@@ -3,8 +3,72 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function allowedUserFields() {
+      return [
+        'uid',
+        'name',
+        'contact',
+        'email',
+        'interestedCategories',
+        'areaCity',
+        'profileStatus',
+        'registrationCompleted',
+        'updatedAt',
+        'expoPushToken',
+        'notificationsEnabled',
+        'notificationPermission',
+        'location',
+        'locationSource',
+        'locationLabel',
+        'locationUpdatedAt',
+        'manualLocationCoordinates',
+        'manualLocationLabel',
+        'favoritePostIds',
+        'createdAt'
+      ];
+    }
+
+    function userFieldsAreValid(userId) {
+      return request.resource.data.get('uid', userId) == userId
+        && (!('name' in request.resource.data) || request.resource.data.name is string)
+        && (!('contact' in request.resource.data) || request.resource.data.contact is string)
+        && (!('email' in request.resource.data) || request.resource.data.email is string)
+        && (!('interestedCategories' in request.resource.data) || request.resource.data.interestedCategories is list)
+        && (!('areaCity' in request.resource.data) || request.resource.data.areaCity is string)
+        && (!('profileStatus' in request.resource.data) || request.resource.data.profileStatus is string)
+        && (!('registrationCompleted' in request.resource.data) || request.resource.data.registrationCompleted is bool)
+        && (!('expoPushToken' in request.resource.data) || request.resource.data.expoPushToken is string)
+        && (!('notificationsEnabled' in request.resource.data) || request.resource.data.notificationsEnabled is bool)
+        && (!('notificationPermission' in request.resource.data) || request.resource.data.notificationPermission is string)
+        && (!('location' in request.resource.data) || request.resource.data.location is map)
+        && (!('locationSource' in request.resource.data) || request.resource.data.locationSource is string)
+        && (!('locationLabel' in request.resource.data) || request.resource.data.locationLabel is string)
+        && (!('locationUpdatedAt' in request.resource.data) || request.resource.data.locationUpdatedAt is string)
+        && (!('manualLocationCoordinates' in request.resource.data) || request.resource.data.manualLocationCoordinates is map)
+        && (!('manualLocationLabel' in request.resource.data) || request.resource.data.manualLocationLabel is string)
+        && (!('favoritePostIds' in request.resource.data) || request.resource.data.favoritePostIds is list)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is string)
+        && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp);
+    }
+
     match /users/{userId} {
-      allow read, create, update, delete:
+      allow read:
+        if request.auth != null
+        && request.auth.uid == userId;
+
+      allow create:
+        if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(allowedUserFields())
+        && userFieldsAreValid(userId);
+
+      allow update:
+        if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedUserFields())
+        && userFieldsAreValid(userId);
+
+      allow delete:
         if request.auth != null
         && request.auth.uid == userId;
     }
@@ -38,8 +102,7 @@ service cloud.firestore {
     }
 
     match /notificationStates/{userId} {
-      // Reading only the caller's dismissal state must not depend on
-      // request.resource, which is unavailable for read operations.
+      // A user may only read or update their own notification dismissal state.
       allow read:
         if request.auth != null
         && request.auth.uid == userId;
@@ -53,6 +116,12 @@ service cloud.firestore {
     }
 
     match /offerRequestLimits/{userId} {
+      // App.tsx checks the user's own timestamp to show the 24-hour message.
+      allow get:
+        if request.auth != null
+        && request.auth.uid == userId;
+      allow list: if false;
+
       allow create, update:
         if request.auth != null
         && request.auth.uid == userId
@@ -63,7 +132,7 @@ service cloud.firestore {
         && getAfter(
           /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
         ).data.uid == request.auth.uid;
-      allow read, delete: if false;
+      allow delete: if false;
     }
   }
 }
