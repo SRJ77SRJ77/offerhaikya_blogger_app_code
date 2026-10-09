@@ -1053,6 +1053,25 @@ const getExpoPushReceipts = async (ids) => {
   return data;
 };
 
+// Return a small public response; never expose recipient profiles, tokens, or Expo payloads.
+const publicRunSummary = (result) => ({
+  ok: result?.ok === true,
+  mode: result?.mode || "PRODUCTION",
+  pushSent: Number.isFinite(result?.pushSent) ? result.pushSent : 0,
+  skipped: result?.skipped === true,
+  message: result?.ok === false ? "Notification processing did not complete." : undefined,
+});
+
+// Keep compatibility with existing secret-query callers while also supporting Authorization headers.
+const hasWebhookAuthorization = (request, url, env) => {
+  const configured = typeof env.WEBHOOK_SECRET === "string" ? env.WEBHOOK_SECRET : "";
+  if (!configured) return false;
+  const querySecret = url.searchParams.get("secret") || "";
+  const authorization = request.headers.get("Authorization") || "";
+  const bearer = authorization.match(/^Bearer\\s+(.+)$/i)?.[1] || "";
+  return querySecret === configured || bearer === configured;
+};
+
 // --------------------------------------------------
 // WORKER
 // --------------------------------------------------
@@ -1265,10 +1284,9 @@ export default {
 
       if (request.method === "POST") {
         const mode = url.searchParams.get("mode") || "production";
-        const secret = url.searchParams.get("secret") || "";
 
         if (mode === "seed") {
-          if (secret !== env.WEBHOOK_SECRET) {
+          if (!hasWebhookAuthorization(request, url, env)) {
             return new Response("Unauthorized", { status: 401 });
           }
 
@@ -1283,10 +1301,36 @@ export default {
           );
         }
 
+        // A production trigger must be authenticated. If Blogger WebSub is configured
+        // with hub.secret, accept its standard SHA-1 HMAC signature as an alternative.
+        let authorized = hasWebhookAuthorization(request, url, env);
+        const hmacSecret = typeof env.WEBHOOK_HMAC_SECRET === "string"
+          ? env.WEBHOOK_HMAC_SECRET
+          : "";
+        const signatureHeader = request.headers.get("X-Hub-Signature") || "";
+        if (!authorized && hmacSecret && signatureHeader.startsWith("sha1=")) {
+          const rawBody = await request.clone().arrayBuffer();
+          const key = await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(hmacSecret),
+            { name: "HMAC", hash: "SHA-1" },
+            false,
+            ["sign"]
+          );
+          const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, rawBody));
+          const expected = "sha1=" + Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
+          if (signatureHeader.length === expected.length) {
+            let diff = 0;
+            for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ signatureHeader.charCodeAt(i);
+            authorized = diff === 0;
+          }
+        }
+        if (!authorized) return new Response("Unauthorized", { status: 401 });
+
         const result = await runProductionNotification(env);
 
         return new Response(
-          JSON.stringify(result, null, 2),
+          JSON.stringify(publicRunSummary(result), null, 2),
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
@@ -1296,12 +1340,12 @@ export default {
 
       return new Response("Method not allowed", { status: 405 });
     } catch (error) {
-      console.error(error);
+      console.error("Offerhaikya Worker request failed.");
 
       return new Response(
         JSON.stringify({
           ok: false,
-          error: error?.message || String(error),
+          error: "Request could not be completed.",
         }),
         {
           status: 500,
