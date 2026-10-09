@@ -4,7 +4,7 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const FEED_URL = 'https://www.offerhaikya.com/feeds/posts/default';
 const STATE_PATH = 'notificationState/bloggerFeed';
 const NEARBY_RADIUS_KM = 300;
-const NOTIFICATION_LOGIC_VERSION = 2;
+const NOTIFICATION_LOGIC_VERSION = 3;
 const WEBHOOK_POST_URL = String(process.env.WEBHOOK_POST_URL || '').trim();
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
@@ -269,16 +269,16 @@ const run = async () => {
           locationName: post.locationName,
           locationCoordinates: post.locationCoordinates,
         }),
-        notificationSent: Boolean(
-          previousPosts[post.id]?.notificationSent
-        ) && previousPosts[post.id]?.fingerprint === JSON.stringify({
+        notificationSent: state?.notificationLogicVersion !== NOTIFICATION_LOGIC_VERSION || (
+          Boolean(previousPosts[post.id]?.notificationSent) && previousPosts[post.id]?.fingerprint === JSON.stringify({
           title: post.title,
           content: post.content,
           labels: post.labels,
           image: post.image,
           locationName: post.locationName,
           locationCoordinates: post.locationCoordinates,
-        }),
+        })
+        ),
       },
     ]),
   );
@@ -299,7 +299,8 @@ const run = async () => {
   }
 
   const newPosts = posts.filter(post => !previousPosts[post.id]);
-  const updatedPosts = posts.filter(post => {
+  const migratingNotificationLogic = state?.notificationLogicVersion !== NOTIFICATION_LOGIC_VERSION;
+  const updatedPosts = migratingNotificationLogic ? [] : posts.filter(post => {
     const previous = previousPosts[post.id];
     return Boolean(previous) && previous.fingerprint !== currentPosts[post.id].fingerprint;
   });
@@ -307,17 +308,16 @@ const run = async () => {
   // If a post had no eligible recipients or Expo rejected its ticket, retry it
   // during the first 24 hours after publication. This allows recipient data or
   // transient delivery failures to recover without repeatedly pushing old posts.
-  const retryRecentUnsentPosts = posts.filter(post => {
+  const retryRecentUnsentPosts = migratingNotificationLogic ? [] : posts.filter(post => {
     const previous = previousPosts[post.id];
     const lastChanged = Date.parse(post.updatedAt || post.publishedAt || post.date || '');
     return Boolean(previous) && !previous.notificationSent && Number.isFinite(lastChanged) &&
       Date.now() - lastChanged <= 24 * 60 * 60 * 1000 && !isExpiredOffer(post);
   });
 
-  const retryLatestForLogicFix =
-    state?.notificationLogicVersion !== NOTIFICATION_LOGIC_VERSION
-      ? posts.slice(0, 1)
-      : [];
+  // Logic migrations must not re-send an already-seen post. New posts missing
+  // from previousPosts are still handled by newPosts below.
+  const retryLatestForLogicFix = [];
 
   const webhookPost = WEBHOOK_POST_URL
     ? posts.find(post => post.url === WEBHOOK_POST_URL)
@@ -350,6 +350,7 @@ const run = async () => {
       posts: currentPosts,
       latestPostId: posts[0].id,
       latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
+      notificationLogicVersion: NOTIFICATION_LOGIC_VERSION,
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     return;
