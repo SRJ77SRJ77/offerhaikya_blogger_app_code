@@ -118,6 +118,7 @@ type Post = {
   locationCoordinates?: { latitude: number; longitude: number };
   nearbyDistanceKm?: number;
   updatedAt?: string;
+  notificationTimestamp?: number;
   notificationType?: 'new' | 'updated' | 'relevant';
 };
 
@@ -2538,9 +2539,8 @@ export default function App() {
     String(post.id) + '::' + String(post.updatedAt || post.publishedAt || 'unknown');
 
   const isNotificationDismissed = (post: Post) => {
-    const postPrefix = String(post.id) + '::';
-    // Dismissal applies to this post, not only the current updatedAt version.
-    // A Blogger edit must not make a dismissed bell item reappear.
+    // Dismiss only the exact post version. A later Blogger edit has a new
+    // version key and may appear in the bell again.
     const versionKey = notificationVersionKey(post);
     return dismissedNotificationIdsRef.current.has(versionKey) ||
       dismissedNotificationIdsRef.current.has(String(post.id)) ||
@@ -2560,6 +2560,9 @@ export default function App() {
       date: String(data.postDate || data.date || ''),
       publishedAt: String(data.publishedAt || data.postDate || data.date || ''),
       updatedAt: String(data.updatedAt || data.publishedAt || data.postDate || data.date || ''),
+      notificationTimestamp: typeof data.createdAt?.toMillis === 'function'
+        ? data.createdAt.toMillis()
+        : Number(data.notificationTimestamp || 0) || Date.parse(String(data.updatedAt || data.publishedAt || data.postDate || data.date || '')) || 0,
       notificationType: ['updated', 'offer-update'].includes(String(data.notificationType || '')) ? 'updated' : data.notificationType === 'relevant' ? 'relevant' : 'new',
       label: String(data.postLabel || data.label || 'Offers'),
       labels: Array.isArray(data.postLabels || data.labels) ? (data.postLabels || data.labels).map((value: any) => String(value)) : [],
@@ -2654,7 +2657,7 @@ export default function App() {
           cloudNotifications = cloudSnapshot.docs
             .map(snapshot => notificationPostFromData(snapshot.data()))
             .filter((item): item is Post => Boolean(item))
-            .sort((a, b) => new Date(b.publishedAt || b.updatedAt || 0).getTime() - new Date(a.publishedAt || a.updatedAt || 0).getTime());
+            .sort((a, b) => (b.notificationTimestamp || 0) - (a.notificationTimestamp || 0));
         } catch (error) {
           console.log('Cloud notification history load error:');
         }
@@ -2700,9 +2703,23 @@ export default function App() {
           !latest.some(current => current.id === stored.id &&
             notificationVersionKey(current) !== notificationVersionKey(stored)),
         );
-        const merged = [...latest, ...cloudNotifications, ...retainedStored, ...relevant].filter((item, index, all) =>
-          item?.id && !isNotificationDismissed(item) && all.findIndex(other => other?.id === item.id) === index,
-        ).slice(0, 10);
+        const mergedById = new Map<string, Post>();
+        cloudNotifications.forEach(item => {
+          if (!isNotificationDismissed(item)) mergedById.set(item.id, item);
+        });
+        latest.forEach(item => {
+          if (isNotificationDismissed(item)) return;
+          const cloudVersion = cloudNotifications.find(cloudItem => cloudItem.id === item.id);
+          mergedById.set(item.id, cloudVersion?.notificationType === 'updated'
+            ? { ...item, notificationType: 'updated', notificationTimestamp: cloudVersion.notificationTimestamp }
+            : item);
+        });
+        [...retainedStored, ...relevant].forEach(item => {
+          if (!mergedById.has(item.id) && !isNotificationDismissed(item)) mergedById.set(item.id, item);
+        });
+        const merged = Array.from(mergedById.values())
+          .sort((a, b) => (b.notificationTimestamp || Date.parse(b.updatedAt || b.publishedAt || '') || 0) - (a.notificationTimestamp || Date.parse(a.updatedAt || a.publishedAt || '') || 0))
+          .slice(0, 10);
         setNotifications(merged);
       } else {
         setNotifications(latest);
@@ -2890,7 +2907,7 @@ export default function App() {
               if (seen.has(post.id)) return false;
               seen.add(post.id);
               return true;
-            });
+            }).slice(0, 10);
           });
         }
       } catch {
