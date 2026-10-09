@@ -75,9 +75,9 @@ const METADATA_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 const FEED_CACHE_TTL_MS = 60 * 1000;
 const NEARBY_CACHE_TTL_MS = 5 * 60 * 1000;
-const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 15 * 1000;
+const NEARBY_NEW_POST_CHECK_INTERVAL_MS = 30 * 1000;
 const LOCATION_RETRY_MS = 5 * 60 * 1000;
-const LOCATION_CHECK_INTERVAL_MS = 30 * 1000;
+const LOCATION_CHECK_INTERVAL_MS = 15 * 1000;
 const SKIP_REMINDER_MS = 7 * 60 * 1000;
 const SKIP_STORAGE_KEY = 'offerhaikya_registration_skipped_at';
 const FAVORITES_STORAGE_PREFIX = 'offerhaikya_favorites_';
@@ -552,6 +552,9 @@ export default function App() {
   const [registrationSuccess, setRegistrationSuccess] = useState('');
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  const [accountStateLoaded, setAccountStateLoaded] = useState(false);
+  const [startupGateOpen, setStartupGateOpen] = useState(false);
+  const [notificationStageDone, setNotificationStageDone] = useState(false);
   const [authUserKey, setAuthUserKey] = useState('');
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
   const [authMode, setAuthMode] = useState<'register' | 'signIn'>('register');
@@ -794,11 +797,13 @@ export default function App() {
         authBootstrappedRef.current = true;
         setAuthReady(true);
         await loadAccountState(auth.currentUser);
+        if (!cancelled) setAccountStateLoaded(true);
         await loadFavoritesForUser(auth.currentUser);
       } catch (error) {
         console.log('Auth bootstrap error:');
 
         if (!cancelled) {
+          setAccountStateLoaded(true);
           authBootstrappedRef.current = true;
           setAuthReady(true);
           setRegistrationCompleted(false);
@@ -1054,13 +1059,14 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!authReady) return;
+    if (!authReady || !startupGateOpen) return;
 
     let cancelled = false;
 
     const setup = async () => {
       if (cancelled) return;
       await syncPushTokenForCurrentUser();
+      if (!cancelled) setNotificationStageDone(true);
     };
 
     void setup();
@@ -1102,7 +1108,7 @@ export default function App() {
       cancelled = true;
       tokenSubscription.remove();
     };
-  }, [authReady]);
+  }, [authReady, startupGateOpen]);
 
 
 
@@ -1133,6 +1139,18 @@ export default function App() {
       clearTimeout(onlineTimer);
     };
   }, [startupPreloaderProgress]);
+
+  useEffect(() => {
+    if (startupGateOpen) return;
+    if (!authReady || !accountStateLoaded || startupPreloader || registrationOpen) return;
+    setStartupGateOpen(true);
+  }, [authReady, accountStateLoaded, startupPreloader, registrationOpen, startupGateOpen]);
+
+  // Safety net: keep the app usable if account-state loading stalls unexpectedly.
+  useEffect(() => {
+    const timer = setTimeout(() => setAccountStateLoaded(true), 8000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     loadPosts();
@@ -1787,7 +1805,7 @@ export default function App() {
     };
   }, [registrationOpen, userLocation, locationTerms]);
   useEffect((): void | (() => void) => {
-    if (registrationOpen || locationAutoStartedRef.current) {
+    if (!startupGateOpen || !notificationStageDone || registrationOpen || locationAutoStartedRef.current) {
       return;
     }
 
@@ -1936,7 +1954,7 @@ export default function App() {
       locationAutoStartedRef.current = false;
       subscription.remove();
     };
-  }, [registrationOpen, startNearbyPreloader]);
+  }, [registrationOpen, startNearbyPreloader, startupGateOpen, notificationStageDone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -3257,6 +3275,8 @@ export default function App() {
   };
 
   const submitRegistration = async () => {
+    if (signInSubmittingRef.current) return;
+
     const profile = validateRegistration();
     if (!profile) return;
 
@@ -3335,6 +3355,9 @@ export default function App() {
 
       registrationFlowActiveRef.current = false;
       setRegistrationSubmitting(false);
+    } finally {
+      // Always release the shared submit lock so Login works after a failed registration.
+      signInSubmittingRef.current = false;
     }
   };
 
@@ -3639,9 +3662,9 @@ export default function App() {
       setRegistrationSubmitting(true);
       await sendPasswordResetEmail(auth, email);
       setRegistrationSubmitting(false);
-      setRegistrationSuccess('');
-      setRegistrationError('Password reset email sent. Check your inbox.');
-      setTimeout(() => setRegistrationSuccess(''), 1800);
+      setRegistrationError('');
+      setRegistrationSuccess('Password reset email sent. Check your inbox ✓');
+      setTimeout(() => setRegistrationSuccess(''), 3000);
     } catch (error: any) {
       console.log('Forgot password error:');
 
@@ -4245,7 +4268,7 @@ export default function App() {
       console.log('Offer request submit error:');
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(false);
-      if (error?.code === 'permission-denied') {
+      if (error?.code === 'resource-exhausted') {
         setOfferRequestError('');
         setOfferRequestOpen(false);
         setOfferRequestName('');
@@ -4253,7 +4276,7 @@ export default function App() {
         setOfferRequestText('');
         Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
       } else {
-        setOfferRequestError('Could not submit your request. Please try again.');
+        setOfferRequestError('Could not submit your request. Please try again. [' + String(error?.code || 'unknown') + ']');
       }
     }
   };
@@ -5230,7 +5253,7 @@ export default function App() {
   }
 
 
-  if (startupPreloader) {
+  if (startupPreloader || !accountStateLoaded) {
     const startupProgressWidth = startupPreloaderProgress.interpolate({
       inputRange: [0, 1],
       outputRange: ['0%', '100%'],
@@ -5567,7 +5590,7 @@ export default function App() {
               ) : (
                 <>
                   {registrationError ? <Text style={styles.registrationError}>{registrationError}</Text> : null}
-                  {registrationSuccess ? <Text style={styles.registrationSuccess}>Profile updated successfully ✓</Text> : null}
+                  {registrationSuccess ? <Text style={styles.registrationSuccess}>{registrationSuccess}</Text> : null}
 
                   <TouchableOpacity
                     style={[styles.profileUpdateButton, registrationSubmitting && styles.disabledButton]}
