@@ -1029,7 +1029,6 @@ export default function App() {
       }
 
       const nativeToken = await Notifications.getDevicePushTokenAsync();
-      console.log('NATIVE FCM TOKEN:', nativeToken);
       const fcmToken = String(nativeToken.data);
 
       const pushToken = (
@@ -1047,7 +1046,6 @@ export default function App() {
         { merge: true },
       );
 
-      console.log('Expo push token:', pushToken);
 
       // Extra save in its own try/catch, so a Firestore rules problem
       // on this field can never block the main save above.
@@ -1106,7 +1104,6 @@ export default function App() {
           { merge: true },
         );
 
-        console.log('Expo push token listener update:', pushToken);
       } catch (error) {
         console.log('Push token update error:', error);
       }
@@ -1304,20 +1301,6 @@ export default function App() {
       const distanceKmValue = postLocation ? distanceKm(coords, postLocation) : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-
-      if (isNearbyDebugPost) {
-        console.log('[Nearby debug]', {
-          title: post.title,
-          labels: post.labels,
-          locationTerms: detectedLocationTerms,
-          locationMatch: Boolean(matchedLocationTerm),
-          matchedLocationTerm,
-          postLocation,
-          userLocation: coords,
-          distanceKm: distanceKmValue,
-          distanceMatch,
-        });
-      }
 
       return distanceMatch ? distanceKmValue : null;
     };
