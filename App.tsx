@@ -1028,9 +1028,6 @@ export default function App() {
         return;
       }
 
-      const nativeToken = await Notifications.getDevicePushTokenAsync();
-      const fcmToken = String(nativeToken.data);
-
       const pushToken = (
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
@@ -1047,17 +1044,6 @@ export default function App() {
       );
 
 
-      // Extra save in its own try/catch, so a Firestore rules problem
-      // on this field can never block the main save above.
-      try {
-        await setDoc(
-          doc(db, 'users', firebaseUser.uid),
-          { fcmToken },
-          { merge: true },
-        );
-      } catch (fcmSaveError) {
-        console.log('FCM token save error:', fcmSaveError);
-      }
     } catch (error) {
       console.log('Push notification sync error:', error);
     }
