@@ -13,6 +13,20 @@ on:
         default: false
 
 jobs:
+  validate-app-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate App.tsx syntax
+        run: npx --yes esbuild App.tsx --outfile=/tmp/OfferhaikyaApp.js
+
   deploy-firestore-rules:
     runs-on: ubuntu-latest
     steps:
