@@ -1847,7 +1847,7 @@ export default function App() {
             locationAutoTimerRef.current = null;
           }
 
-          // Keep the 30-second watcher alive so a later ON -> OFF
+          // Keep the 15-second watcher alive so a later ON -> OFF
           // device Location change while the app is open is detected immediately.
 
           if (!wasLocationReady) {
@@ -4057,7 +4057,7 @@ export default function App() {
               // Guest browsing can resume while guest favorites hydrate from storage.
               void loadFavoritesForUser(auth.currentUser);
               // Re-run the location/nearby flow for the guest session. The
-              // 30-second checker will prefer current GPS, then saved location.
+              // 15-second checker will prefer current GPS, then saved location.
               setLocationRefreshKey(value => value + 1);
               setRegistrationOpen(false);
             } catch (error) {
@@ -4154,7 +4154,7 @@ export default function App() {
             await Linking.openSettings();
           }
         } catch {
-          // The 30-second checker will detect Location when the user enables it.
+          // The 15-second checker will detect Location when the user enables it.
         }
         scheduleLocationPromptRetry();
         return;
