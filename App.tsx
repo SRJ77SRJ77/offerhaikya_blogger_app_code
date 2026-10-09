@@ -573,6 +573,8 @@ export default function App() {
   const [detailPagePostsLoading, setDetailPagePostsLoading] = useState(false);
   const [bloggerCategories, setBloggerCategories] = useState<string[]>([]);
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
+  const [bloggerMenuCategories, setBloggerMenuCategories] = useState<string[]>([]);
+  const [bloggerMenuSpecialDeals, setBloggerMenuSpecialDeals] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
@@ -1953,6 +1955,135 @@ export default function App() {
       subscription.remove();
     };
   }, [registrationOpen, startNearbyPreloader, startupGateOpen, notificationStageDone]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const decodeMenuText = (value: string) => value
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+      .replace(/&#x([0-9a-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const groupMenuLabels = (labels: string[], widgetSettings: boolean) => {
+      const categories: string[] = [];
+      const specialDeals: string[] = [];
+      let group: 'categories' | 'special' | '' = '';
+      labels.forEach(raw => {
+        const isSubItem = raw.trim().startsWith('_');
+        const label = decodeMenuText(raw.trim().replace(/^_+/, ''));
+        const normalized = label.toLowerCase();
+        if (normalized === 'categories') {
+          group = 'categories';
+          return;
+        }
+        if (normalized === 'special deal categories') {
+          group = 'special';
+          return;
+        }
+        if (!label || !group) return;
+        if (widgetSettings && !isSubItem) {
+          group = '';
+          return;
+        }
+        if (!widgetSettings && ['about us', 'contact us', 'privacy policy', 'terms and condition', 'terms & conditions'].includes(normalized)) {
+          group = '';
+          return;
+        }
+        if (group === 'categories') categories.push(label);
+        if (group === 'special') specialDeals.push(label);
+      });
+      return {
+        categories: [...new Set(categories)],
+        specialDeals: [...new Set(specialDeals)],
+      };
+    };
+
+    const syncBloggerMenu = async () => {
+      try {
+        let source = '';
+        let isWidgetSettings = false;
+
+        // Prefer the live Blogger site so menu edits appear without a new APK.
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          try {
+            const liveResponse = await fetch(BLOG_URL + '/?ohk_menu_sync=' + Date.now(), {
+              headers: { 'Cache-Control': 'no-cache, no-store', Pragma: 'no-cache' },
+              signal: controller.signal,
+            });
+            if (liveResponse.ok) source = await liveResponse.text();
+          } finally {
+            clearTimeout(timeout);
+          }
+        } catch {
+          // Fall back to the checked-in Blogger theme if the live page is unavailable.
+        }
+
+        let labels: string[] = [];
+        if (source) {
+          const widgetStart = source.search(/id=['"]LinkList200['"]/i);
+          const nextWidget = widgetStart >= 0
+            ? source.slice(widgetStart).search(/id=['"]LinkList201['"]/i)
+            : -1;
+          const widgetHtml = widgetStart >= 0
+            ? source.slice(widgetStart, nextWidget > 0 ? widgetStart + nextWidget : widgetStart + 40000)
+            : '';
+          const anchorPattern = /<a\b[^>]*>([\s\S]*?)<\/a>/gi;
+          let anchorMatch: RegExpExecArray | null;
+          while ((anchorMatch = anchorPattern.exec(widgetHtml)) !== null) {
+            const label = decodeMenuText(anchorMatch[1]);
+            if (label) labels.push(label);
+          }
+        }
+
+        if (labels.length === 0) {
+          const themeResponse = await fetch(
+            'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_app_code/main/index.xml?ohk_menu_sync=' + Date.now(),
+            { headers: { 'Cache-Control': 'no-cache, no-store', Pragma: 'no-cache' } },
+          );
+          if (!themeResponse.ok) return;
+          source = await themeResponse.text();
+          const widgetMatch = source.match(/<b:widget\b(?=[^>]*\bid=['"]LinkList200['"])[\s\S]*?<\/b:widget>/i);
+          if (!widgetMatch) return;
+          const settingPattern = /<b:widget-setting name=['"]text-(\d+)['"]>([\s\S]*?)<\/b:widget-setting>/gi;
+          const settings: Array<{ index: number; label: string }> = [];
+          let settingMatch: RegExpExecArray | null;
+          while ((settingMatch = settingPattern.exec(widgetMatch[0])) !== null) {
+            settings.push({ index: Number(settingMatch[1]), label: decodeMenuText(settingMatch[2]) });
+          }
+          labels = settings.sort((a, b) => a.index - b.index).map(item => item.label);
+          isWidgetSettings = true;
+        }
+
+        const parsed = groupMenuLabels(labels, isWidgetSettings);
+        if (!cancelled && parsed.categories.length > 0) setBloggerMenuCategories(parsed.categories);
+        if (!cancelled && parsed.specialDeals.length > 0) setBloggerMenuSpecialDeals(parsed.specialDeals);
+      } catch {
+        // Keep the existing menu fallback if both live sources are unavailable.
+      }
+    };
+
+    void syncBloggerMenu();
+    const interval = setInterval(syncBloggerMenu, INFO_PAGE_AUTO_SYNC_INTERVAL_MS);
+    const appStateSubscription = AppState.addEventListener('change', state => {
+      if (state === 'active') void syncBloggerMenu();
+    });
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      appStateSubscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -5810,7 +5941,7 @@ export default function App() {
               </TouchableOpacity>
               {menuCategoriesOpen ? (
                 <View style={styles.menuSubList}>
-                  {(bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(label => (
+                  {(bloggerMenuCategories.length > 0 ? bloggerMenuCategories : bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(label => (
                     <TouchableOpacity
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
@@ -5840,7 +5971,7 @@ export default function App() {
               </TouchableOpacity>
               {menuSpecialDealsOpen ? (
                 <View style={styles.menuSubList}>
-                  {SPECIAL_DEAL_ITEMS.map(label => (
+                  {(bloggerMenuSpecialDeals.length > 0 ? bloggerMenuSpecialDeals : SPECIAL_DEAL_ITEMS).map(label => (
                     <TouchableOpacity
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
