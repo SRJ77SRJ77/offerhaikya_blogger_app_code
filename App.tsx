@@ -575,6 +575,7 @@ export default function App() {
   const [bloggerTags, setBloggerTags] = useState<string[]>([]);
   const [bloggerMenuCategories, setBloggerMenuCategories] = useState<string[]>([]);
   const [bloggerMenuSpecialDeals, setBloggerMenuSpecialDeals] = useState<string[]>([]);
+  const [bloggerDarkLogoUri, setBloggerDarkLogoUri] = useState('');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
@@ -2021,7 +2022,16 @@ export default function App() {
               headers: { 'Cache-Control': 'no-cache, no-store', Pragma: 'no-cache' },
               signal: controller.signal,
             });
-            if (liveResponse.ok) source = await liveResponse.text();
+            if (liveResponse.ok) {
+              source = await liveResponse.text();
+              const logoStart = source.search(/id=['\"]main-logo['\"]/i);
+              const logoRegion = logoStart >= 0 ? source.slice(logoStart, logoStart + 12000) : '';
+              const darkLogoMatch = logoRegion.match(/data-dark-src=['\"]([^'\"]+)['\"]/i);
+              const darkLogoCandidate = darkLogoMatch ? decodeMenuText(darkLogoMatch[1]) : '';
+              if (/^https?:\\/\\//i.test(darkLogoCandidate) && !cancelled) {
+                setBloggerDarkLogoUri(darkLogoCandidate);
+              }
+            }
           } finally {
             clearTimeout(timeout);
           }
@@ -5830,7 +5840,7 @@ export default function App() {
           accessibilityLabel="Go to home"
         >
           <Image
-            source={{ uri: 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
+            source={{ uri: darkMode && bloggerDarkLogoUri ? bloggerDarkLogoUri : 'https://raw.githubusercontent.com/SRJ77SRJ77/offerhaikya_blogger_code/main/SS/Black_White_and_Red_Minimalist_Market_Shops_Discount_Black_Friday_Banner__2_-removebg-preview.png' }}
             style={styles.headerLogo}
             resizeMode="contain"
           />
