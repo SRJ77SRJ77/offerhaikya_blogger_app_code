@@ -197,22 +197,16 @@ const extractBloggerLocation = (entry: any, content = '') => {
     '';
 
   const pointParts = String(pointText).trim().split(/[ ,]+/).filter(Boolean);
+  const gmlPosition = location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t || '';
+  const gmlParts = String(gmlPosition).trim().split(/[ ,]+/).filter(Boolean);
   const pointLatitude = Number(pointParts[0]);
   const pointLongitude = Number(pointParts[1]);
 
   const latitude = Number(
-    location?.lat ??
-    location?.latitude ??
-    location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t ??
-    pointLatitude ??
-    NaN,
+    location?.lat ?? location?.latitude ?? gmlParts[0] ?? pointLatitude ?? NaN,
   );
   const longitude = Number(
-    location?.lng ??
-    location?.longitude ??
-    location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t ??
-    pointLongitude ??
-    NaN,
+    location?.lng ?? location?.longitude ?? gmlParts[1] ?? pointLongitude ?? NaN,
   );
 
   const coordinateLocation =
@@ -1923,10 +1917,9 @@ export default function App() {
         void runLocationCheck();
       }
 
-      // Keep checking every 30 seconds so turning device Location OFF
-      // while the app is open triggers the custom prompt immediately.
-      // If the user taps No, postponeLocationPrompt() starts the 5-minute retry.
-      // The 30-second checker continues silently in the background.
+      // Check every 15 seconds so turning device Location OFF while the app is
+      // open is detected promptly. Tapping No schedules the 5-minute re-prompt.
+      // The checker continues silently in the background.
       locationPromptSnoozeUntilRef.current = 0;
       void runLocationCheck();
 
