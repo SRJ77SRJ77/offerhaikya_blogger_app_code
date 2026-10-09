@@ -2176,7 +2176,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (registrationOpen) return;
+    // Background feed refresh must not disturb detail, tag, or information screens.
+    if (registrationOpen || detail || tagPage || infoPage) return;
 
     const syncNow = async () => {
       // Never let auto-refresh race with Load More or reset an expanded list.
@@ -2239,7 +2240,7 @@ export default function App() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [registrationOpen, query, loadPosts]);
+  }, [registrationOpen, query, loadPosts, detail, tagPage, infoPage]);
 
   useEffect(() => {
     const text = query.trim();
