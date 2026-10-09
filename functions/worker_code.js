@@ -1143,13 +1143,10 @@ export default {
         );
 
         const tickets = (Array.isArray(result.responses) ? result.responses : []).map(
-          (ticket, index) => ({
-            userId: targets[index]?.userId || "",
-            tokenEnding: String(targets[index]?.token || "").slice(-8),
+          (ticket) => ({
             status: ticket?.status || null,
-            receiptId: ticket?.id || null,
+            accepted: ticket?.status === "ok",
             error: ticket?.details?.error || null,
-            message: ticket?.message || null,
           })
         );
 
