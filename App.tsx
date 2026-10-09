@@ -6189,7 +6189,7 @@ export default function App() {
                   }}
                 >
                   <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>
-                    Nearby Offers - Total {nearbyPosts.length >= 100 ? '99+' : nearbyPosts.length}
+                    Nearby Offers · {locationLabel || 'Your Area'} · Total {nearbyPosts.length >= 100 ? '99+' : nearbyPosts.length}
                   </Text>
                   <View style={{ position: 'relative' }}>
                     <TouchableOpacity
