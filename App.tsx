@@ -2599,16 +2599,6 @@ export default function App() {
     setTagPageLoadingMore(false);
   }, [tagPageHasMore, tagPageLoading, tagPageLoadingMore]);
 
-  const openAllPostsContinuation = useCallback(() => {
-    tagPageStartPageRef.current = 2;
-    tagPagePageRef.current = 2;
-    setTagPage(ALL_POSTS_TAG);
-    setActiveLabel(ALL_POSTS_TAG);
-    setQuery('');
-    setSuggestions([]);
-    setTagPageDropdownOpen(false);
-  }, []);
-
   useEffect(() => {
     if (!tagPage) return;
 
