@@ -29,27 +29,10 @@ service cloud.firestore {
         && request.resource.data.request is string
         && request.resource.data.requestId == requestId
         && request.resource.data.createdAt is timestamp
-        && (!exists(/databases/$(database)/documents/offerRequestLimits/$(request.auth.uid))
-          || get(/databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)).data.lastRequestAt + duration.value(24, 'h') <= request.time)
         && getAfter(
           /databases/$(database)/documents/offerRequestLimits/$(request.auth.uid)
         ).data.requestId == requestId;
       allow read, update, delete: if false;
-    }
-
-    match /notificationStates/{userId} {
-      // Reading only the caller's dismissal state must not depend on
-      // request.resource, which is unavailable for read operations.
-      allow read:
-        if request.auth != null
-        && request.auth.uid == userId;
-
-      allow create, update:
-        if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['dismissedPostIds'])
-        && request.resource.data.dismissedPostIds is list;
-      allow delete: if false;
     }
 
     match /offerRequestLimits/{userId} {
