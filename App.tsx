@@ -2541,11 +2541,11 @@ export default function App() {
     const postPrefix = String(post.id) + '::';
     // Dismissal applies to this post, not only the current updatedAt version.
     // A Blogger edit must not make a dismissed bell item reappear.
-    return Array.from(dismissedNotificationIdsRef.current).some(key =>
-      key === String(post.id) || key.startsWith(postPrefix),
-    ) || Object.keys(guestDismissedNotificationRef.current).some(key =>
-      key === String(post.id) || key.startsWith(postPrefix),
-    );
+    const versionKey = notificationVersionKey(post);
+    return dismissedNotificationIdsRef.current.has(versionKey) ||
+      dismissedNotificationIdsRef.current.has(String(post.id)) ||
+      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, versionKey) ||
+      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, String(post.id));
   };
 
   const notificationPostFromData = (data: any): Post | null => {
@@ -2560,7 +2560,7 @@ export default function App() {
       date: String(data.postDate || data.date || ''),
       publishedAt: String(data.publishedAt || data.postDate || data.date || ''),
       updatedAt: String(data.updatedAt || data.publishedAt || data.postDate || data.date || ''),
-      notificationType: data.notificationType === 'updated' ? 'updated' : data.notificationType === 'relevant' ? 'relevant' : 'new',
+      notificationType: ['updated', 'offer-update'].includes(String(data.notificationType || '')) ? 'updated' : data.notificationType === 'relevant' ? 'relevant' : 'new',
       label: String(data.postLabel || data.label || 'Offers'),
       labels: Array.isArray(data.postLabels || data.labels) ? (data.postLabels || data.labels).map((value: any) => String(value)) : [],
       image: typeof (data.postImage || data.image) === 'string' ? (data.postImage || data.image) : '',
@@ -2646,9 +2646,21 @@ export default function App() {
         const stored = await AsyncStorage.getItem(getNotificationsStorageKey(user.uid));
         const parsed = stored ? JSON.parse(stored) : [];
         const storedNotifications = Array.isArray(parsed) ? parsed : [];
+        let cloudNotifications: Post[] = [];
+        try {
+          const cloudSnapshot = await getDocs(
+            firestoreQuery(collection(db, 'notifications'), where('uid', '==', user.uid)),
+          );
+          cloudNotifications = cloudSnapshot.docs
+            .map(snapshot => notificationPostFromData(snapshot.data()))
+            .filter((item): item is Post => Boolean(item))
+            .sort((a, b) => new Date(b.publishedAt || b.updatedAt || 0).getTime() - new Date(a.publishedAt || a.updatedAt || 0).getTime());
+        } catch (error) {
+          console.log('Cloud notification history load error:');
+        }
 
-        // Keep the newest 10 posts as the base. Then add older posts that are
-        // relevant to this user by interested category or Nearby location.
+        // Keep the newest 10 notifications. Cloud history restores push notices
+        // received while the app was closed; current Blogger data wins by ID.
         let relevant: Post[] = [];
         try {
           const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
@@ -2688,9 +2700,9 @@ export default function App() {
           !latest.some(current => current.id === stored.id &&
             notificationVersionKey(current) !== notificationVersionKey(stored)),
         );
-        const merged = [...retainedStored, ...latest, ...relevant].filter((item, index, all) =>
+        const merged = [...latest, ...cloudNotifications, ...retainedStored, ...relevant].filter((item, index, all) =>
           item?.id && !isNotificationDismissed(item) && all.findIndex(other => other?.id === item.id) === index,
-        );
+        ).slice(0, 10);
         setNotifications(merged);
       } else {
         setNotifications(latest);
@@ -2713,7 +2725,7 @@ export default function App() {
     if (isNotificationDismissed(post)) return;
     const user = auth.currentUser;
     setNotifications(current => {
-      const next = [post, ...current.filter(item => item.id !== post.id)];
+      const next = [post, ...current.filter(item => item.id !== post.id)].slice(0, 10);
       if (user && !user.isAnonymous) void persistNotificationsForUser(user, next);
       return next;
     });
@@ -2854,7 +2866,7 @@ export default function App() {
         if (seen.has(post.id)) return false;
         seen.add(post.id);
         return true;
-      });
+      }).slice(0, 10);
     });
   }, [posts, authReady]);
 
