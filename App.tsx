@@ -3292,8 +3292,13 @@ export default function App() {
         ).user;
       }
 
-      // Auth is complete. Save the local profile immediately and let Firestore
-      // and push-token work continue in the background.
+      // Keep the user's name on Firebase Auth as a fallback, then persist
+      // the complete profile to Firestore before showing registration success.
+      try {
+        await updateFirebaseProfile(registeredUser, { displayName: profile.name });
+      } catch {
+        // Firestore remains the source of truth for the full profile.
+      }
       await saveRegisteredProfile(registeredUser, profile);
       void syncPushTokenForCurrentUser();
       await AsyncStorage.setItem(HAS_REGISTERED_ACCOUNT_KEY, 'true');
