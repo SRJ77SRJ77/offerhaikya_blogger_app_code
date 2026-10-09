@@ -996,7 +996,7 @@ export default function App() {
 
 
   
-  const syncPushTokenForCurrentUser = async () => {
+  const syncPushTokenForCurrentUser = async (requestPermissionIfNeeded = true) => {
     try {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) return;
@@ -1012,7 +1012,7 @@ export default function App() {
       const existingPermission = await Notifications.getPermissionsAsync();
       let finalStatus = existingPermission.status;
 
-      if (finalStatus !== 'granted') {
+      if (finalStatus !== 'granted' && requestPermissionIfNeeded) {
         const permission = await Notifications.requestPermissionsAsync();
         finalStatus = permission.status;
       }
@@ -1073,6 +1073,14 @@ export default function App() {
 
     void setup();
 
+    const appStateSubscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        // If the user enabled notifications in Android Settings while the app
+        // was away, refresh the token without triggering another permission dialog.
+        void syncPushTokenForCurrentUser(false);
+      }
+    });
+
     const tokenSubscription = Notifications.addPushTokenListener(async token => {
       try {
         const firebaseUser = auth.currentUser;
@@ -1109,6 +1117,7 @@ export default function App() {
     return () => {
       cancelled = true;
       tokenSubscription.remove();
+      appStateSubscription.remove();
     };
   }, [authReady, startupGateOpen]);
 
