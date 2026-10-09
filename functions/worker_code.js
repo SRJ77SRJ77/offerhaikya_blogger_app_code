@@ -1068,7 +1068,7 @@ const hasWebhookAuthorization = (request, url, env) => {
   if (!configured) return false;
   const querySecret = url.searchParams.get("secret") || "";
   const authorization = request.headers.get("Authorization") || "";
-  const bearer = authorization.match(/^Bearer\\s+(.+)$/i)?.[1] || "";
+  const bearer = authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
   return querySecret === configured || bearer === configured;
 };
 
