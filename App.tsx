@@ -883,16 +883,17 @@ export default function App() {
         setPage(pageNumber);
         paginationPageRef.current = pageNumber;
         const cachedTotal = feedTotalCountCache.get(search.trim().toLowerCase());
-        setHasMorePosts(cachedTotal != null ? startIndex + cached.length - 1 < cachedTotal : cached.length === PAGE_SIZE);
-        setLoading(false);
-        setSearching(false);
+        setHasMorePosts(search.trim() ? false : cachedTotal != null ? startIndex + cached.length - 1 < cachedTotal : cached.length === PAGE_SIZE);
 
-        void fetchFeedFromNetwork(search, startIndex).catch(() => {});
-
-        if (cached.length === PAGE_SIZE) {
-          void prefetchFeed(search, pageNumber + 1);
+        // A cached search result is only a fast first paint. Continue below to
+        // refresh and rank against the full feed instead of returning early.
+        if (!search.trim()) {
+          setLoading(false);
+          setSearching(false);
+          void fetchFeedFromNetwork(search, startIndex).catch(() => {});
+          if (cached.length === PAGE_SIZE) void prefetchFeed(search, pageNumber + 1);
+          return;
         }
-        return;
       }
 
       let result = await fetchFeedFromNetwork(search, startIndex);
@@ -942,7 +943,7 @@ export default function App() {
       setPage(pageNumber);
       paginationPageRef.current = pageNumber;
       const totalAvailable = feedTotalCountCache.get(search.trim().toLowerCase());
-      setHasMorePosts(totalAvailable != null ? startIndex + result.length - 1 < totalAvailable : result.length === PAGE_SIZE);
+      setHasMorePosts(search.trim() ? false : totalAvailable != null ? startIndex + result.length - 1 < totalAvailable : result.length === PAGE_SIZE);
 
       if (result.length === PAGE_SIZE) {
         void prefetchFeed(search, pageNumber + 1);
