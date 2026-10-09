@@ -1240,8 +1240,6 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ): Promise<number | null> => {
-      const isNearbyDebugPost =
-        /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationText(label))
         .filter(Boolean);
