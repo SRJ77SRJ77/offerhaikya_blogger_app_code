@@ -4291,7 +4291,7 @@ export default function App() {
         setOfferRequestText('');
       }, 900);
     } catch (error: any) {
-      console.log('Offer request submit error:');
+      console.log('Offer request submit error:', error?.code, error?.message);
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(false);
       if (error?.code === 'resource-exhausted') {
@@ -4302,7 +4302,7 @@ export default function App() {
         setOfferRequestText('');
         Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
       } else {
-        setOfferRequestError('Could not submit your request. Please try again. [' + String(error?.code || 'unknown') + ']');
+        setOfferRequestError('Could not submit your request. Please try again.');
       }
     }
   };
