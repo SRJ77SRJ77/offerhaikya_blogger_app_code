@@ -906,12 +906,14 @@ export default function App() {
           const label = post.label.toLowerCase();
           const labels = post.labels.join(' ').toLowerCase();
           const content = post.content.toLowerCase();
+          const location = String(post.locationName || '').toLowerCase();
           let value = 0;
           if (title === normalized) value += 3000;
           if (title.startsWith(normalized)) value += 1800;
           if (title.includes(normalized)) value += 1200;
           if (label.includes(normalized)) value += 500;
           if (labels.includes(normalized)) value += 350;
+          if (location.includes(normalized)) value += 250;
           if (content.includes(normalized)) value += 120;
           return value;
         };
