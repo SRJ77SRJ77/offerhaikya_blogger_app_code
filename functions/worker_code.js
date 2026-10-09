@@ -394,26 +394,33 @@ const writeNotificationState = async (env, accessToken, state) => {
 };
 
 const getEligibleUsers = async (env, accessToken) => {
-  const url =
+  const baseUrl =
     "https://firestore.googleapis.com/v1/projects/" +
     env.FIREBASE_PROJECT_ID +
-    "/databases/(default)/documents/users?pageSize=100";
+    "/databases/(default)/documents/users";
+  const documents = [];
+  let pageToken = "";
 
-  const response = await fetch(url, {
-    headers: { Authorization: "Bearer " + accessToken },
-  });
+  // Follow every Firestore page so registered users beyond the first 100 are
+  // not silently excluded from notifications.
+  do {
+    const pageUrl = new URL(baseUrl);
+    pageUrl.searchParams.set("pageSize", "1000");
+    if (pageToken) pageUrl.searchParams.set("pageToken", pageToken);
 
-  if (!response.ok) {
-    throw new Error(
-      "Firestore users read failed: HTTP " +
-      response.status +
-      " " +
-      (await response.text())
-    );
-  }
+    const response = await fetch(pageUrl.toString(), {
+      headers: { Authorization: "Bearer " + accessToken },
+    });
 
-  const result = await response.json();
-  const documents = result.documents || [];
+    if (!response.ok) {
+      throw new Error("Firestore users read failed: HTTP " + response.status);
+    }
+
+    const result = await response.json();
+    documents.push(...(result.documents || []));
+    pageToken = result.nextPageToken || "";
+  } while (pageToken);
+
   const users = [];
 
   for (const document of documents) {
@@ -880,7 +887,10 @@ const runProductionNotification = async (env) => {
       updatedAt: candidate.updatedAt || candidate.publishedAt || "",
     },
     eligibleUsers: eligibleUsers.length, matchedUsers: matchedUsers.length,
-    matches, pushSent: expo.sent, expoResponse: expo.responses,
+    pushSent: expo.sent,
+    expoTicketErrors: Array.isArray(expo.responses)
+      ? expo.responses.filter(ticket => ticket?.status === "error").length
+      : 0,
     firestoreStateChanged: true,
     message: (notificationType === "updated" ? "Edited Blogger post" : "New Blogger post") +
       " processed. Push notifications were sent to matched users and the post version was recorded in Firestore.",
@@ -1083,6 +1093,77 @@ const getExpoPushReceipts = async (ids) => {
   return data;
 };
 
+const constantTimeStringEqual = (left, right) => {
+  const a = String(left || "");
+  const b = String(right || "");
+  let mismatch = a.length ^ b.length;
+  const length = Math.max(a.length, b.length);
+
+  for (let i = 0; i < length; i++) {
+    mismatch |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  }
+
+  return mismatch === 0;
+};
+
+const hexToBytes = (hex) => {
+  if (!/^[a-f0-9]+$/i.test(hex) || hex.length % 2 !== 0) return null;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+};
+
+const hasValidWebSubSignature = async (request, secret) => {
+  const header = request.headers.get("X-Hub-Signature") || "";
+  const match = /^sha1=([a-f0-9]{40})$/i.exec(header);
+  if (!match || !secret) return false;
+
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-1" },
+      false,
+      ["verify"]
+    );
+    const signature = hexToBytes(match[1]);
+    if (!signature) return false;
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signature,
+      await request.clone().arrayBuffer()
+    );
+  } catch {
+    return false;
+  }
+};
+
+const isAuthorizedRequest = async (request, url, env) => {
+  const expected = String(env.WEBHOOK_SECRET || "");
+  if (!expected) return false;
+
+  const authorization = request.headers.get("Authorization") || "";
+  const bearer = /^Bearer\s+(.+)$/i.exec(authorization)?.[1] || "";
+  const headerSecret = request.headers.get("X-Webhook-Secret") || "";
+  const querySecret = url.searchParams.get("secret") || "";
+
+  if (
+    constantTimeStringEqual(bearer, expected) ||
+    constantTimeStringEqual(headerSecret, expected) ||
+    constantTimeStringEqual(querySecret, expected)
+  ) {
+    return true;
+  }
+
+  // WebSub hubs can authenticate deliveries with HMAC if the same secret was
+  // supplied when subscribing. Unsigned POST requests are rejected.
+  return request.method === "POST" &&
+    await hasValidWebSubSignature(request, expected);
+};
+
 // --------------------------------------------------
 // WORKER
 // --------------------------------------------------
@@ -1096,9 +1177,7 @@ export default {
         request.method === "POST" &&
         url.searchParams.get("mode") === "fcm-test"
       ) {
-        const secret = url.searchParams.get("secret") || "";
-
-        if (secret !== env.WEBHOOK_SECRET) {
+        if (!(await isAuthorizedRequest(request, url, env))) {
           return new Response("Unauthorized", { status: 401 });
         }
 
@@ -1125,9 +1204,7 @@ export default {
       }
 
       if (request.method === "GET" && url.searchParams.get("mode") === "test-push") {
-        const secret = url.searchParams.get("secret") || "";
-
-        if (secret !== env.WEBHOOK_SECRET) {
+        if (!(await isAuthorizedRequest(request, url, env))) {
           return new Response("Unauthorized", { status: 401 });
         }
 
@@ -1179,9 +1256,7 @@ export default {
       }
 
       if (request.method === "GET" && url.searchParams.get("mode") === "receipts") {
-        const secret = url.searchParams.get("secret") || "";
-
-        if (secret !== env.WEBHOOK_SECRET) {
+        if (!(await isAuthorizedRequest(request, url, env))) {
           return new Response("Unauthorized", { status: 401 });
         }
 
@@ -1239,7 +1314,7 @@ export default {
         const verifyToken =
           url.searchParams.get("hub.verify_token") || "";
 
-        if (verifyToken !== env.WEBHOOK_SECRET) {
+        if (!constantTimeStringEqual(verifyToken, env.WEBHOOK_SECRET)) {
           return new Response("Verification failed", { status: 403 });
         }
 
@@ -1253,9 +1328,7 @@ export default {
       }
 
       if (request.method === "GET" && url.searchParams.get("mode") === "receipts") {
-        const secret = url.searchParams.get("secret") || "";
-
-        if (secret !== env.WEBHOOK_SECRET) {
+        if (!(await isAuthorizedRequest(request, url, env))) {
           return new Response("Unauthorized", { status: 401 });
         }
 
@@ -1294,14 +1367,13 @@ export default {
       }
 
       if (request.method === "POST") {
+        if (!(await isAuthorizedRequest(request, url, env))) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         const mode = url.searchParams.get("mode") || "production";
-        const secret = url.searchParams.get("secret") || "";
 
         if (mode === "seed") {
-          if (secret !== env.WEBHOOK_SECRET) {
-            return new Response("Unauthorized", { status: 401 });
-          }
-
           const result = await seedCurrentPost(env);
 
           return new Response(
@@ -1326,12 +1398,12 @@ export default {
 
       return new Response("Method not allowed", { status: 405 });
     } catch (error) {
-      console.error(error);
+      console.error("Offerhaikya Worker request failed:", error?.name || "Error");
 
       return new Response(
         JSON.stringify({
           ok: false,
-          error: error?.message || String(error),
+          error: "Request failed. Check the Cloudflare Worker logs.",
         }),
         {
           status: 500,
