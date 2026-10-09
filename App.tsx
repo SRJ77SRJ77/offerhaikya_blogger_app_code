@@ -6368,14 +6368,14 @@ export default function App() {
                 <View style={styles.loadMoreWrap}>
                   <TouchableOpacity
                     style={[styles.loadMoreButton, loadingMore && styles.disabledButton]}
-                    onPress={page === 1 ? openAllPostsContinuation : loadMorePosts}
+                    onPress={loadMorePosts}
                     disabled={loadingMore}
                   >
                     {loadingMore ? (
                       <ActivityIndicator size="small" color={WHITE} />
                     ) : (
                       <Text style={styles.loadMoreButtonText}>
-                        {page === 1 ? 'View All Posts' : 'Load More Offers'}
+                        Load More Offers
                       </Text>
                     )}
                   </TouchableOpacity>
