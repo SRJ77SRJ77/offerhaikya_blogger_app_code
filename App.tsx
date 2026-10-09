@@ -6489,7 +6489,7 @@ export default function App() {
   
             <View style={styles.sectionRow}>
               <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Latest Offers - Total {(latestTotalCount || posts.length) >= 100 ? '99+' : (latestTotalCount || posts.length)}</Text>
-              <View style={{ position: 'relative' }}>
+              <View>
                 <TouchableOpacity
                   style={[styles.sortButton, darkMode && styles.sortButtonDark]}
                   onPress={() => {
@@ -6501,29 +6501,29 @@ export default function App() {
                     Sort: {latestSort === 'nearExpiry' ? 'Near Expiry' : latestSort === 'oldest' ? 'Old to New' : latestSort === 'newest' ? 'New to Old' : 'Expired'} ▾
                   </Text>
                 </TouchableOpacity>
-                {latestSortOpen ? (
-                  <View style={[styles.sortMenu, styles.sortMenuLatest, darkMode && styles.sortMenuDark]}>
-                    {[
-                      ['nearExpiry', 'Near Expiry'],
-                      ['oldest', 'Old to New'],
-                      ['newest', 'New to Old'],
-                      ['expired', 'Expired'],
-                    ].map(([value, label]) => (
-                      <TouchableOpacity
-                        key={value}
-                        style={styles.sortMenuItem}
-                        onPress={() => {
-                          setLatestSort(value as 'nearExpiry' | 'oldest' | 'newest' | 'expired');
-                          setLatestSortOpen(false);
-                        }}
-                      >
-                        <Text style={[styles.sortMenuItemText, latestSort === value && styles.sortMenuItemTextActive]}>{label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : null}
               </View>
             </View>
+            {latestSortOpen ? (
+              <View style={[styles.sortMenu, styles.sortMenuLatest, darkMode && styles.sortMenuDark]}>
+                {[
+                  ['nearExpiry', 'Near Expiry'],
+                  ['oldest', 'Old to New'],
+                  ['newest', 'New to Old'],
+                  ['expired', 'Expired'],
+                ].map(([value, label]) => (
+                  <TouchableOpacity
+                    key={value}
+                    style={styles.sortMenuItem}
+                    onPress={() => {
+                      setLatestSort(value as 'nearExpiry' | 'oldest' | 'newest' | 'expired');
+                      setLatestSortOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.sortMenuItemText, latestSort === value && styles.sortMenuItemTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
           </>
         }
         ListEmptyComponent={
@@ -7016,7 +7016,7 @@ const styles = StyleSheet.create({
   sortButtonDark: { backgroundColor: '#222222', borderColor: '#444444' },
   sortButtonText: { color: TEXT, fontSize: 11, fontWeight: '900' },
   sortMenu: { position: 'absolute', top: 40, right: 0, minWidth: 150, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, overflow: 'hidden', elevation: 8, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, zIndex: 100 },
-  sortMenuLatest: { minWidth: 165, position: 'relative', top: 0, right: 0, alignSelf: 'flex-end' },
+  sortMenuLatest: { minWidth: 165, position: 'relative', top: 0, right: 0, alignSelf: 'flex-end', marginTop: 4, marginBottom: 8 },
   sortMenuDark: { backgroundColor: '#222222', borderColor: '#444444' },
   sortMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   sortMenuItemText: { color: TEXT, fontSize: 12, fontWeight: '700' },
