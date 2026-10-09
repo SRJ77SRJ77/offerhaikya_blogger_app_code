@@ -3366,30 +3366,9 @@ export default function App() {
       areaCity: string;
     },
   ) => {
-    // Data-access boundary: profile persistence is isolated here so a future
-    // database provider can replace Firestore without changing the profile UI.
-    // Keep both memory and persistent caches synchronized before background sync.
-    profileMemoryCache.set(user.uid, {
-      uid: user.uid,
-      name: profile.name,
-      contact: profile.contact,
-      email: profile.email,
-      interestedCategories: profile.categories,
-      areaCity: profile.areaCity,
-    });
-    await AsyncStorage.setItem(
-      PROFILE_CACHE_PREFIX + user.uid,
-      JSON.stringify({
-        uid: user.uid,
-        name: profile.name,
-        contact: profile.contact,
-        email: profile.email,
-        interestedCategories: profile.categories,
-        areaCity: profile.areaCity,
-      }),
-    );
-
-    // Persist the profile before reporting registration/profile update success.
+    // Firestore is the source of truth. Do not cache a profile until the
+    // cloud write succeeds, otherwise a failed registration can look complete
+    // on the next app launch.
     await setDoc(
       doc(db, 'users', user.uid),
       {
@@ -3405,6 +3384,24 @@ export default function App() {
       },
       { merge: true },
     );
+
+    const profileCacheData = {
+      uid: user.uid,
+      name: profile.name,
+      contact: profile.contact,
+      email: profile.email,
+      interestedCategories: profile.categories,
+      areaCity: profile.areaCity,
+    };
+    profileMemoryCache.set(user.uid, profileCacheData);
+    try {
+      await AsyncStorage.setItem(
+        PROFILE_CACHE_PREFIX + user.uid,
+        JSON.stringify(profileCacheData),
+      );
+    } catch {
+      // The cloud profile was saved successfully; local cache is optional.
+    }
 
     // Geocode only after the profile is already saved, so this can never block
     // the registration/login UI.
