@@ -518,6 +518,7 @@ export default function App() {
   const guestDismissedNotificationRef = useRef<Record<string, number>>({});
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuCategoriesOpen, setMenuCategoriesOpen] = useState(false);
+  const [menuStoresOpen, setMenuStoresOpen] = useState(false);
   const [menuSpecialDealsOpen, setMenuSpecialDealsOpen] = useState(false);
   const [infoPage, setInfoPage] = useState<'about' | 'contact' | 'privacy' | 'terms' | null>(null);
   const [loading, setLoading] = useState(true);
@@ -4380,7 +4381,7 @@ export default function App() {
             setOfferRequestName('');
             setOfferRequestContact('');
             setOfferRequestText('');
-            Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
+            Alert.alert('Request Offer', 'You can send another offer request after 24 hours. Thank you.');
             return;
           }
           requestTimes = [...requestTimes.slice(1), Timestamp.now()];
@@ -4447,7 +4448,7 @@ export default function App() {
         setOfferRequestName('');
         setOfferRequestContact('');
         setOfferRequestText('');
-        Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
+        Alert.alert('Request Offer', 'You can send another offer request after 24 hours. Thank you.');
       } else {
         setOfferRequestError('Could not submit your request. Please try again.');
       }
@@ -5958,6 +5959,38 @@ export default function App() {
               {menuCategoriesOpen ? (
                 <View style={styles.menuSubList}>
                   {(bloggerMenuCategories.length > 0 ? bloggerMenuCategories : bloggerCategories.length > 0 ? bloggerCategories : CATEGORY_ITEMS).map(label => (
+                    <TouchableOpacity
+                      key={label}
+                      style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
+                      onPress={() => {
+                        tagPageStartPageRef.current = 1;
+                        tagPagePageRef.current = 1;
+                        setTagPage(label);
+                        setActiveLabel(label);
+                        setQuery('');
+                        setSuggestions([]);
+                        setTagPageDropdownOpen(false);
+                        closeMenu();
+                      }}
+                    >
+                      <Text style={[styles.menuSubItemText, activeLabel === label && styles.menuItemActive]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.menuMainItem}
+                onPress={() => setMenuStoresOpen(value => !value)}
+              >
+                <Text style={styles.menuMainItemText}>Stores</Text>
+                <Text style={styles.menuMainArrow}>{menuStoresOpen ? '⌃' : '›'}</Text>
+              </TouchableOpacity>
+              {menuStoresOpen ? (
+                <View style={styles.menuSubList}>
+                  {(bloggerCategories.filter(label => /store/i.test(label) && !/^stores?$/i.test(label)).length > 0
+                    ? bloggerCategories.filter(label => /store/i.test(label) && !/^stores?$/i.test(label))
+                    : ['Belagavi Store', 'Goa Store']).map(label => (
                     <TouchableOpacity
                       key={label}
                       style={[styles.menuSubItem, activeLabel === label && styles.menuItemActiveBg]}
