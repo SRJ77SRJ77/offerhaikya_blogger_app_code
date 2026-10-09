@@ -73,6 +73,20 @@ const extractBloggerLocation = (entry, content = '') => {
   return { name: String(name || '').trim(), coordinates };
 };
 
+const getPostExpiryTime = post => {
+  const expiryTag = (post.labels || []).find(label => /^E\d+$/i.test(String(label).trim()));
+  const published = Date.parse(post.publishedAt || post.date || '');
+  if (!expiryTag || !Number.isFinite(published)) return null;
+  const days = Number(String(expiryTag).trim().slice(1));
+  if (!Number.isFinite(days) || days < 0) return null;
+  return published + days * 24 * 60 * 60 * 1000;
+};
+
+const isExpiredOffer = post => {
+  const expiryTime = getPostExpiryTime(post);
+  return expiryTime !== null && expiryTime <= Date.now();
+};
+
 const distanceKm = (a, b) => {
   const earthRadiusKm = 6371;
   const radians = degrees => degrees * Math.PI / 180;
@@ -213,7 +227,13 @@ const sendExpoPushMessages = async messages => {
       throw new Error('Expo Push Service returned HTTP ' + response.status);
     }
 
-    console.log('Expo push response:', JSON.stringify(await response.json()));
+    const payload = await response.json();
+    const tickets = Array.isArray(payload?.data) ? payload.data : [];
+    console.log('Expo push tickets:', JSON.stringify(tickets));
+    const failed = tickets.filter(ticket => ticket?.status !== 'ok');
+    if (failed.length > 0 || tickets.length !== batch.length) {
+      throw new Error('Expo rejected ' + failed.length + ' push ticket(s); successful delivery is not confirmed.');
+    }
   }
 };
 
@@ -282,6 +302,16 @@ const run = async () => {
     return Boolean(previous) && previous.fingerprint !== currentPosts[post.id].fingerprint;
   });
 
+  // If a post had no eligible recipients or Expo rejected its ticket, retry it
+  // during the first 24 hours after publication. This allows recipient data or
+  // transient delivery failures to recover without repeatedly pushing old posts.
+  const retryRecentUnsentPosts = posts.filter(post => {
+    const previous = previousPosts[post.id];
+    const published = Date.parse(post.publishedAt || post.date || '');
+    return Boolean(previous) && !previous.notificationSent && Number.isFinite(published) &&
+      Date.now() - published <= 24 * 60 * 60 * 1000 && !isExpiredOffer(post);
+  });
+
   const retryLatestForLogicFix =
     state?.notificationLogicVersion !== NOTIFICATION_LOGIC_VERSION
       ? posts.slice(0, 1)
@@ -296,10 +326,11 @@ const run = async () => {
   const changedPosts = [
     ...newPosts,
     ...updatedPosts,
+    ...retryRecentUnsentPosts,
     ...retryLatestForLogicFix,
     ...webhookPosts,
   ].filter(
-    (post, index, list) => list.findIndex(item => item.id === post.id) === index,
+    (post, index, list) => !isExpiredOffer(post) && list.findIndex(item => item.id === post.id) === index,
   );
 
   console.log('Notification state:', {
