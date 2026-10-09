@@ -2515,9 +2515,14 @@ export default function App() {
     String(post.id) + '::' + String(post.updatedAt || post.publishedAt || 'unknown');
 
   const isNotificationDismissed = (post: Post) => {
-    const key = notificationVersionKey(post);
-    return dismissedNotificationIdsRef.current.has(key) ||
-      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, key);
+    const postPrefix = String(post.id) + '::';
+    // Dismissal applies to this post, not only the current updatedAt version.
+    // A Blogger edit must not make a dismissed bell item reappear.
+    return Array.from(dismissedNotificationIdsRef.current).some(key =>
+      key === String(post.id) || key.startsWith(postPrefix),
+    ) || Object.keys(guestDismissedNotificationRef.current).some(key =>
+      key === String(post.id) || key.startsWith(postPrefix),
+    );
   };
 
   const notificationPostFromData = (data: any): Post | null => {
@@ -5106,60 +5111,6 @@ export default function App() {
 
         <View style={[styles.bottomNav, darkMode && styles.bottomNavDark]}>
           <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
-            onPress={goToHomeTab}
-            accessibilityLabel="Home"
-          >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
-                stroke={bottomTab === 'home' ? ACCENT : TEXT}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
-              Home
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.bottomNavItem,
-              bottomTabRef.current === 'local' && styles.bottomNavItemActive,
-              localOffersDisabled && styles.bottomNavItemDisabled,
-            ]}
-            onPress={goToLocalOffersTab}
-            accessibilityLabel="Nearby"
-          >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
-                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
-                strokeWidth={2}
-              />
-            </Svg>
-            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.infoBottomNavItem}
-            onPress={goToHotOffersTab}
-            accessibilityLabel="Hot Offers"
-          >
-            <Text style={styles.infoBottomNavPercentIcon}>%</Text>
-            <Text style={styles.infoBottomNavLabel}>Hot Offers</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={[styles.bottomNavItem, bottomTab === 'request' && styles.bottomNavItemActive]}
             onPress={openOfferRequestTab}
             accessibilityLabel="Request offer"
@@ -5189,6 +5140,33 @@ export default function App() {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.infoBottomNavItem}
+            onPress={goToHotOffersTab}
+            accessibilityLabel="Hot Offers"
+          >
+            <Text style={styles.infoBottomNavPercentIcon}>%</Text>
+            <Text style={styles.infoBottomNavLabel}>Hot Offers</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'home' && styles.bottomNavItemActive]}
+            onPress={goToHomeTab}
+            accessibilityLabel="Home"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M3 10.5L12 3L21 10.5V21H14.5V14H9.5V21H3V10.5Z"
+                stroke={bottomTab === 'home' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTab === 'home' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
+              Home
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
@@ -5211,6 +5189,32 @@ export default function App() {
             <Text style={[styles.bottomNavLabel, bottomTab === 'search' && styles.bottomNavLabelActive, darkMode && styles.bottomNavLabelDark]}>
               Search
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.bottomNavItem,
+              bottomTabRef.current === 'local' && styles.bottomNavItemActive,
+              localOffersDisabled && styles.bottomNavItemDisabled,
+            ]}
+            onPress={goToLocalOffersTab}
+            accessibilityLabel="Nearby"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M20 10.5C20 15.5 12 21 12 21S4 15.5 4 10.5A8 8 0 1 1 20 10.5Z"
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M12 13.25A2.75 2.75 0 1 0 12 7.75A2.75 2.75 0 0 0 12 13.25Z"
+                stroke={localOffersDisabled ? '#b8b8b8' : bottomTabRef.current === 'local' ? ACCENT : TEXT}
+                strokeWidth={2}
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled, darkMode && styles.bottomNavLabelDark]}>Nearby</Text>
           </TouchableOpacity>
 
         </View>
@@ -6777,7 +6781,7 @@ const styles = StyleSheet.create({
   sortButtonDark: { backgroundColor: '#222222', borderColor: '#444444' },
   sortButtonText: { color: TEXT, fontSize: 11, fontWeight: '900' },
   sortMenu: { position: 'absolute', top: 40, right: 0, minWidth: 150, borderWidth: 1, borderColor: '#dddddd', borderRadius: 10, backgroundColor: WHITE, overflow: 'hidden', elevation: 8, shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, zIndex: 100 },
-  sortMenuLatest: { minWidth: 165 },
+  sortMenuLatest: { minWidth: 165, position: 'relative', top: 0, right: 0, alignSelf: 'flex-end' },
   sortMenuDark: { backgroundColor: '#222222', borderColor: '#444444' },
   sortMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: '#eeeeee' },
   sortMenuItemText: { color: TEXT, fontSize: 12, fontWeight: '700' },
