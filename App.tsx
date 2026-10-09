@@ -420,7 +420,7 @@ const NativeAdCard = () => {
     })
       .then(setNativeAd)
       .catch(error => {
-        console.log('Native ad load error:' + ' failed.');
+        console.log('Native ad load error: failed.');
       });
   }, []);
 
@@ -491,7 +491,7 @@ export default function App() {
     mobileAds()
       .initialize()
       .catch(error => {
-        console.log('Google Mobile Ads initialization error:' + ' failed.');
+        console.log('Google Mobile Ads initialization error: failed.');
       });
   }, []);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -711,7 +711,7 @@ export default function App() {
         void checkRegistrationReminder();
       }, remaining);
     } catch (error) {
-      console.log('Registration reminder error:' + ' failed.');
+      console.log('Registration reminder error: failed.');
     }
   };
 
@@ -755,7 +755,7 @@ export default function App() {
           await checkRegistrationReminder();
         }
       } catch (error) {
-        console.log('Account state load error:' + ' failed.');
+        console.log('Account state load error: failed.');
 
         // A non-anonymous Firebase user is an authenticated account.
         // Never send that user back to the first registration popup just
@@ -796,7 +796,7 @@ export default function App() {
         await loadAccountState(auth.currentUser);
         await loadFavoritesForUser(auth.currentUser);
       } catch (error) {
-        console.log('Auth bootstrap error:' + ' failed.');
+        console.log('Auth bootstrap error: failed.');
 
         if (!cancelled) {
           authBootstrappedRef.current = true;
@@ -1045,7 +1045,7 @@ export default function App() {
 
 
     } catch (error) {
-      console.log('Push notification sync error:' + ' failed.');
+      console.log('Push notification sync error: failed.');
     }
   };
 
@@ -1091,7 +1091,7 @@ export default function App() {
         );
 
       } catch (error) {
-        console.log('Push token update error:' + ' failed.');
+        console.log('Push token update error: failed.');
       }
     });
 
@@ -2574,7 +2574,7 @@ export default function App() {
       const cloudDismissed = stateSnapshot.exists() ? stateSnapshot.data()?.dismissedPostIds : [];
       if (Array.isArray(cloudDismissed)) cloudDismissed.forEach(item => item && dismissed.add(String(item)));
     } catch (error) {
-      console.log('Notification dismissal state load error:' + ' failed.');
+      console.log('Notification dismissal state load error: failed.');
     }
 
     dismissedNotificationIdsRef.current = dismissed;
@@ -2650,7 +2650,7 @@ export default function App() {
             return true;
           });
         } catch (error) {
-          console.log('Relevant notification refresh error:' + ' failed.');
+          console.log('Relevant notification refresh error: failed.');
         }
 
         // If the feed has a newer version of a stored notification, prefer
@@ -2676,7 +2676,7 @@ export default function App() {
     try {
       await AsyncStorage.setItem(getNotificationsStorageKey(user.uid), JSON.stringify(nextNotifications));
     } catch (error) {
-      console.log('Notifications save error:' + ' failed.');
+      console.log('Notifications save error: failed.');
     }
   };
 
@@ -2702,7 +2702,7 @@ export default function App() {
       try {
         await AsyncStorage.setItem(GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY, JSON.stringify(nextGuestDismissed));
       } catch (error) {
-        console.log('Guest notification dismissal save error:' + ' failed.');
+        console.log('Guest notification dismissal save error: failed.');
       }
       return;
     }
@@ -2717,7 +2717,7 @@ export default function App() {
         JSON.stringify(Array.from(dismissedNotificationIdsRef.current)),
       );
     } catch (error) {
-      console.log('Notification dismissal save error:' + ' failed.');
+      console.log('Notification dismissal save error: failed.');
     }
 
     try {
@@ -2727,7 +2727,7 @@ export default function App() {
         { merge: true },
       );
     } catch (error) {
-      console.log('Cloud notification dismissal save error:' + ' failed.');
+      console.log('Cloud notification dismissal save error: failed.');
     }
   };
 
@@ -2763,7 +2763,7 @@ export default function App() {
                     JSON.stringify(nextGuestDismissed),
                   );
                 } catch (error) {
-                  console.log('Guest delete-all save error:' + ' failed.');
+                  console.log('Guest delete-all save error: failed.');
                 }
               } else if (user?.uid) {
                 dismissedKeys.forEach(key => dismissedNotificationIdsRef.current.add(key));
@@ -2773,7 +2773,7 @@ export default function App() {
                     JSON.stringify(Array.from(dismissedNotificationIdsRef.current)),
                   );
                 } catch (error) {
-                  console.log('Notification delete-all local save error:' + ' failed.');
+                  console.log('Notification delete-all local save error: failed.');
                 }
                 try {
                   if (dismissedKeys.length > 0) {
@@ -2784,12 +2784,12 @@ export default function App() {
                     );
                   }
                 } catch (error) {
-                  console.log('Notification delete-all cloud save error:' + ' failed.');
+                  console.log('Notification delete-all cloud save error: failed.');
                 }
                 try {
                   await AsyncStorage.removeItem(getNotificationsStorageKey(user.uid));
                 } catch (error) {
-                  console.log('Notification history clear error:' + ' failed.');
+                  console.log('Notification history clear error: failed.');
                 }
               }
 
@@ -2904,7 +2904,7 @@ export default function App() {
           await Notifications.clearLastNotificationResponseAsync();
         }
       } catch (error) {
-        console.log('Initial notification response error:' + ' failed.');
+        console.log('Initial notification response error: failed.');
       }
     };
 
@@ -2945,7 +2945,7 @@ export default function App() {
         }
       }
     } catch (error) {
-      console.log('Favorites load error:' + ' failed.');
+      console.log('Favorites load error: failed.');
       setFavorites([]);
     }
   };
@@ -2959,7 +2959,7 @@ export default function App() {
         JSON.stringify(nextFavorites),
       );
     } catch (error) {
-      console.log('Favorites save error:' + ' failed.');
+      console.log('Favorites save error: failed.');
     }
   };
 
@@ -2984,7 +2984,7 @@ export default function App() {
             },
             { merge: true },
           ).catch(error => {
-            console.log('Favorite notification target sync error:' + ' failed.');
+            console.log('Favorite notification target sync error: failed.');
           });
         }
       }
@@ -3222,7 +3222,7 @@ export default function App() {
       },
       { merge: true },
     ).catch(error => {
-      console.log('Profile background save error:' + ' failed.');
+      console.log('Profile background save error: failed.');
     });
 
     // Geocode only after the profile is already saved, so this can never block
@@ -3312,7 +3312,7 @@ export default function App() {
         setRegistrationPasswordVisible(false);
       }, 450);
     } catch (error: any) {
-      console.log('Registration error:' + ' failed.');
+      console.log('Registration error: failed.');
 
       if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/credential-already-in-use') {
         setRegistrationError('This email is already registered. Tap Sign in below.');
@@ -3374,7 +3374,7 @@ export default function App() {
         setProfileLoading(false);
       }
     } catch (error) {
-      console.log('Profile cache read error:' + ' failed.');
+      console.log('Profile cache read error: failed.');
     }
 
     // Refresh from Firestore in the background.
@@ -3400,7 +3400,7 @@ export default function App() {
         applyProfile(data);
       })
       .catch(error => {
-        console.log('Profile Firestore read error:' + ' failed.');
+        console.log('Profile Firestore read error: failed.');
         // If there was no cache, still show the Firebase account email immediately.
         if (!auth.currentUser || accountDeletionResetRef.current) return;
         applyProfile({ email: auth.currentUser.email || '' });
@@ -3444,7 +3444,7 @@ export default function App() {
       setProfileLoading(true);
       await loadRegisteredProfile(user);
     } catch (error) {
-      console.log('Profile load error:' + ' failed.');
+      console.log('Profile load error: failed.');
 
       // Keep the registered profile screen open instead of showing
       // the new-user registration form.
@@ -3525,7 +3525,7 @@ export default function App() {
         setRegistrationSuccess('');
       }, 900);
     } catch (error: any) {
-      console.log('Profile update error:' + ' failed.');
+      console.log('Profile update error: failed.');
 
       if (error?.code === 'auth/requires-recent-login') {
         setRegistrationError('Please sign in again before changing your email.');
@@ -3592,7 +3592,7 @@ export default function App() {
       setProfileMode(false);
       setAuthMode('register');
     } catch (error: any) {
-      console.log('Sign in error:' + ' failed.');
+      console.log('Sign in error: failed.');
 
       if (
         error?.code === 'auth/invalid-credential' ||
@@ -3632,7 +3632,7 @@ export default function App() {
       setRegistrationError('Password reset email sent. Check your inbox.');
       setTimeout(() => setRegistrationSuccess(''), 1800);
     } catch (error: any) {
-      console.log('Forgot password error:' + ' failed.');
+      console.log('Forgot password error: failed.');
 
       setRegistrationSubmitting(false);
       if (error?.code === 'auth/user-not-found') {
@@ -3662,7 +3662,7 @@ export default function App() {
         void checkRegistrationReminder();
       }, SKIP_REMINDER_MS);
     } catch (error) {
-      console.log('Skip registration error:' + ' failed.');
+      console.log('Skip registration error: failed.');
       setRegistrationOpen(false);
     }
   };
@@ -3760,7 +3760,7 @@ export default function App() {
         void checkRegistrationReminder();
       }, SKIP_REMINDER_MS);
     } catch (error: any) {
-      console.log('Profile delete error:' + ' failed.');
+      console.log('Profile delete error: failed.');
 
       if (error?.code === 'auth/requires-recent-login') {
         pendingDeleteAfterLoginRef.current = true;
@@ -3853,7 +3853,7 @@ export default function App() {
               setLocationRefreshKey(value => value + 1);
               setRegistrationOpen(false);
             } catch (error) {
-              console.log('Logout error:' + ' failed.');
+              console.log('Logout error: failed.');
               setRegistrationError('Could not log out. Please try again.');
             } finally {
               setRegistrationSubmitting(false);
@@ -4200,7 +4200,7 @@ export default function App() {
         setOfferRequestText('');
       }, 900);
     } catch (error: any) {
-      console.log('Offer request submit error:' + ' failed.');
+      console.log('Offer request submit error: failed.');
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(false);
       setOfferRequestError('Could not submit your request. Please try again.');
