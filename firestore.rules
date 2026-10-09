@@ -20,7 +20,7 @@ service cloud.firestore {
     }
 
     match /offerRequests/{requestId} {
-      // Request and 24-hour limit are written together in one atomic batch.
+      // Request and rolling-limit marker are written together atomically.
       allow create:
         if request.auth != null
         && request.resource.data.uid == request.auth.uid
@@ -39,27 +39,111 @@ service cloud.firestore {
     }
 
     match /offerRequestLimits/{userId} {
+      function validRequestTime(value) {
+        return value is timestamp
+          && value <= request.time
+          && value >= request.time - duration.value(5, 'm');
+      }
+
       function validLimitWrite() {
         return request.auth != null
           && request.auth.uid == userId
-          && request.resource.data.keys().hasOnly(['lastRequestAt', 'requestId'])
+          && request.resource.data.keys().hasOnly([
+            'lastRequestAt', 'requestId', 'requestTimes'
+          ])
           && request.resource.data.lastRequestAt is timestamp
-          && request.resource.data.requestId is string
           && request.resource.data.lastRequestAt == request.time
+          && request.resource.data.requestId is string
+          && request.resource.data.requestTimes is list
+          && request.resource.data.requestTimes.size() >= 1
+          && request.resource.data.requestTimes.size() <= 5
+          && request.resource.data.requestTimes[
+            request.resource.data.requestTimes.size() - 1
+          ] is timestamp
           && getAfter(
             /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
           ).data.uid == request.auth.uid;
       }
 
-      // First request: only create a marker when none exists.
-      allow create: if validLimitWrite();
+      // First request: initialize the timestamp queue.
+      allow create: if validLimitWrite()
+        && request.resource.data.requestTimes.size() == 1
+        && validRequestTime(request.resource.data.requestTimes[0]);
 
-      // Later requests: the server enforces the full 24-hour cooldown.
+      // Subsequent requests must preserve the last-five queue exactly.
+      // When the queue already has five entries, the oldest must be at least
+      // 24 hours old before it can be removed and a new request appended.
       allow update: if validLimitWrite()
-        && resource.data.lastRequestAt is timestamp
-        && request.time >= resource.data.lastRequestAt + duration.value(24, 'h');
+        && (
+          // Migrate old records created by the previous one-per-24-hours rule.
+          (
+            !('requestTimes' in resource.data)
+            && resource.data.lastRequestAt is timestamp
+            && request.time >= resource.data.lastRequestAt + duration.value(24, 'h')
+            && request.resource.data.requestTimes.size() == 2
+            && request.resource.data.requestTimes[0] == resource.data.lastRequestAt
+            && validRequestTime(request.resource.data.requestTimes[1])
+          )
+          ||
+          (
+            'requestTimes' in resource.data
+            && resource.data.requestTimes is list
+            && resource.data.requestTimes.size() == 1
+            && request.resource.data.requestTimes.size() == 2
+            && request.resource.data.requestTimes[0] == resource.data.requestTimes[0]
+            && validRequestTime(request.resource.data.requestTimes[1])
+          )
+          ||
+          (
+            'requestTimes' in resource.data
+            && resource.data.requestTimes is list
+            && resource.data.requestTimes.size() == 2
+            && request.resource.data.requestTimes.size() == 3
+            && request.resource.data.requestTimes[0] == resource.data.requestTimes[0]
+            && request.resource.data.requestTimes[1] == resource.data.requestTimes[1]
+            && validRequestTime(request.resource.data.requestTimes[2])
+          )
+          ||
+          (
+            'requestTimes' in resource.data
+            && resource.data.requestTimes is list
+            && resource.data.requestTimes.size() == 3
+            && request.resource.data.requestTimes.size() == 4
+            && request.resource.data.requestTimes[0] == resource.data.requestTimes[0]
+            && request.resource.data.requestTimes[1] == resource.data.requestTimes[1]
+            && request.resource.data.requestTimes[2] == resource.data.requestTimes[2]
+            && validRequestTime(request.resource.data.requestTimes[3])
+          )
+          ||
+          (
+            'requestTimes' in resource.data
+            && resource.data.requestTimes is list
+            && resource.data.requestTimes.size() == 4
+            && request.resource.data.requestTimes.size() == 5
+            && request.resource.data.requestTimes[0] == resource.data.requestTimes[0]
+            && request.resource.data.requestTimes[1] == resource.data.requestTimes[1]
+            && request.resource.data.requestTimes[2] == resource.data.requestTimes[2]
+            && request.resource.data.requestTimes[3] == resource.data.requestTimes[3]
+            && validRequestTime(request.resource.data.requestTimes[4])
+          )
+          ||
+          (
+            'requestTimes' in resource.data
+            && resource.data.requestTimes is list
+            && resource.data.requestTimes.size() == 5
+            && request.resource.data.requestTimes.size() == 5
+            && request.resource.data.requestTimes[0] == resource.data.requestTimes[1]
+            && request.resource.data.requestTimes[1] == resource.data.requestTimes[2]
+            && request.resource.data.requestTimes[2] == resource.data.requestTimes[3]
+            && request.resource.data.requestTimes[3] == resource.data.requestTimes[4]
+            && validRequestTime(request.resource.data.requestTimes[4])
+            && resource.data.requestTimes[0] is timestamp
+            && request.time >= resource.data.requestTimes[0] + duration.value(24, 'h')
+          )
+        );
 
-      // The app reads this marker to show the existing friendly cooldown message.
+      // Owners may read their own marker; only the validated atomic request
+      // write can create/update it. Clients cannot delete or reset the counter.
       allow read: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
     }
