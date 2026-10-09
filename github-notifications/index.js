@@ -50,6 +50,29 @@ const extractMapCoordinates = (html = '') => {
   return null;
 };
 
+// Blogger Location fields are separate from post body content. Read them directly
+// so offline notifications use the same location source as the mobile app.
+const extractBloggerLocation = (entry, content = '') => {
+  const rawLocation = entry?.location || entry?.['gd$where'] || entry?.['georss$where'];
+  const location = Array.isArray(rawLocation) ? rawLocation[0] : rawLocation;
+  const name =
+    location?.name?.$t || location?.name || location?.['gd$name']?.$t ||
+    location?.['gd$name'] || location?.valueString || location?.['valueString'] ||
+    entry?.['gd$where']?.name?.$t || entry?.['gd$where']?.name ||
+    entry?.['gd$where']?.valueString || '';
+  const pointText = location?.['georss$point']?.$t || location?.['georss$point'] ||
+    entry?.['georss$point']?.$t || entry?.['georss$point'] || '';
+  const pointParts = String(pointText).trim().split(/[ ,]+/).filter(Boolean);
+  const gmlPosition = location?.['gd$Point']?.['gml$Point']?.['gml$pos']?.$t || '';
+  const gmlParts = String(gmlPosition).trim().split(/[ ,]+/).filter(Boolean);
+  const latitude = Number(location?.lat ?? location?.latitude ?? gmlParts[0] ?? pointParts[0]);
+  const longitude = Number(location?.lng ?? location?.longitude ?? gmlParts[1] ?? pointParts[1]);
+  const coordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? { latitude, longitude }
+    : extractMapCoordinates(content);
+  return { name: String(name || '').trim(), coordinates };
+};
+
 const distanceKm = (a, b) => {
   const earthRadiusKm = 6371;
   const radians = degrees => degrees * Math.PI / 180;
@@ -104,19 +127,17 @@ const getUserLocationMatch = (post, user) => {
   const current = data.location;
   const manual = data.manualLocationCoordinates;
 
-  const currentCoords =
-    current &&
-    Number.isFinite(Number(current.latitude)) &&
-    Number.isFinite(Number(current.longitude))
-      ? { latitude: Number(current.latitude), longitude: Number(current.longitude) }
-      : null;
+  const currentLatitude = current?.latitude ?? current?.lat ?? current?.coordinates?.latitude ?? current?.coordinates?.lat;
+  const currentLongitude = current?.longitude ?? current?.lng ?? current?.coordinates?.longitude ?? current?.coordinates?.lng;
+  const currentCoords = current && Number.isFinite(Number(currentLatitude)) && Number.isFinite(Number(currentLongitude))
+    ? { latitude: Number(currentLatitude), longitude: Number(currentLongitude) }
+    : null;
 
-  const manualCoords =
-    manual &&
-    Number.isFinite(Number(manual.latitude)) &&
-    Number.isFinite(Number(manual.longitude))
-      ? { latitude: Number(manual.latitude), longitude: Number(manual.longitude) }
-      : null;
+  const manualLatitude = manual?.latitude ?? manual?.lat;
+  const manualLongitude = manual?.longitude ?? manual?.lng;
+  const manualCoords = manual && Number.isFinite(Number(manualLatitude)) && Number.isFinite(Number(manualLongitude))
+    ? { latitude: Number(manualLatitude), longitude: Number(manualLongitude) }
+    : null;
 
   const selectedCoords = currentCoords || manualCoords;
   const selectedLocationType = currentCoords ? 'CURRENT' : manualCoords ? 'SAVED' : 'NONE';
@@ -130,14 +151,16 @@ const getUserLocationMatch = (post, user) => {
   );
 
   const offerText = [
-    normalizeText(post.title),
-    normalizeText(post.content),
-    normalizeText(post.rawContent),
-  ].join(' ');
+    post.locationName,
+    post.title,
+    ...(post.labels || []),
+    post.content,
+    post.rawContent,
+  ].map(normalizeText).filter(Boolean).join(' ');
 
-  const textMatch = locationTerms.some(term => offerText.includes(term));
+  const textMatch = locationTerms.some(term => term.length >= 3 && offerText.includes(term));
 
-  const postLocation = extractMapCoordinates(post.rawContent);
+  const postLocation = post.locationCoordinates || extractMapCoordinates(post.rawContent);
   const distanceMatch =
     Boolean(selectedCoords && postLocation) &&
     distanceKm(selectedCoords, postLocation) <= NEARBY_RADIUS_KM;
@@ -156,6 +179,7 @@ const parseFeed = data => {
     const alternate = links.find(item => item.rel === 'alternate');
     const content = entry.content?.$t || entry.summary?.$t || '';
     const labels = (entry.category || []).map(item => item.term).filter(Boolean);
+    const bloggerLocation = extractBloggerLocation(entry, content);
 
     return {
       id: entry.id?.$t || String(index),
@@ -169,6 +193,8 @@ const parseFeed = data => {
       excerpt: stripHtml(entry.summary?.$t || content).slice(0, 180),
       content: stripHtml(content),
       rawContent: content,
+      locationName: bloggerLocation.name,
+      locationCoordinates: bloggerLocation.coordinates || undefined,
     };
   });
 };
