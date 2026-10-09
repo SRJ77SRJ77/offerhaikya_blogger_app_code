@@ -2763,9 +2763,10 @@ export default function App() {
   };
 
   const getLatestBellNotifications = (sourcePosts: Post[]) => {
-    const latestTen = sourcePosts.slice(0, 10);
+    // Filter dismissed versions before taking the 10-item window so older,
+    // still-visible posts can fill the bell back up to 10 items.
+    const latestTen = sourcePosts.filter(post => !isNotificationDismissed(post)).slice(0, 10);
     return latestTen
-      .filter(post => !isNotificationDismissed(post))
       .map(post => {
         const versionKey = notificationVersionKey(post);
         const hasOlderDismissal =
