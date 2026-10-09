@@ -286,7 +286,9 @@ const run = async () => {
   if (!state?.initialized) {
     await stateRef.set({
       initialized: true,
-      posts: currentPosts,
+      // Treat posts present on the first watcher run as historical. Do not
+      // send a batch of old posts on the next cron run.
+      posts: Object.fromEntries(Object.entries(currentPosts).map(([id, post]) => [id, { ...post, notificationSent: true }])),
       latestPostId: posts[0].id,
       latestPublishedAt: posts[0].publishedAt || new Date().toISOString(),
       notificationLogicVersion: NOTIFICATION_LOGIC_VERSION,
@@ -307,9 +309,9 @@ const run = async () => {
   // transient delivery failures to recover without repeatedly pushing old posts.
   const retryRecentUnsentPosts = posts.filter(post => {
     const previous = previousPosts[post.id];
-    const published = Date.parse(post.publishedAt || post.date || '');
-    return Boolean(previous) && !previous.notificationSent && Number.isFinite(published) &&
-      Date.now() - published <= 24 * 60 * 60 * 1000 && !isExpiredOffer(post);
+    const lastChanged = Date.parse(post.updatedAt || post.publishedAt || post.date || '');
+    return Boolean(previous) && !previous.notificationSent && Number.isFinite(lastChanged) &&
+      Date.now() - lastChanged <= 24 * 60 * 60 * 1000 && !isExpiredOffer(post);
   });
 
   const retryLatestForLogicFix =
