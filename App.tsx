@@ -887,7 +887,8 @@ export default function App() {
         setLatestTotalCount(feedTotalCountCache.get(search.trim().toLowerCase()) ?? cached.length);
         setPage(pageNumber);
         paginationPageRef.current = pageNumber;
-        setHasMorePosts(cached.length === PAGE_SIZE);
+        const cachedTotal = feedTotalCountCache.get(search.trim().toLowerCase());
+        setHasMorePosts(cachedTotal != null ? startIndex + cached.length - 1 < cachedTotal : cached.length === PAGE_SIZE);
         setLoading(false);
         setSearching(false);
 
@@ -945,7 +946,8 @@ export default function App() {
       setLatestTotalCount(feedTotalCountCache.get(search.trim().toLowerCase()) ?? result.length);
       setPage(pageNumber);
       paginationPageRef.current = pageNumber;
-      setHasMorePosts(result.length === PAGE_SIZE);
+      const totalAvailable = feedTotalCountCache.get(search.trim().toLowerCase());
+      setHasMorePosts(totalAvailable != null ? startIndex + result.length - 1 < totalAvailable : result.length === PAGE_SIZE);
 
       if (result.length === PAGE_SIZE) {
         void prefetchFeed(search, pageNumber + 1);
@@ -983,7 +985,8 @@ export default function App() {
       const nextPage = Math.floor(nextTotal / PAGE_SIZE) || 1;
       setPage(nextPage);
       paginationPageRef.current = nextPage;
-      setHasMorePosts(result.length === PAGE_SIZE);
+      const totalAvailable = feedTotalCountCache.get(search.trim().toLowerCase());
+      setHasMorePosts(totalAvailable != null ? startIndex + result.length - 1 < totalAvailable : result.length === PAGE_SIZE);
     } catch {
       setError('Could not load more offers. Please try again.');
     } finally {
@@ -4818,29 +4821,6 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
-            onPress={goToSearchTab}
-            accessibilityLabel="Search"
-          >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-              />
-              <Path
-                d="M16.5 16.5L21 21"
-                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
-              Search
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={[
               styles.bottomNavItem,
               bottomTabRef.current === 'local' && styles.bottomNavItemActive,
@@ -4864,6 +4844,29 @@ export default function App() {
               />
             </Svg>
             <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Nearby Offers</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+            onPress={goToSearchTab}
+            accessibilityLabel="Search"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
+              Search
+            </Text>
           </TouchableOpacity>
 
         </View>
@@ -5901,7 +5904,7 @@ export default function App() {
                   <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
                   <Text style={styles.heroTitle}>Find the best offers</Text>
                   <Text style={styles.heroSubtitle}>
-                    Welcome {registrationCompleted && authUserKey ? (registrationName.trim() || auth.currentUser?.displayName?.trim() || 'there') : 'Guest'} 👋
+                    {registrationCompleted && authUserKey ? `Welcome, ${registrationName.trim() || auth.currentUser?.displayName?.trim() || 'User'}` : 'Welcome Guest'}
                   </Text>
                   <View style={styles.searchBox}>
                     <Text style={styles.searchIcon}>⌕</Text>
@@ -6143,7 +6146,7 @@ export default function App() {
               <Text style={styles.heroSmall}>LATEST DEALS & OFFERS</Text>
               <Text style={styles.heroTitle}>Find the best offers</Text>
               <Text style={styles.heroSubtitle}>
-                Welcome {registrationCompleted && authUserKey ? (registrationName.trim() || auth.currentUser?.displayName?.trim() || 'there') : 'Guest'} 👋
+                {registrationCompleted && authUserKey ? `Welcome, ${registrationName.trim() || auth.currentUser?.displayName?.trim() || 'User'}` : 'Welcome Guest'}
               </Text>
               <View style={styles.searchBox}>
                 <Text style={styles.searchIcon}>⌕</Text>
@@ -6444,29 +6447,6 @@ export default function App() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
-          onPress={goToSearchTab}
-          accessibilityLabel="Search"
-        >
-          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-              strokeWidth={2}
-            />
-            <Path
-              d="M16.5 16.5L21 21"
-              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-          </Svg>
-          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
-            Search
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[
             styles.bottomNavItem,
             bottomTabRef.current === 'local' && styles.bottomNavItemActive,
@@ -6490,6 +6470,29 @@ export default function App() {
             />
           </Svg>
           <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Nearby Offers</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+          onPress={goToSearchTab}
+          accessibilityLabel="Search"
+        >
+          <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+              strokeWidth={2}
+            />
+            <Path
+              d="M16.5 16.5L21 21"
+              stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          </Svg>
+          <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
+            Search
+          </Text>
         </TouchableOpacity>
 
       </View>
@@ -7145,13 +7148,13 @@ registrationOverlay: { ...StyleSheet.absoluteFill, zIndex: 200, backgroundColor:
   loadMoreWrap: { alignItems: 'center', paddingVertical: 18 },
   loadMoreButton: { minHeight: 36, paddingHorizontal: 20, borderRadius: 8, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   loadMoreButtonText: { color: WHITE, fontSize: 12, fontWeight: '900' },
-  footer: { alignItems: 'center', paddingVertical: 24 },
+  footer: { alignItems: 'center', paddingTop: 12, paddingBottom: 10 },
   footerBrand: { color: TEXT, fontSize: 13, fontWeight: '900' },
   footerBrandDark: { color: WHITE },
   footerText: { color: MUTED, fontSize: 12, marginTop: 4 },
-  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 16, paddingHorizontal: 10 },
+  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 10, paddingHorizontal: 10 },
   footerLink: { color: TEXT, fontSize: 12, fontWeight: '800' },
-  socialRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16 },
+  socialRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10 },
   socialIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   instagramLogo: { width: 19, height: 19, borderWidth: 2, borderColor: WHITE, borderRadius: 5, alignItems: 'center', justifyContent: 'center' },
   instagramLens: { width: 8, height: 8, borderWidth: 2, borderColor: WHITE, borderRadius: 4 },
