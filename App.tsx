@@ -1028,10 +1028,6 @@ export default function App() {
         return;
       }
 
-      const nativeToken = await Notifications.getDevicePushTokenAsync();
-      console.log('NATIVE FCM TOKEN:', nativeToken);
-      const fcmToken = String(nativeToken.data);
-
       const pushToken = (
         await Notifications.getExpoPushTokenAsync({ projectId })
       ).data;
@@ -1047,19 +1043,7 @@ export default function App() {
         { merge: true },
       );
 
-      console.log('Expo push token:', pushToken);
 
-      // Extra save in its own try/catch, so a Firestore rules problem
-      // on this field can never block the main save above.
-      try {
-        await setDoc(
-          doc(db, 'users', firebaseUser.uid),
-          { fcmToken },
-          { merge: true },
-        );
-      } catch (fcmSaveError) {
-        console.log('FCM token save error:', fcmSaveError);
-      }
     } catch (error) {
       console.log('Push notification sync error:', error);
     }
@@ -1106,7 +1090,6 @@ export default function App() {
           { merge: true },
         );
 
-        console.log('Expo push token listener update:', pushToken);
       } catch (error) {
         console.log('Push token update error:', error);
       }
@@ -1243,8 +1226,6 @@ export default function App() {
       coords: { latitude: number; longitude: number },
       detectedLocationTerms: string[],
     ): Promise<number | null> => {
-      const isNearbyDebugPost =
-        /offer near me testing laxminagur belgavi|demomark 50 off on belgaum/i.test(post.title);
       const normalizedLabels = [...post.labels, post.label]
         .map(label => normalizeLocationText(label))
         .filter(Boolean);
@@ -1304,20 +1285,6 @@ export default function App() {
       const distanceKmValue = postLocation ? distanceKm(coords, postLocation) : null;
       const distanceMatch =
         distanceKmValue !== null && distanceKmValue <= NEARBY_RADIUS_KM;
-
-      if (isNearbyDebugPost) {
-        console.log('[Nearby debug]', {
-          title: post.title,
-          labels: post.labels,
-          locationTerms: detectedLocationTerms,
-          locationMatch: Boolean(matchedLocationTerm),
-          matchedLocationTerm,
-          postLocation,
-          userLocation: coords,
-          distanceKm: distanceKmValue,
-          distanceMatch,
-        });
-      }
 
       return distanceMatch ? distanceKmValue : null;
     };

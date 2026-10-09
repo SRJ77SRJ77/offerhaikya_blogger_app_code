@@ -38,7 +38,13 @@ service cloud.firestore {
     }
 
     match /notificationStates/{userId} {
-      allow read, create, update:
+      // Reading only the caller's dismissal state must not depend on
+      // request.resource, which is unavailable for read operations.
+      allow read:
+        if request.auth != null
+        && request.auth.uid == userId;
+
+      allow create, update:
         if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['dismissedPostIds'])
