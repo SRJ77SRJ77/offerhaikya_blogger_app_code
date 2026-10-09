@@ -44,7 +44,7 @@ import {
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, where, writeBatch } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, Timestamp, where, writeBatch } from 'firebase/firestore';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -4147,16 +4147,43 @@ export default function App() {
       // before the anonymous auth bootstrap finished.
       const firebaseUser = await ensureAnonymousUser();
 
-      // One request per Firebase user/guest every 24 hours.
+      // Allow at most 5 requests in any rolling 24-hour window.
+      // Firestore rules independently enforce this queue so clients cannot bypass it.
       const limitRef = doc(db, 'offerRequestLimits', firebaseUser.uid);
       const limitSnapshot = await getDoc(limitRef);
-      const lastRequestAt = limitSnapshot.exists()
-        ? limitSnapshot.data()?.lastRequestAt
-        : null;
+      const limitData = limitSnapshot.exists() ? limitSnapshot.data() : null;
+      const lastRequestAt = limitData?.lastRequestAt;
+      const storedTimes = Array.isArray(limitData?.requestTimes)
+        ? limitData.requestTimes.filter((value: any) => value && typeof value.toMillis === 'function')
+        : [];
 
-      if (lastRequestAt?.toMillis) {
-        const elapsedMs = Date.now() - lastRequestAt.toMillis();
-        if (elapsedMs < 24 * 60 * 60 * 1000) {
+      let requestTimes: any[];
+      if (!limitSnapshot.exists()) {
+        requestTimes = [Timestamp.now()];
+      } else if (Array.isArray(limitData?.requestTimes)) {
+        requestTimes = storedTimes;
+        if (requestTimes.length >= 5) {
+          const oldestRequestAt = requestTimes[0];
+          const elapsedMs = Date.now() - oldestRequestAt.toMillis();
+          if (elapsedMs < 24 * 60 * 60 * 1000) {
+            setOfferRequestSubmitting(false);
+            setOfferRequestError('');
+            setOfferRequestSuccess(false);
+            setOfferRequestOpen(false);
+            setOfferRequestName('');
+            setOfferRequestContact('');
+            setOfferRequestText('');
+            Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
+            return;
+          }
+          requestTimes = [...requestTimes.slice(1), Timestamp.now()];
+        } else {
+          requestTimes = [...requestTimes, Timestamp.now()];
+        }
+      } else {
+        // Migrate older one-request limit records safely. Do not allow another
+        // request until the old 24-hour restriction has expired.
+        if (lastRequestAt?.toMillis && Date.now() - lastRequestAt.toMillis() < 24 * 60 * 60 * 1000) {
           setOfferRequestSubmitting(false);
           setOfferRequestError('');
           setOfferRequestSuccess(false);
@@ -4167,6 +4194,9 @@ export default function App() {
           Alert.alert('Request Offer', 'You can send another offer request after 24 hours. Thank you.');
           return;
         }
+        requestTimes = lastRequestAt?.toMillis
+          ? [lastRequestAt, Timestamp.now()]
+          : [Timestamp.now()];
       }
 
       const requestId = firebaseUser.uid + '_' + Date.now();
@@ -4185,6 +4215,7 @@ export default function App() {
       batch.set(limitRef, {
         lastRequestAt: serverTimestamp(),
         requestId,
+        requestTimes,
       });
 
       await batch.commit();
@@ -4203,7 +4234,16 @@ export default function App() {
       console.log('Offer request submit error:');
       setOfferRequestSubmitting(false);
       setOfferRequestSuccess(false);
-      setOfferRequestError('Could not submit your request. Please try again.');
+      if (error?.code === 'permission-denied') {
+        setOfferRequestError('');
+        setOfferRequestOpen(false);
+        setOfferRequestName('');
+        setOfferRequestContact('');
+        setOfferRequestText('');
+        Alert.alert('Request Offer', 'You have reached the limit of 5 offer requests in 24 hours. Please try again after 24 hours. Thank you.');
+      } else {
+        setOfferRequestError('Could not submit your request. Please try again.');
+      }
     }
   };
 
