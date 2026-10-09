@@ -2810,38 +2810,10 @@ export default function App() {
 
         // Keep the newest 10 notifications. Cloud history restores push notices
         // received while the app was closed; current Blogger data wins by ID.
-        let relevant: Post[] = [];
-        try {
-          const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
-          const profile = profileSnapshot.exists() ? profileSnapshot.data() : {};
-          const categories = Array.isArray(profile.interestedCategories)
-            ? profile.interestedCategories.map((item: any) =>
-                String(item).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(),
-              ).filter(Boolean)
-            : [];
-
-          const allPosts = await getAllPostsForNearby();
-          const categoryMatches = allPosts.filter(post => {
-            const labels = [post.label, ...post.labels]
-              .map(item => String(item).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
-              .filter(Boolean);
-            return categories.some(category =>
-              labels.some(label => label === category || label.includes(category) || category.includes(label)),
-            );
-          });
-
-          const nearbyMatches = nearbyPosts;
-          const seen = new Set<string>();
-          relevant = [...categoryMatches, ...nearbyMatches].filter(post => {
-            if (latest.some(item => item.id === post.id)) return false;
-            if (isNotificationDismissed(post)) return false;
-            if (seen.has(post.id)) return false;
-            seen.add(post.id);
-            return true;
-          });
-        } catch (error) {
-          console.log('Relevant notification refresh error:');
-        }
+        // The bell is intentionally limited to the latest feed items plus
+        // notifications actually delivered by the push backend. Do not scan the
+        // entire Blogger archive during startup; that caused avoidable UI lag.
+        const relevant: Post[] = [];
 
         // If the feed has a newer version of a stored notification, prefer
         // the current feed version. Otherwise keep push metadata such as "updated".
