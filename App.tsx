@@ -2762,6 +2762,15 @@ export default function App() {
     return dismissed;
   };
 
+  const fetchLatestBellPosts = async (): Promise<Post[]> => {
+    const response = await fetch(
+      FEED_URL + '?alt=json&max-results=50&ohk_notification_refresh=' + Date.now(),
+      { headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', Pragma: 'no-cache' } },
+    );
+    if (!response.ok) throw new Error('Unable to refresh notification feed');
+    return parseFeed(await response.json());
+  };
+
   const getLatestBellNotifications = (sourcePosts: Post[]) => {
     // Filter dismissed versions before taking the 10-item window so older,
     // still-visible posts can fill the bell back up to 10 items.
@@ -2790,7 +2799,13 @@ export default function App() {
   const loadNotificationsForUser = async (user: any) => {
     try {
       await loadNotificationDismissals(user);
-      const latest = getLatestBellNotifications(posts);
+      let bellSourcePosts = posts;
+      try {
+        bellSourcePosts = await fetchLatestBellPosts();
+      } catch {
+        // Use already-loaded posts if the bell's dedicated refresh is unavailable.
+      }
+      const latest = getLatestBellNotifications(bellSourcePosts);
 
       if (user && !user.isAnonymous) {
         const stored = await AsyncStorage.getItem(getNotificationsStorageKey(user.uid));
@@ -3012,7 +3027,7 @@ export default function App() {
     let cancelled = false;
     const syncLatestNotifications = async () => {
       try {
-        const latest = await fetchFeedFromNetwork('', 1, true);
+        const latest = await fetchLatestBellPosts();
         if (!cancelled) {
           setNotifications(current => {
             const latestNotifications = getLatestBellNotifications(latest);
