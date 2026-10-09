@@ -376,6 +376,9 @@ const run = async () => {
     const isUpdate = previousPosts[post.id]?.notificationSent === true;
     const local = isLocalOffer(post);
     const normalizedLabels = new Set(post.labels.map(normalizeText).filter(Boolean));
+    const categoryLabels = [...normalizedLabels].filter(label =>
+      !['online offer', 'online offers', 'offline offer', 'offline offers', 'local offer', 'local offers'].includes(label),
+    );
 
     const targetUsers = eligibleUsers.filter(user => {
       const data = user.data || {};
@@ -383,16 +386,27 @@ const run = async () => {
         ? data.interestedCategories.map(normalizeText).filter(Boolean)
         : [];
 
-      const wantsOnlineOffers = interestedCategories.some(category => category === 'online offer' || category === 'online offers');
-      const wantsOfflineOffers = interestedCategories.some(category => category === 'offline offer' || category === 'offline offers');
+      const wantsOnlineOffers = interestedCategories.some(category =>
+        category === 'online offer' || category === 'online offers',
+      );
+      const wantsOfflineOffers = interestedCategories.some(category =>
+        category === 'offline offer' || category === 'offline offers' ||
+        category === 'local offer' || category === 'local offers',
+      );
+      const matchesSelectedCategory = interestedCategories.some(category =>
+        category.length >= 3 && categoryLabels.some(label =>
+          label === category || label.includes(category) || category.includes(label),
+        ),
+      );
 
       if (!local) {
-        // ONLINE OFFER: category subscription only. No location check.
-        return wantsOnlineOffers;
+        // Online offers are matched against the user's selected post categories.
+        // Selecting the general Online Offer category opts into all online posts.
+        return wantsOnlineOffers || matchesSelectedCategory;
       }
 
-      // OFFLINE OFFER: category subscription is required first.
-      if (!wantsOfflineOffers) return false;
+      // Offline/local offers require a category match before checking distance.
+      if (!wantsOfflineOffers && !matchesSelectedCategory) return false;
 
       // Current location has priority. Saved/manual location is used only
       // when the current location is unavailable.
