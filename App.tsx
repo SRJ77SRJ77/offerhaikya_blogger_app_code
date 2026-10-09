@@ -2038,8 +2038,11 @@ export default function App() {
               const logoRegion = logoStart >= 0 ? source.slice(logoStart, logoStart + 12000) : '';
               const darkLogoMatch = logoRegion.match(/data-dark-src=['\"]([^'\"]+)['\"]/i);
               const darkLogoCandidate = darkLogoMatch ? decodeMenuText(darkLogoMatch[1]) : '';
-              if (/^https?:\/\//i.test(darkLogoCandidate) && !cancelled) {
-                setBloggerDarkLogoUri(darkLogoCandidate);
+              const normalizedDarkLogoCandidate = darkLogoCandidate.startsWith('//')
+                ? 'https:' + darkLogoCandidate
+                : darkLogoCandidate;
+              if (/^https?:\/\//i.test(normalizedDarkLogoCandidate) && !cancelled) {
+                setBloggerDarkLogoUri(normalizedDarkLogoCandidate);
               }
             }
           } finally {
@@ -2063,6 +2066,13 @@ export default function App() {
           while ((anchorMatch = anchorPattern.exec(widgetHtml)) !== null) {
             const label = decodeMenuText(anchorMatch[1]);
             if (label) labels.push(label);
+          }
+        }
+
+        if (labels.length > 0 && !isWidgetSettings) {
+          const liveParsed = groupMenuLabels(labels, false);
+          if (liveParsed.categories.length === 0 || liveParsed.specialDeals.length === 0) {
+            labels = [];
           }
         }
 
