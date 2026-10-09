@@ -4,9 +4,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-      allow read, create, update, delete:
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update:
         if request.auth != null
-        && request.auth.uid == userId;
+        && request.auth.uid == userId
+        && (!('uid' in request.resource.data) || request.resource.data.uid == userId);
+      allow delete: if false;
     }
 
     match /notifications/{notificationId} {
@@ -36,17 +39,29 @@ service cloud.firestore {
     }
 
     match /offerRequestLimits/{userId} {
-      allow create, update:
-        if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['lastRequestAt', 'requestId'])
-        && request.resource.data.lastRequestAt is timestamp
-        && request.resource.data.requestId is string
-        && request.resource.data.lastRequestAt == request.time
-        && getAfter(
-          /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
-        ).data.uid == request.auth.uid;
-      allow read, delete: if false;
+      function validLimitWrite() {
+        return request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['lastRequestAt', 'requestId'])
+          && request.resource.data.lastRequestAt is timestamp
+          && request.resource.data.requestId is string
+          && request.resource.data.lastRequestAt == request.time
+          && getAfter(
+            /databases/$(database)/documents/offerRequests/$(request.resource.data.requestId)
+          ).data.uid == request.auth.uid;
+      }
+
+      // First request: only create a marker when none exists.
+      allow create: if validLimitWrite();
+
+      // Later requests: the server enforces the full 24-hour cooldown.
+      allow update: if validLimitWrite()
+        && resource.data.lastRequestAt is timestamp
+        && request.time >= resource.data.lastRequestAt + duration.value(24, 'h');
+
+      // The app reads this marker to show the existing friendly cooldown message.
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
     }
   }
 }
