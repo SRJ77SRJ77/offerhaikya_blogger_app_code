@@ -916,20 +916,21 @@ export default function App() {
           return value;
         };
 
-        result = result
-          .filter(post => score(post) > 0)
-          .sort((a, b) => score(b) - score(a));
-
-        if (result.length === 0) {
-          try {
-            const allSearchPosts = await getAllPostsForNearby();
-            result = allSearchPosts
-              .filter(post => score(post) > 0)
-              .sort((a, b) => score(b) - score(a))
-              .slice(0, PAGE_SIZE);
-          } catch {
-            // Keep the direct Blogger search result if the fallback fails.
-          }
+        // Blogger's q endpoint can return only a small subset of matches.
+        // Search the complete locally fetched feed so titles, labels/tags,
+        // descriptions, and locations are all included, with title matches first.
+        try {
+          const allSearchPosts = await getAllPostsForNearby();
+          const combinedById = new Map<string, Post>();
+          [...allSearchPosts, ...result].forEach(post => combinedById.set(post.id, post));
+          result = Array.from(combinedById.values())
+            .filter(post => score(post) > 0)
+            .sort((a, b) => score(b) - score(a));
+        } catch {
+          // If the full feed cannot be loaded, retain all direct Blogger results.
+          result = result
+            .filter(post => score(post) > 0)
+            .sort((a, b) => score(b) - score(a));
         }
       }
 
@@ -3206,8 +3207,8 @@ export default function App() {
       }),
     );
 
-    // Firestore is persisted in the background so the UI stays responsive.
-    void setDoc(
+    // Persist the profile before reporting registration/profile update success.
+    await setDoc(
       doc(db, 'users', user.uid),
       {
         uid: user.uid,
@@ -3221,9 +3222,7 @@ export default function App() {
         updatedAt: new Date().toISOString(),
       },
       { merge: true },
-    ).catch(error => {
-      console.log('Profile background save error:');
-    });
+    );
 
     // Geocode only after the profile is already saved, so this can never block
     // the registration/login UI.
@@ -3628,7 +3627,7 @@ export default function App() {
       setRegistrationSubmitting(true);
       await sendPasswordResetEmail(auth, email);
       setRegistrationSubmitting(false);
-      setRegistrationSuccess('Profile updated successfully ✓');
+      setRegistrationSuccess('');
       setRegistrationError('Password reset email sent. Check your inbox.');
       setTimeout(() => setRegistrationSuccess(''), 1800);
     } catch (error: any) {
@@ -4784,6 +4783,29 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
+            onPress={goToSearchTab}
+            accessibilityLabel="Search"
+          >
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+              />
+              <Path
+                d="M16.5 16.5L21 21"
+                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
+              Search
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[
               styles.bottomNavItem,
               bottomTabRef.current === 'local' && styles.bottomNavItemActive,
@@ -4807,29 +4829,6 @@ export default function App() {
               />
             </Svg>
             <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTabRef.current === 'local' && styles.bottomNavLabelActive, localOffersDisabled && styles.bottomNavLabelDisabled]}>Nearby Offers</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.bottomNavItem, bottomTab === 'search' && styles.bottomNavItemActive]}
-            onPress={goToSearchTab}
-            accessibilityLabel="Search"
-          >
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M11 18A7 7 0 1 0 11 4A7 7 0 0 0 11 18Z"
-                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-              />
-              <Path
-                d="M16.5 16.5L21 21"
-                stroke={bottomTab === 'search' ? ACCENT : (darkMode ? WHITE : TEXT)}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
-            <Text style={[styles.bottomNavLabel, darkMode && styles.bottomNavLabelDark, bottomTab === 'search' && styles.bottomNavLabelActive]}>
-              Search
-            </Text>
           </TouchableOpacity>
 
         </View>
