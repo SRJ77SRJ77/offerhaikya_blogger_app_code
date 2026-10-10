@@ -307,7 +307,10 @@ function App() {
         setPosts(parsed)
         setNotifications(mergedNotifications)
         try { localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id))) } catch {}
-        try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed)) } catch (cacheError) { console.warn('Offerhaikya post cache is full; live feed still updated.', cacheError) }
+        try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed)) } catch (cacheError) {
+          try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed.slice(0, 50))) } catch {}
+          console.warn('Offerhaikya cache stored a smaller recent-post snapshot.', cacheError)
+        }
         try { localStorage.setItem('offerhaikya_notifications', JSON.stringify(mergedNotifications)) } catch {}
         console.log(`Offerhaikya Blogger: synced ${parsed.length} posts`)
       } catch (error) {
