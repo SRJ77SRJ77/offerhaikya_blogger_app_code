@@ -181,7 +181,7 @@ function OfferCard({ post, saved, onSave, onOpen, onShare, dark, nearby }) {
         </div>
       ) : null}
 
-      {expiry ? <div className="ohk-card-expiry">{expiry}</div> : null}
+      {expiry ? <div className={`ohk-card-expiry ${expiry === 'Expired' ? 'ohk-card-expired' : ''}`}>{expiry}</div> : null}
 
       <button className="ohk-card-click" onClick={() => onOpen(post)}>
         {post.image ? (
@@ -208,6 +208,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [activeLabel, setActiveLabel] = useState('All')
   const [visible, setVisible] = useState(PAGE_SIZE)
+  const [nearbyVisible, setNearbyVisible] = useState(PAGE_SIZE)
   const [dark, setDark] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
@@ -239,39 +240,33 @@ function App() {
   const [locationLoading, setLocationLoading] = useState(false)
   const [locationMessage, setLocationMessage] = useState('')
   const [activeTab, setActiveTab] = useState('home')
-  const [notifications, setNotifications] = useState([])
+  const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]'))
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
 
   useEffect(() => {
     let active = true
-    let script = null
-    const callbackName = `offerhaikyaFeedCallback_${Date.now()}`
-
-    const cleanup = () => {
-      if (script) script.remove()
-      try {
-        delete window[callbackName]
-      } catch {
-        window[callbackName] = undefined
-      }
-    }
+    let inFlight = false
 
     const loadFeed = () => new Promise((resolve, reject) => {
+      const callbackName = `offerhaikyaFeedCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      let script = null
+      const cleanup = () => {
+        if (script) script.remove()
+        try { delete window[callbackName] } catch { window[callbackName] = undefined }
+      }
       const timeout = window.setTimeout(() => {
         cleanup()
         reject(new Error('Blogger feed timed out'))
-      }, 15000)
-
+      }, 12000)
       window[callbackName] = (data) => {
         window.clearTimeout(timeout)
         cleanup()
         resolve(data)
       }
-
       script = document.createElement('script')
-      script.src = `${BLOG_URL}/feeds/posts/default?alt=json-in-script&max-results=500&callback=${callbackName}`
+      script.src = `${BLOG_URL}/feeds/posts/default?alt=json-in-script&max-results=500&callback=${callbackName}&_=${Date.now()}`
       script.async = true
       script.onerror = () => {
         window.clearTimeout(timeout)
@@ -281,26 +276,55 @@ function App() {
       document.head.appendChild(script)
     })
 
-    loadFeed()
-      .then((data) => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('offerhaikya_posts_cache') || '[]')
+      if (Array.isArray(cached) && cached.length) {
+        setPosts(cached)
+        setLoading(false)
+      }
+    } catch {}
+
+    const syncPosts = async () => {
+      if (!active || inFlight) return
+      inFlight = true
+      try {
+        const data = await loadFeed()
         if (!active) return
         const parsed = parseFeed(data)
-        setPosts(parsed)
-        console.log(`Offerhaikya Blogger: loaded ${parsed.length} posts`)
-      })
-      .catch((error) => {
-        if (active) {
-          console.error('Offerhaikya Blogger feed:', error)
-          setPosts([])
+        const previousKnown = JSON.parse(localStorage.getItem('offerhaikya_known_post_ids') || 'null')
+        const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
+        const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
+        let additions = []
+        if (!Array.isArray(previousKnown)) {
+          additions = parsed.slice(0, 10)
+        } else {
+          const known = new Set(previousKnown)
+          additions = parsed.filter((post) => !known.has(post.id) && !seen.has(post.id))
         }
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+        const mergedNotifications = [...additions, ...existingNotifications.filter((post) => !seen.has(post.id))]
+          .filter((post, index, all) => all.findIndex((item) => item.id === post.id) === index)
+          .slice(0, 10)
+        localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id)))
+        localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed))
+        localStorage.setItem('offerhaikya_notifications', JSON.stringify(mergedNotifications))
+        setPosts(parsed)
+        setNotifications(mergedNotifications)
+        console.log(`Offerhaikya Blogger: synced ${parsed.length} posts`)
+      } catch (error) {
+        console.error('Offerhaikya Blogger feed sync:', error)
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+        inFlight = false
+      }
+    }
 
+    syncPosts()
+    const interval = window.setInterval(syncPosts, 15000)
     return () => {
       active = false
-      cleanup()
+      window.clearInterval(interval)
     }
   }, [])
 
@@ -480,6 +504,8 @@ function App() {
     tagDragRef.current = null
   }
 
+  useEffect(() => { setNearbyVisible(PAGE_SIZE) }, [userLocation])
+
   const nearbyPosts = useMemo(() => {
     if (!userLocation) return []
 
@@ -570,8 +596,11 @@ function App() {
     setActiveLabel(tag)
     setQuery('')
     setVisible(PAGE_SIZE)
+    setDetail(null)
+    setSitePage(null)
     setActiveTab('home')
-    document.getElementById('deals')?.scrollIntoView({ behavior: 'smooth' })
+    if (window.location.pathname !== '/' || window.location.search) window.history.pushState({}, '', '/')
+    window.setTimeout(() => document.getElementById('deals')?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
   const goHome = () => {
@@ -579,11 +608,18 @@ function App() {
     setActiveLabel('All')
     setQuery('')
     setVisible(PAGE_SIZE)
+    setNearbyVisible(PAGE_SIZE)
     setDetail(null)
+    setSitePage(null)
+    setSearchOpen(false)
+    if (window.location.pathname !== '/' || window.location.search) window.history.pushState({}, '', '/')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const openSearch = () => {
+    setDetail(null)
+    setSitePage(null)
+    if (window.location.pathname !== '/' || window.location.search) window.history.pushState({}, '', '/')
     setActiveTab('search')
     setSearchOpen(false)
     window.setTimeout(() => {
@@ -776,7 +812,7 @@ function App() {
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
               <div className="ohk-detail-tags">
                 {detail.labels?.length ? detail.labels.map((tag) => (
-                  <span key={tag}>{tag}</span>
+                  <button type="button" key={tag} onClick={() => selectTag(tag)}>{tag}</button>
                 )) : <span>{detail.label}</span>}
               </div>
               <h1>{detail.title}</h1>
@@ -877,16 +913,21 @@ function App() {
                     </div>
                   ) : null}
                   <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Add Location'}</button>
-                  <button onClick={requestLocation} disabled={locationLoading}>{locationLoading ? 'Updating...' : 'Update Location'}</button>
+                  <button onClick={requestLocation} disabled={locationLoading}>{locationLoading ? 'Getting Location...' : 'Get Current Location'}</button>
                 </div>
               </div>
 
               {nearbyPosts.length ? (
-                <div className="ohk-grid">
-                  {nearbyPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} nearby />
-                  ))}
-                </div>
+                <>
+                  <div className="ohk-grid">
+                    {nearbyPosts.slice(0, nearbyVisible).map((post) => (
+                      <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} nearby />
+                    ))}
+                  </div>
+                  {nearbyVisible < nearbyPosts.length ? (
+                    <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
+                  ) : null}
+                </>
               ) : (
                 <div className="ohk-empty">No offer found nearby.</div>
               )}
@@ -928,7 +969,7 @@ function App() {
           )}
 
           <section id="deals" className="ohk-section">
-            <div className="ohk-section-title">
+            <div className="ohk-section-title ohk-section-banner" style={{ backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url("${bgImage}")` }}>
               <h2>{query ? `Search: ${query}` : activeLabel !== 'All' ? activeLabel : 'Latest Offers'}</h2>
               <span>{filteredPosts.length} offers</span>
             </div>
@@ -1001,11 +1042,11 @@ function App() {
               <div className="ohk-favorite-list">
                 {notifications.slice(0, 10).map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
-                    <button className="ohk-favorite-item-main" onClick={() => { setNotificationsOpen(false); openPost(item) }}>
+                    <button className="ohk-favorite-item-main" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)); setNotificationsOpen(false); openPost(item) }}>
                       {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
                       <span>{item.title}</span>
                     </button>
-                    <button className="ohk-favorite-remove" onClick={() => setNotifications(current => current.filter(post => post.id !== item.id))}>×</button>
+                    <button className="ohk-favorite-remove" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)) }}>×</button>
                   </div>
                 ))}
               </div>
