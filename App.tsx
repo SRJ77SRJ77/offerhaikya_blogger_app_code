@@ -70,6 +70,9 @@ const TEXT = '#202124';
 const MUTED = '#77747a';
 const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 300;
+// Temporary lightweight APK mode: browse without login and keep push notifications disabled.
+const LOGIN_ENABLED = false;
+const PUSH_NOTIFICATIONS_ENABLED = false;
 const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const METADATA_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
@@ -93,14 +96,16 @@ const NOTIFICATION_DISMISSED_STORAGE_PREFIX = 'offerhaikya_notification_dismisse
 const GUEST_NOTIFICATION_DISMISSED_STORAGE_KEY = 'offerhaikya_guest_notification_dismissed';
 const SAVED_LOCATION_STORAGE_KEY = 'offerhaikya_saved_location';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (PUSH_NOTIFICATIONS_ENABLED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 type Post = {
   id: string;
@@ -550,7 +555,7 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [accountStateLoaded, setAccountStateLoaded] = useState(false);
   const [startupGateOpen, setStartupGateOpen] = useState(false);
-  const [notificationStageDone, setNotificationStageDone] = useState(false);
+  const [notificationStageDone, setNotificationStageDone] = useState(!PUSH_NOTIFICATIONS_ENABLED);
   const [authUserKey, setAuthUserKey] = useState('');
   const [profileStatus, setProfileStatus] = useState<'new' | 'skipped' | 'registered'>('new');
   const [authMode, setAuthMode] = useState<'register' | 'signIn'>('register');
@@ -681,7 +686,7 @@ export default function App() {
   };
 
   const checkRegistrationReminder = async () => {
-    if (registrationCompleted || profileMode) return;
+    if (!LOGIN_ENABLED || registrationCompleted || profileMode) return;
 
     try {
       const hasRegisteredAccount = (await AsyncStorage.getItem(HAS_REGISTERED_ACCOUNT_KEY)) === 'true';
@@ -721,6 +726,15 @@ export default function App() {
     let cancelled = false;
 
     const loadAccountState = async (user: any) => {
+      if (!LOGIN_ENABLED) {
+        if (cancelled) return;
+        setRegistrationCompleted(false);
+        setProfileStatus('skipped');
+        setRegistrationOpen(false);
+        setProfileMode(false);
+        return;
+      }
+
       if (!user || user.isAnonymous) {
         if (cancelled) return;
         setRegistrationCompleted(false);
@@ -998,6 +1012,7 @@ export default function App() {
 
   
   const syncPushTokenForCurrentUser = async (requestPermissionIfNeeded = true) => {
+    if (!PUSH_NOTIFICATIONS_ENABLED) return;
     try {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) return;
@@ -1062,7 +1077,7 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!authReady || !startupGateOpen) return;
+    if (!PUSH_NOTIFICATIONS_ENABLED || !authReady || !startupGateOpen) return;
 
     let cancelled = false;
 
@@ -1154,6 +1169,10 @@ export default function App() {
 
   useEffect(() => {
     if (startupGateOpen) return;
+    if (!LOGIN_ENABLED) {
+      if (!startupPreloader) setStartupGateOpen(true);
+      return;
+    }
     if (!authReady || !accountStateLoaded || startupPreloader || registrationOpen) return;
     setStartupGateOpen(true);
   }, [authReady, accountStateLoaded, startupPreloader, registrationOpen, startupGateOpen]);
@@ -1493,8 +1512,37 @@ export default function App() {
           }
         }
 
-        // Guests without a live GPS location do not reuse a stale local location.
-        // Registered users use Firebase as the saved-location fallback above.
+        // Keep a device-local location fallback so Nearby still works in guest mode
+        // when GPS is temporarily unavailable or switched off after a successful fix.
+        if (!coords) {
+          try {
+            const savedLocationText = await AsyncStorage.getItem(SAVED_LOCATION_STORAGE_KEY);
+            const savedLocation = savedLocationText ? JSON.parse(savedLocationText) : null;
+            const savedCoords = savedLocation?.coords;
+            if (
+              savedCoords &&
+              Number.isFinite(Number(savedCoords.latitude)) &&
+              Number.isFinite(Number(savedCoords.longitude))
+            ) {
+              coords = {
+                latitude: Number(savedCoords.latitude),
+                longitude: Number(savedCoords.longitude),
+              };
+              detectedLocationLabel = String(savedLocation?.label || '').trim();
+              detectedLocationTerms = Array.isArray(savedLocation?.terms)
+                ? savedLocation.terms.map((term: unknown) => String(term || '')).filter(Boolean)
+                : [];
+              if (!cancelled) {
+                setUserLocation(coords);
+                setLocationLabel(detectedLocationLabel);
+                setLocationTerms(detectedLocationTerms);
+              }
+            }
+          } catch {
+            // Best-effort local location fallback for guest browsing.
+          }
+        }
+
         if (coords) {
           try {
             await AsyncStorage.setItem(
@@ -2993,7 +3041,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!authReady) return;
+    if (!PUSH_NOTIFICATIONS_ENABLED || !authReady) return;
 
     // Notification reconciliation can scan Blogger data; let the UI render first.
     const timer = setTimeout(() => {
@@ -3003,7 +3051,7 @@ export default function App() {
   }, [authReady, registrationCompleted, authUserKey]);
 
   useEffect(() => {
-    if (!authReady) return;
+    if (!PUSH_NOTIFICATIONS_ENABLED || !authReady) return;
 
     setNotifications(current => {
       const latest = getLatestBellNotifications(posts);
@@ -3022,7 +3070,7 @@ export default function App() {
   }, [posts, authReady]);
 
   useEffect(() => {
-    if (!authReady) return;
+    if (!PUSH_NOTIFICATIONS_ENABLED || !authReady) return;
 
     let cancelled = false;
     const syncLatestNotifications = async () => {
@@ -5416,7 +5464,7 @@ export default function App() {
   }
 
 
-  if (startupPreloader || !accountStateLoaded) {
+  if (startupPreloader || (LOGIN_ENABLED && !accountStateLoaded)) {
     const startupProgressWidth = startupPreloaderProgress.interpolate({
       inputRange: [0, 1],
       outputRange: ['0%', '100%'],
@@ -5443,7 +5491,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={[styles.safe, darkMode && styles.darkSafe]}>
-      {authReady && registrationOpen && (
+      {LOGIN_ENABLED && authReady && registrationOpen && (
         <View style={styles.registrationOverlay}>
           <View style={styles.registrationPopup}>
             <ScrollView
@@ -5878,6 +5926,7 @@ export default function App() {
             </Svg>
           </TouchableOpacity>
 
+          {PUSH_NOTIFICATIONS_ENABLED ? (
           <TouchableOpacity
             style={styles.headerActionButton}
             onPress={() => setNotificationsOpen(true)}
@@ -5905,6 +5954,8 @@ export default function App() {
             ) : null}
           </TouchableOpacity>
 
+          ) : null}
+          {LOGIN_ENABLED ? (
           <TouchableOpacity
             style={styles.headerActionButton}
             onPress={openProfile}
@@ -5924,6 +5975,7 @@ export default function App() {
               />
             </Svg>
           </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
@@ -6895,7 +6947,7 @@ export default function App() {
         </View>
       </Modal>
 
-    {notificationPopup}
+    {PUSH_NOTIFICATIONS_ENABLED ? notificationPopup : null}
     {favoritePopup}
     </SafeAreaView>
   );
