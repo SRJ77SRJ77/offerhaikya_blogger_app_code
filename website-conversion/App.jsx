@@ -304,11 +304,11 @@ function App() {
         const mergedNotifications = [...additions, ...existingNotifications.filter((post) => !seen.has(post.id))]
           .filter((post, index, all) => all.findIndex((item) => item.id === post.id) === index)
           .slice(0, 10)
-        localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id)))
-        localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed))
-        localStorage.setItem('offerhaikya_notifications', JSON.stringify(mergedNotifications))
         setPosts(parsed)
         setNotifications(mergedNotifications)
+        try { localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id))) } catch {}
+        try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed)) } catch (cacheError) { console.warn('Offerhaikya post cache is full; live feed still updated.', cacheError) }
+        try { localStorage.setItem('offerhaikya_notifications', JSON.stringify(mergedNotifications)) } catch {}
         console.log(`Offerhaikya Blogger: synced ${parsed.length} posts`)
       } catch (error) {
         console.error('Offerhaikya Blogger feed sync:', error)
