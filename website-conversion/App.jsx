@@ -946,35 +946,41 @@ function App() {
               <div className="ohk-nearby-prompt-copy">
                 <strong>See offers near you</strong>
                 <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
-                {locationPickerOpen ? (
-                  <div className="ohk-location-autocomplete">
-                    <input
-                      autoFocus
-                      value={locationQuery}
-                      onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
-                      onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
-                      placeholder="Type Goa, Kolhapur, etc."
-                      aria-label="Search location"
-                    />
-                    {locationSuggestionsOpen && locationSuggestions.length ? (
-                      <div className="ohk-location-suggestions">
-                        {locationSuggestions.map((place) => (
-                          <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
-                            <Icon name="location" size={16} />
-                            <span>{place.display_name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-              <div className="ohk-nearby-prompt-actions">
-                <button className="ohk-add-location-button" type="button" onClick={() => setLocationPickerOpen((value) => !value)}><Icon name="location" size={18} />{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
-                <button type="button" onClick={requestLocation} disabled={locationLoading}>
+                <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
-                  {locationLoading ? 'Checking...' : 'Find Nearby'}
-                </button>
+                  <input
+                    value={locationQuery}
+                    onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                    onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
+                        else setLocationSuggestionsOpen(true)
+                      }
+                    }}
+                    placeholder="Search city, area or place..."
+                    aria-label="Search location"
+                  />
+                  <button className="ohk-nearby-search-button" type="button" onClick={() => {
+                    if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
+                    else setLocationSuggestionsOpen(true)
+                  }}>Search</button>
+                  <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
+                    <Icon name="location" size={18} />
+                    {locationLoading ? 'Checking...' : 'Find Nearby'}
+                  </button>
+                  {locationSuggestionsOpen && locationSuggestions.length ? (
+                    <div className="ohk-location-suggestions">
+                      {locationSuggestions.map((place) => (
+                        <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                          <Icon name="location" size={16} />
+                          <span>{place.display_name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </section>
           )}
