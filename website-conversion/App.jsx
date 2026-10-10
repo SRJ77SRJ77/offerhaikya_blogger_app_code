@@ -919,7 +919,7 @@ function App() {
       ) : null}
 
       {requestOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setRequestOpen(false)>
+        <div className="ohk-modal-backdrop" onClick={() => setRequestOpen(false)}>
           <div className="ohk-modal ohk-request-modal" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-modal-head">
               <h2>User Offers Requests</h2>
