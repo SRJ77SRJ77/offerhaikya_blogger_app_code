@@ -462,7 +462,7 @@ function App() {
           .then((data) => {
             const address = data?.address || {}
             const place = address.city || address.town || address.city_district || address.county || address.state_district || address.village || ''
-            if (place) setLocationLabel(place.trim().split(/[\\s,]+/)[0])
+            if (place) setLocationLabel(place.trim().split(/[\s,]+/)[0])
           })
           .catch(() => {})
       },
@@ -746,7 +746,7 @@ function App() {
           {userLocation ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel.split(/[\\s,]+/)[0]}` : ''}</h2>
+                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel.split(/[\s,]+/)[0]}` : ''}</h2>
                 <span>Total {nearbyPosts.length}</span>
                 <button onClick={requestLocation}>{locationLoading ? 'Updating...' : 'Update'}</button>
               </div>
