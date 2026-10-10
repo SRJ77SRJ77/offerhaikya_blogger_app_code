@@ -470,11 +470,10 @@ function App() {
     if (drag.dragged) drag.element.scrollLeft = drag.scrollLeft - delta
   }
   const handleTagPointerUp = () => {
-    if (tagDragRef.current?.dragged) {
-      tagDragRef.current.element.dataset.dragged = 'true'
-      window.setTimeout(() => {
-        if (tagDragRef.current) tagDragRef.current.element.dataset.dragged = 'false'
-      }, 0)
+    const drag = tagDragRef.current
+    if (drag?.dragged) {
+      drag.element.dataset.dragged = 'true'
+      window.setTimeout(() => { drag.element.dataset.dragged = 'false' }, 80)
     }
     tagDragRef.current = null
   }
@@ -553,7 +552,7 @@ function App() {
           .then((data) => {
             const address = data?.address || {}
             const place = address.city || address.town || address.city_district || address.county || address.state_district || address.village || ''
-            if (place) setLocationLabel(place.trim().split(/[\s,]+/)[0])
+            if (place) setLocationLabel(place.trim())
           })
           .catch(() => {})
       },
@@ -890,7 +889,26 @@ function App() {
             <section id="nearby" className="ohk-nearby-prompt">
               <div>
                 <strong>See offers near you</strong>
-                <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km.</span>
+                <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
+                <div className="ohk-location-autocomplete">
+                  <input
+                    value={locationQuery}
+                    onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                    onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                    placeholder="Add location (e.g. Goa, Kolhapur)"
+                    aria-label="Add location"
+                  />
+                  {locationSuggestionsOpen && locationSuggestions.length ? (
+                    <div className="ohk-location-suggestions">
+                      {locationSuggestions.map((place) => (
+                        <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                          <Icon name="location" size={16} />
+                          <span>{place.display_name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <button onClick={requestLocation} disabled={locationLoading}>
                 <Icon name="location" size={18} />
