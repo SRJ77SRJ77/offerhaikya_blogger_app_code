@@ -970,8 +970,7 @@ function App() {
                 ) : null}
               </div>
               <div className="ohk-nearby-prompt-actions">
-                <button className="ohk-add-location-button" type="button" onClick={() => setLocationPickerOpen((value) => !value)}><Icon name="location" size={18} />
-                  {locationPickerOpen ? 'Close' : 'Enter Location'}</button>
+                <button className="ohk-add-location-button" type="button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
                 <button type="button" onClick={requestLocation} disabled={locationLoading}>
                   <Icon name="location" size={18} />
                   {locationLoading ? 'Checking...' : 'Find Nearby'}
