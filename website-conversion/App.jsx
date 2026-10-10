@@ -802,27 +802,16 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
-              <div className="ohk-detail-tags">
-                {detail.labels?.length ? detail.labels.map((tag) => (
-                  <button type="button" key={tag} onClick={() => {
-                    setDetailTagFilter(tag)
-                    window.setTimeout(() => document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-                  }}>{tag}</button>
-                )) : <span>{detail.label}</span>}
-              </div>
-              <h1>{detail.title}</h1>
-              <div className="ohk-detail-meta">
-                <span>{detail.date}</span>
-                <button onClick={() => toggleSave(detail.id)}>{saved[detail.id] ? '♥' : '♡'}</button>
+              <div className="ohk-detail-meta ohk-detail-content-actions">
+                <button onClick={() => toggleSave(detail.id)} aria-label="Save offer">{saved[detail.id] ? '♥' : '♡'}</button>
                 <button onClick={() => sharePost(detail)} aria-label="Share offer"><Icon name="share" size={19} /></button>
               </div>
-              {detail.image ? <img className="ohk-detail-cover" src={detail.image} alt="" /> : null}
               <div
                 className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
-                  __html: detail.rawContent
-                    ? detail.rawContent.replace(/<img[^>]*>/i, '')
-                    : '<p>' + detail.excerpt + '</p>'
+                  __html: (detail.rawContent || '<p>' + detail.excerpt + '</p>')
+                    .replace(/<img[^>]*>/i, '')
+                    .replace(/<\/?(?:h1|h2|h4|h5|h6)\b([^>]*)>/gi, (tag) => tag.startsWith('</') ? '</h3>' : '<h3>')
                 }}
               />
             </div>
