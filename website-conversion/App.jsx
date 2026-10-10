@@ -938,7 +938,7 @@ function App() {
                   ) : null}
                 </>
               ) : (
-                <div className="ohk-empty">No offer found nearby.</div>
+                <div className="ohk-empty">No Offers Found Nearby/Entered Location</div>
               )}
             </section>
           ) : (
