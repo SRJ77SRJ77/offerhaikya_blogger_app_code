@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import logoImage from './assets/logo.png'
 import preloaderGif from './assets/Offer.gif'
@@ -6,7 +6,7 @@ import faviconImage from './assets/favicon.png'
 import bgImage from './assets/bg.jpg'
 
 const BLOG_URL = 'https://www.offerhaikya.com'
-const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=80'
+const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=500'
 const ACCENT = '#ff5b01'
 const PAGE = '#f3f4f6'
 const WHITE = '#ffffff'
@@ -231,6 +231,10 @@ function App() {
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
   const [locationLabel, setLocationLabel] = useState('')
+  const [locationQuery, setLocationQuery] = useState('')
+  const [locationSuggestions, setLocationSuggestions] = useState([])
+  const [locationSuggestionsOpen, setLocationSuggestionsOpen] = useState(false)
+  const tagDragRef = useRef(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [locationMessage, setLocationMessage] = useState('')
   const [activeTab, setActiveTab] = useState('home')
@@ -266,7 +270,7 @@ function App() {
       }
 
       script = document.createElement('script')
-      script.src = `${BLOG_URL}/feeds/posts/default?alt=json-in-script&max-results=80&callback=${callbackName}`
+      script.src = `${BLOG_URL}/feeds/posts/default?alt=json-in-script&max-results=500&callback=${callbackName}`
       script.async = true
       script.onerror = () => {
         window.clearTimeout(timeout)
@@ -398,10 +402,82 @@ function App() {
   const searchSuggestions = useMemo(() => {
     const text = query.trim().toLowerCase()
     if (!text) return []
-    return posts.filter((post) =>
-      `${post.title} ${post.labels.join(' ')} ${post.excerpt}`.toLowerCase().includes(text)
-    ).slice(0, 12)
+    const score = (post) => {
+      const title = (post.title || '').toLowerCase()
+      const tags = (post.labels || []).join(' ').toLowerCase()
+      const description = `${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
+      const location = (post.bloggerLocation || '').toLowerCase()
+      if (title.includes(text)) return 0
+      if (tags.includes(text)) return 1
+      if (description.includes(text)) return 2
+      if (location.includes(text)) return 3
+      return -1
+    }
+    return posts
+      .map((post, index) => ({ post, index, rank: score(post) }))
+      .filter((item) => item.rank >= 0)
+      .sort((a, b) => a.rank - b.rank || a.index - b.index)
+      .map((item) => item.post)
   }, [posts, query])
+
+  useEffect(() => {
+    const text = locationQuery.trim()
+    if (text.length < 2) {
+      setLocationSuggestions([])
+      return undefined
+    }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(text)}`, { signal: controller.signal })
+        .then((response) => response.ok ? response.json() : [])
+        .then((results) => {
+          setLocationSuggestions(Array.isArray(results) ? results : [])
+          setLocationSuggestionsOpen(true)
+        })
+        .catch(() => {})
+    }, 300)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [locationQuery])
+
+  const chooseSuggestedLocation = (place) => {
+    const latitude = Number(place.lat)
+    const longitude = Number(place.lon)
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return
+    const address = place.address || {}
+    const label = address.city || address.town || address.city_district || address.county || address.state_district || address.village || place.name || place.display_name?.split(',')[0] || locationQuery
+    setUserLocation({ latitude, longitude })
+    setLocationLabel(String(label).trim())
+    setLocationQuery('')
+    setLocationSuggestions([])
+    setLocationSuggestionsOpen(false)
+    setLocationMessage('Nearby offers updated for ' + String(label).trim() + '.')
+    setActiveTab('local')
+  }
+
+  const handleTagPointerDown = (event) => {
+    const element = event.currentTarget
+    tagDragRef.current = { startX: event.clientX, scrollLeft: element.scrollLeft, dragged: false, element }
+    element.setPointerCapture?.(event.pointerId)
+  }
+  const handleTagPointerMove = (event) => {
+    const drag = tagDragRef.current
+    if (!drag) return
+    const delta = event.clientX - drag.startX
+    if (Math.abs(delta) > 5) drag.dragged = true
+    if (drag.dragged) drag.element.scrollLeft = drag.scrollLeft - delta
+  }
+  const handleTagPointerUp = () => {
+    if (tagDragRef.current?.dragged) {
+      tagDragRef.current.element.dataset.dragged = 'true'
+      window.setTimeout(() => {
+        if (tagDragRef.current) tagDragRef.current.element.dataset.dragged = 'false'
+      }, 0)
+    }
+    tagDragRef.current = null
+  }
 
   const nearbyPosts = useMemo(() => {
     if (!userLocation) return []
@@ -629,12 +705,12 @@ function App() {
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
             </button>
 
-            <button className="ohk-header-button" onClick={() => setProfileOpen(true)} aria-label="Profile">
-              <Icon name="user" size={21} />
-            </button>
-
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
               <Icon name="search" size={21} />
+            </button>
+
+            <button className="ohk-header-button" onClick={() => setProfileOpen(true)} aria-label="Profile">
+              <Icon name="user" size={21} />
             </button>
 
           </div>
@@ -667,10 +743,24 @@ function App() {
       ) : null}
 
       <nav className="ohk-tag-strip">
-        <div className="ohk-tag-scroll">
+        <div
+          className="ohk-tag-scroll"
+          onPointerDown={handleTagPointerDown}
+          onPointerMove={handleTagPointerMove}
+          onPointerUp={handleTagPointerUp}
+          onPointerCancel={handleTagPointerUp}
+          onClickCapture={(event) => {
+            if (event.currentTarget.dataset.dragged === 'true') {
+              event.preventDefault()
+              event.stopPropagation()
+              event.currentTarget.dataset.dragged = 'false'
+            }
+          }}
+          aria-label="Offer tags. Drag left or right to browse tags."
+        >
           <div className="ohk-tag-group">
             {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
-              <button key={tag} className={activeLabel === tag ? 'active' : ''} onClick={() => selectTag(tag)}>
+              <button key={tag} className={activeLabel === tag ? 'active' : ''} onClick={(event) => { if (event.currentTarget.closest('.ohk-tag-scroll')?.dataset.dragged === 'true') { event.preventDefault(); return } selectTag(tag) }}>
                 {tag}
               </button>
             ))}
@@ -735,7 +825,7 @@ function App() {
                   {searchSuggestions.length ? searchSuggestions.map((post) => (
                     <button type="button" className="ohk-search-suggestion" key={post.id} onClick={() => openPost(post)}>
                       {post.image ? <img src={post.image} alt="" /> : <span className="ohk-search-suggestion-image">Offer</span>}
-                      <span><strong>{post.title}</strong></span>
+                      <span className="ohk-search-suggestion-copy"><strong>{post.title}</strong><small>{post.excerpt || stripHtml(post.rawContent || '').slice(0, 180)}</small></span>
                     </button>
                   )) : <div className="ohk-search-no-results">No matching offers</div>}
                 </div>
@@ -761,9 +851,29 @@ function App() {
           {userLocation ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel.split(/[\s,]+/)[0]}` : ''}</h2>
-                <span>Total {nearbyPosts.length}</span>
-                <button onClick={requestLocation}>{locationLoading ? 'Updating...' : 'Update'}</button>
+                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
+                <div className="ohk-nearby-actions">
+                  <div className="ohk-location-autocomplete">
+                    <input
+                      value={locationQuery}
+                      onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                      onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                      placeholder="Add location"
+                      aria-label="Add location"
+                    />
+                    {locationSuggestionsOpen && locationSuggestions.length ? (
+                      <div className="ohk-location-suggestions">
+                        {locationSuggestions.map((place) => (
+                          <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                            <Icon name="location" size={16} />
+                            <span>{place.display_name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <button onClick={requestLocation} disabled={locationLoading}>{locationLoading ? 'Updating...' : 'Update Location'}</button>
+                </div>
               </div>
 
               {nearbyPosts.length ? (
