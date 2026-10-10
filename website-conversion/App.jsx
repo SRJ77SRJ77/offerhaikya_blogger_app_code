@@ -413,7 +413,6 @@ function App() {
       })
       .filter(Boolean)
       .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
-      .slice(0, 20)
   }, [posts, userLocation])
 
   const toggleSave = (id) => {
@@ -454,9 +453,18 @@ function App() {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         })
-        setLocationLabel('Your location')
+        setLocationLabel('')
         setLocationLoading(false)
         setLocationMessage('Nearby offers updated.')
+        const { latitude, longitude } = position.coords
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=10`)
+          .then((response) => response.ok ? response.json() : null)
+          .then((data) => {
+            const address = data?.address || {}
+            const place = address.city || address.town || address.city_district || address.county || address.state_district || address.village || ''
+            if (place) setLocationLabel(place.trim().split(/[\\s,]+/)[0])
+          })
+          .catch(() => {})
       },
       () => {
         setLocationLoading(false)
@@ -485,8 +493,14 @@ function App() {
 
   const openSearch = () => {
     setActiveTab('search')
-    setSearchOpen(true)
-    setTimeout(() => document.querySelector('.ohk-main-search-input')?.focus(), 50)
+    setSearchOpen(false)
+    window.setTimeout(() => {
+      const input = document.querySelector('.ohk-search-box .ohk-main-search-input')
+      if (input) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        input.focus({ preventScroll: true })
+      }
+    }, 80)
   }
 
   const openPost = (post) => {
@@ -598,6 +612,10 @@ function App() {
             <button className="ohk-header-button ohk-badge-button" onClick={() => setWishlistOpen(true)} aria-label="Favorites">
               <Icon name="heart" size={21} />
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
+            </button>
+
+            <button className="ohk-header-button" onClick={() => setProfileOpen(true)} aria-label="Profile">
+              <Icon name="user" size={21} />
             </button>
 
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
@@ -728,7 +746,8 @@ function App() {
           {userLocation ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>Filtered Nearby Offers{locationLabel ? ` - ${locationLabel.split(/[\\s,]+/)[0]}` : ''}</h2>
+                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel.split(/[\\s,]+/)[0]}` : ''}</h2>
+                <span>Total {nearbyPosts.length}</span>
                 <button onClick={requestLocation}>{locationLoading ? 'Updating...' : 'Update'}</button>
               </div>
 
@@ -886,8 +905,21 @@ function App() {
         </div>
       ) : null}
 
+      {profileOpen ? (
+        <div className="ohk-modal-backdrop" onClick={() => setProfileOpen(false)}>
+          <div className="ohk-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-modal-head">
+              <h2>Profile</h2>
+              <button onClick={() => setProfileOpen(false)} aria-label="Close profile"><Icon name="close" /></button>
+            </div>
+            <p className="ohk-registration-intro">Profile features are currently paused while Offerhaikya launches its offers and search experience.</p>
+            <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Continue browsing</button>
+          </div>
+        </div>
+      ) : null}
+
       {requestOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setRequestOpen(false)}>
+        <div className="ohk-modal-backdrop" onClick={() => setRequestOpen(false)>
           <div className="ohk-modal ohk-request-modal" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-modal-head">
               <h2>User Offers Requests</h2>
