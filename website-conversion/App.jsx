@@ -972,7 +972,7 @@ function App() {
           )}
 
           <section id="deals" className="ohk-section">
-            <div className="ohk-section-title ohk-section-banner" style={{ backgroundImage: `linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url("${bgImage}")` }}>
+            <div className="ohk-section-title ohk-section-banner" style={{ backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url(" + bgImage + ")" }}>
               <h2>{query ? `Search: ${query}` : activeLabel !== 'All' ? activeLabel : 'Latest Offers'}</h2>
               <span>{filteredPosts.length} offers</span>
             </div>
@@ -1000,7 +1000,7 @@ function App() {
 
         </section>
         </div>
-        ) }
+        )}
       </main>
 
       <footer className="ohk-footer">
