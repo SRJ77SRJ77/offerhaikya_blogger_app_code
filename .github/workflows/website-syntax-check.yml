@@ -1,0 +1,21 @@
+name: Website JSX Syntax Check
+
+on:
+  push:
+    paths:
+      - "website-conversion/App.jsx"
+      - ".github/workflows/website-syntax-check.yml"
+  workflow_dispatch:
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check website JSX syntax
+        run: npx --yes esbuild website-conversion/App.jsx --loader:.css=empty --outfile=/tmp/offerhaikya-check.js
