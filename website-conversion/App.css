@@ -410,3 +410,20 @@ a{color:inherit;text-decoration:none}
 .ohk-detail-page .ohk-detail-html,.ohk-detail-page .ohk-detail-html p,.ohk-detail-page .ohk-detail-html h3{font-family:Rubik,Arial,sans-serif;color:#111!important}
 .ohk-detail-page .ohk-detail-html h1,.ohk-detail-page .ohk-detail-html h2,.ohk-detail-page .ohk-detail-html h3,.ohk-detail-page .ohk-detail-html h4,.ohk-detail-page .ohk-detail-html h5,.ohk-detail-page .ohk-detail-html h6{font-family:Rubik,Arial,sans-serif;color:#111!important;font-size:22px;line-height:1.4;font-weight:700;margin:1.1em 0 .55em}
 .ohk-detail-page .ohk-detail-html p{font-size:16px;line-height:1.85;margin:0 0 1.1em;color:#111!important}
+
+
+/* Nearby search: keep the location input and both actions on one row where space allows. */
+.ohk-nearby-prompt .ohk-nearby-prompt-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:6px}
+.ohk-nearby-prompt .ohk-nearby-search-row{display:flex;flex-direction:row;align-items:center;gap:6px;width:100%;max-width:none;min-width:0;margin-top:8px;padding:4px;border:1px solid #dedede;border-radius:11px;background:#fff;box-sizing:border-box}
+.ohk-dark .ohk-nearby-prompt .ohk-nearby-search-row{background:#222;border-color:#444}
+.ohk-nearby-prompt .ohk-nearby-search-row>svg{flex:none;margin-left:5px;color:#777}
+.ohk-nearby-prompt .ohk-nearby-search-row input{flex:1;min-width:60px;width:auto;height:38px;min-height:38px;padding:7px 4px;border:0;border-radius:0;background:transparent;outline:none}
+.ohk-nearby-prompt .ohk-nearby-search-row>button{flex:none;width:auto;min-height:38px;padding:9px 12px;border-radius:8px;justify-content:center;font-size:12px}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-search-button{background:#ff5b01;color:#fff}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{background:#ff5b01;color:#fff}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions{top:calc(100% + 5px);left:0;right:0;width:100%;box-sizing:border-box}
+@media(max-width:600px){
+  .ohk-nearby-prompt .ohk-nearby-search-row{gap:4px}
+  .ohk-nearby-prompt .ohk-nearby-search-row>button{padding:8px 9px;font-size:11px}
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{gap:4px}
+}
