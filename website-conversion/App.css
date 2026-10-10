@@ -367,3 +367,25 @@ a{color:inherit;text-decoration:none}
   .ohk-section-banner{min-height:90px;padding:16px}
   .ohk-card-body{min-height:175px}
 }
+
+
+/* Offerhaikya layout fixes: hide redundant global tags, space latest offers,
+   show five notifications at a time with scrolling, and add related offers below details. */
+.ohk-tag-strip{display:none!important}
+#deals{margin-top:24px}
+.ohk-favorite-list{max-height:min(390px,calc(100vh - 180px));overflow-y:auto;overscroll-behavior:contain}
+.ohk-menu-loading{margin:8px 20px 14px;padding:10px;color:#77747a;font-size:13px;line-height:1.5}
+.ohk-detail-related{max-width:1050px;margin:0 auto;padding:0 20px 90px;scroll-margin-top:24px}
+.ohk-detail-related-inner{padding:26px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.ohk-dark .ohk-detail-related-inner{background:#171717;color:#eee}
+.ohk-detail-related h2{margin:0 0 14px;font-size:23px;font-weight:900}
+.ohk-detail-related h3{margin:24px 0 12px;font-size:19px;font-weight:900}
+.ohk-detail-related-search{display:block;width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#202124;font:inherit;outline-color:#ff5b01}
+.ohk-dark .ohk-detail-related-search{background:#222;color:#fff;border-color:#444}
+.ohk-detail-latest-heading{padding-top:12px;border-top:1px solid #eee}
+.ohk-dark .ohk-detail-latest-heading{border-color:#333}
+@media(max-width:600px){
+  #deals{margin-top:18px}
+  .ohk-detail-related{padding:0 10px 80px}
+  .ohk-detail-related-inner{padding:18px 14px;border-radius:12px}
+}
