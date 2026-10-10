@@ -375,7 +375,7 @@ a{color:inherit;text-decoration:none}
 #deals{margin-top:24px}
 .ohk-favorite-list{max-height:min(390px,calc(100vh - 180px));overflow-y:auto;overscroll-behavior:contain}
 .ohk-menu-loading{margin:8px 20px 14px;padding:10px;color:#77747a;font-size:13px;line-height:1.5}
-.ohk-detail-related{max-width:1050px;margin:0 auto;padding:0 20px 90px;scroll-margin-top:24px}
+.ohk-detail-related{max-width:1050px;margin:32px auto 0;padding:0 20px 90px;scroll-margin-top:24px}
 .ohk-detail-related-inner{padding:26px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
 .ohk-dark .ohk-detail-related-inner{background:#171717;color:#eee}
 .ohk-detail-related h2{margin:0 0 14px;font-size:23px;font-weight:900}
