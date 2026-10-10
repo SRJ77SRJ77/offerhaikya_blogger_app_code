@@ -46,12 +46,12 @@ a{color:inherit;text-decoration:none}
 @keyframes ohk-slide{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 
 .ohk-tag-strip{background:#ff5b01;position:relative;z-index:20}
-.ohk-tag-scroll{max-width:1200px;margin:auto;display:flex;width:100%;animation:none;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+.ohk-tag-scroll{max-width:1200px;margin:auto;display:flex;width:100%;animation:none;overflow:visible}
 .ohk-tag-group{display:flex;flex:none;gap:8px;padding:11px 14px}
 .ohk-tag-scroll button{border:0;background:transparent;color:#fff;padding:8px 5px;white-space:nowrap;font-size:14px;font-weight:800}
 .ohk-tag-scroll button.active{font-weight:900}
-.ohk-tag-strip{overflow-x:auto;overflow-y:hidden}
-.ohk-tag-group{width:max-content;min-width:100%;justify-content:flex-start}
+.ohk-tag-strip{overflow:visible}
+.ohk-tag-group{width:100%;min-width:0;display:flex;flex-wrap:wrap;justify-content:center;gap:5px 10px;padding:10px 14px}
 .ohk-tag-strip:hover .ohk-tag-scroll,.ohk-tag-strip:focus-within .ohk-tag-scroll{animation:none}
 
 .ohk-hero{min-height:245px;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;padding:28px 20px}
@@ -268,7 +268,6 @@ a{color:inherit;text-decoration:none}
 .ohk-detail-page .ohk-detail-html iframe,.ohk-info-page .ohk-detail-html iframe{display:block;max-width:100%;width:100%;min-height:300px;border:0;border-radius:10px;margin:20px auto}
 .ohk-detail-page .ohk-detail-html table,.ohk-info-page .ohk-detail-html table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse}
 .ohk-detail-page .ohk-detail-html video,.ohk-detail-page .ohk-detail-html embed,.ohk-detail-page .ohk-detail-html object{max-width:100%}
-.ohk-profile-button{display:none!important}
 .ohk-startup-backdrop{display:none!important}
 @media(max-width:767px){
   .ohk-tag-group{gap:5px;padding:8px 10px}
@@ -277,3 +276,10 @@ a{color:inherit;text-decoration:none}
   .ohk-detail-page .ohk-detail-html iframe,.ohk-info-page .ohk-detail-html iframe{min-height:230px}
   .ohk-search-suggestions{max-height:min(350px,55vh)}
 }
+
+/* Corrective feedback: stationary, wrapping tags and readable nearby count. */
+.ohk-tag-scroll{max-width:1200px;width:100%;overflow:visible}
+.ohk-tag-group{flex-wrap:wrap;width:100%;min-width:0;justify-content:center}
+.ohk-tag-strip{overflow:visible}
+.ohk-section-title>span{margin-left:auto;white-space:nowrap}
+.ohk-section-title{flex-wrap:wrap}
