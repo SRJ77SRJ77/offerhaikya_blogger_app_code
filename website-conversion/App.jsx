@@ -232,6 +232,7 @@ function App() {
   const [userLocation, setUserLocation] = useState(null)
   const [locationLabel, setLocationLabel] = useState('')
   const [locationQuery, setLocationQuery] = useState('')
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [locationSuggestions, setLocationSuggestions] = useState([])
   const [locationSuggestionsOpen, setLocationSuggestionsOpen] = useState(false)
   const tagDragRef = useRef(null)
@@ -392,7 +393,7 @@ function App() {
 
     return posts.filter((post) => {
       const labelMatch = activeLabel === 'All' || post.labels.some((label) => label.toLowerCase() === activeLabel.toLowerCase())
-      const textMatch = !text || `${post.title} ${post.labels.join(' ')} ${post.excerpt}`.toLowerCase().includes(text)
+      const textMatch = !text || `${post.title} ${post.labels.join(' ')} ${post.excerpt} ${post.bloggerLocation || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase().includes(text)
       return labelMatch && textMatch
     })
   }, [posts, query, activeLabel])
@@ -453,6 +454,7 @@ function App() {
     setLocationQuery('')
     setLocationSuggestions([])
     setLocationSuggestionsOpen(false)
+    setLocationPickerOpen(false)
     setLocationMessage('Nearby offers updated for ' + String(label).trim() + '.')
     setActiveTab('local')
   }
@@ -852,25 +854,29 @@ function App() {
               <div className="ohk-section-title">
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
-                  <div className="ohk-location-autocomplete">
-                    <input
-                      value={locationQuery}
-                      onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
-                      onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
-                      placeholder="Add location"
-                      aria-label="Add location"
-                    />
-                    {locationSuggestionsOpen && locationSuggestions.length ? (
-                      <div className="ohk-location-suggestions">
-                        {locationSuggestions.map((place) => (
-                          <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
-                            <Icon name="location" size={16} />
-                            <span>{place.display_name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
+                  {locationPickerOpen ? (
+                    <div className="ohk-location-autocomplete">
+                      <input
+                        autoFocus
+                        value={locationQuery}
+                        onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                        onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                        placeholder="Type Goa, Kolhapur, etc."
+                        aria-label="Search location"
+                      />
+                      {locationSuggestionsOpen && locationSuggestions.length ? (
+                        <div className="ohk-location-suggestions">
+                          {locationSuggestions.map((place) => (
+                            <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                              <Icon name="location" size={16} />
+                              <span>{place.display_name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Add Location'}</button>
                   <button onClick={requestLocation} disabled={locationLoading}>{locationLoading ? 'Updating...' : 'Update Location'}</button>
                 </div>
               </div>
@@ -890,25 +896,29 @@ function App() {
               <div>
                 <strong>See offers near you</strong>
                 <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
-                <div className="ohk-location-autocomplete">
-                  <input
-                    value={locationQuery}
-                    onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
-                    onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
-                    placeholder="Add location (e.g. Goa, Kolhapur)"
-                    aria-label="Add location"
-                  />
-                  {locationSuggestionsOpen && locationSuggestions.length ? (
-                    <div className="ohk-location-suggestions">
-                      {locationSuggestions.map((place) => (
-                        <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
-                          <Icon name="location" size={16} />
-                          <span>{place.display_name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+                {locationPickerOpen ? (
+                  <div className="ohk-location-autocomplete">
+                    <input
+                      autoFocus
+                      value={locationQuery}
+                      onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                      onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                      placeholder="Type Goa, Kolhapur, etc."
+                      aria-label="Search location"
+                    />
+                    {locationSuggestionsOpen && locationSuggestions.length ? (
+                      <div className="ohk-location-suggestions">
+                        {locationSuggestions.map((place) => (
+                          <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                            <Icon name="location" size={16} />
+                            <span>{place.display_name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Add Location'}</button>
               </div>
               <button onClick={requestLocation} disabled={locationLoading}>
                 <Icon name="location" size={18} />
