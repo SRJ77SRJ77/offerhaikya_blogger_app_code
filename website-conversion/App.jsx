@@ -922,7 +922,7 @@ function App() {
                     </div>
                   ) : null}
                   <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
-                  <button onClick={requestLocation} disabled={locationLoading}>{locationLoading ? 'Getting Location...' : 'Get Current Location'}</button>
+                  <button onClick={requestLocation} disabled={locationLoading}><Icon name="location" size={18} />{locationLoading ? 'Getting Location...' : 'Set Current Location'}</button>
                 </div>
               </div>
 
