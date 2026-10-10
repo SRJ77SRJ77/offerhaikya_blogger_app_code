@@ -47,16 +47,18 @@ function firstImage(html = '') {
 }
 
 function extractCoordinates(html = '') {
-  const coordinateMatch = html.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
-  if (coordinateMatch) {
-    return { latitude: Number(coordinateMatch[1]), longitude: Number(coordinateMatch[2]) }
+  const patterns = [
+    /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
+    /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i,
+    /[?&](?:q|query|ll|center)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/i,
+  ]
+  for (const pattern of patterns) {
+    const match = html.match(pattern)
+    if (!match) continue
+    const latitude = Number(match[1])
+    const longitude = Number(match[2])
+    if (Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) return { latitude, longitude }
   }
-
-  const queryMatch = html.match(/[?&](?:q|query)=(-?\d+(?:\.\d+)?)[,%20]+(-?\d+(?:\.\d+)?)/i)
-  if (queryMatch) {
-    return { latitude: Number(queryMatch[1]), longitude: Number(queryMatch[2]) }
-  }
-
   return null
 }
 
@@ -82,7 +84,16 @@ function parseFeed(data) {
       image,
       excerpt: stripHtml(rawContent).slice(0, 180),
       rawContent,
-      coordinates: extractCoordinates(rawContent),
+      bloggerLocation: entry?.['georss$featurename']?.$t || '',
+      coordinates: (() => {
+        const point = entry?.['georss$point']?.$t || ''
+        const parts = point.trim().split(/\s+/).map(Number)
+        if (parts.length === 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1]) &&
+            Math.abs(parts[0]) <= 90 && Math.abs(parts[1]) <= 180) {
+          return { latitude: parts[0], longitude: parts[1] }
+        }
+        return extractCoordinates(rawContent + ' ' + alternate)
+      })(),
     }
   })
 }
@@ -96,6 +107,11 @@ function distanceKm(first, second) {
   const lat2 = toRadians(second.latitude)
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function isOfflinePost(post) {
+  const labels = (post.labels || []).map((label) => label.toLowerCase().trim())
+  return labels.some((label) => /^(offline offer|offline offers|local offer|local offers|nearby offer|nearby offers)$/.test(label))
 }
 
 function getExpiryLabel(post) {
@@ -301,12 +317,6 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (preloaderVisible) return
-    if (sessionStorage.getItem('offerhaikya_location_registration_shown') === 'true') return
-    setRegistrationOpen(true)
-  }, [preloaderVisible])
-
-  useEffect(() => {
     let active = true
     let script = null
     const callbackName = "offerhaikyaPagesCallback_" + Date.now()
@@ -395,6 +405,7 @@ function App() {
     if (!userLocation) return []
 
     return posts
+      .filter(isOfflinePost)
       .map((post) => {
         if (!post.coordinates) return null
         const distance = distanceKm(userLocation, post.coordinates)
@@ -593,9 +604,6 @@ function App() {
               <Icon name="search" size={21} />
             </button>
 
-            <button className="ohk-header-button ohk-profile-button" onClick={() => { setProfileOpen(true); setAuthMode('choice') }} aria-label="Profile">
-              <Icon name="user" size={21} />
-            </button>
           </div>
         </div>
       </header>
@@ -627,15 +635,13 @@ function App() {
 
       <nav className="ohk-tag-strip">
         <div className="ohk-tag-scroll">
-          {[0, 1].map((group) => (
-            <div className="ohk-tag-group" key={group}>
-              {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
-                <button key={group + '-' + tag} className={activeLabel === tag ? 'active' : ''} onClick={() => selectTag(tag)}>
-                  {tag}
-                </button>
-              ))}
-            </div>
-          ))}
+          <div className="ohk-tag-group">
+            {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
+              <button key={tag} className={activeLabel === tag ? 'active' : ''} onClick={() => selectTag(tag)}>
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
       </nav>
 
@@ -865,27 +871,6 @@ function App() {
         </div>
       ) : null}
 
-      {registrationOpen ? (
-        <div className="ohk-modal-backdrop ohk-startup-backdrop">
-          <div className="ohk-modal ohk-registration-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-modal-head">
-              <h2>Create Account</h2>
-            </div>
-            <p className="ohk-registration-intro">
-              Create your Offerhaikya account to personalize offers and continue.
-            </p>
-            <input value={registrationName} onChange={(event) => setRegistrationName(event.target.value)} placeholder="Name *" />
-            <input value={registrationPhone} onChange={(event) => setRegistrationPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit phone number *" inputMode="numeric" />
-            <input value={registrationEmail} onChange={(event) => setRegistrationEmail(event.target.value)} placeholder="Email *" type="email" />
-            <button className="ohk-primary-button" onClick={() => {
-              setRegistrationOpen(false)
-              setLocationPromptOpen(true)
-              sessionStorage.setItem('offerhaikya_location_registration_shown', 'true')
-            }}>Continue</button>
-          </div>
-        </div>
-      ) : null}
-
       {locationPromptOpen ? (
         <div className="ohk-modal-backdrop" onClick={() => setLocationPromptOpen(false)}>
           <div className="ohk-modal ohk-location-modal" onClick={(event) => event.stopPropagation()}>
@@ -897,40 +882,6 @@ function App() {
             <button className="ohk-primary-button" onClick={() => { setLocationPromptOpen(false); requestLocation() }}><Icon name="location" size={18} /> Allow Location</button>
             <button className="ohk-secondary-button" onClick={() => setLocationPromptOpen(false)}>Maybe Later</button>
             {locationMessage ? <span className="ohk-location-message">{locationMessage}</span> : null}
-          </div>
-        </div>
-      ) : null}
-
-      {profileOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setProfileOpen(false)}>
-          <div className="ohk-modal ohk-profile-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-modal-head">
-              <h2>{authMode === 'choice' ? 'Profile' : authMode === 'login' ? 'Login' : 'Create Account'}</h2>
-              <button onClick={() => setProfileOpen(false)}><Icon name="close" /></button>
-            </div>
-            {authMode === 'choice' ? (
-              <>
-                <p className="ohk-registration-intro">Login or create your Offerhaikya account.</p>
-                <button className="ohk-primary-button" onClick={() => setAuthMode('login')}>Login</button>
-                <button className="ohk-secondary-button" onClick={() => setAuthMode('signup')}>Create Account</button>
-              </>
-            ) : authMode === 'login' ? (
-              <>
-                <input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} placeholder="Email *" type="email" />
-                <input value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="Password *" type="password" />
-                <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Login</button>
-                <button className="ohk-link-button" onClick={() => setAuthMode('choice')}>← Back</button>
-              </>
-            ) : (
-              <>
-                <input placeholder="Name *" />
-                <input placeholder="10-digit phone number *" inputMode="numeric" />
-                <input placeholder="Email *" type="email" />
-                <input placeholder="Password *" type="password" />
-                <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Create Account</button>
-                <button className="ohk-link-button" onClick={() => setAuthMode('choice')}>← Back</button>
-              </>
-            )}
           </div>
         </div>
       ) : null}
