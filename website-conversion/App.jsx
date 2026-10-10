@@ -954,7 +954,7 @@ function App() {
             </section>
           ) : (
             <section id="nearby" className="ohk-nearby-prompt">
-              <div>
+              <div className="ohk-nearby-prompt-copy">
                 <strong>See offers near you</strong>
                 <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
                 {locationPickerOpen ? (
@@ -979,12 +979,14 @@ function App() {
                     ) : null}
                   </div>
                 ) : null}
-                <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Add Location'}</button>
               </div>
-              <button onClick={requestLocation} disabled={locationLoading}>
-                <Icon name="location" size={18} />
-                {locationLoading ? 'Checking...' : 'Find Nearby'}
-              </button>
+              <div className="ohk-nearby-prompt-actions">
+                <button className="ohk-add-location-button" type="button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
+                <button type="button" onClick={requestLocation} disabled={locationLoading}>
+                  <Icon name="location" size={18} />
+                  {locationLoading ? 'Checking...' : 'Find Nearby'}
+                </button>
+              </div>
             </section>
           )}
 
