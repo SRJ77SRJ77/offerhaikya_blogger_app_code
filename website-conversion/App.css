@@ -15,8 +15,6 @@ a{color:inherit;text-decoration:none}
 .ohk-logo-button img{width:180px;height:56px;object-fit:contain}
 .ohk-header-dropdowns{display:flex;align-items:center;gap:4px;margin-left:16px}
 .ohk-header-dropdown{position:relative}
-.ohk-header-dropdown::after{content:"";display:none;position:absolute;left:0;right:0;top:100%;height:8px}
-.ohk-header-dropdown:hover::after,.ohk-header-dropdown:focus-within::after{display:block}
 .ohk-header-dropdown-button{border:0;background:transparent;color:#202124;padding:10px 12px;font-size:14px;font-weight:900;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .ohk-dark .ohk-header-dropdown-button{color:#fff}
 .ohk-header-dropdown-button span{font-size:14px;margin-left:3px}
