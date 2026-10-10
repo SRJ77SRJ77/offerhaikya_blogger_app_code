@@ -228,6 +228,7 @@ function App() {
   const [registrationEmail, setRegistrationEmail] = useState('')
   const [saved, setSaved] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_favorites') || '{}'))
   const [detail, setDetail] = useState(null)
+  const [detailTagFilter, setDetailTagFilter] = useState('')
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
@@ -426,6 +427,20 @@ function App() {
   }, [posts, query, activeLabel])
 
   const displayedPosts = filteredPosts.slice(0, visible)
+
+  const detailSuggestedPosts = useMemo(() => {
+    if (!detail) return []
+    const text = detailTagFilter.trim().toLowerCase()
+    const matches = posts.filter((post) => {
+      if (post.id === detail.id) return false
+      if (!text) return true
+      const searchable = `${post.title} ${(post.labels || []).join(' ')} ${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
+      return searchable.includes(text)
+    })
+    return [detail, ...matches].slice(0, 8)
+  }, [detail, detailTagFilter, posts])
+
+  const detailLatestPosts = useMemo(() => posts.slice(0, 8), [posts])
 
   const searchSuggestions = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -705,9 +720,9 @@ function App() {
               </button>
               <div className="ohk-header-dropdown-menu">
                 <button onClick={() => selectTag('All')}>All</button>
-                {(bloggerCategoryTags.length ? bloggerCategoryTags : CATEGORY_ITEMS).map((item) => (
+                {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
                   <button key={item} onClick={() => selectTag(item)}>{item}</button>
-                ))}
+                )) : <p className="ohk-menu-loading">Loading categories from Blogger…</p>}
               </div>
             </div>
 
@@ -717,9 +732,9 @@ function App() {
               </button>
               <div className="ohk-header-dropdown-menu">
                   <button onClick={() => selectTag('All')}>All</button>
-                  {(bloggerSpecialTags.length ? bloggerSpecialTags : SPECIAL_DEAL_ITEMS).map((item) => (
+                  {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
                     <button key={item} onClick={() => selectTag(item)}>{item}</button>
-                  ))}
+                  )) : <p className="ohk-menu-loading">Loading offers from Blogger…</p>}
                 </div>
             </div>
           </div>
@@ -767,46 +782,20 @@ function App() {
 
             <div className="ohk-side-group">
               <h3>Categories</h3>
-              {(bloggerCategoryTags.length ? bloggerCategoryTags : CATEGORY_ITEMS).map((item) => (
+              {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
                 <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
-              ))}
+              )) : <p className="ohk-menu-loading">Loading categories from Blogger…</p>}
             </div>
 
             <div className="ohk-side-group">
               <h3>Special Deal Categories</h3>
-              {(bloggerSpecialTags.length ? bloggerSpecialTags : SPECIAL_DEAL_ITEMS).map((item) => (
+              {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
                 <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
-              ))}
+              )) : <p className="ohk-menu-loading">Loading offers from Blogger…</p>}
             </div>
           </aside>
         </div>
       ) : null}
-
-      <nav className="ohk-tag-strip">
-        <div
-          className="ohk-tag-scroll"
-          onPointerDown={handleTagPointerDown}
-          onPointerMove={handleTagPointerMove}
-          onPointerUp={handleTagPointerUp}
-          onPointerCancel={handleTagPointerUp}
-          onClickCapture={(event) => {
-            if (event.currentTarget.dataset.dragged === 'true') {
-              event.preventDefault()
-              event.stopPropagation()
-              event.currentTarget.dataset.dragged = 'false'
-            }
-          }}
-          aria-label="Offer tags. Drag left or right to browse tags."
-        >
-          <div className="ohk-tag-group">
-            {(bloggerTags.length ? bloggerTags : DIRECT_TAGS).map((tag) => (
-              <button key={tag} className={activeLabel === tag ? 'active' : ''} onClick={(event) => { if (event.currentTarget.closest('.ohk-tag-scroll')?.dataset.dragged === 'true') { event.preventDefault(); return } selectTag(tag) }}>
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
 
       <main>
         {detail ? (
@@ -815,7 +804,10 @@ function App() {
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
               <div className="ohk-detail-tags">
                 {detail.labels?.length ? detail.labels.map((tag) => (
-                  <button type="button" key={tag} onClick={() => selectTag(tag)}>{tag}</button>
+                  <button type="button" key={tag} onClick={() => {
+                    setDetailTagFilter(tag)
+                    window.setTimeout(() => document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+                  }}>{tag}</button>
                 )) : <span>{detail.label}</span>}
               </div>
               <h1>{detail.title}</h1>
@@ -834,6 +826,31 @@ function App() {
                 }}
               />
             </div>
+
+            <section id="detail-related" className="ohk-detail-related">
+              <div className="ohk-detail-related-inner">
+                <h2>Search offers by tag</h2>
+                <input
+                  className="ohk-detail-related-search"
+                  value={detailTagFilter}
+                  onChange={(event) => setDetailTagFilter(event.target.value)}
+                  placeholder="Search offers or select a tag above..."
+                  aria-label="Search related offers"
+                />
+                <h3>Suggested Offers</h3>
+                <div className="ohk-grid">
+                  {detailSuggestedPosts.map((post) => (
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} />
+                  ))}
+                </div>
+                <h3 className="ohk-detail-latest-heading">Latest Offers</h3>
+                <div className="ohk-grid">
+                  {detailLatestPosts.map((post) => (
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} />
+                  ))}
+                </div>
+              </div>
+            </section>
           </section>
         ) : sitePage ? (
           <section className="ohk-detail-page">
@@ -1043,7 +1060,7 @@ function App() {
               </div>
             ) : (
               <div className="ohk-favorite-list">
-                {notifications.slice(0, 10).map((item) => (
+                {notifications.map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
                     <button className="ohk-favorite-item-main" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)); setNotificationsOpen(false); openPost(item) }}>
                       {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
