@@ -12,7 +12,7 @@ const PAGE = '#f3f4f6'
 const WHITE = '#ffffff'
 const TEXT = '#202124'
 const MUTED = '#77747a'
-const NEARBY_RADIUS_KM = 300
+const NEARBY_RADIUS_KM = 303
 const PAGE_SIZE = 20
 
 const LOGO_URL = logoImage
@@ -161,7 +161,7 @@ function Icon({ name, size = 22 }) {
   )
 }
 
-function OfferCard({ post, saved, onSave, onOpen, dark, nearby }) {
+function OfferCard({ post, saved, onSave, onOpen, onShare, dark, nearby }) {
   const expiry = getExpiryLabel(post)
 
   return (
@@ -170,7 +170,7 @@ function OfferCard({ post, saved, onSave, onOpen, dark, nearby }) {
         {saved ? '♥' : '♡'}
       </button>
 
-      <button className="ohk-card-share" onClick={() => navigator.share ? navigator.share({ title: post.title, url: post.url }).catch(() => {}) : navigator.clipboard?.writeText(post.url)} aria-label="Share offer">
+      <button className="ohk-card-share" onClick={() => onShare(post)} aria-label="Share offer">
         <Icon name="share" size={18} />
       </button>
 
@@ -227,6 +227,8 @@ function App() {
   const [registrationEmail, setRegistrationEmail] = useState('')
   const [saved, setSaved] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_favorites') || '{}'))
   const [detail, setDetail] = useState(null)
+  const [shareTarget, setShareTarget] = useState(null)
+  const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
   const [locationLabel, setLocationLabel] = useState('')
   const [locationLoading, setLocationLoading] = useState(false)
@@ -419,23 +421,36 @@ function App() {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
   }
 
-  const sharePost = async (post) => {
-    const shareUrl = post?.url || window.location.href
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: post?.title || 'Offerhaikya', url: shareUrl })
-        return
-      }
-    } catch {
-      // User cancelled native sharing; do not show an error.
-      return
-    }
+  const sharePost = (post) => {
+    setShareMessage('')
+    setShareTarget(post || { title: 'Offerhaikya', url: window.location.href })
+  }
 
+  const copyShareLink = async () => {
+    const shareUrl = shareTarget?.url || window.location.href
     try {
-      await navigator.clipboard?.writeText(shareUrl)
+      await navigator.clipboard.writeText(shareUrl)
+      setShareMessage('Link copied!')
     } catch {
       window.prompt('Copy this offer link:', shareUrl)
+      setShareMessage('Copy the link from the box above.')
     }
+  }
+
+  const shareViaApps = async () => {
+    const shareUrl = shareTarget?.url || window.location.href
+    const title = shareTarget?.title || 'Offerhaikya'
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: title, url: shareUrl })
+        setShareTarget(null)
+        return
+      } catch (error) {
+        if (error?.name === 'AbortError') return
+      }
+    }
+    const text = encodeURIComponent(`${title} - ${shareUrl}`)
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank', 'noopener,noreferrer')
   }
 
   const requestLocation = () => {
@@ -754,7 +769,7 @@ function App() {
               {nearbyPosts.length ? (
                 <div className="ohk-grid">
                   {nearbyPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} dark={dark} nearby />
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} nearby />
                   ))}
                 </div>
               ) : (
@@ -786,7 +801,7 @@ function App() {
               <>
                 <div className="ohk-grid">
                   {displayedPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} dark={dark} />
+                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} />
                   ))}
                 </div>
 
@@ -914,6 +929,21 @@ function App() {
             </div>
             <p className="ohk-registration-intro">Profile features are currently paused while Offerhaikya launches its offers and search experience.</p>
             <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Continue browsing</button>
+          </div>
+        </div>
+      ) : null}
+
+      {shareTarget ? (
+        <div className="ohk-modal-backdrop" onClick={() => setShareTarget(null)}>
+          <div className="ohk-modal ohk-share-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-modal-head">
+              <h2>Share Offer</h2>
+              <button onClick={() => setShareTarget(null)} aria-label="Close share options"><Icon name="close" /></button>
+            </div>
+            <p className="ohk-share-title">{shareTarget.title}</p>
+            <button className="ohk-share-option" onClick={copyShareLink}><span>🔗</span><span><strong>Copy link</strong><small>Copy this offer link</small></span></button>
+            <button className="ohk-share-option" onClick={shareViaApps}><span>↗</span><span><strong>Share via apps</strong><small>WhatsApp, email, and other available apps</small></span></button>
+            {shareMessage ? <p className="ohk-share-message">{shareMessage}</p> : null}
           </div>
         </div>
       ) : null}
