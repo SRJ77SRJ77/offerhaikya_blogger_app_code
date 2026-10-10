@@ -427,3 +427,8 @@ a{color:inherit;text-decoration:none}
   .ohk-nearby-prompt .ohk-nearby-search-row>button{padding:8px 9px;font-size:11px}
   .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{gap:4px}
 }
+
+
+/* Stack the location icon above the Set Current Location label. */
+.ohk-nearby-actions>.ohk-set-current-location-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:normal;text-align:center;line-height:1.2;min-width:112px}
+.ohk-nearby-actions>.ohk-set-current-location-button svg{flex:none}
