@@ -178,7 +178,10 @@ function distanceKm(first, second) {
 
 function isOfflinePost(post) {
   const labels = (post.labels || []).map((label) => label.toLowerCase().trim())
-  return labels.some((label) => /^(offline offer|offline offers|locafunction getExpiryLabel(post) {
+  return labels.some((label) => /^(offline offer|offline offers|local offer|local offers|nearby offer|nearby offers)$/.test(label))
+}
+
+function getExpiryLabel(post) {
   const labels = (post.labels || []).map((label) => label.trim().toLowerCase())
   // An explicit Blogger "Expired" label always shows the Expired badge.
   if (labels.includes('expired')) return 'Expired'
@@ -205,10 +208,7 @@ function isOfflinePost(post) {
   if (remainingDays > 0) return hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`
   if (totalHours > 0) return minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`
   return `Expires in ${minutes}m`
-}` : `Expires in ${totalHours}h`
-  return `Expires in ${minutes}m`
 }
-
 function Icon({ name, size = 22 }) {
   const paths = {
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
