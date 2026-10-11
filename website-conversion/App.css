@@ -92,9 +92,9 @@ a{color:inherit;text-decoration:none}
 .ohk-card{background:#fff;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 3px 8px rgba(0,0,0,.08);min-width:0}
 .ohk-card-dark{background:#171717}
 .ohk-card-heart,.ohk-card-share{position:absolute;right:8px;z-index:4;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;color:#202124}
-.ohk-card-heart{top:8px;font-size:21px;color:#e53935;line-height:1;cursor:pointer}
-.ohk-card-heart.ohk-card-heart-unsaved{color:#e53935;-webkit-text-fill-color:transparent;-webkit-text-stroke:1.5px #e53935}
-.ohk-card-heart.ohk-card-heart-saved{color:#e53935;-webkit-text-fill-color:#e53935;-webkit-text-stroke:0}
+.ohk-card-heart{top:8px;color:#e53935;line-height:1;cursor:pointer;padding:0}
+.ohk-card-heart .ohk-heart-icon{display:block;width:22px;height:22px;pointer-events:none}
+.ohk-card-heart.ohk-card-heart-unsaved,.ohk-card-heart.ohk-card-heart-saved{color:#e53935}
 .ohk-card-share{top:48px}
 .ohk-card-distance{position:absolute;top:88px;right:8px;z-index:4;min-height:22px;max-width:62%;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.92);display:flex;align-items:center;gap:3px;color:#77747a;font-size:9px;font-weight:900}
 .ohk-card-expiry{position:absolute;top:8px;left:8px;z-index:4;max-width:62%;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.92);color:#202124;font-size:9px;font-weight:900}
