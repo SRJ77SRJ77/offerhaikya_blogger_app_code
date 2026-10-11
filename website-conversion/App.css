@@ -963,8 +963,9 @@ input, textarea, select, button { max-width: 100%; }
     background: transparent;
     overflow: hidden;
   }
-  .ohk-ad-rail-left { left: 12px; }
-  .ohk-ad-rail-right { right: 12px; }
+  /* Align side ads beside the centered 1050px main section, leaving a 12px gap. */
+  .ohk-ad-rail-left { left: calc(50% - 525px - 172px); }
+  .ohk-ad-rail-right { right: calc(50% - 525px - 172px); }
 }
 
 
