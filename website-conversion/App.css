@@ -704,8 +704,8 @@ input, textarea, select, button { max-width: 100%; }
 }
 
 
-/* Final Nearby prompt layout: input on its own row; Search and Find Nearby below it.
-   This intentionally overrides older phone/tablet rules above. */
+/* Phone and tablet only: keep the stacked input + buttons layout. Laptop/desktop keeps its previous layout. */
+@media (max-width: 1023px) {
 .ohk-nearby-prompt .ohk-nearby-prompt-copy{
   display:flex;
   flex:1;
@@ -802,4 +802,6 @@ input, textarea, select, button { max-width: 100%; }
 }
 @media(max-width:380px){
   .ohk-nearby-prompt .ohk-nearby-search-row>button{padding:7px 6px;font-size:10px}
+}
+ 
 }
