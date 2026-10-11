@@ -702,3 +702,104 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-request-coming-soon h3 { font-size:22px; }
   .ohk-request-coming-soon p { font-size:14px; }
 }
+
+
+/* Final Nearby prompt layout: input on its own row; Search and Find Nearby below it.
+   This intentionally overrides older phone/tablet rules above. */
+.ohk-nearby-prompt .ohk-nearby-prompt-copy{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+  position:relative;
+  width:100%;
+  max-width:none;
+  min-width:0;
+  margin-top:8px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-sizing:border-box;
+}
+.ohk-dark .ohk-nearby-prompt .ohk-nearby-search-row{background:transparent}
+.ohk-nearby-prompt .ohk-nearby-search-row>svg{display:none}
+.ohk-nearby-prompt .ohk-nearby-search-row input{
+  order:0;
+  flex:0 0 100%;
+  width:100%;
+  min-width:0;
+  height:42px;
+  min-height:42px;
+  padding:9px 12px;
+  border:1px solid #dedede;
+  border-radius:9px;
+  background:#fff;
+  color:#202124;
+  outline-color:#ff5b01;
+  box-sizing:border-box;
+}
+.ohk-dark .ohk-nearby-prompt .ohk-nearby-search-row input{
+  background:#222;
+  color:#fff;
+  border-color:#444;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row>button{
+  order:1;
+  display:inline-flex;
+  flex:1 1 0;
+  align-items:center;
+  justify-content:center;
+  width:auto;
+  min-width:0;
+  height:40px;
+  min-height:40px;
+  padding:9px 12px;
+  border:0;
+  border-radius:8px;
+  background:#ff5b01;
+  color:#fff;
+  font-size:12px;
+  line-height:1.1;
+  white-space:nowrap;
+  box-sizing:border-box;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-search-button,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{
+  background:#ff5b01;
+  color:#fff;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{gap:5px}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg{
+  display:block;
+  flex:none;
+  width:16px;
+  height:16px;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions{
+  top:47px;
+  left:0;
+  right:0;
+  width:100%;
+  box-sizing:border-box;
+}
+@media(max-width:600px){
+  .ohk-nearby-prompt .ohk-nearby-search-row{gap:7px}
+  .ohk-nearby-prompt .ohk-nearby-search-row>button{
+    flex:1 1 0;
+    padding:8px 9px;
+    font-size:11px;
+  }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button{gap:4px}
+}
+@media(max-width:380px){
+  .ohk-nearby-prompt .ohk-nearby-search-row>button{padding:7px 6px;font-size:10px}
+}
