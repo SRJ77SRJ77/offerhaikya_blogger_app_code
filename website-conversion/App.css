@@ -924,7 +924,7 @@ input, textarea, select, button { max-width: 100%; }
 
 /* Dark mode: change only the icons on the offer detail page, not post-card icons. */
 .ohk-dark .ohk-detail-page .ohk-detail-content-actions button {
-  color: #000 !important;
+  color: #fff !important;
 }
 
 /* Keep the Share Offer popup close (X) icon white in dark mode. */
