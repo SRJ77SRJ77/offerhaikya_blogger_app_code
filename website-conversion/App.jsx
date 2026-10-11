@@ -736,6 +736,14 @@ function App() {
     tagDragRef.current = null
   }
 
+  // If the visitor skips location, gently ask again every 5 minutes while Nearby is active.
+  // A successful location selection stops these reminders.
+  useEffect(() => {
+    if (userLocation || activeTab !== 'local' || locationPromptOpen) return undefined
+    const reminder = window.setTimeout(() => setLocationPromptOpen(true), 5 * 60 * 1000)
+    return () => window.clearTimeout(reminder)
+  }, [userLocation, activeTab, locationPromptOpen])
+
   useEffect(() => { setNearbyVisible(PAGE_SIZE) }, [userLocation])
 
   const nearbyPosts = useMemo(() => {
@@ -1375,15 +1383,16 @@ function App() {
       ) : null}
 
       {locationPromptOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setLocationPromptOpen(false)}>
-          <div className="ohk-modal ohk-location-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="ohk-modal-backdrop ohk-location-backdrop" onClick={() => setLocationPromptOpen(false)}>
+          <div className="ohk-modal ohk-location-modal" role="dialog" aria-modal="true" aria-labelledby="ohk-location-modal-title" onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-location-modal-icon"><Icon name="location" size={28} /></div>
             <div className="ohk-modal-head">
-              <h2>Find Nearby Offers</h2>
-              <button onClick={() => setLocationPromptOpen(false)}><Icon name="close" /></button>
+              <h2 id="ohk-location-modal-title">Find Nearby Offers</h2>
+              <button type="button" aria-label="Close location prompt" onClick={() => setLocationPromptOpen(false)}><Icon name="close" size={20} /></button>
             </div>
-            <p className="ohk-registration-intro">Allow location access to see offers near you. You can choose this later.</p>
-            <button className="ohk-primary-button" onClick={() => { setLocationPromptOpen(false); requestLocation() }}><Icon name="location" size={18} /> Allow Location</button>
-            <button className="ohk-secondary-button" onClick={() => setLocationPromptOpen(false)}>Maybe Later</button>
+            <p className="ohk-registration-intro">Allow location access to find local offers within {NEARBY_RADIUS_KM{'}'} km. You can also enter a city or area manually.</p>
+            <button type="button" className="ohk-primary-button ohk-location-allow-button" onClick={() => { setLocationPromptOpen(false); requestLocation() }}><Icon name="location" size={18} /> Allow Location</button>
+            <button type="button" className="ohk-secondary-button ohk-location-later-button" onClick={() => setLocationPromptOpen(false)}>Maybe Later</button>
             {locationMessage ? <span className="ohk-location-message">{locationMessage}</span> : null}
           </div>
         </div>
