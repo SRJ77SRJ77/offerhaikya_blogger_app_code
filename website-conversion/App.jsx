@@ -227,6 +227,64 @@ function Icon({ name, size = 22 }) {
   )
 }
 
+function AdSenseUnit({ slot, kind = 'in-feed' }) {
+  const adRef = useRef(null)
+
+  useEffect(() => {
+    const ad = adRef.current
+    if (!ad) return undefined
+
+    if (!document.querySelector('script[data-ohk-adsense="true"]')) {
+      const script = document.createElement('script')
+      script.async = true
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173'
+      script.crossOrigin = 'anonymous'
+      script.dataset.ohkAdsense = 'true'
+      document.head.appendChild(script)
+    }
+
+    const initializeAd = () => {
+      if (!ad.isConnected || ad.offsetParent === null || ad.dataset.ohkAdInitialized === 'true') return
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({})
+        ad.dataset.ohkAdInitialized = 'true'
+      } catch (error) {
+        console.warn('Offerhaikya AdSense ad could not initialize.', error)
+      }
+    }
+
+    initializeAd()
+    window.addEventListener('resize', initializeAd)
+    return () => window.removeEventListener('resize', initializeAd)
+  }, [])
+
+  if (kind === 'in-article') {
+    return (
+      <ins
+        ref={adRef}
+        className="adsbygoogle"
+        style={{ display: 'block', textAlign: 'center' }}
+        data-ad-layout="in-article"
+        data-ad-format="fluid"
+        data-ad-client="ca-pub-2974987879547173"
+        data-ad-slot={slot}
+      />
+    )
+  }
+
+  return (
+    <ins
+      ref={adRef}
+      className="adsbygoogle"
+      style={{ display: 'block' }}
+      data-ad-format="fluid"
+      data-ad-layout-key="-7d+et-x-1e+6a"
+      data-ad-client="ca-pub-2974987879547173"
+      data-ad-slot={slot}
+    />
+  )
+}
+
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby }) {
   const expiry = getExpiryLabel(post)
 
@@ -836,6 +894,29 @@ function App() {
     if (tab === 'search') openSearch()
   }
 
+  const renderFeedItems = (items, cardProps, prefix) => {
+    const elements = []
+    items.forEach((post, index) => {
+      elements.push(<OfferCard key={prefix + '-post-' + post.id} post={post} {...cardProps} />)
+      const count = index + 1
+      if (count % 6 === 0 && count < items.length) {
+        elements.push(
+          <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" aria-label="Advertisement">
+            <AdSenseUnit slot="7436850854" kind="in-feed" />
+          </div>
+        )
+      }
+      if (count % 8 === 0 && count < items.length) {
+        elements.push(
+          <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" aria-label="Advertisement">
+            <AdSenseUnit slot="7436850854" kind="in-feed" />
+          </div>
+        )
+      }
+    })
+    return elements
+  }
+
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
       {/* Reserved desktop side areas for future Google AdSense placements. */}
@@ -963,6 +1044,10 @@ function App() {
               />
             </div>
 
+            <div className="ohk-detail-ad" aria-label="Advertisement">
+              <AdSenseUnit slot="2503861791" kind="in-article" />
+            </div>
+
             <section id="detail-related" className="ohk-detail-related">
               <div className="ohk-detail-related-inner">
                 <h2>Search offers by tag</h2>
@@ -1076,9 +1161,7 @@ function App() {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    {nearbyPosts.slice(0, nearbyVisible).map((post) => (
-                      <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onOpenDistance={openPostDistance} onShare={sharePost} dark={dark} nearby />
-                    ))}
+                    renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
@@ -1143,9 +1226,7 @@ function App() {
             ) : displayedPosts.length ? (
               <>
                 <div className="ohk-grid">
-                  {displayedPosts.map((post) => (
-                    <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} />
-                  ))}
+                  renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')
                 </div>
 
                 {visible < filteredPosts.length ? (
