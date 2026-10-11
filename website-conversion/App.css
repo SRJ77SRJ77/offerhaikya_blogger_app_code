@@ -538,10 +538,28 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-nearby-actions .ohk-location-autocomplete { flex:1 1 100%; width:100%; min-width:0; }
   .ohk-nearby-actions>.ohk-add-location-button,
   .ohk-nearby-actions>.ohk-set-current-location-button { flex:1 1 auto; min-width:0; max-width:100%; white-space:normal; padding:8px 9px; font-size:12px; }
-  .ohk-nearby-prompt .ohk-nearby-search-row { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:5px; }
-  .ohk-nearby-prompt .ohk-nearby-search-row input { width:100%; min-width:0; }
-  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-search-button { grid-column:2; }
-  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button { grid-column:3; }
+  /* Keep the input, Search button and Find Nearby button aligned in one row on phones. */
+  .ohk-nearby-prompt .ohk-nearby-search-row { display:flex; flex-direction:row; align-items:center; gap:5px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row input { flex:1 1 0; width:0; min-width:0; }
+  .ohk-nearby-prompt .ohk-nearby-search-row>button {
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    height:38px;
+    min-height:38px;
+    padding:8px 9px;
+    border:0;
+    border-radius:8px;
+    background:#ff5b01;
+    color:#fff;
+    font-size:11px;
+    line-height:1;
+    white-space:nowrap;
+  }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button { gap:4px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg { flex:none; width:16px; height:16px; }
   .ohk-footer-links { gap:10px 14px; }
   .ohk-bottom-nav { height:calc(64px + env(safe-area-inset-bottom, 0px)); }
   .ohk-bottom-nav button { padding:5px 1px calc(5px + env(safe-area-inset-bottom, 0px)); gap:2px; }
