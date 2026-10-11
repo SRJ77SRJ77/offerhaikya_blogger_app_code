@@ -974,13 +974,6 @@ function App() {
 
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
-      {/* Responsive Display ads in desktop-only side rails; hidden on phones and tablets. */}
-      <aside className="ohk-ad-rail ohk-ad-rail-left" data-ad-placement="left" aria-label="Advertisement">
-        <AdSenseUnit slot="5188401932" kind="display" />
-      </aside>
-      <aside className="ohk-ad-rail ohk-ad-rail-right" data-ad-placement="right" aria-label="Advertisement">
-        <AdSenseUnit slot="5188401932" kind="display" />
-      </aside>
       {preloaderVisible ? (
         <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
           <div className="ohk-preloader-card">
