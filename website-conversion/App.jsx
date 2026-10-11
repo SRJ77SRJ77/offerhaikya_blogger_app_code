@@ -1133,10 +1133,10 @@ function App() {
 
       <nav className="ohk-bottom-nav">
         {[
-          ['home', 'home', 'Home'],
-          ['local', 'location', 'Local Offers'],
-          ['hot', null, 'Hot Offers'],
           ['request', 'mail', 'Request Offer'],
+          ['hot', null, 'Hot Offers'],
+          ['home', 'home', 'Home'],
+          ['local', 'location', 'Nearby Offers'],
           ['search', 'search', 'Search'],
         ].map(([tab, icon, label]) => (
           <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => handleBottomTab(tab)}>
