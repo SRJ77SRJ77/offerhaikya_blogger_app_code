@@ -331,6 +331,14 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
 function App() {
   const [posts, setPosts] = useState([])
+  const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const updateLayout = () => setIsPhoneAdLayout(mediaQuery.matches)
+    updateLayout()
+    mediaQuery.addEventListener('change', updateLayout)
+    return () => mediaQuery.removeEventListener('change', updateLayout)
+  }, [])
   const [bloggerMenus, setBloggerMenus] = useState({ categories: [], specialDeals: [], stores: [] })
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
