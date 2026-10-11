@@ -258,6 +258,20 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
     return () => window.removeEventListener('resize', initializeAd)
   }, [])
 
+  if (kind === 'display') {
+    return (
+      <ins
+        ref={adRef}
+        className="adsbygoogle"
+        style={{ display: 'block', width: '100%', height: '600px' }}
+        data-ad-client="ca-pub-2974987879547173"
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    )
+  }
+
   if (kind === 'in-article') {
     return (
       <ins
@@ -960,9 +974,13 @@ function App() {
 
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
-      {/* Reserved desktop side areas for future Google AdSense placements. */}
-      <aside className="ohk-ad-rail ohk-ad-rail-left" aria-hidden="true" data-ad-placement="left" />
-      <aside className="ohk-ad-rail ohk-ad-rail-right" aria-hidden="true" data-ad-placement="right" />
+      {/* Responsive Display ads in desktop-only side rails; hidden on phones and tablets. */}
+      <aside className="ohk-ad-rail ohk-ad-rail-left" data-ad-placement="left" aria-label="Advertisement">
+        <AdSenseUnit slot="5188401932" kind="display" />
+      </aside>
+      <aside className="ohk-ad-rail ohk-ad-rail-right" data-ad-placement="right" aria-label="Advertisement">
+        <AdSenseUnit slot="5188401932" kind="display" />
+      </aside>
       {preloaderVisible ? (
         <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
           <div className="ohk-preloader-card">
