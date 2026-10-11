@@ -927,7 +927,14 @@ function App() {
   const renderFeedItems = (items, cardProps, prefix) => {
     const elements = []
     items.forEach((post, index) => {
-      elements.push(<OfferCard key={prefix + '-post-' + post.id} post={post} {...cardProps} />)
+      elements.push(
+        <OfferCard
+          key={prefix + '-post-' + post.id}
+          post={post}
+          {...cardProps}
+          saved={Boolean(cardProps.saved?.[post.id])}
+        />
+      )
       const count = index + 1
       if (isPhoneAdLayout && count % 6 === 0 && count < items.length) {
         elements.push(
