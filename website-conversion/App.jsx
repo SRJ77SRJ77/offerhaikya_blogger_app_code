@@ -1251,13 +1251,26 @@ function App() {
         <div className="ohk-modal-backdrop" onClick={() => setRequestOpen(false)}>
           <div className="ohk-modal ohk-request-modal" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-modal-head">
-              <h2>User Offers Requests</h2>
-              <button onClick={() => setRequestOpen(false)}><Icon name="close" /></button>
+              <h2>Request Offer</h2>
+              <button onClick={() => setRequestOpen(false)} aria-label="Close request message"><Icon name="close" /></button>
             </div>
-            <input placeholder="Name *" />
-            <input placeholder="10-digit phone number *" />
-            <textarea placeholder="Offer request *" maxLength={50} />
-            <button className="ohk-primary-button" onClick={() => setRequestOpen(false)}>Send Request</button>
+            <div className="ohk-request-coming-soon">
+              <div className="ohk-request-coming-soon-icon"><Icon name="mail" size={30} /></div>
+              <h3>We're Working on It!</h3>
+              <p>Our Request Offer feature is getting ready. We're working to make it easier for you to request the offers you want.</p>
+              <p className="ohk-request-thanks">Thank you for your patience and support!</p>
+              <span className="ohk-request-coming-soon-label">Coming Soon</span>
+            </div>
+            <div hidden>
+              <div className="ohk-modal-head">
+                <h2>User Offers Requests</h2>
+                <button onClick={() => setRequestOpen(false)}><Icon name="close" /></button>
+              </div>
+              <input placeholder="Name *" />
+              <input placeholder="10-digit phone number *" />
+              <textarea placeholder="Offer request *" maxLength={50} />
+              <button className="ohk-primary-button" onClick={() => setRequestOpen(false)}>Send Request</button>
+            </div>
           </div>
         </div>
       ) : null}
