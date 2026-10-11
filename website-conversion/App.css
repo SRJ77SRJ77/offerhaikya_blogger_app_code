@@ -1055,19 +1055,23 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
-/* Explicit heart states: dark mode must not fill unsaved offer hearts. */
-.ohk-app .ohk-card-heart.ohk-card-heart-unsaved .ohk-heart-icon path {
-  fill: none !important;
-  stroke: #e53935 !important;
+/* Main offer-card hearts use text glyphs so global SVG/dark-mode styles cannot fill unsaved hearts. */
+.ohk-app .ohk-card-heart-glyph {
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1;
+  color: #e53935;
+  pointer-events: none;
 }
-.ohk-app .ohk-card-heart.ohk-card-heart-saved .ohk-heart-icon path {
-  fill: #e53935 !important;
-  stroke: #e53935 !important;
-}
-.ohk-dark .ohk-card-heart.ohk-card-heart-unsaved {
-  background: rgba(255,255,255,.92);
+.ohk-app .ohk-card-heart-unsaved .ohk-card-heart-glyph {
   color: #e53935;
 }
+.ohk-app .ohk-card-heart-saved .ohk-card-heart-glyph {
+  color: #e53935;
+}
+.ohk-dark .ohk-card-heart.ohk-card-heart-unsaved,
 .ohk-dark .ohk-card-heart.ohk-card-heart-saved {
   background: rgba(255,255,255,.92);
   color: #e53935;
