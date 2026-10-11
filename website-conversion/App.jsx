@@ -797,7 +797,13 @@ function App() {
 
   const sharePost = (post) => {
     setShareMessage('')
-    setShareTarget(post || { title: 'Offerhaikya', url: window.location.href })
+    if (!post) {
+      setShareTarget({ title: 'Offerhaikya', url: window.location.href })
+      return
+    }
+    const lastPart = (post.url || '').split('/').filter(Boolean).pop() || ''
+    const offerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
+    setShareTarget({ ...post, url: offerSlug ? window.location.origin + '/offer/' + encodeURIComponent(offerSlug) : window.location.href })
   }
 
   const copyShareLink = async () => {
