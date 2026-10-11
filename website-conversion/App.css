@@ -1009,3 +1009,47 @@ input, textarea, select, button { max-width: 100%; }
     margin: 14px auto 20px;
   }
 }
+
+/* Keep Suggested Offers and Latest Offers cards identical to main-feed cards.
+   The detail section's general h2 rule must not enlarge card titles. */
+.ohk-detail-related .ohk-card-body h2 {
+  margin: 0;
+  color: #202124;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 900;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ohk-dark .ohk-detail-related .ohk-card-body h2 {
+  color: #fff;
+}
+.ohk-detail-related .ohk-card-body p {
+  color: #77747a;
+  font-size: 12px;
+  line-height: 18px;
+}
+.ohk-detail-related .ohk-card-label {
+  font-size: 11px;
+}
+@media (max-width: 767px) {
+  .ohk-detail-related .ohk-card-body h2 {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  .ohk-detail-related .ohk-card-body p {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+}
+@media (max-width: 480px) {
+  .ohk-detail-related .ohk-card-body h2 {
+    font-size: 13px;
+  }
+  .ohk-detail-related .ohk-card-body p {
+    font-size: 11px;
+  }
+}
+
