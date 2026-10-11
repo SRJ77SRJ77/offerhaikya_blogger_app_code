@@ -366,7 +366,7 @@ a{color:inherit;text-decoration:none}
   .ohk-preloader-card { width: min(110px, 28vw); max-width: 28vw; max-height: 24vh; }
   .ohk-preloader-card img { max-width: 100%; max-height: 22vh; }
 }
-.ohk-section-banner{min-height:110px;padding:22px 24px;border-radius:12px;background-size:cover;background-position:center;box-sizing:border-box;color:#fff;margin-bottom:16px}
+.ohk-section-banner{min-height:76px;padding:12px 18px;border-radius:12px;background-size:cover;background-position:center;box-sizing:border-box;color:#fff;margin-bottom:12px}
 .ohk-section-banner h2{color:#fff!important;font-size:clamp(22px,3vw,30px);text-shadow:0 2px 6px rgba(0,0,0,.35)}
 .ohk-section-banner>span{color:#fff!important;background:rgba(0,0,0,.25);border-radius:999px;padding:6px 10px}
 .ohk-detail-tags button{display:inline-flex;align-items:center;border:0;border-radius:999px;background:#fff1e9;color:#ff5b01;padding:5px 9px;font-size:11px;font-weight:900;cursor:pointer}
@@ -379,7 +379,7 @@ a{color:inherit;text-decoration:none}
   .ohk-card:hover .ohk-card-image{filter:saturate(1.03)}
 }
 @media(max-width:600px){
-  .ohk-section-banner{min-height:90px;padding:16px}
+  .ohk-section-banner{min-height:64px;padding:10px 12px}
   .ohk-card-body{min-height:175px}
 }
 
