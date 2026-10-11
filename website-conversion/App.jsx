@@ -5,7 +5,7 @@ import preloaderGif from './assets/Offer.gif'
 import faviconImage from './assets/favicon.png'
 import bgImage from './assets/bg.jpg'
 
-const BLOG_URL = 'https://www.offerhaikya.com'
+const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=500'
 const ACCENT = '#ff5b01'
 const PAGE = '#f3f4f6'
