@@ -17,9 +17,6 @@ const PAGE_SIZE = 20
 
 const LOGO_URL = logoImage
 
-const DIRECT_TAGS = ['All', 'News', 'Amazon', 'Flipkart', 'Myntra', 'Meesho', 'Instamart', 'Blinkit', 'Zepto', 'BigBasket Now', 'Snapdeal', 'Shopsy', 'Offline Offers', 'Online Offers']
-const CATEGORY_ITEMS = ['Fashion', 'Electronics', 'Home & Kitchen', 'Beauty & Personal Care', 'Grocery & Food', 'Baby & Kids', 'Sports & Fitness', 'Automotive', 'Pet Supplies', 'Books & Education', 'Gaming', 'Travel & Luggage', 'Jewellery & Accessories', 'Tools & Industrial']
-const SPECIAL_DEAL_ITEMS = ['₹1 Deals', 'Loot Deals', 'Flash Sales', "Today's Deals", 'Clearance Sale', 'Buy 1 Get 1', 'Under ₹99', 'Under ₹499', '50%+ Off', 'Coupon Codes', 'Bank Offers', 'Freebies']
 
 function stripHtml(value = '') {
   return value
@@ -96,6 +93,27 @@ function parseFeed(data) {
       })(),
     }
   })
+}
+
+
+function parseBloggerLinkLists(html = '') {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const result = { categories: [], specialDeals: [], stores: [] }
+  const widgets = [...doc.querySelectorAll('.widget.LinkList, .widget-type-LinkList, [data-widget-type="LinkList"]')]
+  for (const widget of widgets) {
+    const title = (widget.querySelector('.title, .widget-title, h2, h3')?.textContent || widget.getAttribute('title') || '').trim().toLowerCase()
+    let key = ''
+    if (title.includes('special') && (title.includes('deal') || title.includes('categor'))) key = 'specialDeals'
+    else if (title === 'categories' || title.includes('category')) key = 'categories'
+    else if (title.includes('store')) key = 'stores'
+    if (!key) continue
+    const items = [...widget.querySelectorAll('.widget-content a, ul a, a')].map((anchor) => ({
+      title: (anchor.textContent || '').trim(),
+      url: anchor.href || '',
+    })).filter((item) => item.title && item.url && !item.url.startsWith('javascript:'))
+    result[key] = items.filter((item, index, all) => all.findIndex((other) => other.title.toLowerCase() === item.title.toLowerCase()) === index)
+  }
+  return result
 }
 
 function distanceKm(first, second) {
@@ -204,6 +222,7 @@ function OfferCard({ post, saved, onSave, onOpen, onShare, dark, nearby }) {
 
 function App() {
   const [posts, setPosts] = useState([])
+  const [bloggerMenus, setBloggerMenus] = useState({ categories: [], specialDeals: [], stores: [] })
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [activeLabel, setActiveLabel] = useState('All')
@@ -332,6 +351,44 @@ function App() {
     }
   }, [])
 
+
+  useEffect(() => {
+    let active = true
+    let inFlight = false
+
+    const syncBloggerMenus = async () => {
+      if (!active || inFlight) return
+      inFlight = true
+      try {
+        const sourceUrl = BLOG_URL + '/?ohk-menu-sync=' + Date.now()
+        const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' })
+        if (!response.ok) throw new Error('Blogger menu request failed')
+        const html = await response.text()
+        if (!active) return
+        const menus = parseBloggerLinkLists(html)
+        if (menus.categories.length || menus.specialDeals.length || menus.stores.length) {
+          setBloggerMenus(menus)
+          console.log('Offerhaikya Blogger menus synced', {
+            categories: menus.categories.length,
+            specialDeals: menus.specialDeals.length,
+            stores: menus.stores.length,
+          })
+        }
+      } catch (error) {
+        console.warn('Offerhaikya Blogger Link List sync:', error)
+      } finally {
+        inFlight = false
+      }
+    }
+
+    syncBloggerMenus()
+    const interval = window.setInterval(syncBloggerMenus, 30000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [])
+
   useEffect(() => {
     document.title = 'Offerhaikya'
   }, [])
@@ -407,14 +464,9 @@ function App() {
     return [...new Set(all)]
   }, [posts])
 
-  const bloggerSpecialTags = useMemo(() => bloggerTags.filter((tag) => {
-    const value = tag.toLowerCase().trim()
-    if (value === 'offline offer' || value === 'online offer' || value === 'offline offers' || value === 'online offers') return false
-    return SPECIAL_DEAL_ITEMS.some((special) => special.toLowerCase() === value) ||
-      /deal|discount|sale|coupon|cashback|freebie|freebies|buy\s*1\s*get\s*1|under\s*[₹rs]/i.test(value)
-  }), [bloggerTags])
-
-  const bloggerCategoryTags = useMemo(() => bloggerTags.filter((tag) => !bloggerSpecialTags.includes(tag)), [bloggerTags, bloggerSpecialTags])
+  const bloggerCategoryTags = bloggerMenus.categories
+  const bloggerSpecialTags = bloggerMenus.specialDeals
+  const bloggerStoreLinks = bloggerMenus.stores
 
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -721,8 +773,8 @@ function App() {
               <div className="ohk-header-dropdown-menu">
                 <button onClick={() => selectTag('All')}>All</button>
                 {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
-                  <button key={item} onClick={() => selectTag(item)}>{item}</button>
-                )) : <p className="ohk-menu-loading">Loading categories from Blogger…</p>}
+                  <button key={item.title} onClick={() => selectTag(item.title)}>{item.title}</button>
+                )) : <p className="ohk-menu-loading">Loading Blogger Categories Link List…</p>}
               </div>
             </div>
 
@@ -733,10 +785,20 @@ function App() {
               <div className="ohk-header-dropdown-menu">
                   <button onClick={() => selectTag('All')}>All</button>
                   {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
-                    <button key={item} onClick={() => selectTag(item)}>{item}</button>
-                  )) : <p className="ohk-menu-loading">Loading offers from Blogger…</p>}
+                    <button key={item.title} onClick={() => selectTag(item.title)}>{item.title}</button>
+                  )) : <p className="ohk-menu-loading">Loading Blogger Special Deal Categories Link List…</p>}
                 </div>
             </div>
+            {bloggerStoreLinks.length ? (
+              <div className="ohk-header-dropdown">
+                <button className="ohk-header-dropdown-button"><Icon name="location" size={16} /> Stores</button>
+                <div className="ohk-header-dropdown-menu">
+                  {bloggerStoreLinks.map((item) => (
+                    <button key={item.title} onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}>{item.title}</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="ohk-header-page-links">
@@ -783,16 +845,25 @@ function App() {
             <div className="ohk-side-group">
               <h3>Categories</h3>
               {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
-                <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
-              )) : <p className="ohk-menu-loading">Loading categories from Blogger…</p>}
+                <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false) }}>{item.title}</button>
+              )) : <p className="ohk-menu-loading">Loading Blogger Categories Link List…</p>}
             </div>
 
             <div className="ohk-side-group">
               <h3>Special Deal Categories</h3>
               {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
-                <button key={item} onClick={() => { selectTag(item); setMenuOpen(false) }}>{item}</button>
-              )) : <p className="ohk-menu-loading">Loading offers from Blogger…</p>}
+                <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false) }}>{item.title}</button>
+              )) : <p className="ohk-menu-loading">Loading Blogger Special Deal Categories Link List…</p>}
             </div>
+
+            {bloggerStoreLinks.length ? (
+              <div className="ohk-side-group">
+                <h3>Stores</h3>
+                {bloggerStoreLinks.map((item) => (
+                  <button key={item.title} onClick={() => { setMenuOpen(false); window.open(item.url, '_blank', 'noopener,noreferrer') }}>{item.title}</button>
+                ))}
+              </div>
+            ) : null}
           </aside>
         </div>
       ) : null}
