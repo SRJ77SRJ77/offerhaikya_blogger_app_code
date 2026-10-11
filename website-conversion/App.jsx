@@ -1182,7 +1182,7 @@ function App() {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')
+                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
@@ -1247,7 +1247,7 @@ function App() {
             ) : displayedPosts.length ? (
               <>
                 <div className="ohk-grid">
-                  renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')
+                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')}
                 </div>
 
                 {visible < filteredPosts.length ? (
