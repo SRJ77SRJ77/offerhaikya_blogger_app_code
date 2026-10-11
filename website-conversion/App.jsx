@@ -371,6 +371,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
 function App() {
   const [posts, setPosts] = useState([])
+  const detailRef = useRef(null)
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)')
@@ -421,6 +422,7 @@ function App() {
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
+  useEffect(() => { detailRef.current = detail }, [detail])
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
@@ -626,19 +628,35 @@ function App() {
       const postUrl = new URLSearchParams(window.location.search).get('url')
       const cleanOfferSlug = path.startsWith('/offer/') ? decodeURIComponent(path.slice(7).split('/')[0]) : ''
       if (postUrl || cleanOfferSlug) {
-        const found = posts.find((post) => {
-          if (postUrl && post.url === postUrl) return true
-          if (!cleanOfferSlug) return false
-          return offerSlugFromTitle(post.title) === cleanOfferSlug
-        })
-        setDetail(found || null)
+        // Resolve the route on initial load, but once a detail is open, keep it
+        // associated with its stable Blogger URL while the feed refreshes.
+        const currentDetailUrl = detailRef.current?.url
+        const found = (currentDetailUrl
+          ? posts.find((post) => post.url === currentDetailUrl)
+          : null) || posts.find((post) => {
+            if (postUrl && post.url === postUrl) return true
+            if (!cleanOfferSlug) return false
+            return offerSlugFromTitle(post.title) === cleanOfferSlug
+          })
+        if (found) {
+          detailRef.current = found
+          setDetail(found)
+          const nextSlug = offerSlugFromTitle(found.title)
+          if (nextSlug && path.startsWith('/offer/') && cleanOfferSlug !== nextSlug) {
+            window.history.replaceState({}, '', '/offer/' + encodeURIComponent(nextSlug))
+          }
+        } else if (!detailRef.current) {
+          setDetail(null)
+        }
         setSitePage(null)
         return
       }
       if (['/about-us', '/contact-us', '/privacy-policy', '/terms-and-condition'].includes(path)) {
+        detailRef.current = null
         setDetail(null)
         setSitePage(path.slice(1))
       } else if (path === '/' || path === '') {
+        detailRef.current = null
         setSitePage(null)
         setDetail(null)
       }
@@ -882,6 +900,7 @@ function App() {
   }
 
   const goHome = () => {
+    detailRef.current = null
     setActiveTab('home')
     setActiveLabel('All')
     setQuery('')
@@ -910,6 +929,7 @@ function App() {
   }
 
   const openPost = (post) => {
+    detailRef.current = post
     setDetail(post)
     setSitePage(null)
     setSearchOpen(false)
