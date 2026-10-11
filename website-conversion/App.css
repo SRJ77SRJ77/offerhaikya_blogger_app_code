@@ -939,12 +939,17 @@ input, textarea, select, button { max-width: 100%; }
   color: #fff !important;
 }
 
-/* Reserved side space for future Google AdSense skyscraper ads.
-   Keep it hidden on smaller screens so the website layout is not squeezed. */
+/* Google AdSense Display side rails. Hidden on phones/tablets and shown only on wide desktops. */
 .ohk-ad-rail {
   display: none;
 }
-
+.ohk-ad-rail ins.adsbygoogle {
+  display: block;
+  width: 160px;
+  height: 600px;
+  max-width: 100%;
+  overflow: hidden;
+}
 @media (min-width: 1600px) {
   .ohk-ad-rail {
     display: block;
@@ -953,18 +958,13 @@ input, textarea, select, button { max-width: 100%; }
     width: 160px;
     height: 600px;
     max-height: calc(100vh - 120px);
-    z-index: 1;
-    pointer-events: none;
+    z-index: 5;
+    pointer-events: auto;
     background: transparent;
+    overflow: hidden;
   }
-
-  .ohk-ad-rail-left {
-    left: 12px;
-  }
-
-  .ohk-ad-rail-right {
-    right: 12px;
-  }
+  .ohk-ad-rail-left { left: 12px; }
+  .ohk-ad-rail-right { right: 12px; }
 }
 
 
