@@ -1151,17 +1151,17 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-location-modal .ohk-modal-head h2 { font-size: 19px; }
 }
 
-/* Main page cards: match the compact card width used in Suggested Offers.
-   Keep detail-page Suggested/Latest cards and mobile layouts unchanged. */
+/* Main offer grid: keep the agreed three-column desktop layout.
+   Detail-page Suggested/Latest cards and mobile layouts remain unchanged. */
 @media (min-width: 1024px) {
   .ohk-content .ohk-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 18px;
   }
 }
 @media (min-width: 1440px) {
   .ohk-content .ohk-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 20px;
   }
 }
