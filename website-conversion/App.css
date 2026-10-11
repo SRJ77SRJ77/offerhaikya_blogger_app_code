@@ -1174,6 +1174,16 @@ input, textarea, select, button { max-width: 100%; }
 }
 
 
+/* Laptop and desktop only: banner follows the Nearby/content column, up to 1050px.
+   Mobile and tablet banner sizing is intentionally untouched. */
+@media (min-width: 1024px) {
+  .ohk-content #deals > .ohk-section-banner {
+    width: 100% !important;
+    max-width: 1050px !important;
+    box-sizing: border-box;
+  }
+}
+
 /* Desktop/laptop only: keep the banner, Nearby section, and offers aligned in a centered column,
    leaving a clear 172px gutter on each side for the 160px side ads plus spacing. */
 @media (min-width: 1400px) {
