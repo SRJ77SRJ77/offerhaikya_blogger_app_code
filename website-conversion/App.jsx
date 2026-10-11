@@ -525,9 +525,8 @@ function App() {
     return [...new Set(all)]
   }, [posts])
 
-  const bloggerCategoryTags = bloggerMenus.categories
-  const bloggerSpecialTags = bloggerMenus.specialDeals
-  const bloggerStoreLinks = bloggerMenus.stores
+  // Build the Categories dropdown from live Blogger post labels, refreshed with the feed.
+  const bloggerCategoryTags = bloggerTags.map((title) => ({ title }))
 
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -832,34 +831,12 @@ function App() {
                 <Icon name="tag" size={16} /> Categories
               </button>
               <div className="ohk-header-dropdown-menu">
-                <button onClick={() => selectTag('All')}>All</button>
+                <button onClick={() => selectTag('All')}>All Tags</button>
                 {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
                   <button key={item.title} onClick={() => selectTag(item.title)}>{item.title}</button>
-                )) : <p className="ohk-menu-loading">Loading Blogger Categories Link List…</p>}
+                )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
               </div>
             </div>
-
-            <div className="ohk-header-dropdown">
-              <button className="ohk-header-dropdown-button">
-                <Icon name="percent" size={16} /> Special Discounts
-              </button>
-              <div className="ohk-header-dropdown-menu">
-                  <button onClick={() => selectTag('All')}>All</button>
-                  {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
-                    <button key={item.title} onClick={() => selectTag(item.title)}>{item.title}</button>
-                  )) : <p className="ohk-menu-loading">Loading Blogger Special Deal Categories Link List…</p>}
-                </div>
-            </div>
-            {bloggerStoreLinks.length ? (
-              <div className="ohk-header-dropdown">
-                <button className="ohk-header-dropdown-button"><Icon name="location" size={16} /> Stores</button>
-                <div className="ohk-header-dropdown-menu">
-                  {bloggerStoreLinks.map((item) => (
-                    <button key={item.title} onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}>{item.title}</button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
           </div>
 
           <div className="ohk-header-page-links">
@@ -905,26 +882,11 @@ function App() {
 
             <div className="ohk-side-group">
               <h3>Categories</h3>
+              <button onClick={() => { selectTag('All'); setMenuOpen(false) }}>All Tags</button>
               {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
                 <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false) }}>{item.title}</button>
-              )) : <p className="ohk-menu-loading">Loading Blogger Categories Link List…</p>}
+              )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
             </div>
-
-            <div className="ohk-side-group">
-              <h3>Special Deal Categories</h3>
-              {bloggerSpecialTags.length ? bloggerSpecialTags.map((item) => (
-                <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false) }}>{item.title}</button>
-              )) : <p className="ohk-menu-loading">Loading Blogger Special Deal Categories Link List…</p>}
-            </div>
-
-            {bloggerStoreLinks.length ? (
-              <div className="ohk-side-group">
-                <h3>Stores</h3>
-                {bloggerStoreLinks.map((item) => (
-                  <button key={item.title} onClick={() => { setMenuOpen(false); window.open(item.url, '_blank', 'noopener,noreferrer') }}>{item.title}</button>
-                ))}
-              </div>
-            ) : null}
           </aside>
         </div>
       ) : null}
