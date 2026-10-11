@@ -1028,6 +1028,20 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
+              <div className="ohk-detail-tags" aria-label="All offer tags">
+                {bloggerTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      setDetailTagFilter(tag)
+                      document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
               {(detail.image || firstImage(detail.rawContent || '')) ? (
                 <img
                   className="ohk-detail-featured-image"
