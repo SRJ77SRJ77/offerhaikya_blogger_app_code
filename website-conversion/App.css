@@ -1172,3 +1172,16 @@ input, textarea, select, button { max-width: 100%; }
   margin-left: auto;
   margin-right: auto;
 }
+
+
+/* Desktop/laptop only: reserve clear side gutters for the fixed side ads.
+   Keep the banner, Nearby section and post section aligned to the same centered width. */
+@media (min-width: 1400px) {
+  .ohk-content {
+    width: calc(100% - 344px) !important;
+    max-width: 1050px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+  }
+}
