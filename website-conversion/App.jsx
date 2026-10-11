@@ -227,7 +227,7 @@ function Icon({ name, size = 22 }) {
   )
 }
 
-function OfferCard({ post, saved, onSave, onOpen, onShare, dark, nearby }) {
+function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby }) {
   const expiry = getExpiryLabel(post)
 
   return (
@@ -241,10 +241,15 @@ function OfferCard({ post, saved, onSave, onOpen, onShare, dark, nearby }) {
       </button>
 
       {nearby ? (
-        <div className="ohk-card-distance">
+        <button
+          type="button"
+          className="ohk-card-distance"
+          aria-label={`Open ${post.title} details at the bottom`}
+          onClick={() => onOpenDistance(post)}
+        >
           <Icon name="location" size={12} />
           {Math.round(post.nearbyDistanceKm)} km
-        </div>
+        </button>
       ) : null}
 
       {expiry ? <div className={`ohk-card-expiry ${expiry === 'Expired' ? 'ohk-card-expired' : ''}`}>{expiry}</div> : null}
@@ -769,6 +774,17 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const openPostDistance = (post) => {
+    openPost(post)
+    window.setTimeout(() => {
+      const detailPage = document.querySelector('.ohk-detail-page')
+      if (detailPage) {
+        const pageBottom = detailPage.getBoundingClientRect().bottom + window.scrollY
+        window.scrollTo({ top: pageBottom, behavior: 'smooth' })
+      }
+    }, 180)
+  }
+
   const getSitePage = (type) => bloggerPages.find((item) => {
     const title = item.title.toLowerCase()
     if (type === 'about-us') return title.includes('about')
@@ -1033,7 +1049,7 @@ function App() {
                 <>
                   <div className="ohk-grid">
                     {nearbyPosts.slice(0, nearbyVisible).map((post) => (
-                      <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onShare={sharePost} dark={dark} nearby />
+                      <OfferCard key={post.id} post={post} saved={Boolean(saved[post.id])} onSave={toggleSave} onOpen={openPost} onOpenDistance={openPostDistance} onShare={sharePost} dark={dark} nearby />
                     ))}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
