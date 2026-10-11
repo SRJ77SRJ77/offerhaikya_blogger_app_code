@@ -620,9 +620,17 @@ function App() {
     const syncRoute = () => {
       const path = window.location.pathname.toLowerCase()
       const postUrl = new URLSearchParams(window.location.search).get('url')
-      if (postUrl) {
-        const found = posts.find((post) => post.url === postUrl)
-        if (found) setDetail(found)
+      const cleanOfferSlug = path.startsWith('/offer/') ? decodeURIComponent(path.slice(7).split('/')[0]) : ''
+      if (postUrl || cleanOfferSlug) {
+        const found = posts.find((post) => {
+          if (postUrl && post.url === postUrl) return true
+          if (!cleanOfferSlug) return false
+          const lastPart = post.url.split('/').filter(Boolean).pop() || ''
+          const bloggerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
+          return bloggerSlug === cleanOfferSlug
+        })
+        setDetail(found || null)
+        setSitePage(null)
         return
       }
       if (['/about-us', '/contact-us', '/privacy-policy', '/terms-and-condition'].includes(path)) {
@@ -898,7 +906,9 @@ function App() {
     setDetail(post)
     setSitePage(null)
     setSearchOpen(false)
-    window.history.pushState({}, '', '/offer?url=' + encodeURIComponent(post.url))
+    const lastPart = post.url.split('/').filter(Boolean).pop() || ''
+    const offerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
+    window.history.pushState({}, '', '/offer/' + encodeURIComponent(offerSlug))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -1091,6 +1101,7 @@ function App() {
                   {getExpiryLabel(detail)}
                 </div>
               ) : null}
+              <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
               <div className="ohk-detail-tags" aria-label="Tags for this offer">
                 {(detail.labels || []).map((tag) => (
                   <button
