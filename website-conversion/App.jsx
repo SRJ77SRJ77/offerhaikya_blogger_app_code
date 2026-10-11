@@ -96,23 +96,71 @@ function parseFeed(data) {
 }
 
 
-function parseBloggerLinkLists(html = '') {
-  const doc = new DOMParser().parseFromString(html, 'text/html')
+function menuKeyFromTitle(title = '') {
+  const normalized = title.replace(/[^a-z0-9 ]/gi, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
+  if (normalized.includes('special') && (normalized.includes('deal') || normalized.includes('categor'))) return 'specialDeals'
+  if (normalized === 'categories' || normalized.includes('category')) return 'categories'
+  if (normalized.includes('store')) return 'stores'
+  return ''
+}
+
+function cleanMenuItems(items) {
+  return items
+    .map((item) => ({ title: (item.title || '').trim(), url: (item.url || '').trim() }))
+    .filter((item) => item.title && item.url && !item.url.startsWith('javascript:') && item.url !== '#')
+    .filter((item, index, all) => all.findIndex((other) => other.title.toLowerCase() === item.title.toLowerCase()) === index)
+}
+
+function parseBloggerLinkLists(source = '') {
   const result = { categories: [], specialDeals: [], stores: [] }
-  const widgets = [...doc.querySelectorAll('.widget.LinkList, .widget-type-LinkList, [data-widget-type="LinkList"]')]
+  if (!source) return result
+
+  const doc = new DOMParser().parseFromString(source, 'text/html')
+  const widgets = [...doc.querySelectorAll(
+    '.widget.LinkList, .widget.Linklist, .widget-type-LinkList, [data-widget-type="LinkList"], [id^="LinkList"], [id*="LinkList"]'
+  )]
   for (const widget of widgets) {
-    const title = (widget.querySelector('.title, .widget-title, h2, h3')?.textContent || widget.getAttribute('title') || '').trim().toLowerCase()
-    let key = ''
-    if (title.includes('special') && (title.includes('deal') || title.includes('categor'))) key = 'specialDeals'
-    else if (title === 'categories' || title.includes('category')) key = 'categories'
-    else if (title.includes('store')) key = 'stores'
+    const titleNode = widget.querySelector('.title, .widget-title, .widget-title-link, h2, h3, [class*="title"]')
+    const title = titleNode?.textContent || widget.getAttribute('title') || widget.id || ''
+    const key = menuKeyFromTitle(title)
     if (!key) continue
-    const items = [...widget.querySelectorAll('.widget-content a, ul a, a')].map((anchor) => ({
-      title: (anchor.textContent || '').trim(),
-      url: anchor.href || '',
-    })).filter((item) => item.title && item.url && !item.url.startsWith('javascript:'))
-    result[key] = items.filter((item, index, all) => all.findIndex((other) => other.title.toLowerCase() === item.title.toLowerCase()) === index)
+    const items = [...widget.querySelectorAll('.widget-content a, .widget-content li a, ul a, a')]
+      .map((anchor) => ({ title: anchor.textContent || '', url: anchor.href || anchor.getAttribute('href') || '' }))
+    const cleaned = cleanMenuItems(items)
+    if (cleaned.length) result[key] = cleaned
   }
+
+  if (!result.categories.length || !result.specialDeals.length || !result.stores.length) {
+    const headings = [...doc.querySelectorAll('h1, h2, h3, h4, .title, .widget-title')]
+    for (const heading of headings) {
+      const key = menuKeyFromTitle(heading.textContent || '')
+      if (!key || result[key].length) continue
+      const parent = heading.closest('.widget, section, nav, aside, .widget-content') || heading.parentElement
+      if (!parent) continue
+      const cleaned = cleanMenuItems([...parent.querySelectorAll('a')].map((anchor) => ({
+        title: anchor.textContent || '',
+        url: anchor.href || anchor.getAttribute('href') || '',
+      })))
+      if (cleaned.length) result[key] = cleaned
+    }
+  }
+
+  if (!result.categories.length && !result.specialDeals.length && !result.stores.length) {
+    let activeKey = ''
+    const markdownItems = { categories: [], specialDeals: [], stores: [] }
+    for (const line of source.split(/\r?\n/)) {
+      const heading = line.match(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/)
+      if (heading) {
+        activeKey = menuKeyFromTitle(heading[1])
+        continue
+      }
+      if (!activeKey) continue
+      const match = line.match(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+[^)]*)?\)/i)
+      if (match) markdownItems[activeKey].push({ title: match[1], url: match[2] })
+    }
+    for (const key of Object.keys(result)) result[key] = cleanMenuItems(markdownItems[key])
+  }
+
   return result
 }
 
@@ -359,23 +407,36 @@ function App() {
     const syncBloggerMenus = async () => {
       if (!active || inFlight) return
       inFlight = true
+      const sourceUrl = BLOG_URL + '/?ohk-menu-sync=' + Date.now()
+      const requests = [
+        () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
+        () => fetch('https://corsproxy.io/?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
+        () => fetch('https://r.jina.ai/http://www.offerhaikya.com/', { cache: 'no-store' }),
+      ]
       try {
-        const sourceUrl = BLOG_URL + '/?ohk-menu-sync=' + Date.now()
-        const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' })
-        if (!response.ok) throw new Error('Blogger menu request failed')
-        const html = await response.text()
-        if (!active) return
-        const menus = parseBloggerLinkLists(html)
-        if (menus.categories.length || menus.specialDeals.length || menus.stores.length) {
-          setBloggerMenus(menus)
-          console.log('Offerhaikya Blogger menus synced', {
-            categories: menus.categories.length,
-            specialDeals: menus.specialDeals.length,
-            stores: menus.stores.length,
-          })
+        let lastError = null
+        for (const request of requests) {
+          try {
+            const response = await request()
+            if (!response.ok) throw new Error('Blogger menu proxy returned HTTP ' + response.status)
+            const source = await response.text()
+            if (!active) return
+            const menus = parseBloggerLinkLists(source)
+            if (menus.categories.length || menus.specialDeals.length || menus.stores.length) {
+              setBloggerMenus(menus)
+              console.log('Offerhaikya Blogger Link Lists synced', {
+                categories: menus.categories.length,
+                specialDeals: menus.specialDeals.length,
+                stores: menus.stores.length,
+              })
+              return
+            }
+            lastError = new Error('Homepage response contained no readable Blogger Link List items')
+          } catch (error) {
+            lastError = error
+          }
         }
-      } catch (error) {
-        console.warn('Offerhaikya Blogger Link List sync:', error)
+        console.warn('Offerhaikya Blogger Link List sync failed; will retry automatically.', lastError)
       } finally {
         inFlight = false
       }
