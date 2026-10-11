@@ -35,7 +35,8 @@ a{color:inherit;text-decoration:none}
 
 .ohk-badge-button>span{position:absolute;top:3px;right:1px;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#ff5b01;color:#fff;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center}
 .ohk-icon{display:block}
-.ohk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100}
+.ohk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100;overscroll-behavior:contain;touch-action:none}
+.ohk-side-menu{overscroll-behavior:contain;touch-action:pan-y}
 .ohk-side-menu{width:300px;max-width:82%;height:100%;background:#fff;overflow:auto;box-shadow:5px 0 16px rgba(0,0,0,.22);animation:ohk-slide .22s ease-out}
 /* Keep the mobile slide-out menu readable in both light and dark themes. */
 .ohk-side-menu{background:#fff!important;color:#111!important}
