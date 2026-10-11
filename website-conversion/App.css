@@ -1055,3 +1055,20 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
+/* Explicit heart states: dark mode must not fill unsaved offer hearts. */
+.ohk-app .ohk-card-heart.ohk-card-heart-unsaved .ohk-heart-icon path {
+  fill: none !important;
+  stroke: #e53935 !important;
+}
+.ohk-app .ohk-card-heart.ohk-card-heart-saved .ohk-heart-icon path {
+  fill: #e53935 !important;
+  stroke: #e53935 !important;
+}
+.ohk-dark .ohk-card-heart.ohk-card-heart-unsaved {
+  background: rgba(255,255,255,.92);
+  color: #e53935;
+}
+.ohk-dark .ohk-card-heart.ohk-card-heart-saved {
+  background: rgba(255,255,255,.92);
+  color: #e53935;
+}
