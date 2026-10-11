@@ -897,11 +897,22 @@ function App() {
             </div>
 
             <div className="ohk-side-group">
-              <h3>Categories</h3>
-              <button onClick={() => { selectTag('All'); setMenuOpen(false) }}>All Tags</button>
-              {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
-                <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false) }}>{item.title}</button>
-              )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
+              <button
+                type="button"
+                className="ohk-category-toggle"
+                aria-expanded={categoryOpen}
+                onClick={() => setCategoryOpen((open) => !open)}
+              >
+                Categories <span>{categoryOpen ? '−' : '+'}</span>
+              </button>
+              {categoryOpen ? (
+                <>
+                  <button onClick={() => { selectTag('All'); setMenuOpen(false); setCategoryOpen(false) }}>All Tags</button>
+                  {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
+                    <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false); setCategoryOpen(false) }}>{item.title}</button>
+                  )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
+                </>
+              ) : null}
             </div>
           </aside>
         </div>
