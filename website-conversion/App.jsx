@@ -283,6 +283,22 @@ function App() {
   const [nearbyVisible, setNearbyVisible] = useState(PAGE_SIZE)
   const [dark, setDark] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const previousOverflow = document.body.style.overflow
+    const previousTouchAction = document.body.style.touchAction
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.touchAction = previousTouchAction
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen])
   const [categoryOpen, setCategoryOpen] = useState(false)
   const [specialDealsOpen, setSpecialDealsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
