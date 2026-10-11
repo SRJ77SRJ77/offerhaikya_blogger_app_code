@@ -934,6 +934,15 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
+              {(detail.image || firstImage(detail.rawContent || '')) ? (
+                <img
+                  className="ohk-detail-featured-image"
+                  src={detail.image || highResImage(firstImage(detail.rawContent || ''))}
+                  alt={detail.title || 'Offer image'}
+                  style={{ display: 'block', width: '100%', maxWidth: '900px', maxHeight: '560px', height: 'auto', objectFit: 'contain', margin: '12px auto 24px', borderRadius: '10px' }}
+                  onError={(event) => { event.currentTarget.style.display = 'none' }}
+                />
+              ) : null}
               <div className="ohk-detail-meta ohk-detail-content-actions">
                 <button onClick={() => toggleSave(detail.id)} aria-label="Save offer">{saved[detail.id] ? '♥' : '♡'}</button>
                 <button onClick={() => sharePost(detail)} aria-label="Share offer"><Icon name="share" size={19} /></button>
