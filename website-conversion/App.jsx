@@ -907,14 +907,13 @@ function App() {
     items.forEach((post, index) => {
       elements.push(<OfferCard key={prefix + '-post-' + post.id} post={post} {...cardProps} />)
       const count = index + 1
-      if (count % 6 === 0 && count < items.length) {
+      if (isPhoneAdLayout && count % 6 === 0 && count < items.length) {
         elements.push(
           <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
-      }
-      if (count % 8 === 0 && count < items.length) {
+      } else if (!isPhoneAdLayout && count % 8 === 0 && count < items.length) {
         elements.push(
           <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
