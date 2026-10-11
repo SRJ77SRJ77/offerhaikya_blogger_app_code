@@ -30,7 +30,7 @@ export const auth: {
 // Compatibility placeholder only; never connects to a Firebase project.
 export const db = Object.freeze({ offlineOnly: true });
 
-const unsupported = async (): Promise<never> => {
+const unsupported = async (..._args: any[]): Promise<never> => {
   throw new Error('Account services are disabled in this browse-only build.');
 };
 
@@ -45,10 +45,11 @@ export const sendPasswordResetEmail = unsupported;
 export const signInWithEmailAndPassword = unsupported;
 export const updateEmail = unsupported;
 
-export const signInAnonymously = async (_auth?: unknown) => {
-  auth.currentUser = makeGuest();
-  listeners.forEach(listener => listener(auth.currentUser));
-  return { user: auth.currentUser };
+export const signInAnonymously = async (_auth?: unknown): Promise<{ user: LocalUser }> => {
+  const guest = makeGuest();
+  auth.currentUser = guest;
+  listeners.forEach(listener => listener(guest));
+  return { user: guest };
 };
 
 export const signOut = async (_auth?: unknown) => {
