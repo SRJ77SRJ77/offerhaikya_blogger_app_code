@@ -1072,3 +1072,76 @@ input, textarea, select, button { max-width: 100%; }
   background: rgba(255,255,255,.92);
   color: #e53935;
 }
+
+
+/* Nearby location prompt: clearer spacing, icon treatment and consistent button sizing. */
+.ohk-location-backdrop { align-items: center; }
+.ohk-location-modal {
+  width: min(410px, 100%);
+  box-sizing: border-box;
+  padding: 24px;
+  gap: 13px;
+  border: 1px solid rgba(255, 91, 1, .12);
+  border-radius: 18px;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, .22);
+}
+.ohk-location-modal-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff0e7;
+  color: #ff5b01;
+}
+.ohk-location-modal .ohk-modal-head { margin: 0; gap: 12px; }
+.ohk-location-modal .ohk-modal-head h2 {
+  flex: 1;
+  text-align: center;
+  font-size: 21px;
+  line-height: 1.3;
+}
+.ohk-location-modal .ohk-modal-head button {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #5f6368;
+  background: #f2f3f5;
+}
+.ohk-dark .ohk-location-modal .ohk-modal-head button { color: #fff; background: #303030; }
+.ohk-location-modal .ohk-registration-intro {
+  margin: 0 0 3px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.ohk-location-modal .ohk-location-allow-button,
+.ohk-location-modal .ohk-location-later-button {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+.ohk-location-modal .ohk-location-allow-button { box-shadow: 0 5px 12px rgba(255, 91, 1, .18); }
+.ohk-location-modal .ohk-location-message { line-height: 1.5; overflow-wrap: anywhere; }
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button { gap: 6px; }
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+}
+@media (max-width: 480px) {
+  .ohk-location-backdrop { padding: 12px; }
+  .ohk-location-modal { padding: 20px 17px; border-radius: 15px; }
+  .ohk-location-modal .ohk-modal-head h2 { font-size: 19px; }
+}
