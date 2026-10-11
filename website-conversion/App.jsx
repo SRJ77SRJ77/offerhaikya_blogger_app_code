@@ -1028,8 +1028,8 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
-              <div className="ohk-detail-tags" aria-label="All offer tags">
-                {bloggerTags.map((tag) => (
+              <div className="ohk-detail-tags" aria-label="Tags for this offer">
+                {(detail.labels || []).map((tag) => (
                   <button
                     key={tag}
                     type="button"
