@@ -588,6 +588,28 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); }
   .ohk-detail-page-inner, .ohk-info-page { padding:28px; }
   .ohk-nearby-actions { flex-wrap:wrap; }
+  /* Match the phone nearby search row on tablets too. */
+  .ohk-nearby-prompt .ohk-nearby-search-row { display:flex; flex-direction:row; align-items:center; gap:6px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row input { flex:1 1 0; width:0; min-width:0; }
+  .ohk-nearby-prompt .ohk-nearby-search-row>button {
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    height:38px;
+    min-height:38px;
+    padding:8px 12px;
+    border:0;
+    border-radius:8px;
+    background:#ff5b01;
+    color:#fff;
+    font-size:12px;
+    line-height:1;
+    white-space:nowrap;
+  }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button { gap:5px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg { flex:none; width:16px; height:16px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .ohk-modal, .ohk-favorite-popup { max-height:calc(100dvh - 16px); overflow-y:auto; }
