@@ -931,3 +931,32 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-share-modal .ohk-modal-head button[aria-label="Close share options"] {
   color: #fff !important;
 }
+
+/* Reserved side space for future Google AdSense skyscraper ads.
+   Keep it hidden on smaller screens so the website layout is not squeezed. */
+.ohk-ad-rail {
+  display: none;
+}
+
+@media (min-width: 1600px) {
+  .ohk-ad-rail {
+    display: block;
+    position: fixed;
+    top: 100px;
+    width: 160px;
+    height: 600px;
+    max-height: calc(100vh - 120px);
+    z-index: 1;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  .ohk-ad-rail-left {
+    left: 12px;
+  }
+
+  .ohk-ad-rail-right {
+    right: 12px;
+  }
+}
+
