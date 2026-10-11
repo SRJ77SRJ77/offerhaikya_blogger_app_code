@@ -961,7 +961,7 @@ function App() {
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
-      } else if (!isPhoneAdLayout && count % 8 === 0 && count < items.length) {
+      } else if (!isPhoneAdLayout && count % 9 === 0 && count < items.length) {
         elements.push(
           <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
