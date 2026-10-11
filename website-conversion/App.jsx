@@ -1086,6 +1086,11 @@ function App() {
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
               <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
+              {getExpiryLabel(detail) ? (
+                <div className={`ohk-card-expiry ohk-detail-expiry ${getExpiryLabel(detail) === 'Expired' ? 'ohk-card-expired' : ''}`}>
+                  {getExpiryLabel(detail)}
+                </div>
+              ) : null}
               <div className="ohk-detail-tags" aria-label="Tags for this offer">
                 {(detail.labels || []).map((tag) => (
                   <button
