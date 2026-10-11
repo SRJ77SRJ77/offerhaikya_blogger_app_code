@@ -396,7 +396,6 @@ function App() {
   const [registrationEmail, setRegistrationEmail] = useState('')
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
-  const [mainFeedSaved, setMainFeedSaved] = useState({})
   const [detail, setDetail] = useState(null)
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [shareTarget, setShareTarget] = useState(null)
@@ -755,10 +754,6 @@ function App() {
 
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
-  }
-
-  const toggleMainFeedSave = (id) => {
-    setMainFeedSaved((current) => ({ ...current, [id]: !current[id] }))
   }
 
   const sharePost = (post) => {
@@ -1211,7 +1206,7 @@ function App() {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved: mainFeedSaved, onSave: toggleMainFeedSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')}
+                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
@@ -1276,7 +1271,7 @@ function App() {
             ) : displayedPosts.length ? (
               <>
                 <div className="ohk-grid">
-                  {renderFeedItems(displayedPosts, { saved: mainFeedSaved, onSave: toggleMainFeedSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')}
+                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')}
                 </div>
 
                 {visible < filteredPosts.length ? (
