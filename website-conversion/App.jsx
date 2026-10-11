@@ -59,6 +59,10 @@ function extractCoordinates(html = '') {
   return null
 }
 
+function offerSlugFromTitle(title = '') {
+  return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
 function parseFeed(data) {
   const entries = data?.feed?.entry || []
 
@@ -625,9 +629,7 @@ function App() {
         const found = posts.find((post) => {
           if (postUrl && post.url === postUrl) return true
           if (!cleanOfferSlug) return false
-          const lastPart = post.url.split('/').filter(Boolean).pop() || ''
-          const bloggerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
-          return bloggerSlug === cleanOfferSlug
+          return offerSlugFromTitle(post.title) === cleanOfferSlug
         })
         setDetail(found || null)
         setSitePage(null)
@@ -801,8 +803,7 @@ function App() {
       setShareTarget({ title: 'Offerhaikya', url: window.location.href })
       return
     }
-    const lastPart = (post.url || '').split('/').filter(Boolean).pop() || ''
-    const offerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
+    const offerSlug = offerSlugFromTitle(post.title)
     setShareTarget({ ...post, url: offerSlug ? window.location.origin + '/offer/' + encodeURIComponent(offerSlug) : window.location.href })
   }
 
@@ -912,8 +913,7 @@ function App() {
     setDetail(post)
     setSitePage(null)
     setSearchOpen(false)
-    const lastPart = post.url.split('/').filter(Boolean).pop() || ''
-    const offerSlug = lastPart.endsWith('.html') ? lastPart.slice(0, -5) : lastPart
+    const offerSlug = offerSlugFromTitle(post.title)
     window.history.pushState({}, '', '/offer/' + encodeURIComponent(offerSlug))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
