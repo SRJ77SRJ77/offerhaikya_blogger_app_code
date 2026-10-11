@@ -42,9 +42,22 @@ import {
   signInWithEmailAndPassword,
   updateEmail,
   updateProfile as updateFirebaseProfile,
-} from 'firebase/auth';
-import { auth, db } from './firebaseConfig';
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query as firestoreQuery, serverTimestamp, setDoc, Timestamp, where, writeBatch } from 'firebase/firestore';
+  auth,
+  db,
+  arrayRemove,
+  arrayUnion,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query as firestoreQuery,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+  where,
+  writeBatch,
+} from './firebaseDisabled';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -4381,6 +4394,12 @@ export default function App() {
       setOfferRequestError('Offer request must be 50 characters or less.');
       return;
     }
+
+    Alert.alert(
+      'Request Offer Temporarily Unavailable',
+      'Offer browsing is available. Request submissions are paused while account and cloud services are disabled.'
+    );
+    return;
 
     try {
       setOfferRequestSubmitting(true);
