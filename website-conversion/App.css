@@ -630,7 +630,7 @@ input, textarea, select, button { max-width: 100%; }
 }
 
 
-/* Desktop offer layout: always four cards per row and reserve outer space for future side ads. */
+/* Desktop offer layout: three cards per row so offer cards stay comfortably sized beside future side ads. */
 @media (min-width: 1024px) {
   .ohk-content {
     width: 100%;
@@ -640,7 +640,7 @@ input, textarea, select, button { max-width: 100%; }
     box-sizing: border-box;
   }
   .ohk-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 18px;
   }
 }
@@ -649,7 +649,7 @@ input, textarea, select, button { max-width: 100%; }
     max-width: 1200px;
   }
   .ohk-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 20px;
   }
 }
