@@ -12,7 +12,7 @@ const PAGE = '#f3f4f6'
 const WHITE = '#ffffff'
 const TEXT = '#202124'
 const MUTED = '#77747a'
-const NEARBY_RADIUS_KM = 303
+const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
 
 const LOGO_URL = logoImage
@@ -1390,7 +1390,6 @@ function App() {
             <div className="ohk-location-modal-icon"><Icon name="location" size={28} /></div>
             <div className="ohk-modal-head">
               <h2 id="ohk-location-modal-title">Find Nearby Offers</h2>
-              <button type="button" aria-label="Close location prompt" onClick={() => setLocationPromptOpen(false)}><Icon name="close" size={20} /></button>
             </div>
             <p className="ohk-registration-intro">Allow location access to find local offers within {NEARBY_RADIUS_KM} km. You can also enter a city or area manually.</p>
             <button type="button" className="ohk-primary-button ohk-location-allow-button" onClick={() => { setLocationPromptOpen(false); requestLocation() }}><Icon name="location" size={18} /> Allow Location</button>
