@@ -76,6 +76,7 @@ function parseFeed(data) {
         ? new Date(entry.published.$t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
         : '',
       publishedAt: entry?.published?.$t || '',
+      updatedAt: entry?.updated?.$t || entry?.published?.$t || '',
       labels,
       label: labels[0] || 'Offer',
       image,
@@ -177,17 +178,20 @@ function distanceKm(first, second) {
 
 function isOfflinePost(post) {
   const labels = (post.labels || []).map((label) => label.toLowerCase().trim())
-  return labels.some((label) => /^(offline offer|offline offers|local offer|local offers|nearby offer|nearby offers)$/.test(label))
-}
+  return labels.some((label) => /^(offline offer|offline offers|locafunction getExpiryLabel(post) {
+  const labels = (post.labels || []).map((label) => label.trim().toLowerCase())
+  // An explicit Blogger "Expired" label always shows the Expired badge.
+  if (labels.includes('expired')) return 'Expired'
 
-function getExpiryLabel(post) {
-  const expiryTag = post.labels.find((label) => /^E\d+$/i.test(label.trim()))
-  if (!expiryTag || !post.publishedAt) return ''
+  const expiryTag = (post.labels || []).find((label) => /^E\d+$/i.test(label.trim()))
+  // Use Blogger's last-updated timestamp so editing an expired offer starts its expiry window again.
+  const expiryBase = post.updatedAt || post.publishedAt
+  if (!expiryTag || !expiryBase) return ''
 
   const days = Number(expiryTag.trim().slice(1))
   if (!Number.isFinite(days) || days <= 0) return ''
 
-  const expiryTime = new Date(post.publishedAt).getTime() + days * 24 * 60 * 60 * 1000
+  const expiryTime = new Date(expiryBase).getTime() + days * 24 * 60 * 60 * 1000
   const remainingMs = expiryTime - Date.now()
 
   if (remainingMs <= 0) return 'Expired'
@@ -200,6 +204,8 @@ function getExpiryLabel(post) {
 
   if (remainingDays > 0) return hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`
   if (totalHours > 0) return minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`
+  return `Expires in ${minutes}m`
+}` : `Expires in ${totalHours}h`
   return `Expires in ${minutes}m`
 }
 
