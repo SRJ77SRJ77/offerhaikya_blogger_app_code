@@ -1187,6 +1187,12 @@ input, textarea, select, button { max-width: 100%; }
 
   .ohk-section-banner {
     width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
+  }
+
+  #deals > .ohk-section-banner {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
