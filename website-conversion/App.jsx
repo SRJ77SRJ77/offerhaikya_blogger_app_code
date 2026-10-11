@@ -736,13 +736,16 @@ function App() {
     tagDragRef.current = null
   }
 
-  // If the visitor skips location, gently ask again every 5 minutes while Nearby is active.
-  // A successful location selection stops these reminders.
+  // Ask about location once, 10 seconds after the first visit.
+  // Persist the shown flag so refreshing the page does not show the popup again.
   useEffect(() => {
-    if (userLocation || activeTab !== 'local' || locationPromptOpen) return undefined
-    const reminder = window.setTimeout(() => setLocationPromptOpen(true), 5 * 60 * 1000)
+    if (userLocation || locationPromptOpen || localStorage.getItem('offerhaikya_location_prompt_shown') === 'true') return undefined
+    const reminder = window.setTimeout(() => {
+      localStorage.setItem('offerhaikya_location_prompt_shown', 'true')
+      setLocationPromptOpen(true)
+    }, 10 * 1000)
     return () => window.clearTimeout(reminder)
-  }, [userLocation, activeTab, locationPromptOpen])
+  }, [userLocation, locationPromptOpen])
 
   useEffect(() => { setNearbyVisible(PAGE_SIZE) }, [userLocation])
 
@@ -911,7 +914,6 @@ function App() {
     if (tab === 'local') {
       setActiveTab('local')
       document.getElementById('nearby')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (!userLocation) setLocationPromptOpen(true)
     }
     if (tab === 'hot') {
       setActiveTab('hot')
