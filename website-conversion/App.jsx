@@ -290,7 +290,17 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''}`}>
-      <button className="ohk-card-heart" onClick={() => onSave(post.id)} aria-label="Save offer">
+      <button
+        type="button"
+        className={`ohk-card-heart ${saved ? 'ohk-card-heart-saved' : 'ohk-card-heart-unsaved'}`}
+        onClick={(event) => {
+          event.stopPropagation()
+          onSave(post.id)
+        }}
+        aria-label={saved ? 'Unsave offer' : 'Save offer'}
+        aria-pressed={Boolean(saved)}
+        title={saved ? 'Unsave offer' : 'Save offer'}
+      >
         {saved ? '♥' : '♡'}
       </button>
 
