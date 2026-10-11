@@ -922,11 +922,7 @@ input, textarea, select, button { max-width: 100%; }
   color: #fff !important;
 }
 
-/* Dark-mode offer action icons and share dialog close button */
-.ohk-dark .ohk-card-heart,
-.ohk-dark .ohk-card-share{color:#fff!important}
-.ohk-dark .ohk-card-heart .ohk-icon,
-.ohk-dark .ohk-card-share .ohk-icon{color:#fff!important;stroke:#fff!important}
-.ohk-dark .ohk-share-modal button[aria-label="Close"],
-.ohk-dark .ohk-share-modal .ohk-modal-close,
-.ohk-dark .ohk-share-modal .ohk-close-button{color:#fff!important}
+/* Dark-mode colors requested for offer detail actions and Share Offer close icon */
+.ohk-dark .ohk-detail-page-inner .ohk-detail-actions .ohk-card-heart,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-actions .ohk-card-share{color:#000!important}
+.ohk-dark .ohk-share-modal [aria-label="Close"]{color:#fff!important}
