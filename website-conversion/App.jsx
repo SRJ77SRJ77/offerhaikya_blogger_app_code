@@ -838,6 +838,9 @@ function App() {
 
   return (
     <div className={`ohk-app ${dark ? 'ohk-dark' : ''}`}>
+      {/* Reserved desktop side areas for future Google AdSense placements. */}
+      <aside className="ohk-ad-rail ohk-ad-rail-left" aria-hidden="true" data-ad-placement="left" />
+      <aside className="ohk-ad-rail ohk-ad-rail-right" aria-hidden="true" data-ad-placement="right" />
       {preloaderVisible ? (
         <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
           <div className="ohk-preloader-card">
