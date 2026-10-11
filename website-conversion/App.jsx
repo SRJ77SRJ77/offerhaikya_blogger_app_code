@@ -291,7 +291,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''}`}>
       <button className="ohk-card-heart" onClick={() => onSave(post.id)} aria-label="Save offer">
-        {'♡'}
+        {saved ? '♥' : '♡'}
       </button>
 
       <button className="ohk-card-share" onClick={() => onShare(post)} aria-label="Share offer">
