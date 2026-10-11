@@ -455,3 +455,124 @@ a{color:inherit;text-decoration:none}
   white-space:nowrap;
 }
 .ohk-nearby-actions>.ohk-set-current-location-button svg{flex:none}
+
+
+/* Responsive layout hardening: phones, tablets, laptops and wide displays. */
+html, body, #root {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+body { overflow-x: hidden; }
+img, video, iframe, svg { max-width: 100%; }
+input, textarea, select, button { max-width: 100%; }
+.ohk-app, .ohk-app main, .ohk-home-content, .ohk-content,
+.ohk-section, .ohk-detail-page, .ohk-detail-page-inner, .ohk-info-page {
+  min-width: 0;
+}
+.ohk-content, .ohk-detail-page, .ohk-footer {
+  width: 100%;
+}
+.ohk-content { padding-left: clamp(10px, 2.2vw, 28px); padding-right: clamp(10px, 2.2vw, 28px); }
+.ohk-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ohk-card, .ohk-card-click, .ohk-card-body { min-width: 0; }
+.ohk-card-image { display:block; width:100%; max-width:100%; object-fit:cover; }
+.ohk-card-body h2, .ohk-card-body p { overflow-wrap:anywhere; }
+.ohk-header-inner { width:100%; min-width:0; }
+.ohk-header-actions { display:flex; align-items:center; flex:none; }
+.ohk-header-page-links { min-width:0; }
+.ohk-header-dropdowns { min-width:0; }
+.ohk-detail-html { min-width:0; overflow-wrap:anywhere; }
+.ohk-detail-html img { max-width:100% !important; height:auto !important; }
+.ohk-detail-html table { display:block; width:100%; max-width:100%; overflow-x:auto; }
+.ohk-detail-html pre, .ohk-detail-html code { white-space:pre-wrap; overflow-wrap:anywhere; }
+.ohk-location-suggestions { max-width:100%; }
+.ohk-search-suggestions { max-width:100%; }
+.ohk-bottom-nav { padding-bottom:env(safe-area-inset-bottom, 0px); }
+.ohk-app { padding-bottom:calc(78px + env(safe-area-inset-bottom, 0px)); }
+
+@media (min-width: 1440px) {
+  .ohk-header-inner { max-width: 1440px; }
+  .ohk-content { max-width: 1440px; margin-left:auto; margin-right:auto; }
+  .ohk-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); gap:20px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .ohk-logo-button img { width:150px; }
+  .ohk-logo-button { margin-left:4px; }
+  .ohk-header-dropdowns { margin-left:8px; gap:0; }
+  .ohk-header-dropdown-button { padding-left:8px; padding-right:8px; }
+  .ohk-header-page-links { gap:8px; }
+  .ohk-header-actions { gap:0; }
+  .ohk-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1023px) {
+  .ohk-header { height:58px; }
+  .ohk-header-inner { padding-left:8px; padding-right:8px; }
+  .ohk-header-dropdowns, .ohk-header-page-links { display:none !important; }
+  .ohk-logo-button { margin-left:5px; margin-right:auto; min-width:0; }
+  .ohk-logo-button img { display:block; width:clamp(120px, 32vw, 175px); height:52px; }
+  .ohk-header-actions { gap:0; }
+  .ohk-header-actions .ohk-header-button { width:38px; min-width:34px; }
+  .ohk-hero { min-height:220px; padding:26px 16px; }
+  .ohk-hero h1 { font-size:clamp(24px, 4vw, 30px); line-height:1.2; }
+  .ohk-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; }
+  .ohk-section-title { align-items:flex-start; }
+  .ohk-nearby-actions { flex-wrap:wrap; }
+}
+@media (max-width: 767px) {
+  .ohk-app { padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .ohk-content { padding-left:10px; padding-right:10px; }
+  .ohk-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  .ohk-card-body { padding:10px; }
+  .ohk-card-body h2 { font-size:14px; line-height:1.35; }
+  .ohk-card-body p { font-size:12px; line-height:1.45; }
+  .ohk-card-image { aspect-ratio:1 / 1; }
+  .ohk-hero { min-height:205px; padding:24px 12px; }
+  .ohk-hero h1 { font-size:25px; line-height:1.2; }
+  .ohk-hero-small { font-size:10px; }
+  .ohk-search-box { width:100%; }
+  .ohk-section-title { gap:8px; }
+  .ohk-section-title h2 { font-size:18px; line-height:1.3; }
+  .ohk-section-title>span { white-space:normal; }
+  .ohk-nearby-actions { display:flex; width:100%; flex-wrap:wrap; justify-content:flex-start; gap:7px; margin-left:0; }
+  .ohk-nearby-actions .ohk-location-autocomplete { flex:1 1 100%; width:100%; min-width:0; }
+  .ohk-nearby-actions>.ohk-add-location-button,
+  .ohk-nearby-actions>.ohk-set-current-location-button { flex:1 1 auto; min-width:0; max-width:100%; white-space:normal; padding:8px 9px; font-size:12px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:5px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row input { width:100%; min-width:0; }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-search-button { grid-column:2; }
+  .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button { grid-column:3; }
+  .ohk-footer-links { gap:10px 14px; }
+  .ohk-bottom-nav { height:calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .ohk-bottom-nav button { padding:5px 1px calc(5px + env(safe-area-inset-bottom, 0px)); gap:2px; }
+  .ohk-bottom-nav button span:last-child { font-size:clamp(9px, 2.5vw, 11px); }
+  .ohk-bottom-nav button svg { width:21px; height:21px; }
+  .ohk-side-menu { width:min(330px, 88vw); max-width:88vw; }
+  .ohk-modal { width:calc(100% - 24px); max-width:460px; max-height:calc(100dvh - 24px); overflow-y:auto; }
+  .ohk-favorite-popup { width:calc(100% - 24px); max-width:500px; max-height:calc(100dvh - 24px); overflow-y:auto; }
+  .ohk-detail-page { padding:12px 10px; }
+  .ohk-detail-page-inner, .ohk-info-page { padding:18px 13px; border-radius:10px; }
+  .ohk-detail-page .ohk-detail-html p { font-size:15px; line-height:1.7; }
+}
+@media (max-width: 380px) {
+  .ohk-header-actions .ohk-header-button { width:32px; min-width:30px; }
+  .ohk-logo-button img { width:112px; }
+  .ohk-logo-button { margin-left:2px; }
+  .ohk-grid { gap:8px; }
+  .ohk-card-body { padding:8px; }
+  .ohk-card-body h2 { font-size:13px; }
+  .ohk-card-body p { font-size:11px; }
+  .ohk-bottom-nav button span:last-child { font-size:9px; letter-spacing:-.15px; }
+  .ohk-nearby-prompt .ohk-nearby-search-row>button { padding:7px 6px; font-size:10px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ohk-content { padding-left:18px; padding-right:18px; }
+  .ohk-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .ohk-detail-page-inner, .ohk-info-page { padding:28px; }
+  .ohk-nearby-actions { flex-wrap:wrap; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .ohk-modal, .ohk-favorite-popup { max-height:calc(100dvh - 16px); overflow-y:auto; }
+  .ohk-bottom-nav { height:56px; }
+  .ohk-app { padding-bottom:62px; }
+}
