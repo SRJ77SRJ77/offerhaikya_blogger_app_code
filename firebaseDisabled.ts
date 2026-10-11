@@ -111,7 +111,7 @@ export const arrayUnion = (...values: any[]) => ({ kind: 'arrayUnion', values })
 export const arrayRemove = (...values: any[]) => ({ kind: 'arrayRemove', values });
 export const serverTimestamp = () => new Timestamp(Date.now());
 
-export const getDoc = async (_ref: unknown) => ({
+export const getDoc = async (_ref: unknown): Promise<{ exists: () => boolean; data: () => any; id: string }> => ({
   exists: () => false,
   data: () => undefined,
   id: '',
