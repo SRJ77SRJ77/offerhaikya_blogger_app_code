@@ -960,3 +960,52 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
+
+
+/* AdSense placements: feed ads span the full offer grid and switch position by screen size. */
+.ohk-ad-feed-wrap {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0 10px;
+  text-align: center;
+  overflow: hidden;
+}
+.ohk-ad-feed-wrap ins.adsbygoogle {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.ohk-ad-feed-mobile {
+  display: none;
+}
+.ohk-ad-feed-desktop {
+  display: block;
+}
+.ohk-detail-ad {
+  width: 100%;
+  max-width: 900px;
+  min-width: 0;
+  margin: 18px auto 24px;
+  text-align: center;
+  overflow: hidden;
+}
+.ohk-detail-ad ins.adsbygoogle {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 767px) {
+  .ohk-ad-feed-mobile {
+    display: block;
+  }
+  .ohk-ad-feed-desktop {
+    display: none;
+  }
+  .ohk-ad-feed-wrap {
+    margin: 2px 0 8px;
+  }
+  .ohk-detail-ad {
+    margin: 14px auto 20px;
+  }
+}
