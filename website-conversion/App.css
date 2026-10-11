@@ -922,7 +922,12 @@ input, textarea, select, button { max-width: 100%; }
   color: #fff !important;
 }
 
-/* Dark-mode colors requested for offer detail actions and Share Offer close icon */
-.ohk-dark .ohk-detail-page-inner .ohk-detail-actions .ohk-card-heart,
-.ohk-dark .ohk-detail-page-inner .ohk-detail-actions .ohk-card-share{color:#000!important}
-.ohk-dark .ohk-share-modal [aria-label="Close"]{color:#fff!important}
+/* Dark mode: change only the icons on the offer detail page, not post-card icons. */
+.ohk-dark .ohk-detail-page .ohk-detail-content-actions button {
+  color: #000 !important;
+}
+
+/* Keep the Share Offer popup close (X) icon white in dark mode. */
+.ohk-dark .ohk-share-modal .ohk-modal-head button[aria-label="Close share options"] {
+  color: #fff !important;
+}
