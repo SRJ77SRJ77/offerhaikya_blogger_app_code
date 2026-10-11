@@ -890,3 +890,26 @@ input, textarea, select, button { max-width: 100%; }
     box-sizing:border-box;
   }
 }
+
+
+/* Dark mode: keep offer detail page text readable on the dark background. */
+.ohk-dark .ohk-detail-page,
+.ohk-dark .ohk-detail-page-inner,
+.ohk-dark .ohk-detail-page-inner h1,
+.ohk-dark .ohk-detail-page-inner h2,
+.ohk-dark .ohk-detail-page-inner h3,
+.ohk-dark .ohk-detail-page-inner h4,
+.ohk-dark .ohk-detail-page-inner h5,
+.ohk-dark .ohk-detail-page-inner h6,
+.ohk-dark .ohk-detail-page-inner p,
+.ohk-dark .ohk-detail-page-inner li,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html p,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h1,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h2,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h3,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h4,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h5,
+.ohk-dark .ohk-detail-page-inner .ohk-detail-html h6 {
+  color: #fff !important;
+}
