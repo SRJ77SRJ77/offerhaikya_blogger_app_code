@@ -241,15 +241,13 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
       </button>
 
       {nearby ? (
-        <button
-          type="button"
+        <div
           className="ohk-card-distance"
-          aria-label={`Open ${post.title} details at the bottom`}
-          onClick={() => onOpenDistance(post)}
+          aria-label={`Distance: ${Math.round(post.nearbyDistanceKm)} km`}
         >
           <Icon name="location" size={12} />
           {Math.round(post.nearbyDistanceKm)} km
-        </button>
+        </div>
       ) : null}
 
       {expiry ? <div className={`ohk-card-expiry ${expiry === 'Expired' ? 'ohk-card-expired' : ''}`}>{expiry}</div> : null}
