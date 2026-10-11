@@ -576,3 +576,28 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-bottom-nav { height:56px; }
   .ohk-app { padding-bottom:62px; }
 }
+
+
+/* Desktop offer layout: always four cards per row and reserve outer space for future side ads. */
+@media (min-width: 1024px) {
+  .ohk-content {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+  .ohk-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 18px;
+  }
+}
+@media (min-width: 1440px) {
+  .ohk-content {
+    max-width: 1200px;
+  }
+  .ohk-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 20px;
+  }
+}
