@@ -405,7 +405,7 @@ function App() {
   const [registrationName, setRegistrationName] = useState('')
   const [registrationPhone, setRegistrationPhone] = useState('')
   const [registrationEmail, setRegistrationEmail] = useState('')
-  const [saved, setSaved] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_favorites') || '{}'))
+  const [saved, setSaved] = useState({})
   const [detail, setDetail] = useState(null)
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [shareTarget, setShareTarget] = useState(null)
