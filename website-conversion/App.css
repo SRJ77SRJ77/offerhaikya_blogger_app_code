@@ -1163,9 +1163,12 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
-/* Match the main offer section to the 1050px Suggested Offers section. */
+/* Match the banner/main offer section to 1050px overall, including its side padding.
+   This keeps the centered content inside the space reserved between the side ads. */
 .ohk-content {
+  width: 100%;
   max-width: 1050px !important;
+  box-sizing: border-box;
   margin-left: auto;
   margin-right: auto;
 }
