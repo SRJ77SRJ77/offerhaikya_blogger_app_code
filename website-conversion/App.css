@@ -921,3 +921,12 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-detail-page-inner .ohk-detail-html h6 {
   color: #fff !important;
 }
+
+/* Dark-mode offer action icons and share dialog close button */
+.ohk-dark .ohk-card-heart,
+.ohk-dark .ohk-card-share{color:#fff!important}
+.ohk-dark .ohk-card-heart .ohk-icon,
+.ohk-dark .ohk-card-share .ohk-icon{color:#fff!important;stroke:#fff!important}
+.ohk-dark .ohk-share-modal button[aria-label="Close"],
+.ohk-dark .ohk-share-modal .ohk-modal-close,
+.ohk-dark .ohk-share-modal .ohk-close-button{color:#fff!important}
