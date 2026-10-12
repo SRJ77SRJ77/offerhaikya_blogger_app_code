@@ -1547,6 +1547,11 @@ input, textarea, select, button { max-width: 100%; }
 
 
 /* Blogger videos share the offer detail media gallery with its images. */
-.ohk-detail-main-image{flex-direction:column;max-height:none;gap:14px}
+.ohk-detail-main-image{flex-direction:row;max-height:560px;gap:0}
 .ohk-detail-video{display:block;width:100%;max-width:900px;overflow:hidden;border-radius:12px;background:#000;line-height:0}
 .ohk-detail-video iframe,.ohk-detail-video video{display:block;width:100%;aspect-ratio:16/9;height:auto;max-height:560px;border:0;object-fit:contain;background:#000}
+
+
+.ohk-detail-video-thumbnail{display:flex;width:100%;height:100%;min-height:0;align-items:center;justify-content:center;flex-direction:column;gap:5px;border-radius:5px;background:linear-gradient(145deg,#262626,#050505);color:#fff}
+.ohk-detail-video-thumbnail>span{display:flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;background:#ff5b01;color:#fff;font-size:12px;padding-left:2px}
+.ohk-detail-video-thumbnail small{font-size:9px;font-weight:700;letter-spacing:.8px;color:#fff}
