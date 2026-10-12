@@ -1507,3 +1507,25 @@ input, textarea, select, button { max-width: 100%; }
 }
 
 
+
+
+/* Dedicated detail description block: title followed immediately by Blogger headings and paragraphs. */
+.ohk-detail-page .ohk-detail-description-content {
+  display: flow-root;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-content .ohk-detail-title {
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-content .ohk-detail-html {
+  display: flow-root;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-content .ohk-detail-html > :first-child {
+  margin-top: 0 !important;
+}
