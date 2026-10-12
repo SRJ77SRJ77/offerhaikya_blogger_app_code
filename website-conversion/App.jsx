@@ -95,10 +95,35 @@ function ensureCanonical(url) {
   element.href = url
 }
 
+function seoTitle(value, isHome = false) {
+  const base = String(value || '').replace(/\s+/g, ' ').trim()
+  const suffix = isHome ? ' | Offerhaikya' : ' | Offerhaikya'
+  let title = base.toLowerCase().includes('offerhaikya') ? base : base + suffix
+  if (title.length < 50 && title.length + ' | Deals & Offers'.length <= 70) {
+    title += ' | Deals & Offers'
+  }
+  if (title.length > 70) {
+    title = title.slice(0, 70).replace(/\s+\S*$/, '').trim()
+  }
+  return title
+}
+
+function seoDescription(value) {
+  const base = String(value || '').replace(/\s+/g, ' ').trim()
+  const extra = ' Explore online deals, local offers and shopping discounts on Offerhaikya.'
+  let description = base
+  if (description.length < 110) description = (description + extra).trim()
+  if (description.length > 160) {
+    description = description.slice(0, 157).replace(/\s+\S*$/, '').trim() + '…'
+  }
+  return description
+}
+
 function setPageMetadata(post = null) {
-  const title = post?.title ? post.title : 'Offerhaikya | Online Deals, Local Offers and Shopping Offers'
-  const description = (post?.searchDescription || post?.excerpt || 'Discover online deals, local offers, shopping discounts and useful offers on Offerhaikya.')
-    .replace(/\s+/g, ' ').trim().slice(0, 300)
+  const rawTitle = post?.title || 'Offerhaikya | Online Deals, Local Offers and Shopping Offers'
+  const title = seoTitle(rawTitle, !post)
+  const rawDescription = post?.searchDescription || post?.excerpt || 'Discover online deals, local offers, shopping discounts and useful offers on Offerhaikya.'
+  const description = seoDescription(rawDescription)
   const url = post?.title
     ? window.location.origin + '/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))
     : window.location.origin + '/'
