@@ -1426,36 +1426,3 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-detail-description-section .ohk-detail-html li {
   max-width: none !important;
 }
-
-
-/* Detail article: left-align the content and use the available page width. */
-.ohk-detail-page {
-  width: 100%;
-  max-width: none !important;
-  margin: 0;
-  padding: 20px 12px 80px;
-  box-sizing: border-box;
-}
-.ohk-detail-page .ohk-detail-page-inner {
-  width: 100%;
-  max-width: none !important;
-  margin: 0;
-  padding: 24px 18px;
-  box-sizing: border-box;
-}
-.ohk-detail-page .ohk-detail-description-section,
-.ohk-detail-page .ohk-detail-description-section .ohk-detail-html {
-  width: 100%;
-  max-width: none !important;
-  margin-left: 0;
-  margin-right: 0;
-  text-align: left;
-  box-sizing: border-box;
-}
-@media (max-width: 600px) {
-  .ohk-detail-page { padding: 12px 4px 76px; }
-  .ohk-detail-page .ohk-detail-page-inner {
-    padding: 18px 8px;
-    border-radius: 10px;
-  }
-}
