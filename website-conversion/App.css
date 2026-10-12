@@ -1468,3 +1468,21 @@ input, textarea, select, button { max-width: 100%; }
   object-position: center;
   border-radius: 6px !important;
 }
+
+
+/* Tighten the gap directly between the offer title and Blogger article */
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-title {
+  margin-bottom: 2px !important;
+  padding-bottom: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > :first-child {
+  margin-top: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > p:first-child,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > div:first-child {
+  padding-top: 0 !important;
+}
