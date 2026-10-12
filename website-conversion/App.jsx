@@ -1410,7 +1410,7 @@ function App() {
     return () => { cancelled = true }
   }, [detail?.id, detailMapLinks.map((link) => link.url).join('|')])
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
-  const detailMedia = [...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type })), ...detailImages.map((url) => ({ type: 'image', url }))]
+  const detailMedia = [...detailImages.map((url) => ({ type: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
   const selectedDetailMedia = detailMedia[detailImageIndex] || detailMedia[0] || null
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
   const detailExpiry = detail ? getExpiryLabel(detail) : ''
