@@ -1410,7 +1410,8 @@ function App() {
     return () => { cancelled = true }
   }, [detail?.id, detailMapLinks.map((link) => link.url).join('|')])
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
-  const selectedDetailImage = detailImages[detailImageIndex] || detailImages[0] || ''
+  const detailMedia = [...detailImages.map((url) => ({ type: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
+  const selectedDetailMedia = detailMedia[detailImageIndex] || detailMedia[0] || null
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
   const detailExpiry = detail ? getExpiryLabel(detail) : ''
   const detailDistanceKm = detail?.nearbyDistanceKm ?? (userLocation && detail?.coordinates ? distanceKm(userLocation, detail.coordinates) : null)
@@ -1576,52 +1577,57 @@ function App() {
                 </div>
               </div>
 
-              {detailImages.length || detailVideos.length ? (
-                <div className={`ohk-detail-gallery ${detailImages.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
-                  {detailImages.length > 1 ? (
-                    <div className="ohk-detail-thumbnails" aria-label="Offer images">
-                      {detailImages.map((image, index) => (
+              {detailMedia.length ? (
+                <div className={`ohk-detail-gallery ${detailMedia.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
+                  {detailMedia.length > 1 ? (
+                    <div className="ohk-detail-thumbnails" aria-label="Offer photos and videos">
+                      {detailMedia.map((media, index) => (
                         <button
-                          key={image}
+                          key={media.url}
                           type="button"
                           className={index === detailImageIndex ? 'active' : ''}
-                          aria-label={`Show offer image ${index + 1}`}
+                          aria-label={media.type === 'video' ? `Play offer video ${index + 1}` : `Show offer image ${index + 1}`}
                           aria-pressed={index === detailImageIndex}
                           onClick={() => setDetailImageIndex(index)}
                         >
-                          <img src={image} alt={`${detail.title || 'Offer'} image ${index + 1}`} loading="lazy" />
+                          {media.type === 'image' ? (
+                            <img src={media.url} alt={`${detail.title || 'Offer'} image ${index + 1}`} loading="lazy" />
+                          ) : (
+                            <span className="ohk-detail-video-thumbnail" aria-hidden="true"><span>▶</span><small>VIDEO</small></span>
+                          )}
                         </button>
                       ))}
                     </div>
                   ) : null}
                   <div className="ohk-detail-main-image">
-                    {detailImages.length ? (
+                    {selectedDetailMedia?.type === 'image' ? (
                       <img
                         className="ohk-detail-featured-image"
-                        src={selectedDetailImage}
+                        src={selectedDetailMedia.url}
                         alt={detail.title || 'Offer image'}
                         onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
                       />
-                    ) : null}
-                    {detailVideos.map((video, index) => (
-                      <div className="ohk-detail-video" key={video.url}>
-                        {video.type === 'embed' ? (
-                          <iframe
-                            src={video.url}
-                            title={`${detail.title || 'Offer'} video ${index + 1}`}
-                            loading="lazy"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          />
-                        ) : (
-                          <video controls playsInline preload="metadata">
-                            <source src={video.url} />
-                            Your browser does not support embedded video.
-                          </video>
-                        )}
+                    ) : selectedDetailMedia?.type === 'video' ? (
+                      <div className="ohk-detail-video">
+                        {selectedDetailMedia.type === 'video' && selectedDetailMedia.url ? (
+                          selectedDetailMedia.videoType === 'embed' ? (
+                            <iframe
+                              src={selectedDetailMedia.url}
+                              title={`${detail.title || 'Offer'} video`}
+                              loading="lazy"
+                              referrerPolicy="strict-origin-when-cross-origin"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video controls playsInline preload="metadata">
+                              <source src={selectedDetailMedia.url} />
+                              Your browser does not support embedded video.
+                            </video>
+                          )
+                        ) : null}
                       </div>
-                    ))}
+                    ) : null}
                   </div>
                 </div>
               ) : null}
