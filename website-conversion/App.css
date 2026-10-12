@@ -1450,3 +1450,21 @@ input, textarea, select, button { max-width: 100%; }
   border-radius: 6px !important;
   margin: 0 !important;
 }
+
+
+/* Fill small detail-gallery thumbnail boxes; keep a subtle radius */
+.ohk-detail-page .ohk-detail-thumbnails button {
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.ohk-detail-page .ohk-detail-thumbnails button.active {
+  padding: 0 !important;
+}
+.ohk-detail-page .ohk-detail-thumbnails img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center;
+  border-radius: 6px !important;
+}
