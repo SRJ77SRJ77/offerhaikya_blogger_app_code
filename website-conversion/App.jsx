@@ -1756,7 +1756,10 @@ function App() {
                         const dismissItem = (event) => {
                           event?.stopPropagation?.()
                           const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
-                          seen.add(versionKey)
+                          // Once an updated post is dismissed, suppress that post from the bell entirely,
+                          // even if Blogger changes its updated timestamp again later.
+                          if (item.notificationType === 'updated') seen.add(item.id)
+                          else seen.add(versionKey)
                           try { localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])) } catch {}
                           setNotifications((current) => {
                             const next = current.filter((post) => notificationVersionKey(post) !== versionKey)
