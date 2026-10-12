@@ -71,15 +71,14 @@ function extractPostImages(primaryImage = '', html = '') {
 
 function extractPostAddress(html = '') {
   const lines = String(html || '')
-    .replace(/<br\\s*\\/?\\s*>/gi, '\\n')
-    .replace(/<\\/(?:p|div|li|tr|h[1-6])\\s*>/gi, '\\n')
-    .split('\\n')
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<\/(?:p|div|li|tr|h[1-6])\s*>/gi, '\n')
+    .split('\n')
     .map((line) => stripHtml(line).trim())
     .filter(Boolean)
-  const addressLine = lines.find((line) => /^address\\s*[-:：]\\s*/i.test(line))
-  return addressLine ? addressLine.replace(/^address\\s*[-:：]\\s*/i, '').trim() : ''
+  const addressLine = lines.find((line) => /^address\s*[-:：]\s*/i.test(line))
+  return addressLine ? addressLine.replace(/^address\s*[-:：]\s*/i, '').trim() : ''
 }
-
 function extractMapLinks(html = '') {
   const links = []
   const seen = new Set()
