@@ -1432,7 +1432,7 @@ function App() {
               <section className="ohk-detail-description-section" aria-label="Offer details">
               <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
               <div className="ohk-detail-meta ohk-detail-content-actions">
-                <button onClick={() => toggleSave(detail.id)} aria-label="Save offer">{saved[detail.id] ? '♥' : '♡'}</button>
+                <button onClick={() => toggleSave(detail.id)} aria-label={saved[detail.id] ? 'Unsave offer' : 'Save offer'} aria-pressed={Boolean(saved[detail.id])} title={saved[detail.id] ? 'Unsave offer' : 'Save offer'}><svg className="ohk-heart-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" fill={saved[detail.id] ? '#e53935' : 'none'} stroke="#e53935" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
                 <button onClick={() => sharePost(detail)} aria-label="Share offer"><Icon name="share" size={19} /></button>
               </div>
               <div
