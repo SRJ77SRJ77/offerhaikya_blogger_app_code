@@ -1388,42 +1388,20 @@ function App() {
     }
     setResolvedMapCoordinates({})
     shortLinks.forEach(async (link) => {
-      // Google Maps short URLs must be resolved to their real coordinates before
-      // using them in an embedded map. Try more than one CORS-readable redirect
-      // endpoint because any single public proxy can be temporarily unavailable.
-      const proxyUrls = [
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url),
-        'https://api.allorigins.win/get?url=' + encodeURIComponent(link.url),
-        'https://corsproxy.io/?url=' + encodeURIComponent(link.url),
-      ]
-      for (const proxyUrl of proxyUrls) {
-        try {
-          const response = await fetch(proxyUrl)
-          if (!response.ok) continue
-          const body = await response.text()
-          let payload = body
-          try {
-            const parsed = JSON.parse(body)
-            payload = [parsed.contents, parsed.status?.url, parsed.url].filter(Boolean).join(' ')
-          } catch {}
-          const candidates = [payload]
-          // Google often puts the resolved destination in canonical/Open Graph
-          // metadata, so inspect URL attributes as well as the raw page text.
-          const urlMatches = payload.match(/https?:[^"'<> \t\r\n]+/gi) || []
-          candidates.push(...urlMatches.map((value) => value.replace(/\\/g, '/').replace(/&amp;/g, '&').replace(/\u0026/g, '&')))
-          let coordinates = null
-          for (const candidate of candidates) {
-            coordinates = extractCoordinates(candidate)
-            if (coordinates) break
-          }
-          if (!coordinates) continue
-          if (!cancelled) {
-            setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
-          }
-          return
-        } catch {
-          // Try the next resolver.
+      try {
+        // Resolve Google Maps short links through a CORS-readable redirect fetch.
+        // If the final Google Maps HTML exposes coordinates, embed those coordinates
+        // instead of asking Google Maps to search for the short URL as text.
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url)
+        const response = await fetch(proxyUrl)
+        if (!response.ok) return
+        const html = await response.text()
+        const coordinates = extractCoordinates(html)
+        if (!cancelled && coordinates) {
+          setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
         }
+      } catch {
+        // Keep the existing map-link fallback if short-link resolution is unavailable.
       }
     })
     return () => { cancelled = true }
@@ -1710,19 +1688,12 @@ function App() {
                           title={mapLink.label || `Offer map ${index + 1}`}
                           src={(() => {
                             const coordinates = resolvedMapCoordinates[mapLink.url] || detail.coordinates || extractCoordinates(mapLink.url)
-                            if (coordinates) {
-                              return `https://www.google.com/maps?q=${coordinates.latitude},${coordinates.longitude}&output=embed`
-                            }
-                            const address = detailAddress || detail.bloggerLocation
-                            // Use an address query when Blogger provides one. If the post only has
-                            // a Google Maps short link, load that link directly instead of searching
-                            // Google Maps for the short URL as text (which produces a blank/wrong map).
-                            if (address) {
-                              return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
-                            }
-                            // If the resolver is unavailable, open the Blogger-provided Maps
-                            // link directly instead of searching for the URL as text.
-                            return mapLink.url
+                            // If a Google Maps short link cannot be resolved, embed the Blogger address
+                            // rather than searching Google Maps for the short URL text.
+                            const query = coordinates
+                              ? `${coordinates.latitude},${coordinates.longitude}`
+                              : detailAddress || detail.bloggerLocation || mapLink.url
+                            return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
                           })()}
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
