@@ -693,6 +693,9 @@ function App() {
         const previousVersions = JSON.parse(localStorage.getItem('offerhaikya_known_post_versions') || 'null')
         const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
         const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
+        // A post already present in the notification box must not generate another
+        // UPDATED POSTS entry when its timestamp changes again.
+        const alreadyNotifiedIds = new Set(existingNotifications.map((post) => String(post.id)))
         const knownIds = new Set(Array.isArray(previousKnown) ? previousKnown : [])
         const knownVersions = previousVersions && typeof previousVersions === 'object' && !Array.isArray(previousVersions)
           ? previousVersions
@@ -716,7 +719,9 @@ function App() {
                 return Boolean(priorVersion) &&
                   String(priorVersion) !== String(post.updatedAt || post.publishedAt || '') &&
                   isUpdatedBloggerPost(post) &&
-                  !seen.has(notificationVersionKey(post))
+                  !alreadyNotifiedIds.has(String(post.id)) &&
+                  !seen.has(notificationVersionKey(post)) &&
+                  !seen.has(post.id)
               })
               .map((post) => ({ ...post, notificationType: 'updated' }))
           }
