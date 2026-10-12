@@ -83,20 +83,30 @@ function extractMapLinks(html = '') {
   const links = []
   const seen = new Set()
   const source = String(html || '')
+  const addMap = (value, label = 'View map') => {
+    const url = String(value || '').replace(/&amp;/g, '&').replace(/[),.;]+$/, '').trim()
+    if (!/^https?:\/\//i.test(url)) return
+    if (!/(google\.[^/]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|openstreetmap\.org)/i.test(url)) return
+    if (seen.has(url)) return
+    seen.add(url)
+    links.push({ url, label: label || 'View map' })
+  }
+
   const anchorPattern = /<a\b[^>]*href\s*=\s*(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi
   let match
   while ((match = anchorPattern.exec(source))) {
-    const href = match[2].replace(/&amp;/g, '&').trim()
-    if (!/^https?:\/\//i.test(href)) continue
-    if (!/(google\.[^/]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|openstreetmap\.org)/i.test(href)) continue
-    if (!seen.has(href)) {
-      seen.add(href)
-      links.push({ url: href, label: stripHtml(match[3]).trim() || 'View map' })
-    }
+    addMap(match[2], stripHtml(match[3]).trim() || 'View map')
+  }
+
+  // Also support Blogger text such as: Location - https://maps.app.goo.gl/...
+  const plainUrlPattern = /https?:\/\/[^\s<>"']+/gi
+  while ((match = plainUrlPattern.exec(source))) {
+    const beforeUrl = stripHtml(source.slice(Math.max(0, source.lastIndexOf('\n', match.index) + 1), match.index)).trim()
+    const label = /^location\s*[-:：]\s*$/i.test(beforeUrl) ? 'Location' : 'View map'
+    addMap(match[0], label)
   }
   return links
 }
-
 function extractCoordinates(html = '') {
   const patterns = [
     /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
