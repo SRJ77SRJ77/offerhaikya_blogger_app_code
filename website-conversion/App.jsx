@@ -266,11 +266,17 @@ function limitNotificationSections(items) {
   // localStorage data contains multiple versions or duplicate feed entries.
   const uniqueByPost = new Map()
   items.forEach((item) => {
+    // Blogger normally supplies a stable ID, but old/cached entries can differ.
+    // Use canonical post URL, then normalized title, to catch the same post
+    // stored under different IDs as well.
     const postId = String(item?.id || '')
-    if (!postId) return
-    const current = uniqueByPost.get(postId)
+    const identity = String(item?.url || '').split('?')[0].replace(/\/$/, '').toLowerCase()
+      || String(item?.title || '').replace(/\s+/g, ' ').trim().toLowerCase()
+      || postId
+    if (!identity) return
+    const current = uniqueByPost.get(identity)
     if (!current) {
-      uniqueByPost.set(postId, item)
+      uniqueByPost.set(identity, item)
       return
     }
     // Prefer an UPDATED notification over a NEW notification for the same post.
@@ -656,7 +662,14 @@ function App() {
   const [locationLoading, setLocationLoading] = useState(false)
   const [locationMessage, setLocationMessage] = useState('')
   const [activeTab, setActiveTab] = useState('home')
-  const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]'))
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
+      return Array.isArray(saved) ? limitNotificationSections(saved) : []
+    } catch {
+      return []
+    }
+  })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
