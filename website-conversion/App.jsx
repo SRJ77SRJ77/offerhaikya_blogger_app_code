@@ -714,6 +714,7 @@ function App() {
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
+  const [resolvedMapCoordinates, setResolvedMapCoordinates] = useState({})
   useEffect(() => { detailRef.current = detail }, [detail])
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
@@ -1326,6 +1327,33 @@ function App() {
 
   const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
   const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
+  useEffect(() => {
+    let cancelled = false
+    const shortLinks = detailMapLinks.filter((link) => /maps\\.app\\.goo\\.gl|goo\\.gl\\/maps/i.test(link.url))
+    if (!shortLinks.length) {
+      setResolvedMapCoordinates({})
+      return () => { cancelled = true }
+    }
+    setResolvedMapCoordinates({})
+    shortLinks.forEach(async (link) => {
+      try {
+        // Resolve Google Maps short links through a CORS-readable redirect fetch.
+        // If the final Google Maps HTML exposes coordinates, embed those coordinates
+        // instead of asking Google Maps to search for the short URL as text.
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url)
+        const response = await fetch(proxyUrl)
+        if (!response.ok) return
+        const html = await response.text()
+        const coordinates = extractCoordinates(html)
+        if (!cancelled && coordinates) {
+          setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
+        }
+      } catch {
+        // Keep the existing map-link fallback if short-link resolution is unavailable.
+      }
+    })
+    return () => { cancelled = true }
+  }, [detail?.id, detailMapLinks.map((link) => link.url).join('|')])
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
   const selectedDetailImage = detailImages[detailImageIndex] || detailImages[0] || ''
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
@@ -1574,7 +1602,13 @@ function App() {
                         <h3>{detailMapLinks.length > 1 ? `Map ${index + 1}` : 'Offer map'}</h3>
                         <iframe
                           title={mapLink.label || `Offer map ${index + 1}`}
-                          src={`https://www.google.com/maps?q=${encodeURIComponent(mapLink.url)}&output=embed`}
+                          src={(() => {
+                            const coordinates = resolvedMapCoordinates[mapLink.url] || detail.coordinates || extractCoordinates(mapLink.url)
+                            const query = coordinates
+                              ? `${coordinates.latitude},${coordinates.longitude}`
+                              : mapLink.url
+                            return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+                          })()}
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
                           allowFullScreen
