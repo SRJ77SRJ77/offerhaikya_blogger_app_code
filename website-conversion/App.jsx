@@ -621,9 +621,12 @@ function App() {
       inFlight = true
       const sourceUrl = BLOG_URL + '/?ohk-menu-sync=' + Date.now()
       const requests = [
+        // Public CORS proxies can rate-limit or temporarily fail, so try independent fallbacks.
         () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
         () => fetch('https://corsproxy.io/?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
-        () => fetch('https://r.jina.ai/http://www.offerhaikya.com/', { cache: 'no-store' }),
+        () => fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
+        // Read the original Blogger site, where the Link List gadgets are managed.
+        () => fetch('https://r.jina.ai/http://offerhaikya.blogspot.com/', { cache: 'no-store' }),
       ]
       try {
         let lastError = null
