@@ -1721,9 +1721,9 @@ function App() {
                               return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
                             }
                             // When the short-link redirect cannot be resolved, keep the
-                            // map visible by embedding a Google Maps search for the supplied link.
-                            return `https://www.google.com/maps?q=${encodeURIComponent(mapLink.url)}&output=embed`
-                          })()}
+                            // If the resolver is unavailable, open the Blogger-provided Maps
+                            // link directly instead of searching for the URL as text.
+                            return mapLink.url
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
                           allowFullScreen
