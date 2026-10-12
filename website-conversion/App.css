@@ -1236,11 +1236,8 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-detail-status-distance{background:#172e49;color:#a7d0ff}
 .ohk-detail-gallery{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:start;width:100%;max-width:900px;margin:12px auto 24px}
 .ohk-detail-gallery.single-image{grid-template-columns:minmax(0,1fr)}
-.ohk-detail-thumbnails{display:flex;flex-direction:column;gap:9px;max-height:560px;overflow-y:auto;overflow-x:hidden;padding:3px 5px 3px 2px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,91,1,.42) transparent}
-.ohk-detail-thumbnails::-webkit-scrollbar{width:5px}
-.ohk-detail-thumbnails::-webkit-scrollbar-track{background:transparent}
-.ohk-detail-thumbnails::-webkit-scrollbar-thumb{background:rgba(255,91,1,.42);border-radius:99px}
-.ohk-detail-thumbnails::-webkit-scrollbar-thumb:hover{background:rgba(255,91,1,.62)}
+.ohk-detail-thumbnails{display:flex;flex-direction:column;gap:9px;max-height:560px;overflow-y:auto;overflow-x:hidden;padding:3px 5px 3px 2px;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none}
+.ohk-detail-thumbnails::-webkit-scrollbar{display:none;width:0;height:0}
 .ohk-detail-thumbnails button{display:block;flex:0 0 auto;width:78px;height:78px;padding:3px;border:1px solid #dedede;border-radius:9px;background:#fff;overflow:hidden;transition:border-color .18s ease,box-shadow .18s ease}
 .ohk-detail-thumbnails button:hover{border-color:#ff5b01}
 .ohk-detail-thumbnails button:focus-visible{outline:2px solid #ff5b01;outline-offset:2px}
