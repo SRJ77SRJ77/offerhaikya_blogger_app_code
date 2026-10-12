@@ -2891,14 +2891,12 @@ export default function App() {
       await loadNotificationDismissals(user);
       let bellSourcePosts = posts;
       let updatedSourcePosts = posts;
-      try {
-        [bellSourcePosts, updatedSourcePosts] = await Promise.all([
-          fetchLatestBellPosts(),
-          fetchLatestBellPosts(true),
-        ]);
-      } catch {
-        // Use already-loaded posts if the bell's dedicated refresh is unavailable.
-      }
+      const feedResults = await Promise.allSettled([
+        fetchLatestBellPosts(),
+        fetchLatestBellPosts(true),
+      ]);
+      if (feedResults[0].status === 'fulfilled') bellSourcePosts = feedResults[0].value;
+      if (feedResults[1].status === 'fulfilled') updatedSourcePosts = feedResults[1].value;
       const latest = getLatestBellNotifications(bellSourcePosts, updatedSourcePosts);
 
       if (user && !user.isAnonymous) {
@@ -3113,10 +3111,12 @@ export default function App() {
     let cancelled = false;
     const syncLatestNotifications = async () => {
       try {
-        const [latest, recentlyUpdated] = await Promise.all([
+        const feedResults = await Promise.allSettled([
           fetchLatestBellPosts(),
           fetchLatestBellPosts(true),
         ]);
+        const latest = feedResults[0].status === 'fulfilled' ? feedResults[0].value : posts;
+        const recentlyUpdated = feedResults[1].status === 'fulfilled' ? feedResults[1].value : latest;
         if (!cancelled) {
           setNotifications(current => {
             const latestNotifications = getLatestBellNotifications(latest, recentlyUpdated);
