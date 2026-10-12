@@ -1432,3 +1432,21 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-detail-gallery {
   margin-bottom: 20px !important;
 }
+
+
+/* Keep the main detail image fitted to its full box with softly rounded corners */
+.ohk-detail-page .ohk-detail-main-image {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.ohk-detail-page .ohk-detail-main-image .ohk-detail-featured-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center;
+  border-radius: 6px !important;
+  margin: 0 !important;
+}
