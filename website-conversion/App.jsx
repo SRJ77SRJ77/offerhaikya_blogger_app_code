@@ -330,7 +330,7 @@ function isOfflinePost(post) {
 function getOfferPercent(post) {
   const labels = Array.isArray(post?.labels) ? post.labels : []
   for (const label of labels) {
-    const match = String(label).match(/\b(\d{1,3})\s*%\s*(?:off)?\b/i)
+    const match = String(label).match(/(?:^|\D)(\d{1,3})\s*%(?:\s*off)?/i)
     if (match) {
       const percent = Number(match[1])
       if (percent > 0 && percent <= 100) return percent
