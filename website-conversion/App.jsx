@@ -62,7 +62,7 @@ function extractCoordinates(html = '') {
 function offerSlugFromTitle(title = '') {
   // Use only the title prefix before the first colon for clean offer URLs.
   const prefix = String(title || '').split(':', 1)[0]
-  return prefix.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  return prefix.toLowerCase().replace(/₹/g, '').replace(/(\d),(?=\d)/g, '$1').trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
 function legacyOfferSlugFromTitle(title = '') {
@@ -96,7 +96,7 @@ function setPageMetadata(post = null) {
   const url = post?.title
     ? window.location.origin + '/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))
     : window.location.origin + '/'
-  const image = post?.image || LOGO_URL
+  const image = new URL(post?.image || LOGO_URL, window.location.origin).href
   document.title = title
   ensureMeta('meta[name="description"]', 'name', 'description', description)
   ensureMeta('meta[property="og:type"]', 'property', 'og:type', post ? 'article' : 'website')
@@ -108,7 +108,33 @@ function setPageMetadata(post = null) {
   ensureMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title)
   ensureMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description)
   ensureMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image)
+  ensureMeta('meta[name="robots"]', 'name', 'robots', 'index,follow')
   ensureCanonical(url)
+
+  let structuredData = document.head.querySelector('script[data-offerhaikya-structured-data]')
+  if (!structuredData) {
+    structuredData = document.createElement('script')
+    structuredData.type = 'application/ld+json'
+    structuredData.setAttribute('data-offerhaikya-structured-data', 'true')
+    document.head.appendChild(structuredData)
+  }
+  const schema = post ? {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description,
+    image: [image],
+    datePublished: post.publishedAt || undefined,
+    dateModified: post.updatedAt || post.publishedAt || undefined,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    publisher: { '@type': 'Organization', name: 'Offerhaikya', url: window.location.origin }
+  } : {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Offerhaikya',
+    url: window.location.origin + '/'
+  }
+  structuredData.textContent = JSON.stringify(schema)
 }
 
 function addTitleAltToImages(html = '', title = 'Offerhaikya offer') {
