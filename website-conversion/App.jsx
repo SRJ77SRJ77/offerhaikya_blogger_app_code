@@ -135,10 +135,7 @@ function setPageMetadata(post = null) {
   ensureMeta('meta[property="og:description"]', 'property', 'og:description', description)
   ensureMeta('meta[property="og:image"]', 'property', 'og:image', image)
   ensureMeta('meta[property="og:url"]', 'property', 'og:url', url)
-  ensureMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image')
-  ensureMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title)
-  ensureMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description)
-  ensureMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image)
+  document.head.querySelectorAll('meta[name^="twitter:"]').forEach((element) => element.remove())
   ensureMeta('meta[name="robots"]', 'name', 'robots', 'index,follow')
   ensureCanonical(url)
 
@@ -330,6 +327,18 @@ function isOfflinePost(post) {
   return labels.some((label) => /^(offline offer|offline offers|local offer|local offers|nearby offer|nearby offers)$/.test(label))
 }
 
+function getOfferPercent(post) {
+  const labels = Array.isArray(post?.labels) ? post.labels : []
+  for (const label of labels) {
+    const match = String(label).match(/\b(\d{1,3})\s*%\s*(?:off)?\b/i)
+    if (match) {
+      const percent = Number(match[1])
+      if (percent > 0 && percent <= 100) return percent
+    }
+  }
+  return null
+}
+
 function getExpiryLabel(post) {
   const labels = (post.labels || []).map((label) => label.trim().toLowerCase())
   // An explicit Blogger "Expired" label always shows the Expired badge.
@@ -456,6 +465,7 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
+  const offerPercent = getOfferPercent(post)
 
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''}`}>
@@ -514,7 +524,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
           <h2>{post.title}</h2>
           <div className="ohk-card-date">{post.date}</div>
           <p>{post.excerpt}</p>
-          <span className="ohk-read-more">Read more ›</span>
+          <div className="ohk-card-footer"><span className="ohk-read-more">Read more ›</span>{offerPercent !== null ? <span className="ohk-card-offer-percent">Upto {offerPercent}% Off</span> : null}</div>
         </div>
       </button>
     </article>
