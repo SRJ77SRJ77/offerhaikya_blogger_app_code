@@ -262,20 +262,38 @@ function isUpdatedBloggerPost(post) {
 }
 
 function limitNotificationSections(items) {
-  const unique = new Map()
+  // Keep exactly one visible notification per Blogger post, even if older
+  // localStorage data contains multiple versions or duplicate feed entries.
+  const uniqueByPost = new Map()
   items.forEach((item) => {
-    const key = notificationVersionKey(item)
-    if (!unique.has(key)) unique.set(key, item)
+    const postId = String(item?.id || '')
+    if (!postId) return
+    const current = uniqueByPost.get(postId)
+    if (!current) {
+      uniqueByPost.set(postId, item)
+      return
+    }
+    // Prefer an UPDATED notification over a NEW notification for the same post.
+    if (item.notificationType === 'updated' && current.notificationType !== 'updated') {
+      uniqueByPost.set(postId, item)
+      return
+    }
+    // If both entries have the same type, keep the most recent version.
+    const itemTime = Date.parse(item.updatedAt || item.publishedAt || '') || 0
+    const currentTime = Date.parse(current.updatedAt || current.publishedAt || '') || 0
+    if (item.notificationType === current.notificationType && itemTime > currentTime) {
+      uniqueByPost.set(postId, item)
+    }
   })
-  const values = [...unique.values()]
-  const updatedIds = new Set(values.filter((item) => item.notificationType === 'updated').map((item) => item.id))
+  const values = [...uniqueByPost.values()]
   const newest = values
-    .filter((item) => item.notificationType !== 'updated' && !updatedIds.has(item.id))
+    .filter((item) => item.notificationType !== 'updated')
     .sort((a, b) => (Date.parse(b.publishedAt || '') || 0) - (Date.parse(a.publishedAt || '') || 0))
     .slice(0, 10)
   const updated = values
     .filter((item) => item.notificationType === 'updated')
-    .sort((a, b) => (Date.parse(b.updatedAt || '') || 0) - (Date.parse(a.updatedAt || '') || 0))
+    .sort((a, b) => (Date.parse(b.updatedAt || '') || 0) - (Date.parse(a.updatedAt || '') || 0)
+    )
     .slice(0, 10)
   return [...newest, ...updated]
 }
