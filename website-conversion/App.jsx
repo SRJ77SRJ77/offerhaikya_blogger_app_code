@@ -1446,8 +1446,11 @@ function App() {
                 dangerouslySetInnerHTML={{
                   __html: addTitleAltToImages((detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>')
                     .replace(/<img\b[^>]*>/gi, '')
-                    // Remove empty Blogger spacer paragraphs/containers left behind after gallery images are extracted.
-                    .replace(/<(p|div|span)\b[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<span\b[^>]*>\s*<\/span>)*<\/\1>/gi, '')
+                    // Removing gallery images can leave image-only Blogger links and nested layout
+                    // wrappers behind. Strip those empty wrappers before rendering the description.
+                    .replace(/<a\b[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<span\b[^>]*>\s*<\/span>)*<\/a>/gi, '')
+                    .replace(/<(p|div|span|figure|section)\b[^>]*>(?:\s|&nbsp;|&#160;|&#xA0;|<br\s*\/?\s*>|<a\b[^>]*>\s*<\/a>|<span\b[^>]*>\s*<\/span>)*<\/\1>/gi, '')
+                    .replace(/<(p|div|span|figure|section)\b[^>]*>(\s|&nbsp;|&#160;|&#xA0;|<br\s*\/?\s*>)*<\/\1>/gi, '')
                     .replace(/^(?:(?:\s|&nbsp;|&#160;|&#xA0;)|<br\b[^>]*\s*\/?>|<(p|div|span)\b[^>]*>(?:(?!<\/(?:p|div|span)\s*>)[\s\S]){0,1200}<\/\1>)+/gi, (block) => {
                       // Only discard leading wrappers that contain no visible text, not real article content.
                       const visible = block.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;|&#xA0;|\s/gi, '')
