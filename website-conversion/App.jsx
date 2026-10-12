@@ -1409,8 +1409,8 @@ function App() {
           const candidates = [payload]
           // Google often puts the resolved destination in canonical/Open Graph
           // metadata, so inspect URL attributes as well as the raw page text.
-          const urlMatches = payload.match(/https?:\\?\\?\/\\?\\?\/[^\\s"'<>]+/gi) || []
-          candidates.push(...urlMatches.map((value) => value.replace(/\\\\u0026/g, '&').replace(/\\\\\\//g, '/')))
+          const urlMatches = payload.match(/https?:[^"'<>\\s]+/gi) || []
+          candidates.push(...urlMatches.map((value) => value.replace(/\\\\/g, '/').replace(/&amp;/g, '&').replace(/\\u0026/g, '&')))
           let coordinates = null
           for (const candidate of candidates) {
             coordinates = extractCoordinates(candidate)
