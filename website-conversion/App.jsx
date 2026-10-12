@@ -1329,7 +1329,7 @@ function App() {
   const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
   useEffect(() => {
     let cancelled = false
-    const shortLinks = detailMapLinks.filter((link) => /maps\\.app\\.goo\\.gl|goo\\.gl\\/maps/i.test(link.url))
+    const shortLinks = detailMapLinks.filter((link) => /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(link.url))
     if (!shortLinks.length) {
       setResolvedMapCoordinates({})
       return () => { cancelled = true }
