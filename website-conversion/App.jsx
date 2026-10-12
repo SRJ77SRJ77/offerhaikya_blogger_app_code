@@ -1431,9 +1431,6 @@ function App() {
 
               <section className="ohk-detail-description-section" aria-label="Offer details">
               <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
-              {detail.searchDescription || detail.excerpt ? (
-                <p className="ohk-detail-description">{detail.searchDescription || detail.excerpt}</p>
-              ) : null}
               <div className="ohk-detail-meta ohk-detail-content-actions">
                 <button onClick={() => toggleSave(detail.id)} aria-label="Save offer">{saved[detail.id] ? '♥' : '♡'}</button>
                 <button onClick={() => sharePost(detail)} aria-label="Share offer"><Icon name="share" size={19} /></button>
@@ -1441,7 +1438,7 @@ function App() {
               <div
                 className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
-                  __html: addTitleAltToImages((detail.rawContent || '<p>' + detail.excerpt + '</p>')
+                  __html: addTitleAltToImages((detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>')
                     .replace(/<img\b[^>]*>/gi, '')
                     // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
                     .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
