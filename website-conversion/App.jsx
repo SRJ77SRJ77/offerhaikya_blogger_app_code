@@ -1434,9 +1434,10 @@ function App() {
               ) : null}
 
               <section className="ohk-detail-description-section" aria-label="Offer details">
-              <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
-              <div
-                className="ohk-detail-html"
+                <div className="ohk-detail-description-content">
+                  <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
+                  <div
+                    className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
                   __html: addTitleAltToImages((detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>')
                     .replace(/<img\b[^>]*>/gi, '')
@@ -1454,8 +1455,9 @@ function App() {
                     // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
                     .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
                     .replace(/<\/h1\s*>/gi, '</h2>'), detail.title)
-                }}
-              />
+                  }}
+                  />
+                </div>
               </section>
 
               <section className="ohk-detail-location" aria-label="Offer location">
