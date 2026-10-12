@@ -1692,9 +1692,11 @@ function App() {
                           title={mapLink.label || `Offer map ${index + 1}`}
                           src={(() => {
                             const coordinates = resolvedMapCoordinates[mapLink.url] || detail.coordinates || extractCoordinates(mapLink.url)
+                            // If a Google Maps short link cannot be resolved, embed the Blogger address
+                            // rather than searching Google Maps for the short URL text.
                             const query = coordinates
                               ? `${coordinates.latitude},${coordinates.longitude}`
-                              : mapLink.url
+                              : detailAddress || detail.bloggerLocation || mapLink.url
                             return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
                           })()}
                           loading="lazy"
