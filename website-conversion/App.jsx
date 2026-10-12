@@ -1680,16 +1680,15 @@ function App() {
                     <Icon name="location" size={16} /> Click to View on Google Maps
                   </a>
                 ) : null}
-                {detailMapLinks.length ? (
+                {(detailMapLinks.length || detail.coordinates || detailAddress || detail.bloggerLocation) ? (
                   <div className="ohk-detail-maps">
-                    {detailMapLinks.map((mapLink, index) => (
-                      <div className="ohk-detail-map-item" key={mapLink.url}>
+                    {(detailMapLinks.length ? detailMapLinks : [{ url: '', label: 'Offer location' }]).map((mapLink, index) => (
+                      <div className="ohk-detail-map-item" key={mapLink.url || 'offer-location-map'}>
                         <iframe
                           title={mapLink.label || `Offer map ${index + 1}`}
                           src={(() => {
-                            const coordinates = resolvedMapCoordinates[mapLink.url] || detail.coordinates || extractCoordinates(mapLink.url)
-                            // If a Google Maps short link cannot be resolved, embed the Blogger address
-                            // rather than searching Google Maps for the short URL text.
+                            const coordinates = (mapLink.url && resolvedMapCoordinates[mapLink.url]) || detail.coordinates || (mapLink.url ? extractCoordinates(mapLink.url) : null)
+                            // Prefer Blogger coordinates, then the address. Never search using a short URL as text.
                             const query = coordinates
                               ? `${coordinates.latitude},${coordinates.longitude}`
                               : detailAddress || detail.bloggerLocation || mapLink.url
