@@ -1401,3 +1401,27 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h3{font-size:1.2rem !important}
   .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h4{font-size:1.0625rem !important}
 }
+
+/* Detail-page correction: let Blogger article text use the full available content width. */
+.ohk-detail-page .ohk-detail-page-inner,
+.ohk-detail-page .ohk-detail-description-section,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.ohk-detail-page .ohk-detail-gallery {
+  width: 100%;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html {
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  overflow-wrap: anywhere;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html p,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html li {
+  max-width: none !important;
+}
