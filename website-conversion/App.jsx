@@ -1412,20 +1412,22 @@ function App() {
                 </div>
               ) : null}
 
-              <div className="ohk-detail-tags" aria-label="Tags for this offer">
-                {detailPublicTags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      setDetailTagFilter(tag)
-                      document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+              {detailPublicTags.length > 0 ? (
+                <div className="ohk-detail-tags" aria-label="Tags for this offer">
+                  {detailPublicTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        setDetailTagFilter(tag)
+                        document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
 
               <section className="ohk-detail-description-section" aria-label="Offer details">
               <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
