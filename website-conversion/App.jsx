@@ -1442,7 +1442,8 @@ function App() {
                     .replace(/<img\b[^>]*>/gi, '')
                     // Remove empty Blogger spacer paragraphs/containers left behind after gallery images are extracted.
                     .replace(/<(p|div|span)\b[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<span\b[^>]*>\s*<\/span>)*<\/\1>/gi, '')
-                    .replace(/(?:<br\s*\/?\s*>\s*){3,}/gi, '<br /><br />')
+                    .replace(/^(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<p\b[^>]*>\s*<\/p>|<div\b[^>]*>\s*<\/div>)+/gi, '')
+                    .replace(/(?:<br\s*\/?\s*>\s*){2,}/gi, '<br />')
                     // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
                     .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
                     .replace(/<\/h1\s*>/gi, '</h2>'), detail.title)
