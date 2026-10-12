@@ -1426,7 +1426,7 @@ input, textarea, select, button { max-width: 100%; }
   max-width: none !important;
 }
 
-/* Small gap between offer banners and tags */
+/* A little more space between offer banners and tags */
 .ohk-detail-page .ohk-detail-gallery {
-  margin-bottom: 12px !important;
+  margin-bottom: 20px !important;
 }
