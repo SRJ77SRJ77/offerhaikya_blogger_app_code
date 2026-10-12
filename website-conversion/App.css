@@ -1486,3 +1486,22 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-detail-description-section .ohk-detail-html > div:first-child {
   padding-top: 0 !important;
 }
+
+
+/* Final targeted fix: remove all top spacing before the first Blogger content element */
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html {
+  display: flow-root;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > :first-child {
+  margin-block-start: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > p:first-child,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > div:first-child,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html > section:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html p:empty,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html div:empty {
+  display: none !important;
+}
