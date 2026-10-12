@@ -31,11 +31,17 @@ function stripHtml(value = '') {
     .trim()
 }
 
-function highResImage(url = '') {
+function sizedImage(url = '', size = 800) {
+  if (!url) return ''
+  const target = '/s' + size + '/'
   return url
-    .replace(/\/s\d+(-c)?\//i, '/s800/')
-    .replace(/=w\d+(-h\d+)?(-p)?/i, '=s800')
-    .replace(/\/w\d+(-h\d+)?\//i, '/s800/')
+    .replace(/\/s\d+(-c)?\//i, target)
+    .replace(/=w\d+(-h\d+)?(-p)?/i, '=s' + size)
+    .replace(/\/w\d+(-h\d+)?\//i, target)
+}
+
+function highResImage(url = '') {
+  return sizedImage(url, 800)
 }
 
 function firstImage(html = '') {
@@ -393,7 +399,7 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
   )
 }
 
-function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby }) {
+function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
 
   return (
@@ -436,7 +442,14 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
       <button className="ohk-card-click" onClick={() => onOpen(post)}>
         {post.image ? (
-          <img src={post.image} alt={post.title || 'Offer image'} className="ohk-card-image" />
+          <img
+            src={sizedImage(post.image, 480)}
+            alt={post.title || 'Offer image'}
+            className="ohk-card-image"
+            loading={imagePriority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={imagePriority ? 'high' : 'auto'}
+          />
         ) : (
           <div className="ohk-card-image ohk-image-fallback">Offerhaikya</div>
         )}
@@ -1080,6 +1093,7 @@ function App() {
           key={prefix + '-post-' + post.id}
           post={post}
           {...cardProps}
+          imagePriority={index === 0 && (prefix === 'main-feed' || prefix === 'nearby')}
           saved={Boolean(cardProps.saved?.[post.id])}
         />
       )
@@ -1310,7 +1324,7 @@ function App() {
                 <div className="ohk-search-suggestions">
                   {searchSuggestions.length ? searchSuggestions.map((post) => (
                     <button type="button" className="ohk-search-suggestion" key={post.id} onClick={() => openPost(post)}>
-                      {post.image ? <img src={post.image} alt={post.title || 'Offer image'} /> : <span className="ohk-search-suggestion-image">Offer</span>}
+                      {post.image ? <img src={sizedImage(post.image, 160)} alt={post.title || 'Offer image'} loading="lazy" decoding="async" /> : <span className="ohk-search-suggestion-image">Offer</span>}
                       <span className="ohk-search-suggestion-copy"><strong>{post.title}</strong><small>{post.excerpt || stripHtml(post.rawContent || '').slice(0, 180)}</small></span>
                     </button>
                   )) : <div className="ohk-search-no-results">No matching offers</div>}
