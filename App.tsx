@@ -2750,9 +2750,7 @@ export default function App() {
     // version key and may appear in the bell again.
     const versionKey = notificationVersionKey(post);
     return dismissedNotificationIdsRef.current.has(versionKey) ||
-      dismissedNotificationIdsRef.current.has(String(post.id)) ||
-      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, versionKey) ||
-      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, String(post.id));
+      Object.prototype.hasOwnProperty.call(guestDismissedNotificationRef.current, versionKey);
   };
 
   const notificationPostFromData = (data: any): Post | null => {
@@ -2823,50 +2821,85 @@ export default function App() {
     return dismissed;
   };
 
-  const fetchLatestBellPosts = async (): Promise<Post[]> => {
+  const fetchLatestBellPosts = async (updatedOrder = false): Promise<Post[]> => {
     const response = await fetch(
-      FEED_URL + '?alt=json&max-results=50&ohk_notification_refresh=' + Date.now(),
+      FEED_URL + '?alt=json&max-results=50' +
+        (updatedOrder ? '&orderby=updated' : '') +
+        '&ohk_notification_refresh=' + Date.now(),
       { headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', Pragma: 'no-cache' } },
     );
     if (!response.ok) throw new Error('Unable to refresh notification feed');
     return parseFeed(await response.json());
   };
 
-  const getLatestBellNotifications = (sourcePosts: Post[]) => {
-    // Filter dismissed versions before taking the 10-item window so older,
-    // still-visible posts can fill the bell back up to 10 items.
-    const latestTen = sourcePosts.filter(post => !isNotificationDismissed(post)).slice(0, 10);
-    return latestTen
-      .map(post => {
-        const versionKey = notificationVersionKey(post);
-        const hasOlderDismissal =
-          Object.keys(guestDismissedNotificationRef.current).some(key =>
-            key.startsWith(String(post.id) + '::') && key !== versionKey,
-          ) ||
-          Array.from(dismissedNotificationIdsRef.current).some(key =>
-            key.startsWith(String(post.id) + '::') && key !== versionKey,
-          );
-        const receivedUpdate = notifications.some(item =>
-          item.id === post.id &&
-          notificationVersionKey(item) === versionKey &&
-          item.notificationType === 'updated',
-        );
-        return hasOlderDismissal || receivedUpdate
-          ? { ...post, notificationType: 'updated' as const }
-          : post;
-      });
+  const isBloggerPostUpdated = (post: Post) => {
+    const publishedTime = Date.parse(String(post.publishedAt || post.date || ''));
+    const updatedTime = Date.parse(String(post.updatedAt || ''));
+    // Blogger can give a new post slightly different publish/update timestamps.
+    // Treat it as an edit only when the update is at least one minute later.
+    return Number.isFinite(publishedTime) && Number.isFinite(updatedTime) &&
+      updatedTime > publishedTime + 60_000;
+  };
+
+  const notificationSortTime = (post: Post) =>
+    Date.parse(String(post.updatedAt || post.publishedAt || post.date || '')) || 0;
+
+  const limitBellSections = (items: Post[]) => {
+    const unique = new Map<string, Post>();
+    items.forEach(item => {
+      const key = notificationVersionKey(item);
+      if (!unique.has(key)) unique.set(key, item);
+    });
+    const values = Array.from(unique.values());
+    const newPosts = values
+      .filter(item => item.notificationType !== 'updated')
+      .sort((a, b) => notificationSortTime(b) - notificationSortTime(a))
+      .slice(0, 10);
+    const updatedPosts = values
+      .filter(item => item.notificationType === 'updated')
+      .sort((a, b) => notificationSortTime(b) - notificationSortTime(a))
+      .slice(0, 10);
+    return [...newPosts, ...updatedPosts];
+  };
+
+  const getLatestBellNotifications = (
+    sourcePosts: Post[],
+    updatedSourcePosts: Post[] = sourcePosts,
+  ) => {
+    // Keep 10 newest published posts, plus a separate window of 10 recently
+    // updated posts. A dismissed version is suppressed, but a later edit has
+    // a different version key and can appear again.
+    const newPosts = sourcePosts
+      .filter(post => !isBloggerPostUpdated(post) && !isNotificationDismissed(post))
+      .sort((a, b) => (Date.parse(b.publishedAt || b.date || '') || 0) -
+        (Date.parse(a.publishedAt || a.date || '') || 0))
+      .slice(0, 10)
+      .map(post => ({ ...post, notificationType: 'new' as const }));
+
+    const updatedPosts = updatedSourcePosts
+      .filter(post => isBloggerPostUpdated(post) && !isNotificationDismissed(post))
+      .sort((a, b) => notificationSortTime(b) - notificationSortTime(a))
+      .slice(0, 10)
+      .map(post => ({ ...post, notificationType: 'updated' as const }));
+
+    const newIds = new Set(newPosts.map(post => post.id));
+    return limitBellSections([...newPosts, ...updatedPosts.filter(post => !newIds.has(post.id))]);
   };
 
   const loadNotificationsForUser = async (user: any) => {
     try {
       await loadNotificationDismissals(user);
       let bellSourcePosts = posts;
+      let updatedSourcePosts = posts;
       try {
-        bellSourcePosts = await fetchLatestBellPosts();
+        [bellSourcePosts, updatedSourcePosts] = await Promise.all([
+          fetchLatestBellPosts(),
+          fetchLatestBellPosts(true),
+        ]);
       } catch {
         // Use already-loaded posts if the bell's dedicated refresh is unavailable.
       }
-      const latest = getLatestBellNotifications(bellSourcePosts);
+      const latest = getLatestBellNotifications(bellSourcePosts, updatedSourcePosts);
 
       if (user && !user.isAnonymous) {
         const stored = await AsyncStorage.getItem(getNotificationsStorageKey(user.uid));
@@ -2912,9 +2945,7 @@ export default function App() {
         [...retainedStored, ...relevant].forEach(item => {
           if (!mergedById.has(item.id) && !isNotificationDismissed(item)) mergedById.set(item.id, item);
         });
-        const merged = Array.from(mergedById.values())
-          .sort((a, b) => (b.notificationTimestamp || Date.parse(b.updatedAt || b.publishedAt || '') || 0) - (a.notificationTimestamp || Date.parse(a.updatedAt || a.publishedAt || '') || 0))
-          .slice(0, 10);
+        const merged = limitBellSections(Array.from(mergedById.values()));
         setNotifications(merged);
       } else {
         setNotifications(latest);
@@ -2937,7 +2968,7 @@ export default function App() {
     if (isNotificationDismissed(post)) return;
     const user = auth.currentUser;
     setNotifications(current => {
-      const next = [post, ...current.filter(item => item.id !== post.id)].slice(0, 10);
+      const next = limitBellSections([post, ...current.filter(item => item.id !== post.id)]);
       if (user && !user.isAnonymous) void persistNotificationsForUser(user, next);
       return next;
     });
@@ -3067,18 +3098,12 @@ export default function App() {
     if (!PUSH_NOTIFICATIONS_ENABLED || !authReady) return;
 
     setNotifications(current => {
-      const latest = getLatestBellNotifications(posts);
+      const latest = getLatestBellNotifications(posts, posts);
       const latestIds = new Set(latest.map(post => post.id));
       const receivedOnly = current.filter(
         post => !latestIds.has(post.id) && !isNotificationDismissed(post),
       );
-      const merged = [...receivedOnly, ...latest];
-      const seen = new Set<string>();
-      return merged.filter(post => {
-        if (seen.has(post.id)) return false;
-        seen.add(post.id);
-        return true;
-      }).slice(0, 10);
+      return limitBellSections([...receivedOnly, ...latest]);
     });
   }, [posts, authReady]);
 
@@ -3088,21 +3113,18 @@ export default function App() {
     let cancelled = false;
     const syncLatestNotifications = async () => {
       try {
-        const latest = await fetchLatestBellPosts();
+        const [latest, recentlyUpdated] = await Promise.all([
+          fetchLatestBellPosts(),
+          fetchLatestBellPosts(true),
+        ]);
         if (!cancelled) {
           setNotifications(current => {
-            const latestNotifications = getLatestBellNotifications(latest);
+            const latestNotifications = getLatestBellNotifications(latest, recentlyUpdated);
             const latestIds = new Set(latestNotifications.map(post => post.id));
             const receivedOnly = current.filter(
               post => !latestIds.has(post.id) && !isNotificationDismissed(post),
             );
-            const merged = [...receivedOnly, ...latestNotifications];
-            const seen = new Set<string>();
-            return merged.filter(post => {
-              if (seen.has(post.id)) return false;
-              seen.add(post.id);
-              return true;
-            }).slice(0, 10);
+            return limitBellSections([...receivedOnly, ...latestNotifications]);
           });
         }
       } catch {
@@ -4587,6 +4609,10 @@ export default function App() {
     </View>
   );
 
+  const newBellNotifications = notifications.filter(item => item.notificationType !== 'updated');
+  const updatedBellNotifications = notifications.filter(item => item.notificationType === 'updated');
+  const notificationList = [...newBellNotifications, ...updatedBellNotifications];
+
   const notificationPopup = notificationsOpen ? (
     <View style={styles.favoriteOverlay}>
       <TouchableOpacity
@@ -4618,11 +4644,22 @@ export default function App() {
         ) : (
           <>
             <FlatList
-              data={notifications}
+              data={notificationList}
               keyExtractor={item => notificationVersionKey(item)}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.favoriteList}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
+                <>
+                  {index === 0 && newBellNotifications.length > 0 ? (
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText, { fontWeight: '700', marginHorizontal: 12, marginTop: 8, marginBottom: 6 }]}>
+                      TOP 10 — NEW POSTS
+                    </Text>
+                  ) : null}
+                  {index === newBellNotifications.length && updatedBellNotifications.length > 0 ? (
+                    <Text style={[styles.stateText, darkMode && styles.darkMutedText, { fontWeight: '700', marginHorizontal: 12, marginTop: 12, marginBottom: 6 }]}>
+                      UPDATED POSTS
+                    </Text>
+                  ) : null}
                 <View style={[styles.favoriteItem, darkMode && styles.favoriteItemDark]}>
                   <TouchableOpacity
                     style={styles.favoriteItemMain}
@@ -4652,6 +4689,7 @@ export default function App() {
                     <Text style={styles.favoriteRemoveText}>×</Text>
                   </TouchableOpacity>
                 </View>
+                </>
               )}
             />
             <TouchableOpacity
