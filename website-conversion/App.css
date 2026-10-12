@@ -1307,3 +1307,21 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-detail-description-section .ohk-detail-title{margin-top:6px}
   .ohk-detail-map-item iframe{height:250px}
 }
+
+
+/* Tighten the banner-to-content transition: no reserved space for empty tag rows. */
+.ohk-detail-gallery{margin-bottom:0 !important}
+.ohk-detail-main-image{min-height:0 !important}
+.ohk-detail-main-image .ohk-detail-featured-image{height:clamp(240px,32vw,420px) !important;max-height:420px !important}
+.ohk-detail-description-section{margin-top:0 !important;padding-top:0 !important}
+.ohk-detail-description-section .ohk-detail-title{margin-top:0 !important;margin-bottom:8px !important}
+.ohk-detail-description-section .ohk-detail-description{margin-top:0 !important;margin-bottom:14px !important}
+.ohk-detail-page .ohk-detail-tags{margin-top:4px !important;margin-bottom:8px !important}
+.ohk-detail-description-section .ohk-detail-content-actions{margin-top:0 !important;margin-bottom:12px !important}
+.ohk-detail-description-section .ohk-detail-html{margin-top:0 !important;padding-top:0 !important}
+@media(max-width:900px){
+  .ohk-detail-main-image .ohk-detail-featured-image{height:clamp(220px,52vw,380px) !important;max-height:380px !important}
+}
+@media(max-width:600px){
+  .ohk-detail-main-image .ohk-detail-featured-image{height:clamp(200px,62vw,320px) !important;max-height:320px !important}
+}
