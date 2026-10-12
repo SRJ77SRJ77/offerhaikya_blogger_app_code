@@ -212,6 +212,54 @@ function addTitleAltToImages(html = '', title = 'Offerhaikya offer') {
   })
 }
 
+function cleanBloggerDetailHtml(html = '', title = 'Offer') {
+  // Work with Blogger's real markup tree so empty image/layout wrappers do not
+  // leave a large blank area before the first visible article text.
+  const container = document.createElement('div')
+  container.innerHTML = addTitleAltToImages(html, title)
+  container.querySelectorAll('img').forEach((image) => image.remove())
+  container.querySelectorAll('script, style, iframe, noscript').forEach((node) => node.remove())
+
+  // Repeatedly remove empty wrapper nodes, including nested Blogger gallery wrappers.
+  let changed = true
+  while (changed) {
+    changed = false
+    container.querySelectorAll('a, p, div, span, figure, section, article').forEach((node) => {
+      const hasVisibleText = Boolean((node.textContent || '').replace(/\\u00a0|\\s/g, ''))
+      const hasUsefulContent = node.querySelector('img, video, audio, iframe, table, ul, ol, blockquote')
+      if (!hasVisibleText && !hasUsefulContent) {
+        node.remove()
+        changed = true
+      }
+    })
+  }
+
+  // Remove blank blocks at the beginning only; preserve the article's real content/order.
+  while (container.firstElementChild) {
+    const first = container.firstElementChild
+    const hasVisibleText = Boolean((first.textContent || '').replace(/\\u00a0|\\s/g, ''))
+    const hasUsefulContent = first.querySelector('img, video, audio, table, ul, ol, blockquote') ||
+      /^(IMG|VIDEO|AUDIO|TABLE|UL|OL|BLOCKQUOTE)$/i.test(first.tagName)
+    if (hasVisibleText || hasUsefulContent) break
+    first.remove()
+  }
+
+  // Inline top margins/padding/heights on Blogger wrappers can cause a visual gap.
+  container.querySelectorAll('*').forEach((node) => {
+    node.style.removeProperty('margin-top')
+    node.style.removeProperty('padding-top')
+    node.style.removeProperty('min-height')
+    node.style.removeProperty('height')
+  })
+  container.querySelectorAll('h1').forEach((heading) => {
+    const replacement = document.createElement('h2')
+    Array.from(heading.attributes).forEach((attr) => replacement.setAttribute(attr.name, attr.value))
+    replacement.innerHTML = heading.innerHTML
+    heading.replaceWith(replacement)
+  })
+  return container.innerHTML
+}
+
 function parseFeed(data) {
   const entries = data?.feed?.entry || []
 
@@ -1476,33 +1524,10 @@ function App() {
                   <div
                     className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
-                  __html: addTitleAltToImages((detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>')
-                    .replace(/<img\b[^>]*>/gi, '')
-                    // Removing gallery images can leave image-only Blogger links and nested layout
-                    // wrappers behind. Strip those empty wrappers before rendering the description.
-                    .replace(/<a\b[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<span\b[^>]*>\s*<\/span>)*<\/a>/gi, '')
-                    .replace(/<(p|div|span|figure|section)\b[^>]*>(?:\s|&nbsp;|&#160;|&#xA0;|<br\s*\/?\s*>|<a\b[^>]*>\s*<\/a>|<span\b[^>]*>\s*<\/span>)*<\/\1>/gi, '')
-                    .replace(/<(p|div|span|figure|section)\b[^>]*>(\s|&nbsp;|&#160;|&#xA0;|<br\s*\/?\s*>)*<\/\1>/gi, '')
-                    .replace(/^(?:(?:\s|&nbsp;|&#160;|&#xA0;)|<br\b[^>]*\s*\/?>|<(p|div|span)\b[^>]*>(?:(?!<\/(?:p|div|span)\s*>)[\s\S]){0,1200}<\/\1>)+/gi, (block) => {
-                      // Only discard leading wrappers that contain no visible text, not real article content.
-                      const visible = block.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;|&#xA0;|\s/gi, '')
-                      return visible ? block : ''
-                    })
-                    .replace(/^(?:\s|&nbsp;|&#160;|&#xA0;|<br\b[^>]*\s*\/?>)+/gi, '')
-                    // Blogger can put a large blank gap on the first visible element OR on a
-                    // parent wrapper. Normalize top spacing throughout the imported article HTML
-                    // so removing gallery images cannot leave their old spacer layout behind.
-                    .replace(/\sstyle=(["'])(.*?)\1/gi, (match, quote, style) => {
-                      const cleaned = style
-                        .replace(/(?:^|;)\s*(?:margin-top|padding-top|min-height|height)\s*:\s*[^;]*/gi, '')
-                        .replace(/^\s*;|;\s*$/g, '')
-                        .trim()
-                      return cleaned ? ' style=' + quote + cleaned + quote : ''
-                    })
-                    .replace(/(?:<br\s*\/?\s*>\s*){2,}/gi, '<br />')
-                    // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
-                    .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
-                    .replace(/<\/h1\s*>/gi, '</h2>'), detail.title)
+                  __html: cleanBloggerDetailHtml(
+                    detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
+                    detail.title
+                  )
                   }}
                   />
                 </div>
