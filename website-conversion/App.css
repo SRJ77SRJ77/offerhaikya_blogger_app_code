@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;font-family:Rubik,Nunito,Arial,sans-serif;background:#f3f4f6;color:#202124}
@@ -1274,4 +1273,37 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-detail-thumbnails{gap:7px}
   .ohk-detail-thumbnails button{width:58px;height:58px}
   .ohk-detail-page .ohk-detail-description{font-size:15px;line-height:1.7}
+}
+
+
+/* Detail-page spacing refinement and Blogger-provided map links. */
+.ohk-detail-gallery{margin-bottom:10px !important}
+.ohk-detail-status-row{margin-bottom:10px !important}
+.ohk-detail-page .ohk-detail-tags{margin-top:0 !important;margin-bottom:10px !important}
+.ohk-detail-description-section{margin-top:10px;padding:0;width:100%;min-width:0}
+.ohk-detail-description-section .ohk-detail-title{margin:8px 0 10px}
+.ohk-detail-description-section .ohk-detail-description{margin:0 0 18px;max-width:850px}
+.ohk-detail-description-section .ohk-detail-content-actions{margin:0 0 18px}
+.ohk-detail-description-section .ohk-detail-html{margin-top:0;padding-top:0;min-width:0;overflow-wrap:anywhere}
+.ohk-detail-description-section .ohk-detail-html p{margin-top:0;margin-bottom:1em;line-height:1.8}
+.ohk-detail-description-section .ohk-detail-html h1,
+.ohk-detail-description-section .ohk-detail-html h2,
+.ohk-detail-description-section .ohk-detail-html h3,
+.ohk-detail-description-section .ohk-detail-html h4,
+.ohk-detail-description-section .ohk-detail-html h5,
+.ohk-detail-description-section .ohk-detail-html h6{margin-top:1.05em;margin-bottom:.5em;line-height:1.4}
+.ohk-detail-page .ohk-detail-location{margin-top:30px;padding:22px 0 8px;border-top:1px solid #e5e5e5}
+.ohk-dark .ohk-detail-page .ohk-detail-location{border-color:#383838}
+.ohk-detail-maps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:16px}
+.ohk-detail-map-item{min-width:0}
+.ohk-detail-map-item h3{margin:0 0 10px;font:700 16px/1.4 Rubik,Nunito,Arial,sans-serif;color:inherit}
+.ohk-detail-map-item iframe{display:block;width:100%;height:300px;max-width:100%;border:0;border-radius:12px;background:#eee}
+.ohk-detail-map-item>a{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#ff5b01;font-weight:700;overflow-wrap:anywhere}
+.ohk-detail-location-hint{color:#777;font-size:13px;line-height:1.6}
+.ohk-dark .ohk-detail-location-hint{color:#bbb}
+@media(max-width:600px){
+  .ohk-detail-gallery{margin-bottom:8px !important}
+  .ohk-detail-description-section{margin-top:8px}
+  .ohk-detail-description-section .ohk-detail-title{margin-top:6px}
+  .ohk-detail-map-item iframe{height:250px}
 }
