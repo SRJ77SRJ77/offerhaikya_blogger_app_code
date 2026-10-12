@@ -1454,8 +1454,16 @@ function App() {
                       return visible ? block : ''
                     })
                     .replace(/^(?:\s|&nbsp;|&#160;|&#xA0;|<br\b[^>]*\s*\/?>)+/gi, '')
-                    // Blogger may put spacing on the first real paragraph itself.
-                    .replace(/^(<(?:p|div|h[1-6])\b[^>]*?)\sstyle=(["'])(.*?)\2([^>]*>)/i, (match, start, quote, style, end) => start + ' style=' + quote + style.replace(/(?:^|;)\s*(?:margin-top|padding-top|min-height|height)\s*:[^;]*/gi, '').replace(/^;|;$/g, '') + quote + end)
+                    // Blogger can put a large blank gap on the first visible element OR on a
+                    // parent wrapper. Normalize top spacing throughout the imported article HTML
+                    // so removing gallery images cannot leave their old spacer layout behind.
+                    .replace(/\sstyle=(["'])(.*?)\1/gi, (match, quote, style) => {
+                      const cleaned = style
+                        .replace(/(?:^|;)\s*(?:margin-top|padding-top|min-height|height)\s*:\s*[^;]*/gi, '')
+                        .replace(/^\s*;|;\s*$/g, '')
+                        .trim()
+                      return cleaned ? ' style=' + quote + cleaned + quote : ''
+                    })
                     .replace(/(?:<br\s*\/?\s*>\s*){2,}/gi, '<br />')
                     // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
                     .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
