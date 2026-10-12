@@ -1532,3 +1532,15 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-detail-description-content .ohk-detail-html > :first-child {
   margin-top: 0 !important;
 }
+
+
+/* Dark-mode fix: Blogger may supply inline dark text and white backgrounds in offer details.
+   Override those only inside the detail article; preserve images, maps, and other page styling. */
+.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html,
+.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html *:not(img):not(video):not(iframe):not(svg) {
+  color: #f5f5f5 !important;
+  background-color: transparent !important;
+}
+.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html a {
+  color: #ff8b4b !important;
+}
