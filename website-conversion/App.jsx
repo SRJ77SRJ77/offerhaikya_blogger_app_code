@@ -69,6 +69,47 @@ function extractPostImages(primaryImage = '', html = '') {
   return images
 }
 
+function extractPostVideos(html = '') {
+  const videos = []
+  const seen = new Set()
+  const addVideo = (url, type = 'video') => {
+    let value = String(url || '').trim().replace(/&amp;/g, '&')
+    if (value.startsWith('//')) value = 'https:' + value
+    if (!/^https?:\/\//i.test(value) || seen.has(value)) return
+    seen.add(value)
+    videos.push({ url: value, type })
+  }
+  const container = document.createElement('div')
+  container.innerHTML = String(html || '')
+  container.querySelectorAll('video').forEach((video) => {
+    const source = video.getAttribute('src') || video.querySelector('source[src]')?.getAttribute('src')
+    if (source) addVideo(source, 'video')
+    video.querySelectorAll('source[src]').forEach((node) => addVideo(node.getAttribute('src'), 'video'))
+  })
+  container.querySelectorAll('iframe[src]').forEach((frame) => {
+    const url = frame.getAttribute('src') || ''
+    if (/youtube\.com\/(?:embed|shorts)\/|youtu\.be\/|youtube-nocookie\.com\/embed\//i.test(url)) {
+      addVideo(url, 'embed')
+    } else if (/blogger\.com\/video\.g|googleusercontent\.com|drive\.google\.com\/file\/d\//i.test(url)) {
+      addVideo(url, 'embed')
+    }
+  })
+  container.querySelectorAll('a[href]').forEach((link) => {
+    const url = link.getAttribute('href') || ''
+    if (/\.(?:mp4|webm|ogg|m4v)(?:[?#]|$)/i.test(url)) addVideo(url, 'video')
+    else if (/youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\//i.test(url)) {
+      try {
+        const parsed = new URL(url, window.location.href)
+        const id = parsed.hostname.includes('youtu.be')
+          ? parsed.pathname.slice(1)
+          : parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop()
+        if (id) addVideo('https://www.youtube.com/embed/' + id, 'embed')
+      } catch {}
+    }
+  })
+  return videos
+}
+
 function extractPostAddress(html = '') {
   const lines = String(html || '')
     .replace(/<br\s*\/?\s*>/gi, '\n')
@@ -1339,6 +1380,7 @@ function App() {
   }
 
   const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
+  const detailVideos = detail ? extractPostVideos(detail.rawContent || '') : []
   const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
   useEffect(() => {
     let cancelled = false
@@ -1534,7 +1576,7 @@ function App() {
                 </div>
               </div>
 
-              {detailImages.length ? (
+              {detailImages.length || detailVideos.length ? (
                 <div className={`ohk-detail-gallery ${detailImages.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
                   {detailImages.length > 1 ? (
                     <div className="ohk-detail-thumbnails" aria-label="Offer images">
@@ -1553,12 +1595,33 @@ function App() {
                     </div>
                   ) : null}
                   <div className="ohk-detail-main-image">
-                    <img
-                      className="ohk-detail-featured-image"
-                      src={selectedDetailImage}
-                      alt={detail.title || 'Offer image'}
-                      onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
-                    />
+                    {detailImages.length ? (
+                      <img
+                        className="ohk-detail-featured-image"
+                        src={selectedDetailImage}
+                        alt={detail.title || 'Offer image'}
+                        onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
+                      />
+                    ) : null}
+                    {detailVideos.map((video, index) => (
+                      <div className="ohk-detail-video" key={video.url}>
+                        {video.type === 'embed' ? (
+                          <iframe
+                            src={video.url}
+                            title={`${detail.title || 'Offer'} video ${index + 1}`}
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video controls playsInline preload="metadata">
+                            <source src={video.url} />
+                            Your browser does not support embedded video.
+                          </video>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : null}
