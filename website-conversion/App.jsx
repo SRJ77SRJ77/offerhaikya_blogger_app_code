@@ -1679,12 +1679,17 @@ function App() {
                           title={mapLink.label || `Offer map ${index + 1}`}
                           src={(() => {
                             const coordinates = resolvedMapCoordinates[mapLink.url] || detail.coordinates || extractCoordinates(mapLink.url)
-                            // If a Google Maps short link cannot be resolved, embed the Blogger address
-                            // rather than searching Google Maps for the short URL text.
-                            const query = coordinates
-                              ? `${coordinates.latitude},${coordinates.longitude}`
-                              : detailAddress || detail.bloggerLocation || mapLink.url
-                            return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+                            if (coordinates) {
+                              return `https://www.google.com/maps?q=${coordinates.latitude},${coordinates.longitude}&output=embed`
+                            }
+                            const address = detailAddress || detail.bloggerLocation
+                            // Use an address query when Blogger provides one. If the post only has
+                            // a Google Maps short link, load that link directly instead of searching
+                            // Google Maps for the short URL as text (which produces a blank/wrong map).
+                            if (address) {
+                              return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
+                            }
+                            return mapLink.url
                           })()}
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
