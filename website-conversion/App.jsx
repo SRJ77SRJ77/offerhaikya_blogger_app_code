@@ -49,6 +49,26 @@ function firstImage(html = '') {
   return match?.[1] || ''
 }
 
+function extractPostImages(primaryImage = '', html = '') {
+  const images = []
+  const addImage = (value) => {
+    let url = String(value || '').trim()
+    if (!url) return
+    if (url.startsWith('//')) url = 'https:' + url
+    if (!/^https?:\/\//i.test(url)) return
+    const highResolutionUrl = highResImage(url)
+    if (highResolutionUrl && !images.includes(highResolutionUrl)) images.push(highResolutionUrl)
+  }
+
+  addImage(primaryImage)
+  String(html || '').replace(/<img\b[^>]*>/gi, (tag) => {
+    const source = tag.match(/\b(?:src|data-src)\s*=\s*["']([^"']+)["']/i)
+    if (source) addImage(source[1])
+    return tag
+  })
+  return images
+}
+
 function extractCoordinates(html = '') {
   const patterns = [
     /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
@@ -585,7 +605,9 @@ function App() {
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
   useEffect(() => { detailRef.current = detail }, [detail])
+  useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
+  const [detailImageIndex, setDetailImageIndex] = useState(0)
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
@@ -1122,6 +1144,7 @@ function App() {
   }
 
   const openPost = (post) => {
+    setDetailImageIndex(0)
     detailRef.current = post
     setDetail(post)
     setSitePage(null)
@@ -1177,6 +1200,16 @@ function App() {
     }
     if (tab === 'search') openSearch()
   }
+
+  const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
+  const selectedDetailImage = detailImages[detailImageIndex] || detailImages[0] || ''
+  const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
+  const detailExpiry = detail ? getExpiryLabel(detail) : ''
+  const detailDistanceKm = detail?.nearbyDistanceKm ?? (userLocation && detail?.coordinates ? distanceKm(userLocation, detail.coordinates) : null)
+  const detailPublicTags = (detail?.labels || []).filter((label) => {
+    const normalized = String(label).trim().toLowerCase()
+    return normalized !== 'verified' && normalized !== 'expired' && !/^e\d+$/i.test(normalized)
+  })
 
   const renderFeedItems = (items, cardProps, prefix) => {
     const elements = []
@@ -1315,15 +1348,53 @@ function App() {
         {detail ? (
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
-              <button className="ohk-page-back" onClick={goHome}>← Back to offers</button>
-              {getExpiryLabel(detail) ? (
-                <div className={`ohk-card-expiry ohk-detail-expiry ${getExpiryLabel(detail) === 'Expired' ? 'ohk-card-expired' : ''}`}>
-                  {getExpiryLabel(detail)}
+              <button className="ohk-page-back" onClick={goHome}>← Back</button>
+
+              <div className="ohk-detail-status-row" aria-label="Offer status">
+                {detailVerified ? <span className="ohk-detail-status ohk-detail-status-verified">✓ Verified</span> : null}
+                {detailExpiry ? (
+                  <span className={`ohk-detail-status ${detailExpiry === 'Expired' ? 'ohk-detail-status-expired' : 'ohk-detail-status-expiry'}`}>
+                    {detailExpiry === 'Expired' ? 'Expired' : detailExpiry}
+                  </span>
+                ) : null}
+                {Number.isFinite(detailDistanceKm) ? (
+                  <span className="ohk-detail-status ohk-detail-status-distance">
+                    <Icon name="location" size={14} /> {Math.round(detailDistanceKm)} km away
+                  </span>
+                ) : null}
+              </div>
+
+              {detailImages.length ? (
+                <div className={`ohk-detail-gallery ${detailImages.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
+                  {detailImages.length > 1 ? (
+                    <div className="ohk-detail-thumbnails" aria-label="Offer images">
+                      {detailImages.map((image, index) => (
+                        <button
+                          key={image}
+                          type="button"
+                          className={index === detailImageIndex ? 'active' : ''}
+                          aria-label={`Show offer image ${index + 1}`}
+                          aria-pressed={index === detailImageIndex}
+                          onClick={() => setDetailImageIndex(index)}
+                        >
+                          <img src={image} alt={`${detail.title || 'Offer'} image ${index + 1}`} loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="ohk-detail-main-image">
+                    <img
+                      className="ohk-detail-featured-image"
+                      src={selectedDetailImage}
+                      alt={detail.title || 'Offer image'}
+                      onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
+                    />
+                  </div>
                 </div>
               ) : null}
-              <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
+
               <div className="ohk-detail-tags" aria-label="Tags for this offer">
-                {(detail.labels || []).map((tag) => (
+                {detailPublicTags.map((tag) => (
                   <button
                     key={tag}
                     type="button"
@@ -1336,14 +1407,10 @@ function App() {
                   </button>
                 ))}
               </div>
-              {(detail.image || firstImage(detail.rawContent || '')) ? (
-                <img
-                  className="ohk-detail-featured-image"
-                  src={detail.image || highResImage(firstImage(detail.rawContent || ''))}
-                  alt={detail.title || 'Offer image'}
-                  style={{ display: 'block', width: '100%', maxWidth: '900px', maxHeight: '560px', height: 'auto', objectFit: 'contain', margin: '12px auto 24px', borderRadius: '10px' }}
-                  onError={(event) => { event.currentTarget.style.display = 'none' }}
-                />
+
+              <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
+              {detail.searchDescription || detail.excerpt ? (
+                <p className="ohk-detail-description">{detail.searchDescription || detail.excerpt}</p>
               ) : null}
               <div className="ohk-detail-meta ohk-detail-content-actions">
                 <button onClick={() => toggleSave(detail.id)} aria-label="Save offer">{saved[detail.id] ? '♥' : '♡'}</button>
@@ -1353,10 +1420,24 @@ function App() {
                 className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
                   __html: addTitleAltToImages((detail.rawContent || '<p>' + detail.excerpt + '</p>')
-                    .replace(/<img[^>]*>/i, '')
-                    .replace(/<\/?(?:h1|h2|h4|h5|h6)\b([^>]*)>/gi, (tag) => tag.startsWith('</') ? '</h3>' : '<h3>'), detail.title)
+                    .replace(/<img\b[^>]*>/gi, ''), detail.title)
                 }}
               />
+              {detail.bloggerLocation || detail.coordinates ? (
+                <section className="ohk-detail-location" aria-label="Offer location">
+                  <h2>Location</h2>
+                  {detail.bloggerLocation ? <p>{detail.bloggerLocation}</p> : <p>Offer location</p>}
+                  {detail.coordinates ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Icon name="location" size={16} /> View on Google Maps
+                    </a>
+                  ) : null}
+                </section>
+              ) : null}
             </div>
 
             <div className="ohk-detail-ad" aria-label="Advertisement">
