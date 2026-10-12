@@ -225,7 +225,7 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   while (changed) {
     changed = false
     container.querySelectorAll('a, p, div, span, figure, section, article').forEach((node) => {
-      const hasVisibleText = Boolean((node.textContent || '').replace(/\\u00a0|\\s/g, ''))
+      const hasVisibleText = Boolean((node.textContent || '').replace(/\u00a0|\s/g, ''))
       const hasUsefulContent = node.querySelector('img, video, audio, iframe, table, ul, ol, blockquote')
       if (!hasVisibleText && !hasUsefulContent) {
         node.remove()
@@ -237,7 +237,7 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // Remove blank blocks at the beginning only; preserve the article's real content/order.
   while (container.firstElementChild) {
     const first = container.firstElementChild
-    const hasVisibleText = Boolean((first.textContent || '').replace(/\\u00a0|\\s/g, ''))
+    const hasVisibleText = Boolean((first.textContent || '').replace(/\u00a0|\s/g, ''))
     const hasUsefulContent = first.querySelector('img, video, audio, table, ul, ol, blockquote') ||
       /^(IMG|VIDEO|AUDIO|TABLE|UL|OL|BLOCKQUOTE)$/i.test(first.tagName)
     if (hasVisibleText || hasUsefulContent) break
