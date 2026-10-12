@@ -237,6 +237,14 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // leave a large blank area before the first visible article text.
   const container = document.createElement('div')
   container.innerHTML = addTitleAltToImages(html, title)
+  // The map is rendered in the dedicated Location section below; hide Blogger's
+  // inline "View map" / Google Maps link so it is not duplicated in article text.
+  container.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || ''
+    if (/(google\\.[^/]+\\/maps|maps\\.app\\.goo\\.gl|goo\\.gl\\/maps|openstreetmap\\.org)/i.test(href)) {
+      link.remove()
+    }
+  })
   container.querySelectorAll('img').forEach((image) => image.remove())
   container.querySelectorAll('script, style, iframe, noscript').forEach((node) => node.remove())
 
