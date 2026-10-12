@@ -60,7 +60,64 @@ function extractCoordinates(html = '') {
 }
 
 function offerSlugFromTitle(title = '') {
-  return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  // Use only the title prefix before the first colon for clean offer URLs.
+  const prefix = String(title || '').split(':', 1)[0]
+  return prefix.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+function legacyOfferSlugFromTitle(title = '') {
+  return String(title || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+function ensureMeta(selector, attribute, value, content) {
+  let element = document.head.querySelector(selector)
+  if (!element) {
+    element = document.createElement('meta')
+    element.setAttribute(attribute, value)
+    document.head.appendChild(element)
+  }
+  element.setAttribute('content', content || '')
+}
+
+function ensureCanonical(url) {
+  let element = document.head.querySelector('link[rel="canonical"]')
+  if (!element) {
+    element = document.createElement('link')
+    element.rel = 'canonical'
+    document.head.appendChild(element)
+  }
+  element.href = url
+}
+
+function setPageMetadata(post = null) {
+  const title = post?.title ? post.title : 'Offerhaikya | Online Deals, Local Offers and Shopping Offers'
+  const description = (post?.searchDescription || post?.excerpt || 'Discover online deals, local offers, shopping discounts and useful offers on Offerhaikya.')
+    .replace(/\s+/g, ' ').trim().slice(0, 300)
+  const url = post?.title
+    ? window.location.origin + '/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))
+    : window.location.origin + '/'
+  const image = post?.image || LOGO_URL
+  document.title = title
+  ensureMeta('meta[name="description"]', 'name', 'description', description)
+  ensureMeta('meta[property="og:type"]', 'property', 'og:type', post ? 'article' : 'website')
+  ensureMeta('meta[property="og:title"]', 'property', 'og:title', title)
+  ensureMeta('meta[property="og:description"]', 'property', 'og:description', description)
+  ensureMeta('meta[property="og:image"]', 'property', 'og:image', image)
+  ensureMeta('meta[property="og:url"]', 'property', 'og:url', url)
+  ensureMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image')
+  ensureMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title)
+  ensureMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description)
+  ensureMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image)
+  ensureCanonical(url)
+}
+
+function addTitleAltToImages(html = '', title = 'Offerhaikya offer') {
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    if (/\balt\s*=\s*["'][^"']*["']/i.test(tag)) {
+      return tag.replace(/\balt\s*=\s*(["'])[^"']*\1/i, 'alt="' + String(title).replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"')
+    }
+    return tag.replace(/<img\b/i, '<img alt="' + String(title).replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"')
+  })
 }
 
 function parseFeed(data) {
@@ -75,6 +132,7 @@ function parseFeed(data) {
     return {
       id: entry?.id?.$t || alternate,
       title: entry?.title?.$t || 'Offer',
+      searchDescription: stripHtml(entry?.summary?.$t || '').slice(0, 300),
       url: alternate,
       date: entry?.published?.$t
         ? new Date(entry.published.$t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -352,7 +410,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
       <button className="ohk-card-click" onClick={() => onOpen(post)}>
         {post.image ? (
-          <img src={post.image} alt="" className="ohk-card-image" />
+          <img src={post.image} alt={post.title || 'Offer image'} className="ohk-card-image" />
         ) : (
           <div className="ohk-card-image ohk-image-fallback">Offerhaikya</div>
         )}
@@ -579,8 +637,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    document.title = 'Offerhaikya'
-  }, [])
+    setPageMetadata(detail)
+  }, [detail])
 
   useEffect(() => {
     let favicon = document.querySelector('link[rel="icon"]')
@@ -636,7 +694,7 @@ function App() {
           : null) || posts.find((post) => {
             if (postUrl && post.url === postUrl) return true
             if (!cleanOfferSlug) return false
-            return offerSlugFromTitle(post.title) === cleanOfferSlug
+            return offerSlugFromTitle(post.title) === cleanOfferSlug || legacyOfferSlugFromTitle(post.title) === cleanOfferSlug
           })
         if (found) {
           detailRef.current = found
@@ -1158,9 +1216,9 @@ function App() {
               <div
                 className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
-                  __html: (detail.rawContent || '<p>' + detail.excerpt + '</p>')
+                  __html: addTitleAltToImages((detail.rawContent || '<p>' + detail.excerpt + '</p>')
                     .replace(/<img[^>]*>/i, '')
-                    .replace(/<\/?(?:h1|h2|h4|h5|h6)\b([^>]*)>/gi, (tag) => tag.startsWith('</') ? '</h3>' : '<h3>')
+                    .replace(/<\/?(?:h1|h2|h4|h5|h6)\b([^>]*)>/gi, (tag) => tag.startsWith('</') ? '</h3>' : '<h3>'), detail.title)
                 }}
               />
             </div>
@@ -1223,7 +1281,7 @@ function App() {
                 <div className="ohk-search-suggestions">
                   {searchSuggestions.length ? searchSuggestions.map((post) => (
                     <button type="button" className="ohk-search-suggestion" key={post.id} onClick={() => openPost(post)}>
-                      {post.image ? <img src={post.image} alt="" /> : <span className="ohk-search-suggestion-image">Offer</span>}
+                      {post.image ? <img src={post.image} alt={post.title || 'Offer image'} /> : <span className="ohk-search-suggestion-image">Offer</span>}
                       <span className="ohk-search-suggestion-copy"><strong>{post.title}</strong><small>{post.excerpt || stripHtml(post.rawContent || '').slice(0, 180)}</small></span>
                     </button>
                   )) : <div className="ohk-search-no-results">No matching offers</div>}
@@ -1409,7 +1467,7 @@ function App() {
                 {notifications.map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
                     <button className="ohk-favorite-item-main" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)); setNotificationsOpen(false); openPost(item) }}>
-                      {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
+                      {item.image ? <img src={item.image} alt={item.title || 'Offer image'} /> : <div className="ohk-favorite-item-image">Offer</div>}
                       <span>{item.title}</span>
                     </button>
                     <button className="ohk-favorite-remove" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)) }}>×</button>
@@ -1438,7 +1496,7 @@ function App() {
                 {posts.filter((post) => saved[post.id]).map((item) => (
                   <div className="ohk-favorite-item" key={item.id}>
                     <button className="ohk-favorite-item-main" onClick={() => { setWishlistOpen(false); openPost(item) }}>
-                      {item.image ? <img src={item.image} alt="" /> : <div className="ohk-favorite-item-image">Offer</div>}
+                      {item.image ? <img src={item.image} alt={item.title || 'Offer image'} /> : <div className="ohk-favorite-item-image">Offer</div>}
                       <span>{item.title}</span>
                     </button>
                     <button className="ohk-favorite-remove" onClick={() => toggleSave(item.id)}>×</button>
