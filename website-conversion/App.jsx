@@ -241,7 +241,12 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // inline "View map" / Google Maps link so it is not duplicated in article text.
   container.querySelectorAll('a[href]').forEach((link) => {
     const href = link.getAttribute('href') || ''
-    if (/(google\\.[^/]+\\/maps|maps\\.app\\.goo\\.gl|goo\\.gl\\/maps|openstreetmap\\.org)/i.test(href)) {
+    const isMapLink =
+      (href.includes('google.') && href.includes('/maps')) ||
+      href.includes('maps.app.goo.gl') ||
+      href.includes('goo.gl/maps') ||
+      href.includes('openstreetmap.org')
+    if (isMapLink) {
       link.remove()
     }
   })
