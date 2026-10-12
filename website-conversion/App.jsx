@@ -278,6 +278,15 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // leave a large blank area before the first visible article text.
   const container = document.createElement('div')
   container.innerHTML = addTitleAltToImages(html, title)
+
+  // Hide only the unwanted standalone "Offer Text" label; keep the post body
+  // and its Location/Google Maps links intact.
+  container.querySelectorAll('p, div, span, strong, b, h1, h2, h3, h4, label').forEach((node) => {
+    if (node.children.length === 0 && /^offer\s+text\s*:?$/i.test((node.textContent || '').trim())) {
+      node.remove()
+    }
+  })
+
   container.querySelectorAll('img').forEach((image) => image.remove())
   container.querySelectorAll('script, style, iframe, noscript').forEach((node) => node.remove())
 
@@ -1689,7 +1698,9 @@ function App() {
                             if (address) {
                               return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
                             }
-                            return mapLink.url
+                            // When the short-link redirect cannot be resolved, keep the
+                            // map visible by embedding a Google Maps search for the supplied link.
+                            return `https://www.google.com/maps?q=${encodeURIComponent(mapLink.url)}&output=embed`
                           })()}
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
