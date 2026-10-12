@@ -69,6 +69,24 @@ function extractPostImages(primaryImage = '', html = '') {
   return images
 }
 
+function extractMapLinks(html = '') {
+  const links = []
+  const seen = new Set()
+  const source = String(html || '')
+  const anchorPattern = /<a\b[^>]*href\s*=\s*(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi
+  let match
+  while ((match = anchorPattern.exec(source))) {
+    const href = match[2].replace(/&amp;/g, '&').trim()
+    if (!/^https?:\/\//i.test(href)) continue
+    if (!/(google\.[^/]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|openstreetmap\.org)/i.test(href)) continue
+    if (!seen.has(href)) {
+      seen.add(href)
+      links.push({ url: href, label: stripHtml(match[3]).trim() || 'View map' })
+    }
+  }
+  return links
+}
+
 function extractCoordinates(html = '') {
   const patterns = [
     /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
@@ -1202,6 +1220,7 @@ function App() {
   }
 
   const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
+  const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
   const selectedDetailImage = detailImages[detailImageIndex] || detailImages[0] || ''
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
   const detailExpiry = detail ? getExpiryLabel(detail) : ''
@@ -1408,6 +1427,7 @@ function App() {
                 ))}
               </div>
 
+              <section className="ohk-detail-description-section" aria-label="Offer details">
               <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
               {detail.searchDescription || detail.excerpt ? (
                 <p className="ohk-detail-description">{detail.searchDescription || detail.excerpt}</p>
@@ -1423,21 +1443,43 @@ function App() {
                     .replace(/<img\b[^>]*>/gi, ''), detail.title)
                 }}
               />
-              {detail.bloggerLocation || detail.coordinates ? (
-                <section className="ohk-detail-location" aria-label="Offer location">
-                  <h2>Location</h2>
-                  {detail.bloggerLocation ? <p>{detail.bloggerLocation}</p> : <p>Offer location</p>}
-                  {detail.coordinates ? (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Icon name="location" size={16} /> View on Google Maps
-                    </a>
-                  ) : null}
-                </section>
-              ) : null}
+              </section>
+
+              <section className="ohk-detail-location" aria-label="Offer location">
+                <h2>Location</h2>
+                {detail.bloggerLocation ? <p>{detail.bloggerLocation}</p> : null}
+                {detail.coordinates ? (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Icon name="location" size={16} /> View on Google Maps
+                  </a>
+                ) : null}
+                {detailMapLinks.length ? (
+                  <div className="ohk-detail-maps">
+                    {detailMapLinks.map((mapLink, index) => (
+                      <div className="ohk-detail-map-item" key={mapLink.url}>
+                        <h3>{detailMapLinks.length > 1 ? `Map ${index + 1}` : 'Offer map'}</h3>
+                        <iframe
+                          title={mapLink.label || `Offer map ${index + 1}`}
+                          src={`https://www.google.com/maps?q=${encodeURIComponent(mapLink.url)}&output=embed`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          allowFullScreen
+                        />
+                        <a href={mapLink.url} target="_blank" rel="noreferrer">
+                          <Icon name="location" size={16} /> {mapLink.label}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {!detail.bloggerLocation && !detail.coordinates && !detailMapLinks.length ? (
+                  <p className="ohk-detail-location-hint">Add a Google Maps link or location to this Blogger post to show it here.</p>
+                ) : null}
+              </section>
             </div>
 
             <div className="ohk-detail-ad" aria-label="Advertisement">
