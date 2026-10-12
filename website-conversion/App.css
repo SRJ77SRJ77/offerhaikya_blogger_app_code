@@ -1208,3 +1208,11 @@ input, textarea, select, button { max-width: 100%; }
     max-width: 100% !important;
   }
 }
+
+
+/* Card footer: keep Read more on the left and Blogger tag discount on the right. */
+.ohk-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:10px;min-width:0}
+.ohk-card-footer .ohk-read-more{display:inline-block;margin:0;padding:0;flex:0 0 auto}
+.ohk-card-offer-percent{display:inline-flex;align-items:center;justify-content:flex-end;color:#ff5b01;font-size:12px;font-weight:900;text-align:right;white-space:nowrap;line-height:1.3}
+.ohk-card-dark .ohk-card-offer-percent{color:#ff8b4b}
+@media(max-width:380px){.ohk-card-offer-percent{font-size:10px}.ohk-card-footer{gap:5px}}
