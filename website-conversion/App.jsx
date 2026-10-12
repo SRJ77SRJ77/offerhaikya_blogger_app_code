@@ -1388,20 +1388,42 @@ function App() {
     }
     setResolvedMapCoordinates({})
     shortLinks.forEach(async (link) => {
-      try {
-        // Resolve Google Maps short links through a CORS-readable redirect fetch.
-        // If the final Google Maps HTML exposes coordinates, embed those coordinates
-        // instead of asking Google Maps to search for the short URL as text.
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url)
-        const response = await fetch(proxyUrl)
-        if (!response.ok) return
-        const html = await response.text()
-        const coordinates = extractCoordinates(html)
-        if (!cancelled && coordinates) {
-          setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
+      // Google Maps short URLs must be resolved to their real coordinates before
+      // using them in an embedded map. Try more than one CORS-readable redirect
+      // endpoint because any single public proxy can be temporarily unavailable.
+      const proxyUrls = [
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url),
+        'https://api.allorigins.win/get?url=' + encodeURIComponent(link.url),
+        'https://corsproxy.io/?url=' + encodeURIComponent(link.url),
+      ]
+      for (const proxyUrl of proxyUrls) {
+        try {
+          const response = await fetch(proxyUrl)
+          if (!response.ok) continue
+          const body = await response.text()
+          let payload = body
+          try {
+            const parsed = JSON.parse(body)
+            payload = [parsed.contents, parsed.status?.url, parsed.url].filter(Boolean).join(' ')
+          } catch {}
+          const candidates = [payload]
+          // Google often puts the resolved destination in canonical/Open Graph
+          // metadata, so inspect URL attributes as well as the raw page text.
+          const urlMatches = payload.match(/https?:\\?\\?\/\\?\\?\/[^\\s"'<>]+/gi) || []
+          candidates.push(...urlMatches.map((value) => value.replace(/\\\\u0026/g, '&').replace(/\\\\\\//g, '/')))
+          let coordinates = null
+          for (const candidate of candidates) {
+            coordinates = extractCoordinates(candidate)
+            if (coordinates) break
+          }
+          if (!coordinates) continue
+          if (!cancelled) {
+            setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
+          }
+          return
+        } catch {
+          // Try the next resolver.
         }
-      } catch {
-        // Keep the existing map-link fallback if short-link resolution is unavailable.
       }
     })
     return () => { cancelled = true }
