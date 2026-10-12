@@ -69,6 +69,17 @@ function extractPostImages(primaryImage = '', html = '') {
   return images
 }
 
+function extractPostAddress(html = '') {
+  const lines = String(html || '')
+    .replace(/<br\\s*\\/?\\s*>/gi, '\\n')
+    .replace(/<\\/(?:p|div|li|tr|h[1-6])\\s*>/gi, '\\n')
+    .split('\\n')
+    .map((line) => stripHtml(line).trim())
+    .filter(Boolean)
+  const addressLine = lines.find((line) => /^address\\s*[-:：]\\s*/i.test(line))
+  return addressLine ? addressLine.replace(/^address\\s*[-:：]\\s*/i, '').trim() : ''
+}
+
 function extractMapLinks(html = '') {
   const links = []
   const seen = new Set()
@@ -1306,6 +1317,7 @@ function App() {
 
   const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
   const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
+  const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
   const selectedDetailImage = detailImages[detailImageIndex] || detailImages[0] || ''
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
   const detailExpiry = detail ? getExpiryLabel(detail) : ''
@@ -1535,7 +1547,8 @@ function App() {
 
               <section className="ohk-detail-location" aria-label="Offer location">
                 <h2>Location</h2>
-                {detail.bloggerLocation ? <p>{detail.bloggerLocation}</p> : null}
+                {detailAddress ? <p><strong>Address:</strong> {detailAddress}</p> : null}
+                {!detailAddress && detail.bloggerLocation ? <p><strong>Address:</strong> {detail.bloggerLocation}</p> : null}
                 {detail.coordinates ? (
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
@@ -1564,8 +1577,8 @@ function App() {
                     ))}
                   </div>
                 ) : null}
-                {!detail.bloggerLocation && !detail.coordinates && !detailMapLinks.length ? (
-                  <p className="ohk-detail-location-hint">Add a Google Maps link or location to this Blogger post to show it here.</p>
+                {!detailAddress && !detail.bloggerLocation && !detail.coordinates && !detailMapLinks.length ? (
+                  <p className="ohk-detail-location-hint">Add “Address - Belgaum” as plain text and add a Google Maps link after “Location” in the Blogger post to show the address and map here.</p>
                 ) : null}
               </section>
             </div>
