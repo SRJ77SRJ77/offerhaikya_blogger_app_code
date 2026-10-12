@@ -773,7 +773,6 @@ function App() {
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [detailImageIndex, setDetailImageIndex] = useState(0)
-  const detailGalleryRef = useRef(null)
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
@@ -1579,7 +1578,7 @@ function App() {
               </div>
 
               {detailMedia.length ? (
-                <div ref={detailGalleryRef} className={`ohk-detail-gallery ${detailMedia.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
+                <div className={`ohk-detail-gallery ${detailMedia.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
                   {detailMedia.length > 1 ? (
                     <div className="ohk-detail-thumbnails" aria-label="Offer photos and videos">
                       {detailMedia.map((media, index) => (
@@ -1589,10 +1588,7 @@ function App() {
                           className={index === detailImageIndex ? 'active' : ''}
                           aria-label={media.type === 'video' ? `Play offer video ${index + 1}` : `Show offer image ${index + 1}`}
                           aria-pressed={index === detailImageIndex}
-                          onClick={() => {
-                            setDetailImageIndex(index)
-                            detailGalleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }}
+                          onClick={() => setDetailImageIndex(index)}
                         >
                           {media.type === 'image' ? (
                             <img src={media.url} alt={`${detail.title || 'Offer'} image ${index + 1}`} loading="lazy" />
