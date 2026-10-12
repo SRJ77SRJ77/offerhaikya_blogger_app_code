@@ -711,9 +711,6 @@ function App() {
         const previousVersions = JSON.parse(localStorage.getItem('offerhaikya_known_post_versions') || 'null')
         const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
         const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
-        // A post already present in the notification box must not generate another
-        // UPDATED POSTS entry when its timestamp changes again.
-        const alreadyNotifiedIds = new Set(existingNotifications.map((post) => String(post.id)))
         const knownIds = new Set(Array.isArray(previousKnown) ? previousKnown : [])
         const knownVersions = previousVersions && typeof previousVersions === 'object' && !Array.isArray(previousVersions)
           ? previousVersions
@@ -737,7 +734,6 @@ function App() {
                 return Boolean(priorVersion) &&
                   String(priorVersion) !== String(post.updatedAt || post.publishedAt || '') &&
                   isUpdatedBloggerPost(post) &&
-                  !alreadyNotifiedIds.has(String(post.id)) &&
                   !seen.has(notificationVersionKey(post)) &&
                   !seen.has(post.id)
               })
@@ -745,7 +741,12 @@ function App() {
           }
         }
 
-        const retained = existingNotifications.filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
+        // If a post already has a notification, replace it with its newest version
+        // rather than keeping the stale entry or appending a duplicate.
+        const refreshedIds = new Set(updatedAdditions.map((post) => String(post.id)))
+        const retained = existingNotifications
+          .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
+          .filter((post) => !refreshedIds.has(String(post.id)))
         const mergedNotifications = limitNotificationSections([...newAdditions, ...updatedAdditions, ...retained])
         const nextVersions = {}
         parsed.forEach((post) => {
