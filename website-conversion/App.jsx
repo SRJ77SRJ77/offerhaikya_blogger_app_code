@@ -1621,9 +1621,6 @@ function App() {
                           referrerPolicy="no-referrer-when-downgrade"
                           allowFullScreen
                         />
-                        <a href={mapLink.url} target="_blank" rel="noreferrer">
-                          <Icon name="location" size={16} /> {mapLink.label}
-                        </a>
                       </div>
                     ))}
                   </div>
