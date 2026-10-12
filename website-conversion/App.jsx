@@ -1442,7 +1442,10 @@ function App() {
                 className="ohk-detail-html"
                 dangerouslySetInnerHTML={{
                   __html: addTitleAltToImages((detail.rawContent || '<p>' + detail.excerpt + '</p>')
-                    .replace(/<img\b[^>]*>/gi, ''), detail.title)
+                    .replace(/<img\b[^>]*>/gi, '')
+                    // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
+                    .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
+                    .replace(/<\/h1\s*>/gi, '</h2>'), detail.title)
                 }}
               />
               </section>
