@@ -191,6 +191,36 @@ function parseFeed(data) {
 }
 
 
+function notificationVersionKey(post) {
+  return String(post?.id || '') + '::' + String(post?.updatedAt || post?.publishedAt || 'unknown')
+}
+
+function isUpdatedBloggerPost(post) {
+  const publishedAt = Date.parse(String(post?.publishedAt || ''))
+  const updatedAt = Date.parse(String(post?.updatedAt || post?.publishedAt || ''))
+  return Number.isFinite(publishedAt) && Number.isFinite(updatedAt) && updatedAt > publishedAt + 60000
+}
+
+function limitNotificationSections(items) {
+  const unique = new Map()
+  items.forEach((item) => {
+    const key = notificationVersionKey(item)
+    if (!unique.has(key)) unique.set(key, item)
+  })
+  const values = [...unique.values()]
+  const updatedIds = new Set(values.filter((item) => item.notificationType === 'updated').map((item) => item.id))
+  const newest = values
+    .filter((item) => item.notificationType !== 'updated' && !updatedIds.has(item.id))
+    .sort((a, b) => (Date.parse(b.publishedAt || '') || 0) - (Date.parse(a.publishedAt || '') || 0))
+    .slice(0, 10)
+  const updated = values
+    .filter((item) => item.notificationType === 'updated')
+    .sort((a, b) => (Date.parse(b.updatedAt || '') || 0) - (Date.parse(a.updatedAt || '') || 0))
+    .slice(0, 10)
+  return [...newest, ...updated]
+}
+
+
 function menuKeyFromTitle(title = '') {
   const normalized = title.replace(/[^a-z0-9 ]/gi, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
   if (normalized.includes('special') && (normalized.includes('deal') || normalized.includes('categor'))) return 'specialDeals'
@@ -585,21 +615,49 @@ function App() {
         if (!active) return
         const parsed = parseFeed(data)
         const previousKnown = JSON.parse(localStorage.getItem('offerhaikya_known_post_ids') || 'null')
+        const previousVersions = JSON.parse(localStorage.getItem('offerhaikya_known_post_versions') || 'null')
         const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
         const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
-        let additions = []
+        const knownIds = new Set(Array.isArray(previousKnown) ? previousKnown : [])
+        const knownVersions = previousVersions && typeof previousVersions === 'object' && !Array.isArray(previousVersions)
+          ? previousVersions
+          : {}
+        const firstVersionBaseline = !previousVersions || typeof previousVersions !== 'object' || Array.isArray(previousVersions)
+        let newAdditions = []
+        let updatedAdditions = []
+
         if (!Array.isArray(previousKnown)) {
-          additions = parsed.slice(0, 10)
+          // First visit: seed the bell with the 10 newest posts, not hundreds of historical edits.
+          newAdditions = parsed.slice(0, 10).map((post) => ({ ...post, notificationType: 'new' }))
         } else {
-          const known = new Set(previousKnown)
-          additions = parsed.filter((post) => !known.has(post.id) && !seen.has(post.id))
+          newAdditions = parsed
+            .filter((post) => !knownIds.has(post.id) && !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
+            .map((post) => ({ ...post, notificationType: 'new' }))
+
+          if (!firstVersionBaseline) {
+            updatedAdditions = parsed
+              .filter((post) => {
+                const priorVersion = knownVersions[post.id]
+                return Boolean(priorVersion) &&
+                  String(priorVersion) !== String(post.updatedAt || post.publishedAt || '') &&
+                  isUpdatedBloggerPost(post) &&
+                  !seen.has(notificationVersionKey(post))
+              })
+              .map((post) => ({ ...post, notificationType: 'updated' }))
+          }
         }
-        const mergedNotifications = [...additions, ...existingNotifications.filter((post) => !seen.has(post.id))]
-          .filter((post, index, all) => all.findIndex((item) => item.id === post.id) === index)
-          .slice(0, 10)
+
+        const retained = existingNotifications.filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
+        const mergedNotifications = limitNotificationSections([...newAdditions, ...updatedAdditions, ...retained])
+        const nextVersions = {}
+        parsed.forEach((post) => {
+          nextVersions[post.id] = String(post.updatedAt || post.publishedAt || '')
+        })
+
         setPosts(parsed)
         setNotifications(mergedNotifications)
         try { localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id))) } catch {}
+        try { localStorage.setItem('offerhaikya_known_post_versions', JSON.stringify(nextVersions)) } catch {}
         try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed)) } catch (cacheError) {
           try { localStorage.setItem('offerhaikya_posts_cache', JSON.stringify(parsed.slice(0, 50))) } catch {}
           console.warn('Offerhaikya cache stored a smaller recent-post snapshot.', cacheError)
@@ -1168,7 +1226,7 @@ function App() {
 
             <button className="ohk-header-button ohk-badge-button" onClick={() => setNotificationsOpen(true)} aria-label="Notifications">
               <Icon name="bell" size={21} />
-              {notifications.length ? <span>{notifications.length}</span> : null}
+              {notifications.length ? <span>{notifications.length > 99 ? '99+' : notifications.length}</span> : null}
             </button>
 
             <button className="ohk-header-button ohk-badge-button" onClick={() => setWishlistOpen(true)} aria-label="Favorites">
@@ -1507,15 +1565,49 @@ function App() {
               </div>
             ) : (
               <div className="ohk-favorite-list">
-                {notifications.map((item) => (
-                  <div className="ohk-favorite-item" key={item.id}>
-                    <button className="ohk-favorite-item-main" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)); setNotificationsOpen(false); openPost(item) }}>
-                      {item.image ? <img src={item.image} alt={item.title || 'Offer image'} /> : <div className="ohk-favorite-item-image">Offer</div>}
-                      <span>{item.title}</span>
-                    </button>
-                    <button className="ohk-favorite-remove" onClick={() => { const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]')); seen.add(item.id); localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])); setNotifications(current => current.filter(post => post.id !== item.id)) }}>×</button>
-                  </div>
-                ))}
+                {[
+                  { type: 'new', title: 'TOP 10 — NEW POSTS' },
+                  { type: 'updated', title: 'UPDATED POSTS' },
+                ].map((section) => {
+                  const sectionItems = notifications.filter((item) =>
+                    section.type === 'updated' ? item.notificationType === 'updated' : item.notificationType !== 'updated'
+                  )
+                  if (!sectionItems.length) return null
+                  return (
+                    <div key={section.type}>
+                      <h3 style={{ margin: '12px 14px 8px', fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em' }}>
+                        {section.title}
+                      </h3>
+                      {sectionItems.map((item) => {
+                        const versionKey = notificationVersionKey(item)
+                        const dismissItem = (event) => {
+                          event?.stopPropagation?.()
+                          const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
+                          seen.add(versionKey)
+                          try { localStorage.setItem('offerhaikya_notification_seen', JSON.stringify([...seen])) } catch {}
+                          setNotifications((current) => {
+                            const next = current.filter((post) => notificationVersionKey(post) !== versionKey)
+                            try { localStorage.setItem('offerhaikya_notifications', JSON.stringify(next)) } catch {}
+                            return next
+                          })
+                        }
+                        return (
+                          <div className="ohk-favorite-item" key={versionKey}>
+                            <button className="ohk-favorite-item-main" onClick={() => {
+                              dismissItem()
+                              setNotificationsOpen(false)
+                              openPost(item)
+                            }}>
+                              {item.image ? <img src={item.image} alt={item.title || 'Offer image'} /> : <div className="ohk-favorite-item-image">Offer</div>}
+                              <span>{item.title}</span>
+                            </button>
+                            <button className="ohk-favorite-remove" aria-label="Dismiss notification" onClick={dismissItem}>×</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
