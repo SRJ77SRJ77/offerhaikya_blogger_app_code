@@ -1442,9 +1442,14 @@ function App() {
                     .replace(/<img\b[^>]*>/gi, '')
                     // Remove empty Blogger spacer paragraphs/containers left behind after gallery images are extracted.
                     .replace(/<(p|div|span)\b[^>]*>(?:\s|&nbsp;|&#160;|<br\s*\/?\s*>|<span\b[^>]*>\s*<\/span>)*<\/\1>/gi, '')
-                    .replace(/^(?:(?:\s|&nbsp;|&#160;|&#xA0;)|<br\b[^>]*\s*\/?>|<p\b[^>]*>\s*(?:&nbsp;|&#160;|&#xA0;|<br\b[^>]*\s*\/?>|\s)*<\/p>|<div\b[^>]*>\s*(?:&nbsp;|&#160;|&#xA0;|<br\b[^>]*\s*\/?>|\s)*<\/div>)+/gi, '')
-                    // Remove leading line breaks and empty spacing wrappers from Blogger before the first real text/heading.
+                    .replace(/^(?:(?:\s|&nbsp;|&#160;|&#xA0;)|<br\b[^>]*\s*\/?>|<(p|div|span)\b[^>]*>(?:(?!<\/(?:p|div|span)\s*>)[\s\S]){0,1200}<\/\1>)+/gi, (block) => {
+                      // Only discard leading wrappers that contain no visible text, not real article content.
+                      const visible = block.replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;|&#xA0;|\s/gi, '')
+                      return visible ? block : ''
+                    })
                     .replace(/^(?:\s|&nbsp;|&#160;|&#xA0;|<br\b[^>]*\s*\/?>)+/gi, '')
+                    // Blogger may put spacing on the first real paragraph itself.
+                    .replace(/^(<(?:p|div|h[1-6])\b[^>]*?)\sstyle=(["'])(.*?)\2([^>]*>)/i, (match, start, quote, style, end) => start + ' style=' + quote + style.replace(/(?:^|;)\s*(?:margin-top|padding-top|min-height|height)\s*:[^;]*/gi, '').replace(/^;|;$/g, '') + quote + end)
                     .replace(/(?:<br\s*\/?\s*>\s*){2,}/gi, '<br />')
                     // The offer title above is this page's H1; Blogger's own H1s become H2 section headings.
                     .replace(/<h1\b([^>]*)>/gi, '<h2$1>')
