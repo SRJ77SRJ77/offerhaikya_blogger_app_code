@@ -1325,3 +1325,79 @@ input, textarea, select, button { max-width: 100%; }
 @media(max-width:600px){
   .ohk-detail-main-image .ohk-detail-featured-image{height:clamp(200px,62vw,320px) !important;max-height:320px !important}
 }
+
+
+/* Accessible, readable offer-content typography based on semantic heading hierarchy. */
+.ohk-detail-page .ohk-detail-title{
+  font-size:clamp(1.75rem,2.6vw,2.25rem) !important;
+  line-height:1.25 !important;
+  margin:0 0 .6rem !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-description{
+  max-width:68ch;
+  font-size:1rem !important;
+  line-height:1.7 !important;
+  margin:0 0 1.15rem !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html{
+  max-width:72ch;
+  font-size:1rem !important;
+  line-height:1.75 !important;
+  overflow-wrap:anywhere;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html p,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html li{
+  font-size:1rem !important;
+  line-height:1.75 !important;
+  margin-top:0;
+  margin-bottom:1rem;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h1,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h2{
+  font-size:1.625rem !important;
+  line-height:1.3 !important;
+  font-weight:700 !important;
+  margin:1.4em 0 .55em !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h3{
+  font-size:1.3rem !important;
+  line-height:1.35 !important;
+  font-weight:700 !important;
+  margin:1.25em 0 .5em !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h4{
+  font-size:1.125rem !important;
+  line-height:1.4 !important;
+  font-weight:700 !important;
+  margin:1.15em 0 .45em !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h5{
+  font-size:1rem !important;
+  line-height:1.45 !important;
+  font-weight:700 !important;
+  margin:1.1em 0 .4em !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html h6{
+  font-size:.9375rem !important;
+  line-height:1.5 !important;
+  font-weight:700 !important;
+  margin:1em 0 .4em !important;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html ul,
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html ol{
+  padding-left:1.4rem;
+  margin:.25rem 0 1rem;
+}
+.ohk-detail-page .ohk-detail-description-section .ohk-detail-html blockquote{
+  margin:1rem 0;
+  padding:.75rem 1rem;
+  border-left:3px solid #ff5b01;
+  background:rgba(127,127,127,.08);
+}
+@media(max-width:600px){
+  .ohk-detail-page .ohk-detail-title{font-size:1.75rem !important;line-height:1.28 !important}
+  .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h1,
+  .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h2{font-size:1.4rem !important}
+  .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h3{font-size:1.2rem !important}
+  .ohk-detail-page .ohk-detail-description-section .ohk-detail-html h4{font-size:1.0625rem !important}
+}
