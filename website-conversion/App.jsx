@@ -773,6 +773,7 @@ function App() {
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [detailImageIndex, setDetailImageIndex] = useState(0)
+  const detailThumbnailsRef = useRef(null)
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
@@ -1580,7 +1581,7 @@ function App() {
               {detailMedia.length ? (
                 <div className={`ohk-detail-gallery ${detailMedia.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
                   {detailMedia.length > 1 ? (
-                    <div className="ohk-detail-thumbnails" aria-label="Offer photos and videos">
+                    <div ref={detailThumbnailsRef} className="ohk-detail-thumbnails" aria-label="Offer photos and videos">
                       {detailMedia.map((media, index) => (
                         <button
                           key={media.url}
@@ -1588,7 +1589,13 @@ function App() {
                           className={index === detailImageIndex ? 'active' : ''}
                           aria-label={media.type === 'video' ? `Play offer video ${index + 1}` : `Show offer image ${index + 1}`}
                           aria-pressed={index === detailImageIndex}
-                          onClick={() => setDetailImageIndex(index)}
+                          onClick={() => {
+                            setDetailImageIndex(index)
+                            const thumbnails = detailThumbnailsRef.current
+                            if (thumbnails && thumbnails.scrollHeight > thumbnails.clientHeight) {
+                              thumbnails.scrollBy({ top: 87, behavior: 'smooth' })
+                            }
+                          }}
                         >
                           {media.type === 'image' ? (
                             <img src={media.url} alt={`${detail.title || 'Offer'} image ${index + 1}`} loading="lazy" />
