@@ -1605,14 +1605,13 @@ function App() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <Icon name="location" size={16} /> View on Google Maps
+                    <Icon name="location" size={16} /> Click to View on Google Maps
                   </a>
                 ) : null}
                 {detailMapLinks.length ? (
                   <div className="ohk-detail-maps">
                     {detailMapLinks.map((mapLink, index) => (
                       <div className="ohk-detail-map-item" key={mapLink.url}>
-                        <h3>{detailMapLinks.length > 1 ? `Map ${index + 1}` : 'Offer map'}</h3>
                         <iframe
                           title={mapLink.label || `Offer map ${index + 1}`}
                           src={(() => {
