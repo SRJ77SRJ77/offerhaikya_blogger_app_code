@@ -1808,3 +1808,7 @@ input, textarea, select, button { max-width: 100%; }
 
 /* Add breathing room below the reopened nearby search form before offer cards. */
 .ohk-section .ohk-nearby-results-search{margin-bottom:24px}
+
+/* Tighter spacing between Edit Location controls, reopened search form, and offers. */
+.ohk-section .ohk-nearby-results-search{margin-top:0!important;margin-bottom:10px!important}
+.ohk-section > .ohk-nearby-search-row{margin-top:0!important;margin-bottom:10px!important}
