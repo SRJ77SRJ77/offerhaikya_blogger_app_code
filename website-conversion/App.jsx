@@ -2109,8 +2109,7 @@ function App() {
               <div className="ohk-section-title">
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
-                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
-                  <button className="ohk-set-current-location-button" onClick={requestLocation} disabled={locationLoading}><Icon name="location" size={18} />{locationLoading ? 'Getting Location...' : 'Set Current Location'}</button>
+                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Edit Location'}</button>
                 </div>
               </div>
 
