@@ -1700,10 +1700,13 @@ input, textarea, select, button { max-width: 100%; }
 
 /* Targeted search fixes: visible main-search X in dark mode and clear control
    for the location field opened from Enter Location. */
+/* The main search field stays white in dark mode, so keep its X dark enough to see. */
+.ohk-search-box > .ohk-search-clear,
+.ohk-search-box > .ohk-search-clear svg,
 .ohk-dark .ohk-search-box > .ohk-search-clear,
 .ohk-dark .ohk-search-box > .ohk-search-clear svg {
-  color: #fff !important;
-  stroke: #fff !important;
+  color: #000 !important;
+  stroke: #000 !important;
   opacity: 1 !important;
   visibility: visible !important;
 }
