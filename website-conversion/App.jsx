@@ -1695,8 +1695,6 @@ function App() {
 
               <section className="ohk-detail-location" aria-label="Offer location">
                 <h2>Location</h2>
-                {detailAddress ? <p><strong>Address:</strong> {detailAddress}</p> : null}
-                {!detailAddress && detail.bloggerLocation ? <p><strong>Address:</strong> {detail.bloggerLocation}</p> : null}
                 {detail.coordinates ? (
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
