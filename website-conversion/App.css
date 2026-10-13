@@ -1555,3 +1555,34 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-video-thumbnail{display:flex;width:100%;height:100%;min-height:0;align-items:center;justify-content:center;flex-direction:column;gap:5px;border-radius:5px;background:linear-gradient(145deg,#262626,#050505);color:#fff}
 .ohk-detail-video-thumbnail>span{display:flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;background:#ff5b01;color:#fff;font-size:12px;padding-left:2px}
 .ohk-detail-video-thumbnail small{font-size:9px;font-weight:700;letter-spacing:.8px;color:#fff}
+
+
+/* Fixed detail-page main banner box: keep its size stable; scale/crop only the selected main image.
+   Intentionally does not target the left-side thumbnails or any other page elements. */
+.ohk-detail-page .ohk-detail-main-image {
+  height: clamp(280px, 42vw, 520px) !important;
+  min-height: 0 !important;
+  max-height: 520px !important;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+.ohk-detail-page .ohk-detail-main-image .ohk-detail-featured-image {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center;
+}
+@media (max-width: 900px) {
+  .ohk-detail-page .ohk-detail-main-image {
+    height: clamp(240px, 58vw, 420px) !important;
+    max-height: 420px !important;
+  }
+}
+@media (max-width: 600px) {
+  .ohk-detail-page .ohk-detail-main-image {
+    height: clamp(210px, 68vw, 340px) !important;
+    max-height: 340px !important;
+  }
+}
