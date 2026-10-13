@@ -794,6 +794,88 @@ function App() {
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [detailImageIndex, setDetailImageIndex] = useState(0)
   const detailThumbnailsRef = useRef(null)
+  const [imageViewerOpen, setImageViewerOpen] = useState(false)
+  const [imageViewerZoom, setImageViewerZoom] = useState(1)
+  const [imageViewerPan, setImageViewerPan] = useState({ x: 0, y: 0 })
+  const imageViewerPointersRef = useRef(new Map())
+  const imageViewerGestureRef = useRef({ distance: 0, zoom: 1, x: 0, y: 0, panX: 0, panY: 0 })
+
+  const resetImageViewer = () => {
+    setImageViewerZoom(1)
+    setImageViewerPan({ x: 0, y: 0 })
+    imageViewerPointersRef.current.clear()
+    imageViewerGestureRef.current = { distance: 0, zoom: 1, x: 0, y: 0, panX: 0, panY: 0 }
+  }
+  const closeImageViewer = () => {
+    setImageViewerOpen(false)
+    resetImageViewer()
+  }
+  const changeImageViewerZoom = (nextZoom) => {
+    const zoom = Math.max(1, Math.min(5, nextZoom))
+    setImageViewerZoom(zoom)
+    if (zoom === 1) setImageViewerPan({ x: 0, y: 0 })
+    imageViewerGestureRef.current.zoom = zoom
+  }
+  const imageViewerPointerDown = (event) => {
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    const pointers = imageViewerPointersRef.current
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    const points = [...pointers.values()]
+    imageViewerGestureRef.current = {
+      ...imageViewerGestureRef.current,
+      distance: points.length > 1 ? Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) : 0,
+      zoom: imageViewerZoom,
+      x: event.clientX,
+      y: event.clientY,
+      panX: imageViewerPan.x,
+      panY: imageViewerPan.y
+    }
+  }
+  const imageViewerPointerMove = (event) => {
+    const pointers = imageViewerPointersRef.current
+    if (!pointers.has(event.pointerId)) return
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+    const points = [...pointers.values()]
+    const gesture = imageViewerGestureRef.current
+    if (points.length > 1 && gesture.distance > 0) {
+      const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y)
+      changeImageViewerZoom(gesture.zoom * distance / gesture.distance)
+    } else if (points.length === 1 && imageViewerZoom > 1) {
+      setImageViewerPan({
+        x: gesture.panX + event.clientX - gesture.x,
+        y: gesture.panY + event.clientY - gesture.y
+      })
+    }
+  }
+  const imageViewerPointerUp = (event) => {
+    imageViewerPointersRef.current.delete(event.pointerId)
+    const points = [...imageViewerPointersRef.current.values()]
+    imageViewerGestureRef.current = {
+      ...imageViewerGestureRef.current,
+      distance: points.length > 1 ? Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) : 0,
+      zoom: imageViewerZoom,
+      x: points[0]?.x ?? event.clientX,
+      y: points[0]?.y ?? event.clientY,
+      panX: imageViewerPan.x,
+      panY: imageViewerPan.y
+    }
+  }
+
+  useEffect(() => {
+    if (!imageViewerOpen) return
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') closeImageViewer()
+      if (event.key === '+' || event.key === '=') changeImageViewerZoom(imageViewerZoom + 0.5)
+      if (event.key === '-') changeImageViewerZoom(imageViewerZoom - 0.5)
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [imageViewerOpen, imageViewerZoom])
   const [shareTarget, setShareTarget] = useState(null)
   const [shareMessage, setShareMessage] = useState('')
   const [userLocation, setUserLocation] = useState(null)
@@ -1634,6 +1716,17 @@ function App() {
                         className="ohk-detail-featured-image"
                         src={selectedDetailMedia.url}
                         alt={detail.title || 'Offer image'}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Open offer image full screen and zoom"
+                        onClick={() => { resetImageViewer(); setImageViewerOpen(true) }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            resetImageViewer()
+                            setImageViewerOpen(true)
+                          }
+                        }}
                         onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
                       />
                     ) : selectedDetailMedia?.type === 'video' ? (
@@ -2128,6 +2221,40 @@ function App() {
               <button className="ohk-primary-button" onClick={() => setRequestOpen(false)}>Send Request</button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {imageViewerOpen && selectedDetailMedia?.type === 'image' ? (
+        <div className="ohk-image-viewer" role="dialog" aria-modal="true" aria-label="Offer image viewer" onClick={(event) => {
+          if (event.target === event.currentTarget) closeImageViewer()
+        }}>
+          <button type="button" className="ohk-image-viewer-close" onClick={closeImageViewer} aria-label="Close enlarged image">×</button>
+          <div className="ohk-image-viewer-controls" aria-label="Image zoom controls">
+            <button type="button" onClick={() => changeImageViewerZoom(imageViewerZoom - 0.5)} disabled={imageViewerZoom <= 1} aria-label="Zoom out">−</button>
+            <span>{Math.round(imageViewerZoom * 100)}%</span>
+            <button type="button" onClick={() => changeImageViewerZoom(imageViewerZoom + 0.5)} disabled={imageViewerZoom >= 5} aria-label="Zoom in">+</button>
+            <button type="button" onClick={resetImageViewer} aria-label="Reset zoom">Reset</button>
+          </div>
+          <div className="ohk-image-viewer-stage">
+            <img
+              className="ohk-image-viewer-image"
+              src={selectedDetailMedia.url}
+              alt={detail?.title || 'Enlarged offer image'}
+              draggable="false"
+              style={{ transform: `translate(${imageViewerPan.x}px, ${imageViewerPan.y}px) scale(${imageViewerZoom})` }}
+              onPointerDown={imageViewerPointerDown}
+              onPointerMove={imageViewerPointerMove}
+              onPointerUp={imageViewerPointerUp}
+              onPointerCancel={imageViewerPointerUp}
+              onWheel={(event) => {
+                event.preventDefault()
+                changeImageViewerZoom(imageViewerZoom + (event.deltaY < 0 ? 0.25 : -0.25))
+              }}
+              onDoubleClick={() => changeImageViewerZoom(imageViewerZoom > 1 ? 1 : 2)}
+              onError={(event) => { event.currentTarget.style.visibility = 'hidden' }}
+            />
+          </div>
+          <p className="ohk-image-viewer-hint">Pinch or use + / − to zoom · Drag to explore · Double-click to zoom</p>
         </div>
       ) : null}
     </div>
