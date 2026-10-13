@@ -898,6 +898,7 @@ function App() {
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [locationSuggestions, setLocationSuggestions] = useState([])
   const [locationSuggestionsOpen, setLocationSuggestionsOpen] = useState(false)
+  const [manualLocationSearch, setManualLocationSearch] = useState('')
   const locationSuggestionCacheRef = useRef(new Map())
   const tagDragRef = useRef(null)
   const [locationLoading, setLocationLoading] = useState(false)
@@ -1349,6 +1350,7 @@ function App() {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return
     const address = place.address || {}
     const label = address.suburb || address.neighbourhood || place.name || address.city || address.town || address.city_district || address.county || address.state_district || address.village || place.display_name?.split(',')[0] || locationQuery
+    setManualLocationSearch('')
     setUserLocation({ latitude, longitude })
     setLocationLabel(String(label).trim())
     setLocationQuery('')
@@ -1359,6 +1361,22 @@ function App() {
     setActiveTab('local')
   }
 
+  const useTypedLocationFallback = () => {
+    const text = locationQuery.trim()
+    if (text.length < 2) {
+      setLocationSuggestionsOpen(true)
+      return
+    }
+    setUserLocation(null)
+    setManualLocationSearch(text)
+    setLocationLabel(text)
+    setLocationQuery('')
+    setLocationSuggestions([])
+    setLocationSuggestionsOpen(false)
+    setLocationPickerOpen(false)
+    setLocationMessage('Showing offers that match “' + text + '”. No map location was found, so distance filtering is unavailable.')
+    setActiveTab('local')
+  }
   const handleTagPointerDown = (event) => {
     const element = event.currentTarget
     tagDragRef.current = { startX: event.clientX, scrollLeft: element.scrollLeft, dragged: false, element }
@@ -1394,18 +1412,31 @@ function App() {
   useEffect(() => { setNearbyVisible(PAGE_SIZE) }, [userLocation])
 
   const nearbyPosts = useMemo(() => {
-    if (!userLocation) return []
+    if (userLocation) {
+      return posts
+        .filter(isOfflinePost)
+        .map((post) => {
+          if (!post.coordinates) return null
+          const distance = distanceKm(userLocation, post.coordinates)
+          return distance <= NEARBY_RADIUS_KM ? { ...post, nearbyDistanceKm: distance } : null
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
+    }
 
+    const queryText = manualLocationSearch.trim().toLocaleLowerCase()
+    if (!queryText) return []
+    const queryWords = queryText.split(/[\\s,]+/).filter(Boolean)
     return posts
       .filter(isOfflinePost)
       .map((post) => {
-        if (!post.coordinates) return null
-        const distance = distanceKm(userLocation, post.coordinates)
-        return distance <= NEARBY_RADIUS_KM ? { ...post, nearbyDistanceKm: distance } : null
+        const searchableText = [post.title, post.labels?.join(' '), post.excerpt, post.bloggerLocation, post.rawContent ? stripHtml(post.rawContent) : ''].filter(Boolean).join(' ').toLocaleLowerCase()
+        const matchedWords = queryWords.filter((word) => searchableText.includes(word)).length
+        return matchedWords ? { ...post, manualLocationMatchCount: matchedWords } : null
       })
       .filter(Boolean)
-      .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
-  }, [posts, userLocation])
+      .sort((a, b) => b.manualLocationMatchCount - a.manualLocationMatchCount)
+  }, [posts, userLocation, manualLocationSearch])
 
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
@@ -2012,10 +2043,10 @@ function App() {
         ) : null}
 
         <section className="ohk-content">
-          {userLocation ? (
+          {userLocation || manualLocationSearch ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
+                <h2>{userLocation ? 'Nearby Offers' : 'Offers Matching'}{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
                   {locationPickerOpen ? (
                     <div className="ohk-location-autocomplete">
@@ -2024,6 +2055,7 @@ function App() {
                         value={locationQuery}
                         onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
                         onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0]); else useTypedLocationFallback() } }}
                         placeholder="Type Goa, Kolhapur, etc."
                         aria-label="Search location"
                       />
@@ -2073,7 +2105,7 @@ function App() {
                       if (event.key === 'Enter') {
                         event.preventDefault()
                         if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
-                        else setLocationSuggestionsOpen(true)
+                        else useTypedLocationFallback()
                       }
                     }}
                     placeholder="Search city, area or place..."
@@ -2082,7 +2114,7 @@ function App() {
                   {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
                   <button className="ohk-nearby-search-button" type="button" onClick={() => {
                     if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
-                    else setLocationSuggestionsOpen(true)
+                    else useTypedLocationFallback()
                   }}>Search</button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
