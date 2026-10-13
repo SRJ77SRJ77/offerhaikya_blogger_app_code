@@ -1696,3 +1696,44 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-search-mobile-row>.ohk-search-clear:hover,
 .ohk-dark .ohk-nearby-search-row>.ohk-location-clear:hover,
 .ohk-dark .ohk-detail-related-search-wrap .ohk-detail-related-clear:hover{color:#fff!important}
+
+
+/* Targeted search fixes: visible main-search X in dark mode and clear control
+   for the location field opened from Enter Location. */
+.ohk-dark .ohk-search-box > .ohk-search-clear,
+.ohk-dark .ohk-search-box > .ohk-search-clear svg {
+  color: #fff !important;
+  stroke: #fff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.ohk-location-autocomplete {
+  position: relative;
+}
+.ohk-location-autocomplete .ohk-location-picker-clear {
+  position: absolute;
+  z-index: 2;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #000 !important;
+}
+.ohk-location-autocomplete .ohk-location-picker-clear svg {
+  stroke: currentColor !important;
+}
+.ohk-dark .ohk-location-autocomplete .ohk-location-picker-clear {
+  color: #fff !important;
+}
