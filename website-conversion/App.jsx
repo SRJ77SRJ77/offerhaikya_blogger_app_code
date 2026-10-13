@@ -2131,7 +2131,7 @@ function App() {
                   <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
-                    {locationLoading ? 'Checking...' : 'Find Nearby'}
+                    {locationLoading ? 'Checking...' : 'Set Current Location'}
                   </button>
                   {locationSuggestionsOpen && locationSuggestions.length ? (
                     <div className="ohk-location-suggestions">
@@ -2184,7 +2184,7 @@ function App() {
                   <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
-                    {locationLoading ? 'Checking...' : 'Find Nearby'}
+                    {locationLoading ? 'Checking...' : 'Set Current Location'}
                   </button>
                   {locationSuggestionsOpen && locationSuggestions.length ? (
                     <div className="ohk-location-suggestions">
