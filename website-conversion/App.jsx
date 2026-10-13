@@ -1241,28 +1241,75 @@ function App() {
       setLocationSuggestions([])
       return undefined
     }
+
     const controller = new AbortController()
     const timer = window.setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(text)}`, { signal: controller.signal })
-        .then((response) => response.ok ? response.json() : [])
-        .then((results) => {
-          setLocationSuggestions(Array.isArray(results) ? results : [])
+      const biasLatitude = userLocation?.latitude ?? 15.8497
+      const biasLongitude = userLocation?.longitude ?? 74.4977
+      fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=8&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`, { signal: controller.signal })
+        .then((response) => response.ok ? response.json() : { features: [] })
+        .then((data) => {
+          const suggestions = (Array.isArray(data?.features) ? data.features : [])
+            .map((feature) => {
+              const properties = feature?.properties || {}
+              const coordinates = feature?.geometry?.coordinates || []
+              const longitude = Number(coordinates[0])
+              const latitude = Number(coordinates[1])
+              if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
+
+              const displayName = [
+                properties.name,
+                properties.street,
+                properties.district,
+                properties.city,
+                properties.state,
+                properties.country,
+              ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
+
+              return {
+                place_id: `${properties.osm_type || 'place'}-${properties.osm_id || `${latitude}-${longitude}`}`,
+                lat: latitude,
+                lon: longitude,
+                name: properties.name || '',
+                display_name: displayName || properties.city || properties.state || 'Selected location',
+                address: {
+                  suburb: properties.suburb || '',
+                  neighbourhood: properties.neighbourhood || '',
+                  city_district: properties.district || '',
+                  city: properties.city || '',
+                  town: properties.city || '',
+                  county: properties.county || '',
+                  state_district: properties.state || '',
+                  state: properties.state || '',
+                  village: properties.locality || '',
+                },
+              }
+            })
+            .filter(Boolean)
+
+          setLocationSuggestions(suggestions)
           setLocationSuggestionsOpen(true)
         })
-        .catch(() => {})
-    }, 300)
+        .catch((error) => {
+          if (error?.name !== 'AbortError') {
+            setLocationSuggestions([])
+            setLocationSuggestionsOpen(true)
+          }
+        })
+    }, 220)
+
     return () => {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [locationQuery])
+  }, [locationQuery, userLocation])
 
   const chooseSuggestedLocation = (place) => {
     const latitude = Number(place.lat)
     const longitude = Number(place.lon)
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return
     const address = place.address || {}
-    const label = address.city || address.town || address.city_district || address.county || address.state_district || address.village || place.name || place.display_name?.split(',')[0] || locationQuery
+    const label = address.suburb || address.neighbourhood || place.name || address.city || address.town || address.city_district || address.county || address.state_district || address.village || place.display_name?.split(',')[0] || locationQuery
     setUserLocation({ latitude, longitude })
     setLocationLabel(String(label).trim())
     setLocationQuery('')
