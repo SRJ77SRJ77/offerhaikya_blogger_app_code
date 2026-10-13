@@ -1836,6 +1836,7 @@ function App() {
                         placeholder="Type Goa, Kolhapur, etc."
                         aria-label="Search location"
                       />
+                      {locationQuery ? <button type="button" className="ohk-search-clear ohk-location-picker-clear" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
                       {locationSuggestionsOpen && locationSuggestions.length ? (
                         <div className="ohk-location-suggestions">
                           {locationSuggestions.map((place) => (
