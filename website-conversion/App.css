@@ -1741,3 +1741,24 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-location-autocomplete .ohk-location-picker-clear {
   color: #fff !important;
 }
+
+
+/* Full-screen interactive zoom viewer for detail-page offer banners only. */
+.ohk-detail-page .ohk-detail-featured-image{cursor:zoom-in}
+.ohk-image-viewer{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.96);color:#fff;touch-action:none}
+.ohk-image-viewer-stage{display:flex;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;touch-action:none}
+.ohk-image-viewer-image{display:block;max-width:92vw;max-height:84vh;width:auto;height:auto;object-fit:contain;transform-origin:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.ohk-image-viewer-image:active{cursor:grabbing}
+.ohk-image-viewer-close{position:absolute;top:16px;right:20px;z-index:2;display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:34px;line-height:1;cursor:pointer}
+.ohk-image-viewer-controls{position:absolute;top:18px;left:18px;z-index:2;display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;background:rgba(30,30,30,.9);color:#fff;font:600 13px/1 Rubik,Arial,sans-serif}
+.ohk-image-viewer-controls button{min-width:34px;height:32px;padding:0 9px;border:1px solid rgba(255,255,255,.28);border-radius:7px;background:#333;color:#fff;font-size:20px;cursor:pointer}
+.ohk-image-viewer-controls button:last-child{font-size:12px}
+.ohk-image-viewer-controls button:disabled{opacity:.4;cursor:default}
+.ohk-image-viewer-controls span{min-width:45px;text-align:center;font-variant-numeric:tabular-nums}
+.ohk-image-viewer-hint{position:absolute;bottom:14px;left:12px;right:12px;margin:0;text-align:center;color:#ddd;font:500 12px/1.5 Rubik,Arial,sans-serif;pointer-events:none}
+@media(max-width:600px){
+  .ohk-image-viewer-controls{top:12px;left:12px;gap:5px;padding:6px}
+  .ohk-image-viewer-close{top:12px;right:12px;width:40px;height:40px}
+  .ohk-image-viewer-image{max-width:100vw;max-height:82vh}
+  .ohk-image-viewer-hint{font-size:11px;bottom:12px}
+}
