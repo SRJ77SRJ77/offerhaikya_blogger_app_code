@@ -654,7 +654,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
   const offerPercent = getOfferPercent(post)
 
   return (
-    <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''}`}>
+    <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`}>
       <button
         type="button"
         className={`ohk-card-heart ${saved ? 'ohk-card-heart-saved' : 'ohk-card-heart-unsaved'}`}
@@ -1341,6 +1341,8 @@ function App() {
   }
 
   const openPost = (post) => {
+    // Keep expired offers visible in the feed, but never allow them to open.
+    if (getExpiryLabel(post) === 'Expired') return
     setDetailImageIndex(0)
     detailRef.current = post
     setDetail(post)
