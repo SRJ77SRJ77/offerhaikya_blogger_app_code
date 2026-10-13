@@ -706,15 +706,16 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
         )}
 
 
+        {offerPercent !== null ? (
+          <span className="ohk-card-discount-badge" aria-label={`Upto ${offerPercent}% Off`}>
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.83 0l3.35-3.35a2 2 0 0 0 0-2.83ZM7.5 7.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/></svg>
+            <span>Upto {offerPercent}% Off</span>
+          </span>
+        ) : null}
+
         <div className="ohk-card-body">
-        {(offerPercent !== null || expiry) ? (
           <div className="ohk-card-meta-row">
-            {offerPercent !== null ? (
-              <span className="ohk-card-discount-badge">
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.83 0l3.35-3.35a2 2 0 0 0 0-2.83ZM7.5 7.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/></svg>
-                <span>Upto {offerPercent}% Off</span>
-              </span>
-            ) : null}
+            <span className="ohk-card-label">{post.label}</span>
             {expiry ? (
               <span className={`ohk-card-expiry-inline ${expiry === 'Expired' ? 'ohk-card-expired' : ''}`} title={expiry}>
                 <span className="ohk-card-expiry-full">{expiry}</span>
@@ -722,8 +723,6 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
               </span>
             ) : null}
           </div>
-        ) : null}
-          <span className="ohk-card-label">{post.label}</span>
           <h2>{post.title}</h2>
           <div className="ohk-card-date">{post.date}</div>
           <p>{post.excerpt}</p>
