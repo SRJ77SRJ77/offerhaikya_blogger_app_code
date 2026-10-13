@@ -524,15 +524,19 @@ function getExpiryLabel(post) {
   // An explicit Blogger "Expired" label always shows the Expired badge.
   if (labels.includes('expired')) return 'Expired'
 
-  const expiryTag = (post.labels || []).find((label) => /^E\d+$/i.test(label.trim()))
-  // Use Blogger's last-updated timestamp so editing an expired offer starts its expiry window again.
+  // E<number> means days (E1 = 24 hours); EY<number> means years (EY1 = 365 days, EY2 = 730 days).
+  const expiryTag = (post.labels || []).find((label) => /^(?:E\d+|EY\d+)$/i.test(label.trim()))
+  // Use Blogger's last-updated timestamp so editing a listing starts its expiry window again.
   const expiryBase = post.updatedAt || post.publishedAt
   if (!expiryTag || !expiryBase) return ''
 
-  const days = Number(expiryTag.trim().slice(1))
-  if (!Number.isFinite(days) || days <= 0) return ''
+  const tag = expiryTag.trim().toUpperCase()
+  const isYearTag = /^EY\d+$/.test(tag)
+  const duration = Number(tag.slice(isYearTag ? 2 : 1))
+  if (!Number.isFinite(duration) || duration <= 0) return ''
 
-  const expiryTime = new Date(expiryBase).getTime() + days * 24 * 60 * 60 * 1000
+  const durationDays = isYearTag ? duration * 365 : duration
+  const expiryTime = new Date(expiryBase).getTime() + durationDays * 24 * 60 * 60 * 1000
   const remainingMs = expiryTime - Date.now()
 
   if (remainingMs <= 0) return 'Expired'
