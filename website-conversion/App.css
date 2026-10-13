@@ -1652,3 +1652,8 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-nearby-search-row>.ohk-location-clear{color:#ddd}
 .ohk-nearby-search-row>.ohk-location-clear{order:0;flex:0 0 30px;width:30px;min-width:30px;height:30px;min-height:30px;margin-left:-42px;position:relative;background:transparent;color:#777}
 .ohk-dark .ohk-nearby-search-row>.ohk-location-clear{color:#ddd}
+
+
+.ohk-detail-related-search-wrap{position:relative;width:100%;min-width:0}
+.ohk-detail-related-search-wrap .ohk-detail-related-search{width:100%;box-sizing:border-box;padding-right:44px}
+.ohk-detail-related-search-wrap .ohk-detail-related-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:1}
