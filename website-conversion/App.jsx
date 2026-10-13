@@ -1740,7 +1740,7 @@ function App() {
 
             <section id="detail-related" className="ohk-detail-related">
               <div className="ohk-detail-related-inner">
-                <h2>Search offers by tag</h2>
+                <h2>Search Offers by Tags</h2>
                 <div className="ohk-detail-related-search-wrap">
                   <input
                     className="ohk-detail-related-search"
