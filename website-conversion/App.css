@@ -1860,3 +1860,56 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-card-meta-row .ohk-card-label { max-width: 55%; }
   .ohk-card-expiry-inline { max-width: 45%; font-size: 7px; padding: 3px 4px; }
 }
+
+
+/* Offer cards: show category tags and expiry as plain text, not pill badges. */
+.ohk-card-meta-row .ohk-card-label,
+.ohk-dark .ohk-card-meta-row .ohk-card-label {
+  display: inline;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 58%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #ff5b01;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ohk-card-meta-row .ohk-card-expiry-inline,
+.ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 42%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #77747a;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline { color: #aaa; }
+@media (max-width: 380px) {
+  .ohk-card-meta-row { align-items: flex-start; gap: 5px; }
+  .ohk-card-meta-row .ohk-card-label { max-width: 58%; font-size: 10px; }
+  .ohk-card-meta-row .ohk-card-expiry-inline { max-width: 42%; font-size: 9px; }
+}
+@media (max-width: 340px) {
+  .ohk-card-meta-row .ohk-card-label { max-width: 55%; font-size: 9px; }
+  .ohk-card-meta-row .ohk-card-expiry-inline { max-width: 45%; font-size: 8px; }
+}
