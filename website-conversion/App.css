@@ -1634,3 +1634,21 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-card-expired-locked::after{content:"";position:absolute;inset:0;z-index:3;background:rgba(110,110,110,.42);pointer-events:none;border-radius:inherit}
 .ohk-card-expired-locked .ohk-card-click{cursor:not-allowed}
 .ohk-card-expired-locked:hover{transform:none;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+
+
+/* Clear-search X controls */
+.ohk-search-box>.ohk-search-clear,
+.ohk-search-mobile-row>.ohk-search-clear,
+.ohk-nearby-search-row>.ohk-location-clear{
+  display:flex;align-items:center;justify-content:center;flex:none;
+  width:30px;min-width:30px;height:30px;min-height:30px;padding:0;
+  border:0;border-radius:50%;background:transparent;color:#777;cursor:pointer;
+}
+.ohk-search-box>.ohk-search-clear:hover,
+.ohk-search-mobile-row>.ohk-search-clear:hover,
+.ohk-nearby-search-row>.ohk-location-clear:hover{background:rgba(128,128,128,.14)}
+.ohk-dark .ohk-search-box>.ohk-search-clear,
+.ohk-dark .ohk-search-mobile-row>.ohk-search-clear,
+.ohk-dark .ohk-nearby-search-row>.ohk-location-clear{color:#ddd}
+.ohk-nearby-search-row>.ohk-location-clear{order:0;flex:0 0 30px;width:30px;min-width:30px;height:30px;min-height:30px;margin-left:-42px;position:relative;background:transparent;color:#777}
+.ohk-dark .ohk-nearby-search-row>.ohk-location-clear{color:#ddd}
