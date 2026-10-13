@@ -1296,7 +1296,7 @@ function App() {
             setLocationSuggestionsOpen(true)
           }
         })
-    }, 220)
+    }, 80)
 
     return () => {
       window.clearTimeout(timer)
