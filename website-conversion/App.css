@@ -1586,3 +1586,23 @@ input, textarea, select, button { max-width: 100%; }
     max-height: 340px !important;
   }
 }
+
+
+/* Match detail-page video media to the same fixed main banner box; thumbnails remain untouched. */
+.ohk-detail-page .ohk-detail-main-image .ohk-detail-video {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden;
+}
+.ohk-detail-page .ohk-detail-main-image .ohk-detail-video iframe,
+.ohk-detail-page .ohk-detail-main-image .ohk-detail-video video {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  object-fit: cover;
+}
