@@ -1426,7 +1426,7 @@ function App() {
 
     const queryText = manualLocationSearch.trim().toLocaleLowerCase()
     if (!queryText) return []
-    const queryWords = queryText.split(/[\\s,]+/).filter(Boolean)
+    const queryWords = queryText.split(/[\s,]+/).filter(Boolean)
     return posts
       .filter(isOfflinePost)
       .map((post) => {
