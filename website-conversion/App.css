@@ -2111,3 +2111,52 @@ input, textarea, select, button { max-width: 100%; }
   }
 }
 
+/* Final one-line card meta layout: tags left, full expiry text right, no wrapping. */
+.ohk-card-meta-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+  min-width:0;
+}
+.ohk-card-meta-row .ohk-card-label,
+.ohk-dark .ohk-card-meta-row .ohk-card-label {
+  flex:1 1 0;
+  width:auto;
+  max-width:none;
+  min-width:0;
+  margin:0;
+  text-align:left!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  overflow-wrap:normal!important;
+}
+.ohk-card-meta-row .ohk-card-expiry-inline,
+.ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline {
+  flex:0 1 auto;
+  width:auto;
+  max-width:100%;
+  min-width:0;
+  margin-left:auto;
+  text-align:right!important;
+  justify-content:flex-end!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  font-size:clamp(7px, 2.4vw, 11px)!important;
+}
+.ohk-card-expiry-inline .ohk-card-expiry-full,
+.ohk-card-expiry-inline .ohk-card-expiry-short {
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+}
+.ohk-card-expiry-inline .ohk-card-expiry-short {display:inline!important}
+.ohk-card-expiry-inline .ohk-card-expiry-full {display:none!important}
+@media(min-width:901px) {
+  .ohk-card-expiry-inline .ohk-card-expiry-short {display:none!important}
+  .ohk-card-expiry-inline .ohk-card-expiry-full {display:inline!important}
+}
+
