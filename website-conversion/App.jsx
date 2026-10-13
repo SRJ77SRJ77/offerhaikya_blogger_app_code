@@ -705,9 +705,9 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
           <div className="ohk-card-image ohk-image-fallback">Offerhaikya</div>
         )}
         {offerPercent !== null ? (
-          <span className={`ohk-card-discount-sticker ${expiry ? 'ohk-card-discount-below-expiry' : ''}`}>
-            <strong>{offerPercent}%</strong>
-            <span>OFF</span>
+          <span className={`ohk-card-discount-badge ${expiry ? 'ohk-card-discount-below-expiry' : ''}`}>
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.83 0l3.35-3.35a2 2 0 0 0 0-2.83ZM7.5 7.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/></svg>
+            <span>Upto {offerPercent}% Off</span>
           </span>
         ) : null}
 
