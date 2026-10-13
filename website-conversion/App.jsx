@@ -766,7 +766,6 @@ function App() {
   const [activeLabel, setActiveLabel] = useState('All')
   const [visible, setVisible] = useState(PAGE_SIZE)
   const [nearbyVisible, setNearbyVisible] = useState(PAGE_SIZE)
-  const [nearbyResetCountdown, setNearbyResetCountdown] = useState(5)
   const [dark, setDark] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   useEffect(() => {
@@ -1499,31 +1498,6 @@ function App() {
       .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
   }, [posts, userLocation])
 
-  useEffect(() => {
-    if (!userLocation || loading || nearbyPosts.length > 0) {
-      setNearbyResetCountdown(5)
-      return undefined
-    }
-    setNearbyResetCountdown(5)
-    let remaining = 5
-    const timer = window.setInterval(() => {
-      remaining -= 1
-      setNearbyResetCountdown(remaining)
-      if (remaining <= 0) {
-        window.clearInterval(timer)
-        setUserLocation(null)
-        setLocationLabel('')
-        setLocationQuery('')
-        setLocationSuggestions([])
-        setLocationSuggestionsOpen(false)
-        setLocationPickerOpen(false)
-        setLocationMessage('')
-        setNearbyVisible(PAGE_SIZE)
-      }
-    }, 1000)
-    return () => window.clearInterval(timer)
-  }, [userLocation, loading, nearbyPosts.length])
-
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
   }
@@ -2182,7 +2156,7 @@ function App() {
                   ) : null}
                 </>
               ) : (
-                <div className="ohk-empty">No Offers Found Nearby/Entered Location<br /><span>Nearby search will reset in {nearbyResetCountdown}…</span></div>
+                <div className="ohk-empty">No Offers Found Nearby/Entered Location</div>
               )}
             </section>
           ) : (
