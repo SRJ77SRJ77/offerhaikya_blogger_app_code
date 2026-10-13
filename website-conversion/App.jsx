@@ -898,6 +898,7 @@ function App() {
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [locationSuggestions, setLocationSuggestions] = useState([])
   const [locationSuggestionsOpen, setLocationSuggestionsOpen] = useState(false)
+  const locationSuggestionCacheRef = useRef(new Map())
   const tagDragRef = useRef(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [locationMessage, setLocationMessage] = useState('')
@@ -1237,95 +1238,111 @@ function App() {
 
   useEffect(() => {
     const text = locationQuery.trim()
-    if (text.length < 2) {
+    const normalizedQuery = text.toLocaleLowerCase().replace(/[,\\s]+/g, ' ').trim()
+    if (normalizedQuery.length < 2) {
       setLocationSuggestions([])
+      setLocationSuggestionsOpen(false)
       return undefined
     }
 
-    const controller = new AbortController()
-    const timer = window.setTimeout(() => {
-      const biasLatitude = userLocation?.latitude ?? 15.8497
-      const biasLongitude = userLocation?.longitude ?? 74.4977
-      fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=15&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`, { signal: controller.signal })
-        .then((response) => response.ok ? response.json() : { features: [] })
-        .then((data) => {
-          const queryWords = text.toLocaleLowerCase().split(/[\\s,]+/).filter(Boolean)
-          const suggestions = (Array.isArray(data?.features) ? data.features : [])
-            .map((feature) => {
-              const properties = feature?.properties || {}
-              const coordinates = feature?.geometry?.coordinates || []
-              const longitude = Number(coordinates[0])
-              const latitude = Number(coordinates[1])
-              if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
-
-              const localityName = properties.name || properties.locality || properties.neighbourhood || properties.suburb || ''
-              const displayName = [
-                localityName,
-                properties.neighbourhood,
-                properties.suburb,
-                properties.street,
-                properties.district,
-                properties.city,
-                properties.county,
-                properties.state,
-                properties.postcode,
-                properties.country,
-              ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
-              const searchableName = [
-                localityName,
-                properties.neighbourhood,
-                properties.suburb,
-                properties.street,
-                properties.district,
-                properties.city,
-                properties.county,
-                properties.state,
-                properties.postcode,
-              ].filter(Boolean).join(' ').toLocaleLowerCase()
-              const matchedWords = queryWords.filter((word) => searchableName.includes(word)).length
-
-              return {
-                place_id: `${properties.osm_type || 'place'}-${properties.osm_id || `${latitude}-${longitude}`}`,
-                lat: latitude,
-                lon: longitude,
-                name: localityName,
-                display_name: displayName || properties.city || properties.state || 'Selected location',
-                _matchedWords: matchedWords,
-                address: {
-                  suburb: properties.suburb || '',
-                  neighbourhood: properties.neighbourhood || '',
-                  city_district: properties.district || '',
-                  city: properties.city || '',
-                  town: properties.city || '',
-                  county: properties.county || '',
-                  state_district: properties.state || '',
-                  state: properties.state || '',
-                  village: properties.locality || '',
-                  postcode: properties.postcode || '',
-                },
-              }
-            })
-            .filter(Boolean)
-            .sort((a, b) => b._matchedWords - a._matchedWords)
-            .map(({ _matchedWords, ...place }) => place)
-
-          setLocationSuggestions(suggestions)
-          setLocationSuggestionsOpen(true)
+    const cache = locationSuggestionCacheRef.current
+    const cachedExact = cache.get(normalizedQuery)
+    const cachedPrefixEntry = !cachedExact
+      ? [...cache.entries()].filter(([key]) => normalizedQuery.startsWith(key)).sort((a, b) => b[0].length - a[0].length)[0]
+      : null
+    const cachedResults = cachedExact || (cachedPrefixEntry
+      ? cachedPrefixEntry[1].filter((place) => {
+          const haystack = `${place.display_name || ''} ${place.name || ''}`.toLocaleLowerCase()
+          return normalizedQuery.split(' ').every((word) => haystack.includes(word))
         })
-        .catch((error) => {
-          if (error?.name !== 'AbortError') {
-            setLocationSuggestions([])
-            setLocationSuggestionsOpen(true)
-          }
-        })
-    }, 80)
+      : null)
 
-    return () => {
-      window.clearTimeout(timer)
-      controller.abort()
+    if (cachedResults?.length) {
+      setLocationSuggestions(cachedResults)
+      setLocationSuggestionsOpen(true)
     }
-  }, [locationQuery, userLocation])
 
+    const controller = new AbortController()
+    const biasLatitude = userLocation?.latitude ?? 15.8497
+    const biasLongitude = userLocation?.longitude ?? 74.4977
+
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=15&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : { features: [] })
+      .then((data) => {
+        const queryWords = normalizedQuery.split(' ').filter(Boolean)
+        const suggestions = (Array.isArray(data?.features) ? data.features : [])
+          .map((feature) => {
+            const properties = feature?.properties || {}
+            const coordinates = feature?.geometry?.coordinates || []
+            const longitude = Number(coordinates[0])
+            const latitude = Number(coordinates[1])
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
+
+            const localityName = properties.name || properties.locality || properties.neighbourhood || properties.suburb || ''
+            const displayName = [
+              localityName,
+              properties.neighbourhood,
+              properties.suburb,
+              properties.street,
+              properties.district,
+              properties.city,
+              properties.county,
+              properties.state,
+              properties.postcode,
+              properties.country,
+            ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
+            const searchableName = [
+              localityName,
+              properties.neighbourhood,
+              properties.suburb,
+              properties.street,
+              properties.district,
+              properties.city,
+              properties.county,
+              properties.state,
+              properties.postcode,
+            ].filter(Boolean).join(' ').toLocaleLowerCase()
+            const matchedWords = queryWords.filter((word) => searchableName.includes(word)).length
+
+            return {
+              place_id: `${properties.osm_type || 'place'}-${properties.osm_id || `${latitude}-${longitude}`}`,
+              lat: latitude,
+              lon: longitude,
+              name: localityName,
+              display_name: displayName || properties.city || properties.state || 'Selected location',
+              _matchedWords: matchedWords,
+              address: {
+                suburb: properties.suburb || '',
+                neighbourhood: properties.neighbourhood || '',
+                city_district: properties.district || '',
+                city: properties.city || '',
+                town: properties.city || '',
+                county: properties.county || '',
+                state_district: properties.state || '',
+                state: properties.state || '',
+                village: properties.locality || '',
+                postcode: properties.postcode || '',
+              },
+            }
+          })
+          .filter(Boolean)
+          .sort((a, b) => b._matchedWords - a._matchedWords)
+          .map(({ _matchedWords, ...place }) => place)
+
+        cache.set(normalizedQuery, suggestions)
+        if (cache.size > 60) cache.delete(cache.keys().next().value)
+        setLocationSuggestions(suggestions)
+        setLocationSuggestionsOpen(true)
+      })
+      .catch((error) => {
+        if (error?.name !== 'AbortError' && !cachedResults?.length) {
+          setLocationSuggestions([])
+          setLocationSuggestionsOpen(true)
+        }
+      })
+
+    return () => controller.abort()
+  }, [locationQuery, userLocation])
   const chooseSuggestedLocation = (place) => {
     const latitude = Number(place.lat)
     const longitude = Number(place.lon)
