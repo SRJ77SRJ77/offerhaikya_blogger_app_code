@@ -2115,7 +2115,8 @@ function App() {
               </div>
 
               {locationPickerOpen ? (
-                <div className="ohk-location-autocomplete ohk-nearby-search-row">
+                <div className="ohk-nearby-prompt ohk-nearby-results-search">
+                  <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
                   <input
                     autoFocus
@@ -2142,6 +2143,7 @@ function App() {
                       ))}
                     </div>
                   ) : null}
+                  </div>
                 </div>
               ) : null}
 
