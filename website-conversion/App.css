@@ -1805,3 +1805,6 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-section > .ohk-nearby-search-row > button:not(.ohk-location-clear){height:42px;min-height:42px;min-width:0;padding:8px 10px;font-size:12px}
   .ohk-section > .ohk-nearby-search-row .ohk-location-suggestions{top:46px}
 }
+
+/* Add breathing room below the reopened nearby search form before offer cards. */
+.ohk-section .ohk-nearby-results-search{margin-bottom:24px}
