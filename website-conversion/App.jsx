@@ -792,6 +792,7 @@ function App() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [authMode, setAuthMode] = useState('choice')
   const [preloaderVisible, setPreloaderVisible] = useState(true)
+  const [locationSearchPreloaderVisible, setLocationSearchPreloaderVisible] = useState(false)
   const [sitePage, setSitePage] = useState(null)
   const [bloggerPages, setBloggerPages] = useState([])
   const [loginEmail, setLoginEmail] = useState('')
@@ -1363,6 +1364,7 @@ function App() {
     const text = locationQuery.trim()
     if (text.length < 2 || locationLoading) return
     setLocationLoading(true)
+    setLocationSearchPreloaderVisible(true)
     setLocationMessage('Finding this place on the map…')
     setLocationSuggestionsOpen(false)
     try {
@@ -1445,6 +1447,7 @@ function App() {
       setLocationSuggestionsOpen(true)
     } finally {
       setLocationLoading(false)
+      setLocationSearchPreloaderVisible(false)
     }
   }
 
@@ -1752,7 +1755,7 @@ function App() {
       <aside className="ohk-ad-rail ohk-ad-rail-right" data-ad-placement="right" aria-label="Advertisement">
         <AdSenseUnit slot="5188401932" kind="display" />
       </aside>
-      {preloaderVisible ? (
+      {(preloaderVisible || locationSearchPreloaderVisible) ? (
         <div className="ohk-preloader" role="status" aria-label="Loading Offerhaikya">
           <div className="ohk-preloader-card">
             <img src={preloaderGif} alt="Loading Offerhaikya" />
