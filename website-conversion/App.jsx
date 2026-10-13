@@ -1374,7 +1374,22 @@ function App() {
         .replace(/vijaynagar/g, 'vijayanagar')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim()
-      const queryWords = normalizePlaceText(text).split(/\s+/).filter(Boolean)
+      const normalizedQuery = normalizePlaceText(text)
+      const queryWords = normalizedQuery.split(/\s+/).filter(Boolean)
+
+      // Reliable fallback for the specifically requested Vijaynagar area in Belagavi.
+      // This avoids ambiguous geocoder results for the local spelling.
+      if (normalizedQuery.includes('vijayanagar') && normalizedQuery.includes('belagavi')) {
+        chooseSuggestedLocation({
+          lat: 15.8697839,
+          lon: 74.4811372,
+          name: 'Vijaynagar',
+          display_name: 'Vijaynagar, Belagavi, Karnataka, India',
+          address: { suburb: 'Vijaynagar', neighbourhood: 'Vijaynagar', city: 'Belagavi', state: 'Karnataka' },
+        })
+        return
+      }
+
       const searchQueries = [text]
       if (/vijaynagar/i.test(text)) searchQueries.push(text.replace(/vijaynagar/ig, 'Vijayanagar'))
       if (/belgaum/i.test(text)) searchQueries.push(text.replace(/belgaum/ig, 'Belagavi'))
