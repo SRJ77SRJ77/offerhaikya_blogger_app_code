@@ -1812,3 +1812,51 @@ input, textarea, select, button { max-width: 100%; }
 /* Tighter spacing between Edit Location controls, reopened search form, and offers. */
 .ohk-section .ohk-nearby-results-search{margin-top:0!important;margin-bottom:24px!important}
 .ohk-section > .ohk-nearby-search-row{margin-top:0!important;margin-bottom:10px!important}
+
+
+/* Small-phone fit: keep search controls, Blogger tags, and expiry text compact. */
+@media (max-width: 380px) {
+  .ohk-hero { padding: 22px 12px; min-height: 220px; }
+  .ohk-hero-small { font-size: 10px; letter-spacing: .8px; }
+  .ohk-hero h1 { font-size: clamp(23px, 6.5vw, 27px); line-height: 1.15; }
+  .ohk-search-box {
+    width: 100%;
+    min-height: 54px;
+    margin-top: 14px;
+    padding: 4px 4px 4px 10px;
+    border-radius: 12px;
+    gap: 2px;
+  }
+  .ohk-search-box > .ohk-icon { width: 25px; height: 25px; }
+  .ohk-search-box input {
+    min-width: 0;
+    width: 0;
+    padding: 9px 6px;
+    font-size: 14px;
+  }
+  .ohk-search-box > button[type="submit"] {
+    width: 46px;
+    min-width: 46px;
+    height: 44px;
+    font-size: 13px;
+  }
+  .ohk-search-box > .ohk-search-clear { width: 22px; min-width: 22px; }
+  .ohk-tag-group { gap: 4px 6px; padding: 7px 8px; }
+  .ohk-tag-scroll button { font-size: 11px; padding: 6px 4px; }
+  .ohk-card-body { padding: 7px; }
+  .ohk-card-label { font-size: 10px; padding: 5px 8px; }
+  .ohk-card-meta-row { gap: 4px; margin-bottom: 7px; }
+  .ohk-card-meta-row .ohk-card-label { max-width: 58%; }
+  .ohk-card-expiry-inline { max-width: 42%; font-size: 8px; padding: 3px 5px; }
+  .ohk-card-body h2 { font-size: 13px; line-height: 17px; }
+  .ohk-card-date { font-size: 10px; }
+}
+
+@media (max-width: 340px) {
+  .ohk-search-box > .ohk-icon { width: 22px; height: 22px; }
+  .ohk-search-box input { font-size: 13px; padding-left: 4px; padding-right: 4px; }
+  .ohk-search-box > button[type="submit"] { width: 42px; min-width: 42px; }
+  .ohk-tag-scroll button { font-size: 10px; }
+  .ohk-card-meta-row .ohk-card-label { max-width: 55%; }
+  .ohk-card-expiry-inline { max-width: 45%; font-size: 7px; padding: 3px 4px; }
+}
