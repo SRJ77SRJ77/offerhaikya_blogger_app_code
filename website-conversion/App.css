@@ -1608,33 +1608,35 @@ input, textarea, select, button { max-width: 100%; }
 }
 
 
-/* Circular discount sticker on offer cards; keep expiry label at top-left. */
-.ohk-card-discount-sticker{
+/* Pill discount badge with tag icon; positioned below expiry when present. */
+.ohk-card-discount-badge{
   position:absolute;
   top:8px;
   left:8px;
   z-index:3;
-  width:58px;
-  height:58px;
-  border-radius:50%;
-  background:#ff5b01;
+  min-height:32px;
+  max-width:calc(100% - 100px);
+  padding:7px 11px;
+  border-radius:999px;
+  background:#ff2d2d;
   color:#fff;
-  display:flex;
-  flex-direction:column;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-  text-align:center;
-  line-height:1.05;
+  gap:6px;
+  font-size:12px;
+  font-weight:900;
+  line-height:1.15;
+  white-space:nowrap;
   box-shadow:0 2px 7px rgba(0,0,0,.2);
   pointer-events:none;
 }
-.ohk-card-discount-sticker strong{font-size:17px;font-weight:900}
-.ohk-card-discount-sticker span{font-size:10px;font-weight:900;letter-spacing:.4px}
+.ohk-card-discount-badge svg{display:block;flex:0 0 auto}
+.ohk-card-discount-badge span{overflow:hidden;text-overflow:ellipsis}
 .ohk-card-discount-below-expiry{top:44px}
-.ohk-card-dark .ohk-card-discount-sticker{background:#ff5b01;color:#fff}
+.ohk-card-dark .ohk-card-discount-badge{background:#ff2d2d;color:#fff}
 @media(max-width:380px){
-  .ohk-card-discount-sticker{width:52px;height:52px}
-  .ohk-card-discount-sticker strong{font-size:15px}
-  .ohk-card-discount-sticker span{font-size:9px}
+  .ohk-card-discount-badge{min-height:29px;padding:6px 8px;gap:4px;font-size:10px;max-width:calc(100% - 90px)}
+  .ohk-card-discount-badge svg{width:12px;height:12px}
   .ohk-card-discount-below-expiry{top:42px}
 }
