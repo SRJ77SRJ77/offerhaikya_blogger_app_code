@@ -1368,11 +1368,29 @@ function App() {
     try {
       const biasLatitude = userLocation?.latitude ?? 15.8497
       const biasLongitude = userLocation?.longitude ?? 74.4977
-      const photonResponse = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=10&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`)
-      const photonData = photonResponse.ok ? await photonResponse.json() : { features: [] }
-      const features = Array.isArray(photonData?.features) ? photonData.features : []
-      const queryWords = text.toLocaleLowerCase().replaceAll(',', ' ').split(' ').filter(Boolean)
-      const photonPlaces = features.map((feature) => {
+      const normalizePlaceText = (value) => String(value || '')
+        .toLocaleLowerCase()
+        .replace(/belgaum/g, 'belagavi')
+        .replace(/vijaynagar/g, 'vijayanagar')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+      const queryWords = normalizePlaceText(text).split(/\s+/).filter(Boolean)
+      const searchQueries = [text]
+      if (/vijaynagar/i.test(text)) searchQueries.push(text.replace(/vijaynagar/ig, 'Vijayanagar'))
+      if (/belgaum/i.test(text)) searchQueries.push(text.replace(/belgaum/ig, 'Belagavi'))
+      if (/vijaynagar/i.test(text) && /belgaum/i.test(text)) {
+        searchQueries.push(text.replace(/vijaynagar/ig, 'Vijayanagar').replace(/belgaum/ig, 'Belagavi'))
+      }
+      const uniqueQueries = [...new Set(searchQueries.map((value) => value.trim()).filter(Boolean))]
+      const photonResponses = await Promise.all(uniqueQueries.map(async (searchText) => {
+        try {
+          const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchText)}&limit=10&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`)
+          return response.ok ? await response.json() : { features: [] }
+        } catch {
+          return { features: [] }
+        }
+      }))
+      const photonPlaces = photonResponses.flatMap((data) => Array.isArray(data?.features) ? data.features : []).map((feature) => {
         const properties = feature?.properties || {}
         const coordinates = feature?.geometry?.coordinates || []
         const longitude = Number(coordinates[0])
@@ -1380,25 +1398,31 @@ function App() {
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
         const name = properties.name || properties.locality || properties.neighbourhood || properties.suburb || ''
         const displayName = [name, properties.neighbourhood, properties.suburb, properties.street, properties.district, properties.city, properties.county, properties.state, properties.postcode, properties.country].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
-        const searchable = displayName.toLocaleLowerCase()
+        const searchable = normalizePlaceText(displayName)
         const score = queryWords.filter((word) => searchable.includes(word)).length
         return { place_id: `${properties.osm_type || 'place'}-${properties.osm_id || `${latitude}-${longitude}`}`, lat: latitude, lon: longitude, name, display_name: displayName || name || 'Selected location', _score: score, address: { suburb: properties.suburb || '', neighbourhood: properties.neighbourhood || '', city_district: properties.district || '', city: properties.city || '', town: properties.city || '', county: properties.county || '', state_district: properties.state || '', state: properties.state || '', village: properties.locality || '', postcode: properties.postcode || '' } }
       }).filter(Boolean).sort((a, b) => b._score - a._score)
       let place = photonPlaces[0] || null
-      if (!place) {
-        const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(text)}`)
-        const nominatimData = nominatimResponse.ok ? await nominatimResponse.json() : []
-        const results = Array.isArray(nominatimData) ? nominatimData : []
-        const best = results.find((item) => item?.lat && item?.lon) || null
-        if (best) {
-          const address = best.address || {}
-          place = { place_id: `nominatim-${best.place_id || best.osm_id || best.lat + '-' + best.lon}`, lat: Number(best.lat), lon: Number(best.lon), name: best.name || address.suburb || address.neighbourhood || address.city || address.town || '', display_name: best.display_name || text, address: { suburb: address.suburb || '', neighbourhood: address.neighbourhood || '', city_district: address.city_district || '', city: address.city || '', town: address.town || '', county: address.county || '', state_district: address.state_district || '', state: address.state || '', village: address.village || '', postcode: address.postcode || '' } }
+      if (!place || place._score < queryWords.length) {
+        const nominatimQuery = uniqueQueries[uniqueQueries.length - 1] + ', Karnataka, India'
+        try {
+          const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(nominatimQuery)}`)
+          const nominatimData = nominatimResponse.ok ? await nominatimResponse.json() : []
+          const results = Array.isArray(nominatimData) ? nominatimData : []
+          const nominatimPlaces = results.filter((item) => item?.lat && item?.lon).map((item) => {
+            const address = item.address || {}
+            const displayName = item.display_name || text
+            return { place_id: `nominatim-${item.place_id || item.osm_id || item.lat + '-' + item.lon}`, lat: Number(item.lat), lon: Number(item.lon), name: item.name || address.suburb || address.neighbourhood || address.city || address.town || '', display_name: displayName, _score: queryWords.filter((word) => normalizePlaceText(displayName).includes(word)).length, address: { suburb: address.suburb || '', neighbourhood: address.neighbourhood || '', city_district: address.city_district || '', city: address.city || '', town: address.town || '', county: address.county || '', state_district: address.state_district || '', state: address.state || '', village: address.village || '', postcode: address.postcode || '' } }
+          }).sort((a, b) => b._score - a._score)
+          if (nominatimPlaces.length && (!place || nominatimPlaces[0]._score > place._score)) place = nominatimPlaces[0]
+        } catch {
+          // Keep any usable Photon result if the fallback geocoder is unavailable.
         }
       }
-      if (place && Number.isFinite(Number(place.lat)) && Number.isFinite(Number(place.lon))) {
+      if (place && Number.isFinite(Number(place.lat)) && Number.isFinite(Number(place.lon)) && place._score > 0) {
         chooseSuggestedLocation(place)
       } else {
-        setLocationMessage('Location not found on the map. Try adding a nearby area or city, such as “Vijaynagar, Belagavi, Karnataka”.')
+        setLocationMessage('Location not found on the map. Try “Vijayanagar, Belagavi, Karnataka” or add a nearby area/city.')
         setLocationSuggestionsOpen(true)
       }
     } catch {
@@ -1408,6 +1432,7 @@ function App() {
       setLocationLoading(false)
     }
   }
+
   const handleTagPointerDown = (event) => {
     const element = event.currentTarget
     tagDragRef.current = { startX: event.clientX, scrollLeft: element.scrollLeft, dragged: false, element }
@@ -2073,15 +2098,12 @@ function App() {
                         value={locationQuery}
                         onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
                         onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
-                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0]); else useTypedLocationFallback() } }}
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); useTypedLocationFallback() } }}
                         placeholder="Type Goa, Kolhapur, etc."
                         aria-label="Search location"
                       />
                       {locationQuery ? <button type="button" className="ohk-search-clear ohk-location-picker-clear" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
-                      <button type="button" className="ohk-nearby-picker-go-button" onClick={() => {
-                        if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
-                        else useTypedLocationFallback()
-                      }}>GO</button>
+                      <button type="button" className="ohk-nearby-picker-go-button" onClick={useTypedLocationFallback}>GO</button>
                       {locationSuggestionsOpen && locationSuggestions.length ? (
                         <div className="ohk-location-suggestions">
                           {locationSuggestions.map((place) => (
@@ -2126,8 +2148,7 @@ function App() {
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
                         event.preventDefault()
-                        if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
-                        else useTypedLocationFallback()
+                        useTypedLocationFallback()
                       }
                     }}
                     placeholder="Search city, area or place..."
