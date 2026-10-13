@@ -1629,3 +1629,8 @@ input, textarea, select, button { max-width: 100%; }
 /* Offer expiry theme: use Offerhaikya orange instead of yellow in cards and detail pages. */
 .ohk-card-expiry-inline.ohk-detail-status-expiry{background:#fff0e6;color:#ff5b01}
 .ohk-dark .ohk-card-expiry-inline.ohk-detail-status-expiry{background:#452516;color:#ff8a45}
+
+/* Expired offers stay visible but are greyed out and cannot be opened. */
+.ohk-card-expired-locked::after{content:"";position:absolute;inset:0;z-index:3;background:rgba(110,110,110,.42);pointer-events:none;border-radius:inherit}
+.ohk-card-expired-locked .ohk-card-click{cursor:not-allowed}
+.ohk-card-expired-locked:hover{transform:none;box-shadow:0 3px 8px rgba(0,0,0,.08)}
