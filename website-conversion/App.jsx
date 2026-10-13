@@ -552,14 +552,7 @@ function getExpiryLabel(post) {
     hour12: true,
   }).replace(/\\b(am|pm)\\b/i, (period) => period.toUpperCase())
 
-  // Use compact year/month labels for long-running store listings.
-  if (remainingDays >= 330) return `Expires on ${expiryYear}`
-  if (remainingDays >= 150) return `Expires in 6 months · ${expiryYear}`
-  if (remainingDays >= 75) return `Expires in 3 months · ${expiryYear}`
-  if (remainingDays >= 45) return `Expires in 2 months · ${expiryYear}`
-  if (remainingDays >= 30) return `Expires in 1 month · ${expiryYear}`
-
-  // Within the final month, show the exact expiry date and time.
+  // Always show the exact expiry date and time.
   return `Expires on ${expiryDateTimeLabel}`
 }
 function Icon({ name, size = 22 }) {
