@@ -542,10 +542,16 @@ function getExpiryLabel(post) {
   const minutes = totalMinutes % 60
   const remainingDays = Math.floor(totalHours / 24)
   const hours = totalHours % 24
+  const expiryDateLabel = new Date(expiryTime).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+  const dateSuffix = ` · ${expiryDateLabel}`
 
-  if (remainingDays > 0) return hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`
-  if (totalHours > 0) return minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`
-  return `Expires in ${minutes}m`
+  if (remainingDays > 0) return (hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`) + dateSuffix
+  if (totalHours > 0) return (minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`) + dateSuffix
+  return `Expires in ${minutes}m` + dateSuffix
 }
 function Icon({ name, size = 22 }) {
   const paths = {
