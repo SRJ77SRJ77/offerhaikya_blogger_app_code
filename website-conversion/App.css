@@ -1228,11 +1228,11 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-status{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:5px 10px;border-radius:999px;font:700 12px/1.25 Rubik,Arial,sans-serif}
 .ohk-detail-status-verified{background:#e7f7ec;color:#18733a}
 .ohk-detail-status-expired{background:#fde9e8;color:#b42318}
-.ohk-detail-status-expiry{background:#fff4d8;color:#875900}
+.ohk-detail-status-expiry{background:#fff0e6;color:#ff5b01}
 .ohk-detail-status-distance{background:#e8f2ff;color:#1759a8}
 .ohk-dark .ohk-detail-status-verified{background:#153a25;color:#8be0a6}
 .ohk-dark .ohk-detail-status-expired{background:#431e1c;color:#ffaaa5}
-.ohk-dark .ohk-detail-status-expiry{background:#403214;color:#ffdc83}
+.ohk-dark .ohk-detail-status-expiry{background:#452516;color:#ff8a45}
 .ohk-dark .ohk-detail-status-distance{background:#172e49;color:#a7d0ff}
 .ohk-detail-gallery{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:start;width:100%;max-width:900px;margin:12px auto 24px}
 .ohk-detail-gallery.single-image{grid-template-columns:minmax(0,1fr)}
@@ -1624,3 +1624,8 @@ input, textarea, select, button { max-width: 100%; }
 @media(max-width:380px){
   .ohk-card-expiry-inline{max-width:70%;font-size:9px;padding:4px 7px}
 }
+
+
+/* Offer expiry theme: use Offerhaikya orange instead of yellow in cards and detail pages. */
+.ohk-card-expiry-inline.ohk-detail-status-expiry{background:#fff0e6;color:#ff5b01}
+.ohk-dark .ohk-card-expiry-inline.ohk-detail-status-expiry{background:#452516;color:#ff8a45}
