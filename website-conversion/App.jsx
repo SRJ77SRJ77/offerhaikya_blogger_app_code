@@ -1787,6 +1787,7 @@ function App() {
                 placeholder="Search offers..."
                 aria-label="Search offers"
               />
+              {query ? <button type="button" className="ohk-search-clear" aria-label="Clear search" onClick={() => setQuery('')}><Icon name="close" size={17} /></button> : null}
               <button type="submit">GO</button>
               {query.trim() ? (
                 <div className="ohk-search-suggestions">
@@ -1811,7 +1812,8 @@ function App() {
               placeholder="Search offers..."
               className="ohk-main-search-input"
             />
-            <button onClick={() => setSearchOpen(false)}><Icon name="close" size={20} /></button>
+            {query ? <button type="button" className="ohk-search-clear" aria-label="Clear search" onClick={() => setQuery('')}><Icon name="close" size={17} /></button> : null}
+            <button type="button" aria-label="Close search" onClick={() => setSearchOpen(false)}><Icon name="close" size={20} /></button>
           </div>
         ) : null}
 
@@ -1882,6 +1884,7 @@ function App() {
                     placeholder="Search city, area or place..."
                     aria-label="Search location"
                   />
+                  {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
                   <button className="ohk-nearby-search-button" type="button" onClick={() => {
                     if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
                     else setLocationSuggestionsOpen(true)
