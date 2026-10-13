@@ -898,7 +898,6 @@ function App() {
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [locationSuggestions, setLocationSuggestions] = useState([])
   const [locationSuggestionsOpen, setLocationSuggestionsOpen] = useState(false)
-  const [manualLocationSearch, setManualLocationSearch] = useState('')
   const locationSuggestionCacheRef = useRef(new Map())
   const tagDragRef = useRef(null)
   const [locationLoading, setLocationLoading] = useState(false)
@@ -1350,7 +1349,6 @@ function App() {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return
     const address = place.address || {}
     const label = address.suburb || address.neighbourhood || place.name || address.city || address.town || address.city_district || address.county || address.state_district || address.village || place.display_name?.split(',')[0] || locationQuery
-    setManualLocationSearch('')
     setUserLocation({ latitude, longitude })
     setLocationLabel(String(label).trim())
     setLocationQuery('')
@@ -1361,21 +1359,54 @@ function App() {
     setActiveTab('local')
   }
 
-  const useTypedLocationFallback = () => {
+  const useTypedLocationFallback = async () => {
     const text = locationQuery.trim()
-    if (text.length < 2) {
-      setLocationSuggestionsOpen(true)
-      return
-    }
-    setUserLocation(null)
-    setManualLocationSearch(text)
-    setLocationLabel(text)
-    setLocationQuery('')
-    setLocationSuggestions([])
+    if (text.length < 2 || locationLoading) return
+    setLocationLoading(true)
+    setLocationMessage('Finding this place on the map…')
     setLocationSuggestionsOpen(false)
-    setLocationPickerOpen(false)
-    setLocationMessage('Showing offers that match “' + text + '”. No map location was found, so distance filtering is unavailable.')
-    setActiveTab('local')
+    try {
+      const biasLatitude = userLocation?.latitude ?? 15.8497
+      const biasLongitude = userLocation?.longitude ?? 74.4977
+      const photonResponse = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=10&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`)
+      const photonData = photonResponse.ok ? await photonResponse.json() : { features: [] }
+      const features = Array.isArray(photonData?.features) ? photonData.features : []
+      const queryWords = text.toLocaleLowerCase().split(/[\\s,]+/).filter(Boolean)
+      const photonPlaces = features.map((feature) => {
+        const properties = feature?.properties || {}
+        const coordinates = feature?.geometry?.coordinates || []
+        const longitude = Number(coordinates[0])
+        const latitude = Number(coordinates[1])
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
+        const name = properties.name || properties.locality || properties.neighbourhood || properties.suburb || ''
+        const displayName = [name, properties.neighbourhood, properties.suburb, properties.street, properties.district, properties.city, properties.county, properties.state, properties.postcode, properties.country].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
+        const searchable = displayName.toLocaleLowerCase()
+        const score = queryWords.filter((word) => searchable.includes(word)).length
+        return { place_id: `${properties.osm_type || 'place'}-${properties.osm_id || `${latitude}-${longitude}`}`, lat: latitude, lon: longitude, name, display_name: displayName || name || 'Selected location', _score: score, address: { suburb: properties.suburb || '', neighbourhood: properties.neighbourhood || '', city_district: properties.district || '', city: properties.city || '', town: properties.city || '', county: properties.county || '', state_district: properties.state || '', state: properties.state || '', village: properties.locality || '', postcode: properties.postcode || '' } }
+      }).filter(Boolean).sort((a, b) => b._score - a._score)
+      let place = photonPlaces[0] || null
+      if (!place) {
+        const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(text)}`)
+        const nominatimData = nominatimResponse.ok ? await nominatimResponse.json() : []
+        const results = Array.isArray(nominatimData) ? nominatimData : []
+        const best = results.find((item) => item?.lat && item?.lon) || null
+        if (best) {
+          const address = best.address || {}
+          place = { place_id: `nominatim-${best.place_id || best.osm_id || best.lat + '-' + best.lon}`, lat: Number(best.lat), lon: Number(best.lon), name: best.name || address.suburb || address.neighbourhood || address.city || address.town || '', display_name: best.display_name || text, address: { suburb: address.suburb || '', neighbourhood: address.neighbourhood || '', city_district: address.city_district || '', city: address.city || '', town: address.town || '', county: address.county || '', state_district: address.state_district || '', state: address.state || '', village: address.village || '', postcode: address.postcode || '' } }
+        }
+      }
+      if (place && Number.isFinite(Number(place.lat)) && Number.isFinite(Number(place.lon))) {
+        chooseSuggestedLocation(place)
+      } else {
+        setLocationMessage('Location not found on the map. Try adding a nearby area or city, such as “Vijaynagar, Belagavi, Karnataka”.')
+        setLocationSuggestionsOpen(true)
+      }
+    } catch {
+      setLocationMessage('Could not search the map right now. Please try again in a moment.')
+      setLocationSuggestionsOpen(true)
+    } finally {
+      setLocationLoading(false)
+    }
   }
   const handleTagPointerDown = (event) => {
     const element = event.currentTarget
@@ -1412,31 +1443,17 @@ function App() {
   useEffect(() => { setNearbyVisible(PAGE_SIZE) }, [userLocation])
 
   const nearbyPosts = useMemo(() => {
-    if (userLocation) {
-      return posts
-        .filter(isOfflinePost)
-        .map((post) => {
-          if (!post.coordinates) return null
-          const distance = distanceKm(userLocation, post.coordinates)
-          return distance <= NEARBY_RADIUS_KM ? { ...post, nearbyDistanceKm: distance } : null
-        })
-        .filter(Boolean)
-        .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
-    }
-
-    const queryText = manualLocationSearch.trim().toLocaleLowerCase()
-    if (!queryText) return []
-    const queryWords = queryText.split(/[\s,]+/).filter(Boolean)
+    if (!userLocation) return []
     return posts
       .filter(isOfflinePost)
       .map((post) => {
-        const searchableText = [post.title, post.labels?.join(' '), post.excerpt, post.bloggerLocation, post.rawContent ? stripHtml(post.rawContent) : ''].filter(Boolean).join(' ').toLocaleLowerCase()
-        const matchedWords = queryWords.filter((word) => searchableText.includes(word)).length
-        return matchedWords ? { ...post, manualLocationMatchCount: matchedWords } : null
+        if (!post.coordinates) return null
+        const distance = distanceKm(userLocation, post.coordinates)
+        return distance <= NEARBY_RADIUS_KM ? { ...post, nearbyDistanceKm: distance } : null
       })
       .filter(Boolean)
-      .sort((a, b) => b.manualLocationMatchCount - a.manualLocationMatchCount)
-  }, [posts, userLocation, manualLocationSearch])
+      .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
+  }, [posts, userLocation])
 
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
@@ -2043,10 +2060,10 @@ function App() {
         ) : null}
 
         <section className="ohk-content">
-          {userLocation || manualLocationSearch ? (
+          {userLocation ? (
             <section id="nearby" className="ohk-section">
               <div className="ohk-section-title">
-                <h2>{userLocation ? 'Nearby Offers' : 'Offers Matching'}{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
+                <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
                   {locationPickerOpen ? (
                     <div className="ohk-location-autocomplete">
@@ -2080,7 +2097,7 @@ function App() {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: Boolean(userLocation) }, 'nearby')}
+                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
