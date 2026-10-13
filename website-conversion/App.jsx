@@ -502,6 +502,20 @@ function distanceKm(first, second) {
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
+function formatDistance(km) {
+  if (!Number.isFinite(km) || km < 0) return ''
+
+  if (km < 1) {
+    return `${Math.round(km * 1000)} m`
+  }
+
+  if (km < 10) {
+    return `${Number(km.toFixed(1))} km`
+  }
+
+  return `${Math.round(km)} km`
+}
+
 function isOfflinePost(post) {
   const labels = (post.labels || []).map((label) => label.toLowerCase().trim())
   return labels.some((label) => /^(offline offer|offline offers|local offer|local offers|nearby offer|nearby offers)$/.test(label))
@@ -684,10 +698,10 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
       {nearby ? (
         <div
           className="ohk-card-distance"
-          aria-label={`Distance: ${Math.round(post.nearbyDistanceKm)} km`}
+          aria-label={`Distance: ${formatDistance(post.nearbyDistanceKm)}`}
         >
           <Icon name="location" size={12} />
-          {Math.round(post.nearbyDistanceKm)} km
+          {formatDistance(post.nearbyDistanceKm)}
         </div>
       ) : null}
 
@@ -1673,7 +1687,7 @@ function App() {
                 ) : null}
                 {Number.isFinite(detailDistanceKm) ? (
                   <span className="ohk-detail-status ohk-detail-status-distance">
-                    <Icon name="location" size={14} /> {Math.round(detailDistanceKm)} km away
+                    <Icon name="location" size={14} /> {formatDistance(detailDistanceKm)} away
                   </span>
                 ) : null}
                 <div className="ohk-detail-content-actions ohk-detail-status-actions">
