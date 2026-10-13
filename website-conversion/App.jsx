@@ -1371,7 +1371,7 @@ function App() {
       const photonResponse = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=10&lang=en&lat=${biasLatitude}&lon=${biasLongitude}`)
       const photonData = photonResponse.ok ? await photonResponse.json() : { features: [] }
       const features = Array.isArray(photonData?.features) ? photonData.features : []
-      const queryWords = text.toLocaleLowerCase().split(/[\\s,]+/).filter(Boolean)
+      const queryWords = text.toLocaleLowerCase().replaceAll(',', ' ').split(' ').filter(Boolean)
       const photonPlaces = features.map((feature) => {
         const properties = feature?.properties || {}
         const coordinates = feature?.geometry?.coordinates || []
