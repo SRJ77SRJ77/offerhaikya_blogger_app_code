@@ -717,7 +717,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
           <div className="ohk-card-meta-row">
             <span className="ohk-card-label">{post.label}</span>
             {expiry ? (
-              <span className={`ohk-card-expiry-inline ${expiry === 'Expired' ? 'ohk-card-expired' : ''}`} title={expiry}>
+              <span className={`ohk-detail-status ${expiry === 'Expired' ? 'ohk-detail-status-expired' : 'ohk-detail-status-expiry'} ohk-card-expiry-inline`} title={expiry}>
                 <span className="ohk-card-expiry-full">{expiry}</span>
                 <span className="ohk-card-expiry-short">{expiry === 'Expired' ? 'Expired' : expiry.replace(/^Expires in /, 'Exp in ').split(' ·')[0] + '…'}</span>
               </span>
