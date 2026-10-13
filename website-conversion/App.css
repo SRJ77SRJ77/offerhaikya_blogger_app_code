@@ -1616,7 +1616,7 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-card-expiry-inline{flex:0 1 auto;min-width:0;max-width:68%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 .ohk-card-expiry-inline .ohk-card-expiry-short{display:none}
 .ohk-card-expiry-inline .ohk-card-expiry-full{display:inline}
-@media(max-width:600px){
+@media(max-width:900px){
   .ohk-card-expiry-inline{max-width:68%;font-size:10px}
   .ohk-card-expiry-inline .ohk-card-expiry-full{display:none}
   .ohk-card-expiry-inline .ohk-card-expiry-short{display:inline}
