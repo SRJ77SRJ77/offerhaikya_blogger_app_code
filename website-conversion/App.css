@@ -104,7 +104,8 @@ a{color:inherit;text-decoration:none}
 .ohk-card-image{display:block;width:100%;height:150px;object-fit:cover;background:#eee}
 .ohk-image-fallback{display:flex;align-items:center;justify-content:center;color:#77747a;font-weight:900}
 .ohk-card-body{padding:10px 10px 13px}
-.ohk-card-label{display:inline-block;color:#ff5b01;font-size:11px;font-weight:900;margin-bottom:5px}
+.ohk-card-label{display:inline-flex;align-items:center;max-width:100%;box-sizing:border-box;border:0;border-radius:999px;background:#fff1e9;color:#ff5b01;padding:6px 10px;font:700 11px/1.3 Rubik,Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;margin:0}
+.ohk-dark .ohk-card-label{background:#2b1b13;color:#ff9b69}
 .ohk-card-body h2{margin:0;color:#202124;font-size:15px;line-height:20px;font-weight:900;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ohk-card-dark .ohk-card-body h2{color:#fff}
 .ohk-card-date{color:#77747a;font-size:11px;margin-top:5px}
