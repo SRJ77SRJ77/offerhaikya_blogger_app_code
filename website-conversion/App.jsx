@@ -2155,10 +2155,7 @@ function App() {
                     aria-label="Search location"
                   />
                   {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
-                  <button className="ohk-nearby-search-button" type="button" onClick={() => {
-                    if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
-                    else useTypedLocationFallback()
-                  }}>GO</button>
+                  <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
                     {locationLoading ? 'Checking...' : 'Find Nearby'}
