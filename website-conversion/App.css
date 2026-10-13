@@ -1668,3 +1668,31 @@ input, textarea, select, button { max-width: 100%; }
   height:28px;min-height:28px;padding:0;
 }
 .ohk-detail-related-search-wrap .ohk-detail-related-clear svg{stroke:#000}
+
+
+/* Keep every search clear X visually consistent; only its color changes with theme. */
+.ohk-search-box>.ohk-search-clear,
+.ohk-search-mobile-row>.ohk-search-clear,
+.ohk-nearby-search-row>.ohk-location-clear,
+.ohk-detail-related-search-wrap .ohk-detail-related-clear{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  border-radius:0!important;color:#000!important;outline:0;
+}
+.ohk-search-box>.ohk-search-clear:hover,
+.ohk-search-mobile-row>.ohk-search-clear:hover,
+.ohk-nearby-search-row>.ohk-location-clear:hover,
+.ohk-detail-related-search-wrap .ohk-detail-related-clear:hover{
+  background:transparent!important;color:#000!important;
+}
+.ohk-search-box>.ohk-search-clear svg,
+.ohk-search-mobile-row>.ohk-search-clear svg,
+.ohk-nearby-search-row>.ohk-location-clear svg,
+.ohk-detail-related-search-wrap .ohk-detail-related-clear svg{stroke:currentColor}
+.ohk-dark .ohk-search-box>.ohk-search-clear,
+.ohk-dark .ohk-search-mobile-row>.ohk-search-clear,
+.ohk-dark .ohk-nearby-search-row>.ohk-location-clear,
+.ohk-dark .ohk-detail-related-search-wrap .ohk-detail-related-clear,
+.ohk-dark .ohk-search-box>.ohk-search-clear:hover,
+.ohk-dark .ohk-search-mobile-row>.ohk-search-clear:hover,
+.ohk-dark .ohk-nearby-search-row>.ohk-location-clear:hover,
+.ohk-dark .ohk-detail-related-search-wrap .ohk-detail-related-clear:hover{color:#fff!important}
