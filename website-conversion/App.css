@@ -328,6 +328,8 @@ a{color:inherit;text-decoration:none}
 .ohk-search-suggestion-copy small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#77747a;font-size:12px;line-height:16px;white-space:normal;overflow-wrap:anywhere}
 .ohk-nearby-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-left:auto;min-width:0}
 .ohk-nearby-actions>button{flex:none;border:0;border-radius:9px;background:#ff5b01;color:#fff;padding:10px 12px;font-size:12px;font-weight:900;white-space:nowrap}
+.ohk-nearby-picker-go-button{display:inline-flex;align-items:center;justify-content:center;align-self:stretch;min-height:38px;border:0;border-radius:9px;background:#ff5b01;color:#fff;padding:8px 12px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.ohk-mobile-search-go{width:auto!important;min-width:48px;height:36px;border:0!important;border-radius:8px;background:#ff5b01!important;color:#fff!important;font-size:12px;font-weight:900;}
 .ohk-location-autocomplete{position:relative;width:min(240px,40vw);min-width:130px}
 .ohk-location-autocomplete input{box-sizing:border-box;width:100%;height:38px;border:1px solid #ddd;border-radius:9px;background:#fff;color:#202124;padding:8px 10px;font:inherit;font-size:12px;outline-color:#ff5b01}
 .ohk-location-suggestions{position:absolute;top:calc(100% + 5px);left:0;right:0;max-height:260px;overflow:auto;background:#fff;border:1px solid #e5e5e5;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);padding:5px;z-index:110}
