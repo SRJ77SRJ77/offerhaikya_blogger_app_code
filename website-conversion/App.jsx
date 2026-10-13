@@ -1741,13 +1741,16 @@ function App() {
             <section id="detail-related" className="ohk-detail-related">
               <div className="ohk-detail-related-inner">
                 <h2>Search offers by tag</h2>
-                <input
-                  className="ohk-detail-related-search"
-                  value={detailTagFilter}
-                  onChange={(event) => setDetailTagFilter(event.target.value)}
-                  placeholder="Search offers or select a tag above..."
-                  aria-label="Search related offers"
-                />
+                <div className="ohk-detail-related-search-wrap">
+                  <input
+                    className="ohk-detail-related-search"
+                    value={detailTagFilter}
+                    onChange={(event) => setDetailTagFilter(event.target.value)}
+                    placeholder="Search offers or select a tag above..."
+                    aria-label="Search related offers"
+                  />
+                  {detailTagFilter ? <button type="button" className="ohk-search-clear ohk-detail-related-clear" aria-label="Clear tag search" onClick={() => setDetailTagFilter('')}><Icon name="close" size={17} /></button> : null}
+                </div>
                 <h3>Suggested Offers</h3>
                 <div className="ohk-grid">
                   {detailSuggestedPosts.map((post) => (
