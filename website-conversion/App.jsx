@@ -2055,6 +2055,7 @@ function App() {
               className="ohk-main-search-input"
             />
             {query ? <button type="button" className="ohk-search-clear" aria-label="Clear search" onClick={() => setQuery('')}><Icon name="close" size={17} /></button> : null}
+            <button type="button" className="ohk-mobile-search-go" onClick={() => { setVisible(PAGE_SIZE); setSearchOpen(false) }}>GO</button>
             <button type="button" aria-label="Close search" onClick={() => setSearchOpen(false)}><Icon name="close" size={20} /></button>
           </div>
         ) : null}
@@ -2077,6 +2078,10 @@ function App() {
                         aria-label="Search location"
                       />
                       {locationQuery ? <button type="button" className="ohk-search-clear ohk-location-picker-clear" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
+                      <button type="button" className="ohk-nearby-picker-go-button" onClick={() => {
+                        if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
+                        else useTypedLocationFallback()
+                      }}>GO</button>
                       {locationSuggestionsOpen && locationSuggestions.length ? (
                         <div className="ohk-location-suggestions">
                           {locationSuggestions.map((place) => (
@@ -2132,7 +2137,7 @@ function App() {
                   <button className="ohk-nearby-search-button" type="button" onClick={() => {
                     if (locationSuggestions.length) chooseSuggestedLocation(locationSuggestions[0])
                     else useTypedLocationFallback()
-                  }}>Search</button>
+                  }}>GO</button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
                     {locationLoading ? 'Checking...' : 'Find Nearby'}
