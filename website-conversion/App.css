@@ -1606,3 +1606,35 @@ input, textarea, select, button { max-width: 100%; }
   aspect-ratio: auto !important;
   object-fit: cover;
 }
+
+
+/* Circular discount sticker on offer cards; keep expiry label at top-left. */
+.ohk-card-discount-sticker{
+  position:absolute;
+  top:8px;
+  left:8px;
+  z-index:3;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  background:#ff5b01;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.05;
+  box-shadow:0 2px 7px rgba(0,0,0,.2);
+  pointer-events:none;
+}
+.ohk-card-discount-sticker strong{font-size:17px;font-weight:900}
+.ohk-card-discount-sticker span{font-size:10px;font-weight:900;letter-spacing:.4px}
+.ohk-card-discount-below-expiry{top:44px}
+.ohk-card-dark .ohk-card-discount-sticker{background:#ff5b01;color:#fff}
+@media(max-width:380px){
+  .ohk-card-discount-sticker{width:52px;height:52px}
+  .ohk-card-discount-sticker strong{font-size:15px}
+  .ohk-card-discount-sticker span{font-size:9px}
+  .ohk-card-discount-below-expiry{top:42px}
+}
