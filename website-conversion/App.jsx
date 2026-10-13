@@ -541,21 +541,26 @@ function getExpiryLabel(post) {
 
   if (remainingMs <= 0) return 'Expired'
 
-  const totalMinutes = Math.ceil(remainingMs / 60000)
-  const totalHours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  const remainingDays = Math.floor(totalHours / 24)
-  const hours = totalHours % 24
-  const expiryDateLabel = new Date(expiryTime).toLocaleDateString('en-IN', {
+  const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
+  const expiryDate = new Date(expiryTime)
+  const expiryYear = expiryDate.getFullYear()
+  const expiryDateTimeLabel = expiryDate.toLocaleString('en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  })
-  const dateSuffix = ` · ${expiryDateLabel}`
+    hour: 'numeric',
+    hour12: true,
+  }).replace(/\\b(am|pm)\\b/i, (period) => period.toUpperCase())
 
-  if (remainingDays > 0) return (hours > 0 ? `Expires in ${remainingDays}d ${hours}h` : `Expires in ${remainingDays}d`) + dateSuffix
-  if (totalHours > 0) return (minutes > 0 ? `Expires in ${totalHours}h ${minutes}m` : `Expires in ${totalHours}h`) + dateSuffix
-  return `Expires in ${minutes}m` + dateSuffix
+  // Use compact year/month labels for long-running store listings.
+  if (remainingDays >= 330) return `Expires on ${expiryYear}`
+  if (remainingDays >= 150) return `Expires in 6 months · ${expiryYear}`
+  if (remainingDays >= 75) return `Expires in 3 months · ${expiryYear}`
+  if (remainingDays >= 45) return `Expires in 2 months · ${expiryYear}`
+  if (remainingDays >= 30) return `Expires in 1 month · ${expiryYear}`
+
+  // Within the final month, show the exact expiry date and time.
+  return `Expires on ${expiryDateTimeLabel}`
 }
 function Icon({ name, size = 22 }) {
   const paths = {
