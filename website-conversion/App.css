@@ -2010,3 +2010,45 @@ input, textarea, select, button { max-width: 100%; }
   justify-content:flex-start!important;
 }
 
+/* Use the full card row: Tags on the left, expiry starts at the far right. */
+.ohk-card-meta-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+  min-width:0;
+}
+.ohk-card-meta-row .ohk-card-label,
+.ohk-dark .ohk-card-meta-row .ohk-card-label {
+  flex:0 1 auto;
+  width:auto;
+  max-width:65%;
+  min-width:0;
+  margin-right:auto;
+  text-align:left!important;
+}
+.ohk-card-meta-row .ohk-card-expiry-inline,
+.ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline {
+  flex:0 1 auto;
+  width:auto;
+  max-width:45%;
+  min-width:0;
+  margin-left:auto;
+  text-align:right!important;
+  justify-content:flex-end!important;
+}
+@media(max-width:380px) {
+  .ohk-card-meta-row {gap:5px}
+  .ohk-card-meta-row .ohk-card-label,
+  .ohk-dark .ohk-card-meta-row .ohk-card-label {max-width:60%;font-size:9px}
+  .ohk-card-meta-row .ohk-card-expiry-inline,
+  .ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline {max-width:40%;font-size:9px;text-align:right!important;justify-content:flex-end!important}
+}
+@media(max-width:340px) {
+  .ohk-card-meta-row .ohk-card-label,
+  .ohk-dark .ohk-card-meta-row .ohk-card-label {font-size:8px}
+  .ohk-card-meta-row .ohk-card-expiry-inline,
+  .ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline {font-size:8px}
+}
+
