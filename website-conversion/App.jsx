@@ -2117,7 +2117,7 @@ function App() {
                         onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
                         onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
                         onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); useTypedLocationFallback() } }}
-                        placeholder="Type Goa, Kolhapur, etc."
+                        placeholder="Enter City, Town or State"
                         aria-label="Search location"
                       />
                       {locationQuery ? <button type="button" className="ohk-search-clear ohk-location-picker-clear" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
@@ -2169,7 +2169,7 @@ function App() {
                         useTypedLocationFallback()
                       }
                     }}
-                    placeholder="Search city, area or place..."
+                    placeholder="Enter City, Town or State"
                     aria-label="Search location"
                   />
                   {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
