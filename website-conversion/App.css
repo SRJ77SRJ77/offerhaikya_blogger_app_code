@@ -1884,25 +1884,23 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline{
   display:inline-flex;
   align-items:center;
+  justify-content:flex-end;
+  text-align:right;
   flex:1 1 0;
   min-width:0;
   max-width:none;
   box-sizing:border-box;
-  padding:6px 10px;
+  padding:0;
   margin:0;
   border:0;
-  border-radius:999px;
-  background:#fff1e9;
+  border-radius:0;
+  background:transparent;
   color:#ff5b01;
   box-shadow:none;
   font:700 11px/1.3 Rubik,Arial,sans-serif;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-}
-.ohk-dark .ohk-card-meta-row .ohk-card-expiry-inline{
-  background:#2b1b13;
-  color:#ff9b69;
 }
 @media(max-width:380px){
   .ohk-card-meta-row{gap:5px}
@@ -1911,14 +1909,18 @@ input, textarea, select, button { max-width: 100%; }
     flex:1 1 0;
     max-width:none;
     min-width:0;
-    padding:5px 6px;
+    padding:0;
     font-size:9px;
+    text-align:right;
+    justify-content:flex-end;
   }
 }
 @media(max-width:340px){
   .ohk-card-meta-row .ohk-card-label,
   .ohk-card-meta-row .ohk-card-expiry-inline{
-    padding:4px 5px;
+    padding:0;
     font-size:8px;
+    text-align:right;
+    justify-content:flex-end;
   }
 }
