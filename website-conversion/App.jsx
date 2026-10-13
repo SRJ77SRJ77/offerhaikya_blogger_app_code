@@ -2109,35 +2109,37 @@ function App() {
               <div className="ohk-section-title">
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
-                  {locationPickerOpen ? (
-                    <div className="ohk-location-autocomplete">
-                      <input
-                        autoFocus
-                        value={locationQuery}
-                        onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
-                        onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
-                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); useTypedLocationFallback() } }}
-                        placeholder="Enter City, Town or State"
-                        aria-label="Search location"
-                      />
-                      {locationQuery ? <button type="button" className="ohk-search-clear ohk-location-picker-clear" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
-                      <button type="button" className="ohk-nearby-picker-go-button" onClick={useTypedLocationFallback}>GO</button>
-                      {locationSuggestionsOpen && locationSuggestions.length ? (
-                        <div className="ohk-location-suggestions">
-                          {locationSuggestions.map((place) => (
-                            <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
-                              <Icon name="location" size={16} />
-                              <span>{place.display_name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
                   <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Enter Location'}</button>
                   <button className="ohk-set-current-location-button" onClick={requestLocation} disabled={locationLoading}><Icon name="location" size={18} />{locationLoading ? 'Getting Location...' : 'Set Current Location'}</button>
                 </div>
               </div>
+
+              {locationPickerOpen ? (
+                <div className="ohk-location-autocomplete ohk-nearby-search-row">
+                  <Icon name="location" size={18} />
+                  <input
+                    autoFocus
+                    value={locationQuery}
+                    onChange={(event) => { setLocationQuery(event.target.value); setLocationSuggestionsOpen(true) }}
+                    onFocus={() => locationSuggestions.length && setLocationSuggestionsOpen(true)}
+                    onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); useTypedLocationFallback() } }}
+                    placeholder="Enter City, Town or State"
+                    aria-label="Search location"
+                  />
+                  {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
+                  <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
+                  {locationSuggestionsOpen && locationSuggestions.length ? (
+                    <div className="ohk-location-suggestions">
+                      {locationSuggestions.map((place) => (
+                        <button key={place.place_id} onClick={() => chooseSuggestedLocation(place)} type="button">
+                          <Icon name="location" size={16} />
+                          <span>{place.display_name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               {nearbyPosts.length ? (
                 <>
