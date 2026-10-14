@@ -1989,7 +1989,7 @@ function App() {
                 </div>
               </section>
 
-              {(detailMapLinks.length || detail.coordinates) ? (
+              {detailMapLinks.length > 0 ? (
               <section className="ohk-detail-location" aria-label="Offer location">
                 <h2>Map</h2>
                 {detail.coordinates ? (
