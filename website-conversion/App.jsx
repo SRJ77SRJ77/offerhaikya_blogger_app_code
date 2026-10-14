@@ -2267,6 +2267,20 @@ function App() {
             </a>
           ))}
         </div>
+        <div className="ohk-social-links" aria-label="Follow Offerhaikya">
+          {[
+            ['YouTube', 'https://www.youtube.com/@offerhaikya'],
+            ['Instagram', 'https://www.instagram.com/offerhaikya/'],
+            ['Facebook', 'https://www.facebook.com/offerhaikya'],
+            ['X', 'https://x.com/offerhaikya'],
+            ['LinkedIn', 'https://www.linkedin.com/in/offerhaikya/'],
+            ['Website', 'https://www.offerhaikya.com'],
+          ].map(([label, url]) => (
+            <a key={label} href={url} target="_blank" rel="noopener noreferrer">
+              {label}
+            </a>
+          ))}
+        </div>
       </footer>
 
       <nav className="ohk-bottom-nav">
