@@ -707,7 +707,15 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
 
 
-      <button className="ohk-card-click" onClick={() => onOpen(post)}>
+      <a
+        className="ohk-card-click"
+        href={'/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))}
+        onClick={(event) => {
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+          event.preventDefault()
+          onOpen(post)
+        }}
+      >
         {post.image ? (
           <img
             src={sizedImage(post.image, 480)}
@@ -744,7 +752,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
           <p>{post.excerpt}</p>
           <div className="ohk-card-footer"><span className="ohk-read-more">Read more ›</span></div>
         </div>
-      </button>
+      </a>
     </article>
   )
 }
@@ -1090,7 +1098,9 @@ function App() {
     }
   }, [])
 
-  useEffect(() => {
+   useEffect(() => {
+    const infoPaths = ['/about-us', '/contact-us', '/privacy-policy', '/terms-and-condition']
+    if (infoPaths.includes(window.location.pathname)) return
     setPageMetadata(detail)
   }, [detail])
 
@@ -2233,11 +2243,25 @@ function App() {
       <footer className="ohk-footer">
         <strong>Offerhaikya</strong>
         <span>Fresh offers. Simple browsing.</span>
-        <div className="ohk-footer-links">
-          <button onClick={() => openSitePage('about-us')}>About Us</button>
-          <button onClick={() => openSitePage('contact-us')}>Contact Us</button>
-          <button onClick={() => openSitePage('privacy-policy')}>Privacy Policy</button>
-          <button onClick={() => openSitePage('terms-and-condition')}>Terms & Conditions</button>
+                <div className="ohk-footer-links">
+          {[
+            ['about-us', 'About Us'],
+            ['contact-us', 'Contact Us'],
+            ['privacy-policy', 'Privacy Policy'],
+            ['terms-and-condition', 'Terms & Conditions'],
+          ].map(([page, label]) => (
+            <a
+              key={page}
+              href={'/' + page}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+                event.preventDefault()
+                openSitePage(page)
+              }}
+            >
+              {label}
+            </a>
+          ))}
         </div>
       </footer>
 
