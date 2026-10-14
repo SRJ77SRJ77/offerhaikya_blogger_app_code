@@ -2203,3 +2203,48 @@ input, textarea, select, button { max-width: 100%; }
 
 a.ohk-card-click,
 .ohk-footer-links a { text-decoration: none; }
+
+/* Offerhaikya official social and website links in the footer. */
+.ohk-social-links{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  margin-top:8px;
+  max-width:760px;
+}
+.ohk-social-links a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:7px 12px;
+  border:1px solid #dedede;
+  border-radius:999px;
+  color:#333;
+  background:transparent;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.2;
+  text-decoration:none;
+  transition:color .18s ease,border-color .18s ease,background .18s ease;
+}
+.ohk-social-links a:hover{
+  color:#ff5b01;
+  border-color:#ff5b01;
+  background:rgba(255,91,1,.06);
+}
+.ohk-dark .ohk-social-links a{
+  color:#eee;
+  border-color:#444;
+}
+.ohk-dark .ohk-social-links a:hover{
+  color:#ff7a32;
+  border-color:#ff5b01;
+  background:rgba(255,91,1,.1);
+}
+@media(max-width:480px){
+  .ohk-social-links{gap:7px}
+  .ohk-social-links a{min-height:32px;padding:7px 10px;font-size:11px}
+}
