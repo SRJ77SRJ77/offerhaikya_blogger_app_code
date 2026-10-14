@@ -2203,3 +2203,22 @@ input, textarea, select, button { max-width: 100%; }
 
 a.ohk-card-click,
 .ohk-footer-links a { text-decoration: none; }
+
+
+/* Offer view counts and the homepage visitor count. */
+.ohk-card-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ohk-view-count{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;color:#77747a;font-size:12px;font-weight:600;white-space:nowrap;line-height:1.2}
+.ohk-view-count svg,.ohk-total-visitors svg{width:15px;height:15px;flex:0 0 15px}
+.ohk-dark .ohk-view-count{color:#aaa}
+.ohk-hero-kicker-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.ohk-total-visitors{display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:500;white-space:nowrap}
+.ohk-total-visitors svg{width:14px;height:14px;flex-basis:14px}
+.ohk-detail-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.ohk-detail-topbar .ohk-page-back{margin-bottom:0}
+.ohk-detail-view-count{font-size:13px}
+@media(max-width:380px){
+  .ohk-hero-kicker-row{gap:7px}
+  .ohk-hero-kicker-row .ohk-hero-small{font-size:10px}
+  .ohk-total-visitors{font-size:10px;gap:3px}
+  .ohk-total-visitors svg{width:12px;height:12px;flex-basis:12px}
+}
