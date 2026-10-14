@@ -14,55 +14,6 @@ const TEXT = '#202124'
 const MUTED = '#77747a'
 const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
-const VIEWS_API_URL = 'https://script.google.com/macros/s/AKfycbwCSD9XcrR8e7P_F16aZqY_5sRs6B4CtHaZe_5AIwShryLpcayrrrzqA8iSITRRgQ2zOw/exec'
-
-function viewKeyForPost(post) {
-  const raw = String(post?.id || post?.url || post?.title || '')
-  let hash = 2166136261
-  for (let i = 0; i < raw.length; i++) {
-    hash ^= raw.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return 'p_' + (hash >>> 0).toString(36)
-}
-
-function formatViewCount(value) {
-  const count = Math.max(0, Number(value) || 0)
-  if (count < 1000) return String(Math.floor(count))
-  const compact = count / 1000
-  return compact.toFixed(compact >= 10 ? 0 : 1).replace(/\\.0$/, '') + 'K'
-}
-
-function requestViews(params) {
-  return new Promise((resolve, reject) => {
-    const callbackName = 'offerhaikyaViews_' + Date.now() + '_' + Math.random().toString(36).slice(2)
-    let script
-    const cleanup = () => {
-      if (script) script.remove()
-      try { delete window[callbackName] } catch { window[callbackName] = undefined }
-    }
-    const timeout = window.setTimeout(() => {
-      cleanup()
-      reject(new Error('Views request timed out'))
-    }, 10000)
-    window[callbackName] = (data) => {
-      window.clearTimeout(timeout)
-      cleanup()
-      resolve(data)
-    }
-    script = document.createElement('script')
-    const search = new URLSearchParams({ ...params, callback: callbackName, _: String(Date.now()) })
-    script.src = VIEWS_API_URL + '?' + search.toString()
-    script.async = true
-    script.onerror = () => {
-      window.clearTimeout(timeout)
-      cleanup()
-      reject(new Error('Views request failed'))
-    }
-    document.head.appendChild(script)
-  })
-}
-
 const LOGO_URL = logoImage
 
 
@@ -713,7 +664,7 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
   )
 }
 
-function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby, imagePriority = false, views = 0 }) {
+function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
 
@@ -800,10 +751,6 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
           <p>{post.excerpt}</p>
           <div className="ohk-card-footer">
             <span className="ohk-read-more">Read more ›</span>
-            <span className="ohk-view-count" aria-label={formatViewCount(views) + ' views'}>
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>{formatViewCount(views)}</span>
-            </span>
           </div>
         </div>
       </a>
@@ -813,32 +760,8 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
 
 function App() {
   const [posts, setPosts] = useState([])
-  const [viewCounts, setViewCounts] = useState({})
-  const [totalVisitors, setTotalVisitors] = useState(0)
-  const countedOpenKeysRef = useRef(new Set())
   const detailRef = useRef(null)
 
-  useEffect(() => {
-    let active = true
-    requestViews({ action: 'all' }).then((data) => {
-      if (!active || !data?.success) return
-      setViewCounts(data.counts || {})
-    }).catch(() => {})
-    let visitorId = ''
-    try {
-      visitorId = window.localStorage.getItem('offerhaikya_visitor_id') || ''
-      if (!visitorId) {
-        visitorId = 'v_' + (window.crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2)))
-        window.localStorage.setItem('offerhaikya_visitor_id', visitorId)
-      }
-    } catch {
-      visitorId = 'v_' + Date.now().toString(36)
-    }
-    requestViews({ action: 'visitor', visitorId }).then((data) => {
-      if (active && data?.success) setTotalVisitors(Number(data.totalVisitors) || 0)
-    }).catch(() => {})
-    return () => { active = false }
-  }, [])
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)')
@@ -1707,14 +1630,6 @@ function App() {
   const openPost = (post) => {
     // Keep expired offers visible in the feed, but never allow them to open.
     if (getExpiryLabel(post) === 'Expired') return
-    const postKey = viewKeyForPost(post)
-    if (!countedOpenKeysRef.current.has(postKey)) {
-      countedOpenKeysRef.current.add(postKey)
-      requestViews({ action: 'view', postId: postKey }).then((data) => {
-        if (!data?.success) return
-        setViewCounts((current) => ({ ...current, [postKey]: Number(data.views) || 0 }))
-      }).catch(() => {})
-    }
     setDetailImageIndex(0)
     detailRef.current = post
     setDetail(post)
@@ -1823,7 +1738,6 @@ function App() {
           {...cardProps}
           imagePriority={index === 0 && (prefix === 'main-feed' || prefix === 'nearby')}
           saved={Boolean(cardProps.saved?.[post.id])}
-          views={viewCounts[viewKeyForPost(post)] || 0}
         />
       )
       const count = index + 1
@@ -1951,13 +1865,7 @@ function App() {
         {detail ? (
           <section className="ohk-detail-page">
             <div className="ohk-detail-page-inner">
-              <div className="ohk-detail-topbar">
-                <button className="ohk-page-back" onClick={goHome}>← Back</button>
-                <span className="ohk-view-count ohk-detail-view-count" aria-label={formatViewCount(viewCounts[viewKeyForPost(detail)] || 0) + ' views'}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-                  <span>{formatViewCount(viewCounts[viewKeyForPost(detail)] || 0)} views</span>
-                </span>
-              </div>
+              <button className="ohk-page-back" onClick={goHome}>← Back</button>
 
               <div className="ohk-detail-status-row" aria-label="Offer status">
                 {detailVerified ? <span className="ohk-detail-status ohk-detail-status-verified">✓ Verified</span> : null}
@@ -2164,13 +2072,7 @@ function App() {
           <div className="ohk-home-content">
         <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
-            <div className="ohk-hero-kicker-row">
-              <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
-              <span className="ohk-total-visitors" aria-label={formatViewCount(totalVisitors) + ' total visitors'}>
-                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span>Total Visitors: {formatViewCount(totalVisitors)}</span>
-              </span>
-            </div>
+            <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
             <h1>Find the best offers</h1>
 
             <form className="ohk-search-box" onSubmit={(event) => { event.preventDefault(); setVisible(PAGE_SIZE); setSearchOpen(false) }}>
