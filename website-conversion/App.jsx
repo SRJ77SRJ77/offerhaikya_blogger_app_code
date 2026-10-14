@@ -583,6 +583,11 @@ function Icon({ name, size = 22 }) {
     moon: <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />,
     tag: <><path d="M20 13 13 20 4 11V4h7l9 9Z" /><circle cx="8" cy="8" r="1.2" /></>,
     percent: <><circle cx="7" cy="7" r="1.5" /><circle cx="17" cy="17" r="1.5" /><path d="m18 6-12 12" /></>,
+    youtube: <><path d="M22 8.2a2.8 2.8 0 0 0-2-2C18.3 5.7 12 5.7 12 5.7s-6.3 0-8 .5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.5 12a29 29 0 0 0 .5 3.8 2.8 2.8 0 0 0 2 2c1.7.5 8 .5 8 .5s6.3 0 8-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22.5 12a29 29 0 0 0-.5-3.8Z" /><path d="m10 9 5 3-5 3Z" /></>,
+    instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r=".7" /></>,
+    facebook: <path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.5C17.2 1.3 16.2 1.2 15 1.2c-3.2 0-5 1.9-5 5.3V9H7v4h3v8Z" />,
+    x: <><path d="M4 3h4.5L20 21h-4.5Z" /><path d="m20 3-7 8M4 21l7-8" /></>,
+    linkedin: <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 10v7M7 7v.1M11 17v-7h3v1a3 3 0 0 1 3-1c2 0 3 1.4 3 4v3" /></>,
   }
 
   return (
@@ -2267,17 +2272,16 @@ function App() {
             </a>
           ))}
         </div>
-        <div className="ohk-social-links" aria-label="Follow Offerhaikya">
+        <div className="ohk-social-links" aria-label="Follow Offerhaikya on social media">
           {[
-            ['YouTube', 'https://www.youtube.com/@offerhaikya'],
-            ['Instagram', 'https://www.instagram.com/offerhaikya/'],
-            ['Facebook', 'https://www.facebook.com/offerhaikya'],
-            ['X', 'https://x.com/offerhaikya'],
-            ['LinkedIn', 'https://www.linkedin.com/in/offerhaikya/'],
-            ['Website', 'https://www.offerhaikya.com'],
-          ].map(([label, url]) => (
-            <a key={label} href={url} target="_blank" rel="noopener noreferrer">
-              {label}
+            ['YouTube', 'youtube', 'https://www.youtube.com/@offerhaikya'],
+            ['Instagram', 'instagram', 'https://www.instagram.com/offerhaikya/'],
+            ['Facebook', 'facebook', 'https://www.facebook.com/offerhaikya'],
+            ['X', 'x', 'https://x.com/offerhaikya'],
+            ['LinkedIn', 'linkedin', 'https://www.linkedin.com/in/offerhaikya/'],
+          ].map(([label, icon, url]) => (
+            <a key={label} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+              <Icon name={icon} size={19} />
             </a>
           ))}
         </div>
