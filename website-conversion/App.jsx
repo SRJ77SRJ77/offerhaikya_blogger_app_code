@@ -1989,6 +1989,7 @@ function App() {
                 </div>
               </section>
 
+              {(detailMapLinks.length || detail.coordinates) ? (
               <section className="ohk-detail-location" aria-label="Offer location">
                 <h2>Map</h2>
                 {detail.coordinates ? (
@@ -2026,6 +2027,7 @@ function App() {
                   <p className="ohk-detail-location-hint">Add “Address - Belgaum” as plain text and add a Google Maps link after “Location” in the Blogger post to show the address and map here.</p>
                 ) : null}
               </section>
+              ) : null}
             </div>
 
             <div className="ohk-detail-ad" aria-label="Advertisement">
