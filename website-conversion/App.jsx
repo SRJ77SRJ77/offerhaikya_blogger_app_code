@@ -817,6 +817,28 @@ function App() {
   const [totalVisitors, setTotalVisitors] = useState(0)
   const countedOpenKeysRef = useRef(new Set())
   const detailRef = useRef(null)
+
+  useEffect(() => {
+    let active = true
+    requestViews({ action: 'all' }).then((data) => {
+      if (!active || !data?.success) return
+      setViewCounts(data.counts || {})
+    }).catch(() => {})
+    let visitorId = ''
+    try {
+      visitorId = window.localStorage.getItem('offerhaikya_visitor_id') || ''
+      if (!visitorId) {
+        visitorId = 'v_' + (window.crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2)))
+        window.localStorage.setItem('offerhaikya_visitor_id', visitorId)
+      }
+    } catch {
+      visitorId = 'v_' + Date.now().toString(36)
+    }
+    requestViews({ action: 'visitor', visitorId }).then((data) => {
+      if (active && data?.success) setTotalVisitors(Number(data.totalVisitors) || 0)
+    }).catch(() => {})
+    return () => { active = false }
+  }, [])
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)')
