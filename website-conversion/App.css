@@ -2222,3 +2222,59 @@ a.ohk-card-click,
   .ohk-total-visitors{font-size:10px;gap:3px}
   .ohk-total-visitors svg{width:12px;height:12px;flex-basis:12px}
 }
+
+
+/* Alignment fix: keep the homepage kicker and visitor count on one line,
+   and align the detail-page view count opposite the Back control. */
+.ohk-hero-kicker-row{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  width:100%;
+  min-width:0;
+  margin:0 0 8px;
+}
+.ohk-hero-kicker-row .ohk-hero-small{
+  flex:0 1 auto;
+  min-width:0;
+  margin:0!important;
+  white-space:nowrap;
+}
+.ohk-hero-kicker-row .ohk-total-visitors{
+  flex:0 0 auto;
+  margin:0;
+  white-space:nowrap;
+}
+.ohk-detail-topbar{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  width:100%;
+  min-width:0;
+  gap:12px;
+  margin:0 0 10px;
+}
+.ohk-detail-topbar .ohk-page-back{
+  flex:0 0 auto;
+  margin:0!important;
+  white-space:nowrap;
+}
+.ohk-detail-topbar .ohk-detail-view-count{
+  flex:0 0 auto;
+  margin-left:auto;
+  white-space:nowrap;
+}
+@media(max-width:420px){
+  .ohk-hero-kicker-row{gap:6px!important}
+  .ohk-hero-kicker-row .ohk-hero-small{font-size:clamp(8px,2.6vw,10px);letter-spacing:.45px}
+  .ohk-hero-kicker-row .ohk-total-visitors{font-size:clamp(8px,2.5vw,10px);gap:3px}
+  .ohk-hero-kicker-row .ohk-total-visitors svg{width:12px;height:12px;flex-basis:12px}
+  .ohk-detail-topbar{gap:8px}
+  .ohk-detail-topbar .ohk-page-back{font-size:13px}
+  .ohk-detail-topbar .ohk-detail-view-count{font-size:12px}
+}
