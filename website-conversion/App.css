@@ -122,7 +122,7 @@ a{color:inherit;text-decoration:none}
 .ohk-load-more button,.ohk-primary-button{border:0;border-radius:10px;background:#ff5b01;color:#fff;padding:12px 22px;font-weight:900}
 .ohk-favorites-section{padding-bottom:15px}
 
-.ohk-footer{padding:18px 16px 22px;text-align:center;background:#fff;border-top:1px solid #e5e5e5;display:flex;flex-direction:column;align-items:center;gap:7px}
+.ohk-footer{padding:18px 16px 10px;text-align:center;background:#fff;border-top:1px solid #e5e5e5;display:flex;flex-direction:column;align-items:center;gap:7px}
 .ohk-dark .ohk-footer{background:#000;border-color:#2b2b2b}
 .ohk-footer strong{font-size:22px;color:#ff5b01}
 .ohk-footer>span{color:#77747a;font-size:13px}
@@ -204,7 +204,7 @@ a{color:inherit;text-decoration:none}
   .ohk-menu-button{display:none}
   .ohk-bottom-nav{display:none}
   .ohk-app{padding-bottom:0}
-  .ohk-footer{padding-bottom:22px}
+  .ohk-footer{padding-bottom:10px}
   .ohk-header-inner{padding:0 18px}
   .ohk-content{padding-left:30px;padding-right:30px}
   .ohk-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
@@ -523,6 +523,11 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-search-suggestions { max-width:100%; }
 .ohk-bottom-nav { padding-bottom:env(safe-area-inset-bottom, 0px); }
 .ohk-app { padding-bottom:calc(78px + env(safe-area-inset-bottom, 0px)); }
+
+@media (min-width: 1024px) {
+  /* The fixed bottom navigation is hidden on desktop, so it needs no reserved blank space. */
+  .ohk-app { padding-bottom:0 !important; }
+}
 
 @media (min-width: 1440px) {
   .ohk-header-inner { max-width: 1440px; }
@@ -2204,36 +2209,36 @@ input, textarea, select, button { max-width: 100%; }
 a.ohk-card-click,
 .ohk-footer-links a { text-decoration: none; }
 
-/* Offerhaikya official social and website links in the footer. */
+/* Official Offerhaikya social icon links in the footer. */
 .ohk-social-links{
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   justify-content:center;
-  gap:9px;
-  margin-top:8px;
+  gap:12px;
+  margin-top:7px;
   max-width:760px;
 }
 .ohk-social-links a{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-height:34px;
-  padding:7px 12px;
+  width:38px;
+  height:38px;
+  padding:0;
   border:1px solid #dedede;
-  border-radius:999px;
+  border-radius:50%;
   color:#333;
   background:transparent;
-  font-size:12px;
-  font-weight:600;
-  line-height:1.2;
   text-decoration:none;
-  transition:color .18s ease,border-color .18s ease,background .18s ease;
+  transition:color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease;
 }
+.ohk-social-links a .ohk-icon{display:block;flex:none}
 .ohk-social-links a:hover{
   color:#ff5b01;
   border-color:#ff5b01;
   background:rgba(255,91,1,.06);
+  transform:translateY(-1px);
 }
 .ohk-dark .ohk-social-links a{
   color:#eee;
@@ -2245,6 +2250,6 @@ a.ohk-card-click,
   background:rgba(255,91,1,.1);
 }
 @media(max-width:480px){
-  .ohk-social-links{gap:7px}
-  .ohk-social-links a{min-height:32px;padding:7px 10px;font-size:11px}
+  .ohk-social-links{gap:9px}
+  .ohk-social-links a{width:36px;height:36px}
 }
