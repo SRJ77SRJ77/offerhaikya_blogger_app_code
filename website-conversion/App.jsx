@@ -2181,6 +2181,9 @@ function App() {
                   />
                   {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
                   <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
+                  <button className="ohk-nearby-map-button" type="button" onClick={openAllMap}>
+                    <Icon name="map" size={18} /> View All Offers on Map
+                  </button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
                     {locationLoading ? 'Checking...' : 'Set Current Location'}
@@ -2217,9 +2220,6 @@ function App() {
               <div className="ohk-nearby-prompt-copy">
                 <strong>See offers near you</strong>
                 <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
-                  <button className="ohk-nearby-map-button ohk-nearby-map-button-all" type="button" onClick={openAllMap}>
-                  <Icon name="map" size={18} /> View All Offers on Map
-                </button>
                 <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
                   <input
