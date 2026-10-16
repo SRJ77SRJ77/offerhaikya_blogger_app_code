@@ -2330,3 +2330,16 @@ a.ohk-card-click,
 @media (max-width: 600px) {
   .ohk-header-dropdown-menu.ohk-category-mega-menu { width: calc(100vw - 28px); }
 }
+
+
+/* Brand wordmark and category menu behavior */
+.ohk-brand-wordmark { display: inline-flex; gap: 0; }
+.ohk-brand-wordmark span:first-child { color: #111; }
+.ohk-brand-wordmark span:last-child { color: #ff5b01; }
+.ohk-dark .ohk-brand-wordmark span:first-child { color: #fff; }
+.ohk-dark .ohk-brand-wordmark span:last-child { color: #ff5b01; }
+.ohk-header-dropdown.is-open .ohk-category-mega-menu { display: grid; }
+@media (hover: hover) and (pointer: fine) {
+  .ohk-header-dropdown:hover .ohk-category-mega-menu,
+  .ohk-header-dropdown:focus-within .ohk-category-mega-menu { display: grid; }
+}
