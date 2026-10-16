@@ -2279,3 +2279,54 @@ a.ohk-card-click,
 
 
 
+
+
+/* Hardcoded Categories mega-menu: three groups at the top, independent of Blogger labels. */
+.ohk-header-dropdown-menu.ohk-category-mega-menu {
+  display: none;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 14px;
+  width: min(680px, calc(100vw - 32px));
+  min-width: 540px;
+  max-height: 70vh;
+  overflow: auto;
+  padding: 14px;
+}
+.ohk-header-dropdown:hover .ohk-category-mega-menu,
+.ohk-header-dropdown:focus-within .ohk-category-mega-menu {
+  display: grid;
+}
+.ohk-category-mega-group { min-width: 0; }
+.ohk-category-mega-group > strong {
+  display: block;
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  color: #ff5b01;
+  font-size: 13px;
+  font-weight: 900;
+  border-bottom: 1px solid #eee;
+}
+.ohk-dark .ohk-category-mega-group > strong { border-bottom-color: #333; }
+.ohk-category-mega-group > button { white-space: normal; }
+.ohk-side-category-group { padding: 8px 0; }
+.ohk-side-category-group > strong {
+  display: block;
+  padding: 10px 16px 6px;
+  color: #ff5b01;
+  font-size: 13px;
+  font-weight: 900;
+}
+.ohk-side-category-group > button { padding-left: 26px; }
+.ohk-dark .ohk-side-category-group > strong { color: #ff7a32; }
+@media (max-width: 900px) {
+  .ohk-header-dropdown-menu.ohk-category-mega-menu {
+    min-width: 0;
+    width: min(92vw, 620px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ohk-category-mega-group > button { padding: 8px 6px; font-size: 12px; }
+}
+@media (max-width: 600px) {
+  .ohk-header-dropdown-menu.ohk-category-mega-menu { width: calc(100vw - 28px); }
+}
