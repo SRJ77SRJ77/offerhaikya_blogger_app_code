@@ -2398,3 +2398,30 @@ a.ohk-card-click,
     box-sizing: border-box !important;
   }
 }
+
+/* Nearby heading actions: preserve existing button styling; icons-only on small screens. */
+@media (max-width: 768px) {
+  .ohk-section-title:has(.ohk-nearby-actions) {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .ohk-section-title .ohk-nearby-actions {
+    width: auto;
+    flex: 0 0 auto;
+    margin-left: auto;
+    gap: 6px;
+  }
+  .ohk-section-title .ohk-nearby-actions > button {
+    flex: 0 0 36px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+  .ohk-section-title .ohk-nearby-actions > button span {
+    display: none;
+  }
+}
