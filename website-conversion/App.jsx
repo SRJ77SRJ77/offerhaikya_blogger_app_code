@@ -584,6 +584,7 @@ function Icon({ name, size = 22 }) {
     tag: <><path d="M20 13 13 20 4 11V4h7l9 9Z" /><circle cx="8" cy="8" r="1.2" /></>,
     percent: <><circle cx="7" cy="7" r="1.5" /><circle cx="17" cy="17" r="1.5" /><path d="m18 6-12 12" /></>,
     map: <><path d="M9 4 3 6.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4Z" /><path d="M9 4v13.5M15 6.5V20" /></>,
+    edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></>,
     youtube: <><path d="M22 8.2a2.8 2.8 0 0 0-2-2C18.3 5.7 12 5.7 12 5.7s-6.3 0-8 .5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.5 12a29 29 0 0 0 .5 3.8 2.8 2.8 0 0 0 2 2c1.7.5 8 .5 8 .5s6.3 0 8-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22.5 12a29 29 0 0 0-.5-3.8Z" /><path d="m10 9 5 3-5 3Z" /></>,
     instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r=".7" /></>,
     facebook: <path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.5C17.2 1.3 16.2 1.2 15 1.2c-3.2 0-5 1.9-5 5.3V9H7v4h3v8Z" />,
@@ -2164,8 +2165,8 @@ function App() {
               <div className="ohk-section-title">
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
-                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Edit Location'}</button>
-                  <button type="button" onClick={openNearbyMap}>Offers Map</button>
+                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}><Icon name="edit" size={15} /><span>{locationPickerOpen ? 'Close' : 'Edit Location'}</span></button>
+                  <button type="button" onClick={openNearbyMap}><Icon name="map" size={15} /><span>Offers Map</span></button>
                 </div>
               </div>
 
