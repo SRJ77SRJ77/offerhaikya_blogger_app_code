@@ -2165,9 +2165,6 @@ function App() {
 
               {locationPickerOpen ? (
                 <div className="ohk-nearby-prompt ohk-nearby-results-search">
-                  <button className="ohk-nearby-map-button" type="button" onClick={openNearbyMap}>
-                    <Icon name="map" size={18} /> View Offers on Map
-                  </button>
                   <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
                   <input
