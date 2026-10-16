@@ -449,7 +449,7 @@ function parseBloggerLinkLists(source = '') {
     const titleNode = widget.querySelector('.title, .widget-title, .widget-title-link, h2, h3, [class*="title"]')
     const title = titleNode?.textContent || widget.getAttribute('title') || widget.id || ''
     const key = menuKeyFromTitle(title)
-    if (!key) continue
+    if (!key || key === 'categories') continue
     const items = [...widget.querySelectorAll('.widget-content a, .widget-content li a, ul a, a')]
       .map((anchor) => ({ title: anchor.textContent || '', url: anchor.href || anchor.getAttribute('href') || '' }))
     const cleaned = cleanMenuItems(items)
@@ -460,7 +460,7 @@ function parseBloggerLinkLists(source = '') {
     const headings = [...doc.querySelectorAll('h1, h2, h3, h4, .title, .widget-title')]
     for (const heading of headings) {
       const key = menuKeyFromTitle(heading.textContent || '')
-      if (!key || result[key].length) continue
+      if (!key || key === 'categories' || result[key].length) continue
       const parent = heading.closest('.widget, section, nav, aside, .widget-content') || heading.parentElement
       if (!parent) continue
       const cleaned = cleanMenuItems([...parent.querySelectorAll('a')].map((anchor) => ({
