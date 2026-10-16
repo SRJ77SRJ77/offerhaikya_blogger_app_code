@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import logoImage from './assets/logo.png'
 import preloaderGif from './assets/Offer.gif'
-import faviconImage from './assets/favicon.png'
 import bgImage from './assets/bg.jpg'
+import OffersMap from './OffersMap.jsx'
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=500'
@@ -583,6 +583,7 @@ function Icon({ name, size = 22 }) {
     moon: <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />,
     tag: <><path d="M20 13 13 20 4 11V4h7l9 9Z" /><circle cx="8" cy="8" r="1.2" /></>,
     percent: <><circle cx="7" cy="7" r="1.5" /><circle cx="17" cy="17" r="1.5" /><path d="m18 6-12 12" /></>,
+    map: <><path d="M9 4 3 6.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4Z" /><path d="M9 4v13.5M15 6.5V20" /></>,
     youtube: <><path d="M22 8.2a2.8 2.8 0 0 0-2-2C18.3 5.7 12 5.7 12 5.7s-6.3 0-8 .5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.5 12a29 29 0 0 0 .5 3.8 2.8 2.8 0 0 0 2 2c1.7.5 8 .5 8 .5s6.3 0 8-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22.5 12a29 29 0 0 0-.5-3.8Z" /><path d="m10 9 5 3-5 3Z" /></>,
     instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r=".7" /></>,
     facebook: <path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.5C17.2 1.3 16.2 1.2 15 1.2c-3.2 0-5 1.9-5 5.3V9H7v4h3v8Z" />,
@@ -669,7 +670,7 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
   )
 }
 
-function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark, nearby, imagePriority = false }) {
+function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
 
@@ -698,6 +699,18 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, dark,
       <button className="ohk-card-share" onClick={() => onShare(post)} aria-label="Share offer">
         <Icon name="share" size={18} />
       </button>
+
+      {post.coordinates && onMap ? (
+        <button
+          type="button"
+          className="ohk-card-share ohk-card-map"
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); onMap(post) }}
+          aria-label="View offer on map"
+          title="View on map"
+        >
+          <Icon name="map" size={18} />
+        </button>
+      ) : null}
 
       {nearby ? (
         <div
@@ -930,6 +943,9 @@ function App() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
+  const [mapOpen, setMapOpen] = useState(false)
+  const [mapScope, setMapScope] = useState('all')
+  const [mapFocusId, setMapFocusId] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -1105,21 +1121,13 @@ function App() {
     }
   }, [])
 
-   useEffect(() => {
+    useEffect(() => {
+    const path = window.location.pathname
     const infoPaths = ['/about-us', '/contact-us', '/privacy-policy', '/terms-and-condition']
-    if (infoPaths.includes(window.location.pathname)) return
+    if (infoPaths.includes(path)) return
+    if (path.startsWith('/offer/') && !detail) return
     setPageMetadata(detail)
   }, [detail])
-
-  useEffect(() => {
-    let favicon = document.querySelector('link[rel="icon"]')
-    if (!favicon) {
-      favicon = document.createElement('link')
-      favicon.rel = 'icon'
-      document.head.appendChild(favicon)
-    }
-    favicon.href = faviconImage
-  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setPreloaderVisible(false), 2000)
@@ -1515,6 +1523,15 @@ function App() {
       .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
   }, [posts, userLocation])
 
+    const mapPosts = useMemo(() => {
+    const source = mapScope === 'nearby' ? nearbyPosts : posts
+    return source.filter((post) => post.coordinates && getExpiryLabel(post) !== 'Expired')
+  }, [posts, nearbyPosts, mapScope])
+
+  const openAllMap = () => { setMapScope('all'); setMapFocusId(null); setMapOpen(true) }
+  const openNearbyMap = () => { setMapScope('nearby'); setMapFocusId(null); setMapOpen(true) }
+  const openMapForPost = (post) => { setMapScope('all'); setMapFocusId(post.id); setMapOpen(true) }
+
   const toggleSave = (id) => {
     setSaved((current) => ({ ...current, [id]: !current[id] }))
   }
@@ -1824,6 +1841,10 @@ function App() {
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
             </button>
 
+            <button className="ohk-header-button" onClick={openAllMap} aria-label="Offers map" title="Offers map">
+              <Icon name="map" size={21} />
+            </button>
+
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
               <Icon name="search" size={21} />
             </button>
@@ -2129,11 +2150,15 @@ function App() {
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
                   <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Edit Location'}</button>
+                  <button type="button" onClick={openNearbyMap}>Map View</button>
                 </div>
               </div>
 
               {locationPickerOpen ? (
                 <div className="ohk-nearby-prompt ohk-nearby-results-search">
+                  <button className="ohk-nearby-map-button" type="button" onClick={openNearbyMap}>
+                    <Icon name="map" size={18} /> View Offers on Map
+                  </button>
                   <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
                   <input
@@ -2168,7 +2193,7 @@ function App() {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, dark, nearby: true }, 'nearby')}
+                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, onMap: openMapForPost, dark, nearby: true }, 'nearby')}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
@@ -2183,6 +2208,9 @@ function App() {
               <div className="ohk-nearby-prompt-copy">
                 <strong>See offers near you</strong>
                 <span>Allow location to find local offers within {NEARBY_RADIUS_KM} km, or add a place manually.</span>
+                  <button className="ohk-nearby-map-button ohk-nearby-map-button-all" type="button" onClick={openAllMap}>
+                  <Icon name="map" size={18} /> View All Offers on Map
+                </button>
                 <div className="ohk-location-autocomplete ohk-nearby-search-row">
                   <Icon name="location" size={18} />
                   <input
@@ -2230,7 +2258,7 @@ function App() {
             ) : displayedPosts.length ? (
               <>
                 <div className="ohk-grid">
-                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, dark }, 'main-feed')}
+                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, onMap: openMapForPost, dark }, 'main-feed')}
                 </div>
 
                 {visible < filteredPosts.length ? (
@@ -2465,6 +2493,17 @@ function App() {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {mapOpen ? (
+        <OffersMap
+          focusPostId={mapFocusId}
+          posts={mapPosts}
+          userLocation={userLocation}
+          onRequestLocation={requestLocation}
+          onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
+          onClose={() => setMapOpen(false)}
+        />
       ) : null}
 
       {imageViewerOpen && selectedDetailMedia?.type === 'image' ? (
