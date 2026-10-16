@@ -327,7 +327,7 @@ a{color:inherit;text-decoration:none}
 .ohk-search-suggestion-copy strong{font-size:14px;line-height:18px;font-weight:900;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ohk-search-suggestion-copy small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#77747a;font-size:12px;line-height:16px;white-space:normal;overflow-wrap:anywhere}
 .ohk-nearby-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-left:auto;min-width:0}
-.ohk-nearby-actions>button{flex:none;border:0;border-radius:9px;background:#ff5b01;color:#fff;padding:10px 12px;font-size:12px;font-weight:900;white-space:nowrap}
+.ohk-nearby-actions>button{flex:none;display:inline-flex;align-items:center;justify-content:center;height:40px;min-height:40px;box-sizing:border-box;border:0;border-radius:9px;background:#ff5b01;color:#fff;padding:0 12px;font-size:12px;font-weight:900;line-height:1;white-space:nowrap;cursor:pointer}
 /* GO stays inside the second Nearby Offers location input. */
 .ohk-nearby-actions .ohk-location-autocomplete input{padding-right:58px}
 .ohk-nearby-actions .ohk-location-autocomplete .ohk-location-picker-clear{right:38px}
