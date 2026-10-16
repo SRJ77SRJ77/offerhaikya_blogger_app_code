@@ -2287,7 +2287,7 @@ function App() {
       </main>
 
       <footer className="ohk-footer">
-        <strong>Offerhaikya</strong>
+        <strong className="ohk-brand-wordmark"><span>Offer</span><span>haikya</span></strong>
         <span>Fresh offers. Simple browsing.</span>
                 <div className="ohk-footer-links">
           {[
