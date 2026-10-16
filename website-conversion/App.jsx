@@ -2164,8 +2164,8 @@ function App() {
               <div className="ohk-section-title">
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
-                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}><Icon name="edit" size={15} /><span>{locationPickerOpen ? 'Close' : 'Edit Location'}</span></button>
-                  <button type="button" className="ohk-nearby-heading-map-button" onClick={openNearbyMap}><Icon name="map" size={15} /><span>Offers Map</span></button>
+                  <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Edit Location'}</button>
+                  <button type="button" onClick={openNearbyMap}>Offers Map</button>
                 </div>
               </div>
 
