@@ -2409,13 +2409,3 @@ a.ohk-card-click,
     display: none;
   }
 }
-
-/* Keep nearby heading action buttons consistent: orange background, white labels and icons. */
-.ohk-nearby-actions > button {
-  background: #ff5b01 !important;
-  color: #fff !important;
-}
-.ohk-nearby-actions > button svg {
-  color: #fff !important;
-  stroke: #fff !important;
-}
