@@ -2399,6 +2399,13 @@ a.ohk-card-click,
   }
 }
 
+/* Nearby heading buttons: override the section-count span color only inside these orange buttons. */
+.ohk-section-title .ohk-nearby-actions > button,
+.ohk-section-title .ohk-nearby-actions > button span,
+.ohk-section-title .ohk-nearby-actions > button svg {
+  color: #fff;
+}
+
 /* Nearby heading actions: preserve existing button styling; icons-only on small screens. */
 @media (max-width: 768px) {
   .ohk-section-title:has(.ohk-nearby-actions) {
