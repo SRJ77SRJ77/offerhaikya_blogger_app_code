@@ -1093,10 +1093,14 @@ function App() {
             const source = await response.text()
             if (!active) return
             const menus = parseBloggerLinkLists(source)
-            if (menus.categories.length || menus.specialDeals.length || menus.stores.length) {
-              setBloggerMenus(menus)
+            if (menus.specialDeals.length || menus.stores.length) {
+              setBloggerMenus((current) => ({
+                ...current,
+                specialDeals: menus.specialDeals.length ? menus.specialDeals : current.specialDeals,
+                stores: menus.stores.length ? menus.stores : current.stores,
+                categories: [],
+              }))
               console.log('Offerhaikya Blogger Link Lists synced', {
-                categories: menus.categories.length,
                 specialDeals: menus.specialDeals.length,
                 stores: menus.stores.length,
               })
@@ -1207,13 +1211,12 @@ function App() {
     localStorage.setItem('offerhaikya_favorites', JSON.stringify(saved))
   }, [saved])
 
-  const bloggerTags = useMemo(() => {
-    const all = posts.flatMap((post) => post.labels)
-    return [...new Set(all)]
-  }, [posts])
-
-  // Build the Categories dropdown from live Blogger post labels, refreshed with the feed.
-  const bloggerCategoryTags = bloggerTags.map((title) => ({ title }))
+  // Categories are intentionally hardcoded; only offers themselves are fetched from Blogger.
+  const categoryGroups = [
+    { title: 'Brands', tags: ['Amazon', 'Flipkart', 'Meesho', 'MyIntra', 'Swiggy', 'Zomato', 'Blinkit'] },
+    { title: 'Offer Types', tags: ['Online Offers', 'Offline Offers', 'Local Offers', 'Free Delivery', 'Coupons & Promo Codes', 'Bank Offers', 'Buy 1 Get 1', 'Clearance Sale', '₹1 Deals'] },
+    { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
+  ]
 
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -1811,11 +1814,15 @@ function App() {
               <button className="ohk-header-dropdown-button">
                 <Icon name="tag" size={16} /> Categories
               </button>
-              <div className="ohk-header-dropdown-menu">
-                <button onClick={() => selectTag('All')}>All Tags</button>
-                {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
-                  <button key={item.title} onClick={() => selectTag(item.title)}>{item.title}</button>
-                )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
+              <div className="ohk-header-dropdown-menu ohk-category-mega-menu">
+                {categoryGroups.map((group) => (
+                  <div className="ohk-category-mega-group" key={group.title}>
+                    <strong>{group.title}</strong>
+                    {group.tags.map((tag) => (
+                      <button key={tag} onClick={() => selectTag(tag)}>{tag}</button>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1874,14 +1881,14 @@ function App() {
               >
                 Categories <span>{categoryOpen ? '−' : '+'}</span>
               </button>
-              {categoryOpen ? (
-                <>
-                  <button onClick={() => { selectTag('All'); setMenuOpen(false); setCategoryOpen(false) }}>All Tags</button>
-                  {bloggerCategoryTags.length ? bloggerCategoryTags.map((item) => (
-                    <button key={item.title} onClick={() => { selectTag(item.title); setMenuOpen(false); setCategoryOpen(false) }}>{item.title}</button>
-                  )) : <p className="ohk-menu-loading">Loading live Blogger tags…</p>}
-                </>
-              ) : null}
+              {categoryOpen ? categoryGroups.map((group) => (
+                <div className="ohk-side-category-group" key={group.title}>
+                  <strong>{group.title}</strong>
+                  {group.tags.map((tag) => (
+                    <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false); setCategoryOpen(false) }}>{tag}</button>
+                  ))}
+                </div>
+              )) : null}
             </div>
           </aside>
         </div>
