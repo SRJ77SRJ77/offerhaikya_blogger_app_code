@@ -814,6 +814,7 @@ function App() {
   }, [menuOpen])
   const [categoryOpen, setCategoryOpen] = useState(false)
   const [desktopCategoryOpen, setDesktopCategoryOpen] = useState(false)
+  const [desktopCategoryDismissed, setDesktopCategoryDismissed] = useState(false)
   const [specialDealsOpen, setSpecialDealsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(false)
@@ -1820,7 +1821,7 @@ function App() {
                   <div className="ohk-category-mega-group" key={group.title}>
                     <strong>{group.title}</strong>
                     {group.tags.map((tag) => (
-                      <button key={tag} onClick={() => { selectTag(tag); setDesktopCategoryOpen(false) }}>{tag}</button>
+                      <button key={tag} onClick={() => { selectTag(tag); setDesktopCategoryOpen(false); setDesktopCategoryDismissed(true) }}>{tag}</button>
                     ))}
                   </div>
                 ))}
@@ -1886,7 +1887,7 @@ function App() {
                 <div className="ohk-side-category-group" key={group.title}>
                   <strong>{group.title}</strong>
                   {group.tags.map((tag) => (
-                    <button key={tag} onClick={() => { selectTag(tag) }}>{tag}</button>
+                    <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false) }}>{tag}</button>
                   ))}
                 </div>
               )) : null}
