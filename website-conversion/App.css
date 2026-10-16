@@ -2274,6 +2274,20 @@ a.ohk-card-click,
 .ohk-nearby-map-button { order: 2; flex: 1 1 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; margin-top: 8px; border: 1.5px solid #ff5b01; border-radius: 9px; background: #ffffff; color: #ff5b01; font-weight: 800; font-size: 13px; cursor: pointer; }
 .ohk-nearby-map-button-all { order: 0; width: 100%; box-sizing: border-box; margin: 8px 0 0; }
 .ohk-dark .ohk-nearby-map-button { background: transparent; }
+/* In the main nearby prompt, keep GO, map, and current-location actions together in one row. */
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button {
+  order: 2;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  margin-top: 0;
+  padding: 9px 12px;
+  background: #ff5b01;
+  color: #fff;
+  border: 0;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button svg { display: block; flex: none; }
+
 
 
 
