@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import logoImage from './assets/logo.png'
+import darkLogoImage from './assets/logo_dm.png'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.jpg'
 import OffersMap from './OffersMap.jsx'
@@ -1815,7 +1816,7 @@ function App() {
           </button>
 
           <button className="ohk-logo-button" onClick={goHome} aria-label="Offerhaikya home">
-            <img src={LOGO_URL} alt="Offerhaikya" />
+            <img src={dark ? darkLogoImage : LOGO_URL} alt="Offerhaikya" />
           </button>
 
           <div className="ohk-header-dropdowns">
