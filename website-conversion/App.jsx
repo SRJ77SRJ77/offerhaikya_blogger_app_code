@@ -1579,8 +1579,13 @@ function App() {
   }
 
   const requestLocation = () => {
+    const showLocationPermissionMessage = () => {
+      window.alert('Please turn on your device location and allow location permission in your browser to find nearby offers.')
+    }
+
     if (!navigator.geolocation) {
       setLocationMessage('Location is not available in this browser.')
+      showLocationPermissionMessage()
       return
     }
 
@@ -1609,6 +1614,7 @@ function App() {
       () => {
         setLocationLoading(false)
         setLocationMessage('Location permission was not granted.')
+        showLocationPermissionMessage()
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 },
     )
