@@ -2405,6 +2405,9 @@ a.ohk-card-click,
 .ohk-section-title .ohk-nearby-actions > button svg {
   color: #fff;
 }
+.ohk-section-title .ohk-nearby-actions > button {
+  gap: 5px;
+}
 
 /* Nearby heading actions: preserve existing button styling; icons-only on small screens. */
 @media (max-width: 768px) {
