@@ -2399,23 +2399,44 @@ a.ohk-card-click,
   }
 }
 
-/* At 380px and below, show only the nearby heading action icons. */
+/* Keep nearby heading actions beside the title; use icon-only buttons on narrow phones. */
+.ohk-section-title {
+  flex-wrap: nowrap;
+}
+.ohk-section-title > h2 {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ohk-nearby-actions {
+  flex: 0 0 auto;
+}
+.ohk-nearby-actions > button {
+  gap: 5px;
+}
+.ohk-nearby-actions > button svg {
+  flex: 0 0 auto;
+}
 @media (max-width: 380px) {
+  .ohk-section-title {
+    gap: 6px;
+    align-items: center;
+  }
+  .ohk-section-title > h2 {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .ohk-nearby-actions {
+    gap: 5px;
+  }
   .ohk-nearby-actions > button {
-    gap: 0;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
     padding: 0;
+    border-radius: 8px;
   }
   .ohk-nearby-actions > button span {
     display: none;
   }
-}
-
-/* Keep nearby heading action buttons consistent: orange background, white labels and icons. */
-.ohk-nearby-actions > button {
-  background: #ff5b01 !important;
-  color: #fff !important;
-}
-.ohk-nearby-actions > button svg {
-  color: #fff !important;
-  stroke: #fff !important;
 }
