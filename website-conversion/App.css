@@ -2343,3 +2343,6 @@ a.ohk-card-click,
   .ohk-header-dropdown:hover .ohk-category-mega-menu,
   .ohk-header-dropdown:focus-within .ohk-category-mega-menu { display: grid; }
 }
+
+/* After choosing a desktop category, hide the dropdown immediately so it cannot cover the posts. */
+.ohk-header-dropdown.is-dismissed .ohk-category-mega-menu { display: none !important; }
