@@ -2398,36 +2398,3 @@ a.ohk-card-click,
     box-sizing: border-box !important;
   }
 }
-
-/* Nearby heading actions: keep both buttons beside the title; icons only on screens 768px and narrower. */
-@media (max-width: 768px) {
-  .ohk-section-title {
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 8px;
-  }
-  .ohk-section-title > h2 {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .ohk-section-title .ohk-nearby-actions {
-    width: auto;
-    flex: 0 0 auto;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-left: auto;
-  }
-  .ohk-section-title .ohk-nearby-actions > button {
-    flex: 0 0 36px;
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-    min-height: 36px;
-    padding: 0;
-    gap: 0;
-    justify-content: center;
-  }
-  .ohk-section-title .ohk-nearby-actions > button span {
-    display: none;
-  }
-}
