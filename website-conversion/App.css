@@ -2435,3 +2435,21 @@ a.ohk-card-click,
     display: none;
   }
 }
+
+/* Keep nearby map/location icons visible and shorten button labels when space is tight. */
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button {
+  min-width: 0;
+  overflow: hidden;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button span,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button svg,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg {
+  flex: 0 0 auto;
+}
