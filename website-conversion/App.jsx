@@ -2159,7 +2159,7 @@ function App() {
                 <h2>Nearby Offer{locationLabel ? ` - ${locationLabel}` : ''} (Total {nearbyPosts.length})</h2>
                 <div className="ohk-nearby-actions">
                   <button className="ohk-add-location-button" onClick={() => setLocationPickerOpen((value) => !value)}>{locationPickerOpen ? 'Close' : 'Edit Location'}</button>
-                  <button type="button" onClick={openNearbyMap}>Map View</button>
+                  <button type="button" onClick={openNearbyMap}>Offers Map</button>
                 </div>
               </div>
 
