@@ -1836,6 +1836,10 @@ function App() {
           </div>
 
           <div className="ohk-header-actions">
+            <button className="ohk-header-button" onClick={openAllMap} aria-label="Offers map" title="Offers map">
+              <Icon name="map" size={21} />
+            </button>
+
             <button className="ohk-header-button" onClick={() => setDark((value) => !value)} aria-label="Dark mode">
               {dark ? '☀' : <Icon name="moon" size={21} />}
             </button>
@@ -1848,10 +1852,6 @@ function App() {
             <button className="ohk-header-button ohk-badge-button" onClick={() => setWishlistOpen(true)} aria-label="Favorites">
               <Icon name="heart" size={21} />
               {Object.values(saved).filter(Boolean).length ? <span>{Object.values(saved).filter(Boolean).length}</span> : null}
-            </button>
-
-            <button className="ohk-header-button" onClick={openAllMap} aria-label="Offers map" title="Offers map">
-              <Icon name="map" size={21} />
             </button>
 
             <button className="ohk-header-button" onClick={openSearch} aria-label="Search">
