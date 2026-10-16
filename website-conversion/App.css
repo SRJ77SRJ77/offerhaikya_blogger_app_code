@@ -2438,6 +2438,14 @@ a.ohk-card-click,
 
 /* Keep nearby map/location icons visible and shorten button labels when space is tight. */
 .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button span,
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button span {
+  color: #fff;
+}
+
+/* Keep nearby map/location icons visible and shorten button labels when space is tight. */
+.ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-map-button,
 .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button {
   min-width: 0;
   overflow: hidden;
