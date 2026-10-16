@@ -1816,12 +1816,12 @@ function App() {
               <button className="ohk-header-dropdown-button">
                 <Icon name="tag" size={16} /> Categories
               </button>
-              <div className="ohk-header-dropdown-menu ohk-category-mega-menu">
+              <div className="ohk-header-dropdown-menu ohk-category-mega-menu" style={desktopCategoryDismissed ? { display: 'none' } : undefined}>
                 {categoryGroups.map((group) => (
                   <div className="ohk-category-mega-group" key={group.title}>
                     <strong>{group.title}</strong>
                     {group.tags.map((tag) => (
-                      <button key={tag} onClick={() => { selectTag(tag); setDesktopCategoryOpen(false); setDesktopCategoryDismissed(true) }}>{tag}</button>
+                      <button key={tag} onClick={(event) => { selectTag(tag); setDesktopCategoryOpen(false); setDesktopCategoryDismissed(true); event.currentTarget.blur() }}>{tag}</button>
                     ))}
                   </div>
                 ))}
