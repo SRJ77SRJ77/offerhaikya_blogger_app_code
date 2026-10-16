@@ -1812,7 +1812,7 @@ function App() {
           </button>
 
           <div className="ohk-header-dropdowns">
-            <div className="ohk-header-dropdown">
+            <div className={`ohk-header-dropdown${desktopCategoryDismissed ? " is-dismissed" : ""}`} onMouseEnter={() => setDesktopCategoryDismissed(false)} onMouseLeave={() => setDesktopCategoryDismissed(false)}>
               <button className="ohk-header-dropdown-button">
                 <Icon name="tag" size={16} /> Categories
               </button>
