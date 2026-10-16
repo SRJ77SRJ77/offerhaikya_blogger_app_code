@@ -2234,6 +2234,9 @@ function App() {
                   />
                   {locationQuery ? <button className="ohk-search-clear ohk-location-clear" type="button" aria-label="Clear location search" onClick={() => { setLocationQuery(''); setLocationSuggestionsOpen(false) }}><Icon name="close" size={17} /></button> : null}
                   <button className="ohk-nearby-search-button" type="button" onClick={useTypedLocationFallback}>GO</button>
+                  <button className="ohk-nearby-map-button" type="button" onClick={openAllMap}>
+                    <Icon name="map" size={18} /> View All Offers on Map
+                  </button>
                   <button className="ohk-nearby-find-button" type="button" onClick={requestLocation} disabled={locationLoading}>
                     <Icon name="location" size={18} />
                     {locationLoading ? 'Checking...' : 'Set Current Location'}
