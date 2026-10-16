@@ -2399,42 +2399,11 @@ a.ohk-card-click,
   }
 }
 
-/* Keep nearby heading actions beside the title; use icon-only buttons on narrow phones. */
-.ohk-section-title {
-  flex-wrap: nowrap;
-}
-.ohk-section-title > h2 {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.ohk-nearby-actions {
-  flex: 0 0 auto;
-}
-.ohk-nearby-actions > button {
-  gap: 5px;
-}
-.ohk-nearby-actions > button svg {
-  flex: 0 0 auto;
-}
+/* At 380px and below, show only the nearby heading action icons. */
 @media (max-width: 380px) {
-  .ohk-section-title {
-    gap: 6px;
-    align-items: center;
-  }
-  .ohk-section-title > h2 {
-    font-size: 14px;
-    line-height: 1.25;
-  }
-  .ohk-nearby-actions {
-    gap: 5px;
-  }
   .ohk-nearby-actions > button {
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
-    min-height: 34px;
+    gap: 0;
     padding: 0;
-    border-radius: 8px;
   }
   .ohk-nearby-actions > button span {
     display: none;
