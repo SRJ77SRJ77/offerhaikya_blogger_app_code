@@ -630,12 +630,11 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
     const ad = adRef.current
     if (!ad) return undefined
 
-    if (!document.querySelector('script[data-ohk-adsense="true"]')) {
+    if (!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173"]')) {
       const script = document.createElement('script')
       script.async = true
       script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173'
       script.crossOrigin = 'anonymous'
-      script.dataset.ohkAdsense = 'true'
       document.head.appendChild(script)
     }
 
@@ -1122,7 +1121,9 @@ function App() {
     const callbackName = "offerhaikyaPagesCallback_" + Date.now()
     const cleanup = () => {
       if (script) script.remove()
-      try { delete window[callbackName] } catch { window[callbackName] = undefined }
+      // A JSONP response may already be in flight after cleanup (for example, in React Strict Mode).
+      // Keep a harmless callback so a late response cannot throw a ReferenceError.
+      window[callbackName] = () => {}
     }
     window[callbackName] = (data) => {
       if (!active) return
