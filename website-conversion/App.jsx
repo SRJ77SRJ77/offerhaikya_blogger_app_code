@@ -1016,7 +1016,8 @@ function CouponsSection({ dark }) {
       <div className="ohk-section-title ohk-section-banner ohk-coupons-banner" style={{ backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url(" + bgImage + ")" }}>
         <h2 id="ohk-coupons-heading">Offer Hai Kya – Exclusive Coupons</h2>
         <span>{coupons.length} coupons</span>
-        <form className="ohk-search-box ohk-coupons-search-box" onSubmit={(event) => event.preventDefault()} role="search">
+      </div>
+      <form className="ohk-search-box ohk-coupons-search-box" onSubmit={(event) => event.preventDefault()} role="search">
           <Icon name="search" size={22} />
           <input className="ohk-main-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />
           {search ? <button type="button" className="ohk-search-clear" aria-label="Clear coupon search" onClick={() => setSearch('')}><Icon name="close" size={17} /></button> : null}
