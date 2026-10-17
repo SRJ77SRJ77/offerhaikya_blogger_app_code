@@ -1718,8 +1718,25 @@ function App() {
   const handleBottomTab = (tab) => {
     if (tab === 'home') goHome()
     if (tab === 'local') {
+      // Nearby Offers always returns to the main page and opens the nearby
+      // location input, without changing the existing location/search logic.
+      detailRef.current = null
+      setDetail(null)
+      setSitePage(null)
+      setSearchOpen(false)
+      setLocationPickerOpen(true)
       setActiveTab('local')
-      document.getElementById('nearby')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (window.location.pathname !== '/' || window.location.search) {
+        window.history.pushState({}, '', '/')
+      }
+      window.setTimeout(() => {
+        const nearbySection = document.getElementById('nearby')
+        const nearbyInput = nearbySection?.querySelector('.ohk-nearby-search-row input')
+        nearbySection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        if (nearbyInput) {
+          nearbyInput.focus({ preventScroll: true })
+        }
+      }, 120)
     }
     if (tab === 'hot') {
       setActiveTab('hot')
