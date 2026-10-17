@@ -862,6 +862,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
 
 
 function CouponScratchCard({ item, dark }) {
+  const [showTerms, setShowTerms] = useState(false)
   const canvasRef = useRef(null)
   const scratchRef = useRef({ drawing: false, lastX: 0, lastY: 0 })
   const resetTimerRef = useRef(null)
@@ -988,7 +989,10 @@ function CouponScratchCard({ item, dark }) {
   return (
     <article className="ohk-coupon-card">
       <div className="ohk-coupon-store">
-        <div><strong>{item.title}</strong></div>
+        <div className="ohk-coupon-name-row">
+          <strong>{item.title}</strong>
+          <button type="button" className="ohk-coupon-terms-trigger" aria-label={`Terms and conditions for ${item.title}`} title="Terms & Conditions" onClick={() => setShowTerms(true)}>?</button>
+        </div>
       </div>
       <div className="ohk-scratch-area">
         <button type="button" className={`ohk-coupon-code ${revealed ? 'is-revealed' : 'is-hidden'}`} onClick={revealed ? copyCode : undefined} disabled={!revealed} aria-label={revealed ? `Copy coupon code ${item.code}` : 'Scratch to reveal coupon code'}>
@@ -997,6 +1001,22 @@ function CouponScratchCard({ item, dark }) {
         {!revealed ? <canvas ref={canvasRef} className="ohk-scratch-canvas" aria-label={`Scratch to reveal ${item.title}`} onPointerDown={scratchStart} onPointerMove={scratchMove} onPointerUp={scratchEnd} onPointerCancel={scratchEnd} /> : null}
       </div>
       {revealed ? <button type="button" className="ohk-coupon-copy-hint" onClick={copyCode}>{copied ? 'Copied!' : 'Click to Copy'}</button> : <span className="ohk-coupon-hint">Scratch to reveal</span>}
+      {showTerms ? (
+        <div className="ohk-coupon-terms-backdrop" role="presentation" onClick={() => setShowTerms(false)}>
+          <section className="ohk-coupon-terms-dialog" role="dialog" aria-modal="true" aria-labelledby={`ohk-terms-title-${item.id}`} onClick={(event) => event.stopPropagation()}>
+            <div className="ohk-coupon-terms-heading">
+              <h3 id={`ohk-terms-title-${item.id}`}>Terms &amp; Conditions</h3>
+              <button type="button" className="ohk-coupon-terms-close" aria-label="Close terms and conditions" onClick={() => setShowTerms(false)}><Icon name="close" size={20} /></button>
+            </div>
+            <ul>
+              <li>Coupon validity and availability may change.</li>
+              <li>Check eligibility, minimum order value and any exclusions before using the coupon.</li>
+              <li>Only one coupon may be allowed per order, depending on the retailer.</li>
+              <li>Confirm the final terms with the retailer before purchase.</li>
+            </ul>
+          </section>
+        </div>
+      ) : null}
     </article>
   )
 }
