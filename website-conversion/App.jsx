@@ -988,7 +988,7 @@ function CouponScratchCard({ item, dark }) {
   return (
     <article className="ohk-coupon-card">
       <div className="ohk-coupon-store">
-        <div><strong>{item.title}</strong><span className="ohk-coupon-pill">Coupon</span></div>
+        <div><strong>{item.title}</strong></div>
       </div>
       <div className="ohk-scratch-area">
         <button type="button" className={`ohk-coupon-code ${revealed ? 'is-revealed' : 'is-hidden'}`} onClick={revealed ? copyCode : undefined} disabled={!revealed} aria-label={revealed ? `Copy coupon code ${item.code}` : 'Scratch to reveal coupon code'}>
