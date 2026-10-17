@@ -860,6 +860,167 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
   )
 }
 
+
+function CouponsSection({ dark }) {
+  const canvasRef = useRef(null)
+  const scratchRef = useRef({ drawing: false, lastX: 0, lastY: 0 })
+  const resetTimerRef = useRef(null)
+  const [search, setSearch] = useState('')
+  const [revealed, setRevealed] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [secondsLeft, setSecondsLeft] = useState(20)
+
+  const coupon = { id: 'amazon', title: 'Amazon Coupon Code', store: 'Amazon', description: 'Scratch the box to reveal your coupon code.', code: 'AMOHK' }
+  const matches = [coupon].filter((item) => (item.title + ' ' + item.store + ' ' + item.description).toLowerCase().includes(search.trim().toLowerCase()))
+
+  const paintScratchLayer = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    if (!rect.width || !rect.height) return
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = Math.round(rect.width * dpr)
+    canvas.height = Math.round(rect.height * dpr)
+    const ctx = canvas.getContext('2d')
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = '#f28c28'
+    ctx.fillRect(0, 0, rect.width, rect.height)
+    ctx.fillStyle = '#ffffff'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.font = '700 16px Rubik, sans-serif'
+    ctx.fillText('SCRATCH HERE', rect.width / 2, rect.height / 2 - 9)
+    ctx.font = '24px sans-serif'
+    ctx.fillText('✦', rect.width / 2, rect.height / 2 + 22)
+  }
+
+  const resetCoupon = () => {
+    if (resetTimerRef.current) clearInterval(resetTimerRef.current)
+    resetTimerRef.current = null
+    setRevealed(false)
+    setCopied(false)
+    setSecondsLeft(20)
+    requestAnimationFrame(paintScratchLayer)
+  }
+
+  useEffect(() => {
+    paintScratchLayer()
+    const canvas = canvasRef.current
+    if (!canvas) return undefined
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => {
+      if (!revealed) paintScratchLayer()
+    }) : null
+    if (observer) observer.observe(canvas)
+    return () => {
+      if (observer) observer.disconnect()
+      if (resetTimerRef.current) clearInterval(resetTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!revealed) return undefined
+    setSecondsLeft(20)
+    const startedAt = Date.now()
+    resetTimerRef.current = setInterval(() => {
+      const left = Math.max(0, 20 - Math.floor((Date.now() - startedAt) / 1000))
+      setSecondsLeft(left)
+      if (left <= 0) resetCoupon()
+    }, 250)
+    return () => {
+      if (resetTimerRef.current) clearInterval(resetTimerRef.current)
+      resetTimerRef.current = null
+    }
+  }, [revealed])
+
+  const scratchStart = (event) => {
+    if (revealed) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    scratchRef.current = { drawing: true, lastX: point.x, lastY: point.y }
+    canvas.setPointerCapture?.(event.pointerId)
+    const ctx = canvas.getContext('2d')
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.beginPath()
+    ctx.arc(point.x, point.y, 20, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  const scratchMove = (event) => {
+    if (!scratchRef.current.drawing || revealed) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    const ctx = canvas.getContext('2d')
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.lineWidth = 40
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.beginPath()
+    ctx.moveTo(scratchRef.current.lastX, scratchRef.current.lastY)
+    ctx.lineTo(x, y)
+    ctx.stroke()
+    scratchRef.current.lastX = x
+    scratchRef.current.lastY = y
+  }
+
+  const scratchEnd = () => {
+    scratchRef.current.drawing = false
+    if (revealed) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+    let transparent = 0
+    const total = pixels.length / 4
+    for (let i = 3; i < pixels.length; i += 4 * 8) {
+      if (pixels[i] < 80) transparent += 1
+    }
+    if (transparent / Math.ceil(total / 8) > 0.42) setRevealed(true)
+  }
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(coupon.code)
+      setCopied(true)
+    } catch {
+      const input = document.createElement('textarea')
+      input.value = coupon.code
+      input.style.position = 'fixed'
+      input.style.opacity = '0'
+      document.body.appendChild(input)
+      input.select()
+      const success = document.execCommand('copy')
+      input.remove()
+      setCopied(success)
+    }
+  }
+
+  return (
+    <section className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
+      <div className="ohk-coupons-heading">
+        <div><span className="ohk-coupons-eyebrow">OFFERHAIKYA EXCLUSIVE</span><h2 id="ohk-coupons-heading">Coupons</h2><p>Scratch, reveal and copy your coupon code.</p></div>
+        <label className="ohk-coupons-search"><span className="ohk-coupons-search-icon" aria-hidden="true">⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />{search ? <button type="button" onClick={() => setSearch('')} aria-label="Clear coupon search">×</button> : null}</label>
+      </div>
+      {matches.length ? <div className="ohk-coupons-grid">{matches.map((item) => (
+        <article className="ohk-coupon-card" key={item.id}>
+          <div className="ohk-coupon-store"><span className="ohk-coupon-store-mark">A</span><div><strong>{item.title}</strong><span>{item.store}</span></div><span className="ohk-coupon-pill">Coupon</span></div>
+          <p>{item.description}</p>
+          <div className="ohk-scratch-area">
+            <div className="ohk-coupon-code">{revealed ? item.code : '••••••••'}</div>
+            {!revealed ? <canvas ref={canvasRef} className="ohk-scratch-canvas" aria-label="Scratch to reveal coupon code" onPointerDown={scratchStart} onPointerMove={scratchMove} onPointerUp={scratchEnd} onPointerCancel={scratchEnd} /> : null}
+          </div>
+          {revealed ? <div className="ohk-coupon-reveal-actions"><button type="button" className="ohk-coupon-copy" onClick={copyCode}>{copied ? 'Copied!' : 'Copy Code'}</button><span>Resets in {secondsLeft}s</span></div> : <span className="ohk-coupon-hint">Use your finger or mouse to scratch</span>}
+        </article>
+      ))}</div> : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
+    </section>
+  )
+}
+
 function App() {
   const [posts, setPosts] = useState([])
   const detailRef = useRef(null)
@@ -2452,6 +2613,8 @@ function App() {
               <div className="ohk-state">No offers found. Try another search or category.</div>
             )}
           </section>
+
+          <CouponsSection dark={dark} />
 
           <section className="ohk-faq-section" aria-labelledby="ohk-faq-heading">
             <div className="ohk-faq-intro">
