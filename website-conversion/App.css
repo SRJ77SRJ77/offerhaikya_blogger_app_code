@@ -2495,3 +2495,32 @@ a.ohk-card-click,
 
 
 
+
+
+/* Offerhaikya Google sign-in and required category profile */
+.ohk-profile-modal{width:min(520px,calc(100vw - 28px));max-height:min(88vh,760px);overflow:auto}
+.ohk-profile-required-backdrop{z-index:10000}
+.ohk-google-signin-button{display:flex;align-items:center;justify-content:center;gap:12px}
+.ohk-google-mark{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#fff;color:#4285f4;font-size:18px;font-weight:700;box-shadow:0 0 0 1px #e5e7eb}
+.ohk-profile-identity{display:flex;align-items:center;gap:12px;margin:10px 0 16px;min-width:0}
+.ohk-profile-identity img,.ohk-profile-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 auto}
+.ohk-profile-avatar{display:flex;align-items:center;justify-content:center;background:#f1f1f1;color:#333}
+.ohk-profile-identity div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ohk-profile-identity strong,.ohk-profile-identity span{overflow-wrap:anywhere}
+.ohk-profile-identity span{font-size:13px;color:var(--ohk-muted,#777)}
+.ohk-profile-field-label{display:block;margin:14px 0 6px;font-size:14px;font-weight:600}
+.ohk-profile-phone{display:block;width:100%;min-height:44px;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:var(--ohk-input-bg,#fff);color:inherit}
+.ohk-profile-category-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:18px 0 9px}
+.ohk-profile-category-heading strong{font-size:14px}
+.ohk-profile-category-heading strong span{color:#e23b2e}
+.ohk-profile-category-heading small{font-size:12px;color:var(--ohk-muted,#777)}
+.ohk-profile-category-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:220px;overflow:auto;padding:2px 2px 10px}
+.ohk-profile-category-option{display:flex;align-items:center;gap:8px;min-width:0;padding:9px 10px;border:1px solid #dedede;border-radius:9px;cursor:pointer;font-size:13px;overflow-wrap:anywhere}
+.ohk-profile-category-option input{accent-color:#ff5b01;flex:0 0 auto;width:16px;height:16px}
+.ohk-profile-error{margin:10px 0;color:#c62828;font-size:13px;line-height:1.45}
+.ohk-profile-signout{margin-top:8px}
+.ohk-profile-modal button:disabled{opacity:.6;cursor:not-allowed}
+.ohk-dark .ohk-profile-phone{background:#222;color:#fff;border-color:#555}
+.ohk-dark .ohk-profile-category-option{border-color:#444}
+.ohk-dark .ohk-profile-avatar{background:#333;color:#fff}
+@media(max-width:480px){.ohk-profile-category-list{grid-template-columns:1fr}.ohk-profile-modal{max-height:90vh}}
