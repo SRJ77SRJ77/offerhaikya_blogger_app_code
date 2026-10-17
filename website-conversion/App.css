@@ -2720,3 +2720,11 @@ a.ohk-card-click,
 @media(min-width:641px){.ohk-coupons-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:641px) and (max-width:1024px){.ohk-coupons-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:640px){.ohk-coupons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ohk-coupon-terms-trigger{top:9px;right:9px}.ohk-coupon-card{padding-top:12px}}
+
+
+/* Phone coupons: one card per row, with name above the scratch rectangle */
+@media(max-width:640px){
+  .ohk-coupons-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+  .ohk-coupon-card{width:100%;box-sizing:border-box}
+  .ohk-scratch-area{aspect-ratio:1.9/1;min-height:125px}
+}
