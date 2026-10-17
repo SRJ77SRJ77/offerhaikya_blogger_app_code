@@ -884,7 +884,7 @@ function CouponsSection({ dark }) {
     const ctx = canvas.getContext('2d')
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.globalCompositeOperation = 'source-over'
-    ctx.fillStyle = '#f28c28'
+    ctx.fillStyle = '#ff5b01'
     ctx.fillRect(0, 0, rect.width, rect.height)
     ctx.fillStyle = '#ffffff'
     ctx.textAlign = 'center'
