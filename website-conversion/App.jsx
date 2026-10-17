@@ -287,6 +287,18 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
     }
   })
 
+  // Turn Blogger links labelled "Click to Buy" into orange CTA buttons,
+  // keeping each anchor's original destination and visible wording.
+  container.querySelectorAll('a[href]').forEach((link) => {
+    if (/^click\\s+to\\s+buy$/i.test((link.textContent || '').replace(/\\s+/g, ' ').trim())) {
+      link.classList.add('ohk-click-to-buy-button')
+      link.style.removeProperty('color')
+      link.style.removeProperty('background')
+      link.setAttribute('target', '_blank')
+      link.setAttribute('rel', 'noopener noreferrer')
+    }
+  })
+
   container.querySelectorAll('img').forEach((image) => image.remove())
   container.querySelectorAll('script, style, iframe, noscript').forEach((node) => node.remove())
 
