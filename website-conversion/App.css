@@ -2608,3 +2608,33 @@ a.ohk-card-click,
   .ohk-faq-item summary::after { right: 11px; }
   .ohk-faq-item > p { padding: 0 11px 13px; font-size: 12px; }
 }
+
+
+.ohk-faq-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.ohk-faq-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #e94e00;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ohk-faq-links a:hover { color: #b83d00; }
+.ohk-faq-links a:focus-visible {
+  outline: 2px solid #ff5b01;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.ohk-dark .ohk-faq-links a { color: #ff9b69; }
+@media (max-width: 600px) {
+  .ohk-faq-links { padding: 0 11px 13px; }
+  .ohk-faq-links a { font-size: 12px; }
+}
