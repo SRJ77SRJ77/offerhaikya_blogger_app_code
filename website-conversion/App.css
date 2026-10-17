@@ -2494,16 +2494,4 @@ a.ohk-card-click,
 }
 
 
-/* Subtle Offerhaikya orange dividers in the actual Blogger detail-content wrapper. */
-.ohk-detail-page .ohk-detail-html hr,
-.ohk-detail-html hr {
-  display: block !important;
-  width: 100%;
-  box-sizing: border-box;
-  border: 0 !important;
-  height: 1px !important;
-  min-height: 1px;
-  background: rgba(255, 91, 1, 0.6) !important;
-  opacity: 1;
-  margin: 16px 0 !important;
-}
+
