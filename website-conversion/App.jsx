@@ -686,13 +686,20 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Always display the first tag in the latest Blogger feed on the main post card.
-  // The detail page's tag rendering is separate and remains unchanged.
+  // Skip internal/system labels and show the first user-facing Blogger tag.
+  // Keep this helper limited to post cards; detail-page tags remain unchanged.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  const firstLabel = String(labels[0] ?? '').trim()
-  if (firstLabel) return firstLabel
+  const hiddenLabels = new Set([
+    'e1', 'e2', 'ey1', 'ey2',
+    'verified', 'expired',
+  ])
+  const visibleLabel = labels
+    .map((label) => String(label ?? '').trim())
+    .find((label) => label && !hiddenLabels.has(label.toLowerCase()))
 
-  return String(post?.label ?? '').trim()
+  if (visibleLabel) return visibleLabel
+  const fallback = String(post?.label ?? '').trim()
+  return hiddenLabels.has(fallback.toLowerCase()) ? '' : fallback
 }
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
