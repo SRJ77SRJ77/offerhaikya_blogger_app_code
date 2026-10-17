@@ -20,6 +20,33 @@ const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
 const LOGO_URL = logoImage
 
+const HOME_FAQS = [
+  {
+    question: 'Aaj koi naya offer hai kya? / Are there any new offers today?',
+    answer: 'Check the Latest Offers section on Offerhaikya for recently published deals. Offers, stock, coupon validity and terms can change, so confirm the details on the retailer’s page before buying.',
+  },
+  {
+    question: 'Amazon aur Flipkart par aaj ke offers kahan milenge? / Where can I find Amazon and Flipkart offers?',
+    answer: 'Browse the latest offer posts on Offerhaikya and open the deal you are interested in. Check the retailer’s page for the current price, bank offers, availability and terms before placing an order.',
+  },
+  {
+    question: 'Meesho ke trending products aur offers kaise dekhein? / How can I find Meesho product offers?',
+    answer: 'Look through Offerhaikya’s latest posts and shopping guides for Meesho products and offers. Product prices, coupons and availability can change, so verify them on Meesho before buying.',
+  },
+  {
+    question: 'Mere paas ke offers kaise milenge? / How do I find offers near me?',
+    answer: 'Allow location access or enter your city or town in the nearby-offers search. Offerhaikya can show matching local offers within its nearby search range when location details are available.',
+  },
+  {
+    question: 'Kya Offerhaikya par offline aur local shop offers bhi hain? / Does Offerhaikya list offline store offers?',
+    answer: 'Yes, Offerhaikya publishes online deals as well as offline and local-store offers when those offers are available. Check each post for the store location, validity and conditions.',
+  },
+  {
+    question: 'Offerhaikya par offers kitni baar update hote hain? / How often are offers updated?',
+    answer: 'Offerhaikya automatically checks its Blogger offer feed for published changes. A new or edited post may take a little time to appear; always confirm that an offer is still valid with the retailer or store.',
+  },
+]
+
 
 function normalizeLabelForMatch(label = '') {
   return String(label || '').trim().replace(/imp$/i, '').trim().toLowerCase()
@@ -270,9 +297,24 @@ function setPageMetadata(post = null) {
     publisher: { '@type': 'Organization', name: 'Offerhaikya', url: window.location.origin }
   } : {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Offerhaikya',
-    url: window.location.origin + '/'
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        name: 'Offerhaikya',
+        url: window.location.origin + '/'
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: HOME_FAQS.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer
+          }
+        }))
+      }
+    ]
   }
   structuredData.textContent = JSON.stringify(schema)
 }
@@ -2400,6 +2442,21 @@ function App() {
             ) : (
               <div className="ohk-state">No offers found. Try another search or category.</div>
             )}
+          </section>
+
+          <section className="ohk-faq-section" aria-labelledby="ohk-faq-heading">
+            <div className="ohk-faq-intro">
+              <h2 id="ohk-faq-heading">Frequently Asked Questions</h2>
+              <p>Quick answers about today’s deals, shopping offers and nearby stores.</p>
+            </div>
+            <div className="ohk-faq-list">
+              {HOME_FAQS.map((faq) => (
+                <details className="ohk-faq-item" key={faq.question}>
+                  <summary>{faq.question}</summary>
+                  <p>{faq.answer}</p>
+                </details>
+              ))}
+            </div>
           </section>
 
         </section>
