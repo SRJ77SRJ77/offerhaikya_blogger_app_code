@@ -686,18 +686,11 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Show the first public Blogger label on cards. Keep system/status labels
-  // available to the existing expiry and verification logic, but don't display them as the category.
+  // Display the first Blogger label exactly as ordered in the feed.
+  // Expiry and verification continue to use the full post.labels array separately.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  const publicLabel = labels.find((label) => {
-    const value = String(label || '').trim()
-    return value &&
-      !/^(?:E\d+|EY\d+)$/i.test(value) &&
-      !/^(?:verified|expired)$/i.test(value)
-  })
-  return String(publicLabel ?? 'Offer').trim()
+  return String(labels[0] ?? post?.label ?? '').trim()
 }
-
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
