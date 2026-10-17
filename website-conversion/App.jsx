@@ -406,13 +406,17 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   return container.innerHTML
 }
 
+function isLockedPost(post) {
+  return (post?.labels || []).some((label) => String(label).trim().toLowerCase() === 'lock')
+}
+
 function parseFeed(data) {
   const entries = data?.feed?.entry || []
 
   return entries.map((entry) => {
     const rawContent = entry?.content?.$t || ''
     const labels = (entry?.category || []).map((item) => item.term).filter(Boolean)
-    if (labels.some((label) => String(label).trim().toLowerCase() === 'lock')) return null
+    if (isLockedPost({ labels })) return null
     const alternate = entry?.link?.find((item) => item.rel === 'alternate')?.href || BLOG_URL
     const image = highResImage(firstImage(rawContent))
 
@@ -1415,7 +1419,7 @@ function App() {
     try {
       const cached = JSON.parse(localStorage.getItem('offerhaikya_posts_cache') || '[]')
       if (Array.isArray(cached) && cached.length) {
-        setPosts(cached)
+        setPosts(cached.filter((post) => !isLockedPost(post)))
         setLoading(false)
       }
     } catch {}
@@ -1616,15 +1620,15 @@ function App() {
     if (!detail) return []
     const text = detailTagFilter.trim().toLowerCase()
     const matches = posts.filter((post) => {
-      if (post.id === detail.id) return false
+      if (isLockedPost(post) || post.id === detail.id) return false
       if (!text) return true
       const searchable = `${post.title} ${searchableLabels(post.labels)} ${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
       return searchable.includes(text)
     })
-    return [detail, ...matches].slice(0, 8)
+    return isLockedPost(detail) ? matches.slice(0, 8) : [detail, ...matches].slice(0, 8)
   }, [detail, detailTagFilter, posts])
 
-  const detailLatestPosts = useMemo(() => posts.slice(0, 8), [posts])
+  const detailLatestPosts = useMemo(() => posts.filter((post) => !isLockedPost(post)).slice(0, 8), [posts])
 
   const searchSuggestions = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -1641,6 +1645,7 @@ function App() {
       return -1
     }
     return posts
+      .filter((post) => !isLockedPost(post))
       .map((post, index) => ({ post, index, rank: score(post) }))
       .filter((item) => item.rank >= 0)
       .sort((a, b) => a.rank - b.rank || a.index - b.index)
@@ -1898,7 +1903,7 @@ function App() {
   const nearbyPosts = useMemo(() => {
     if (!userLocation) return []
     return posts
-      .filter(isOfflinePost)
+      .filter((post) => !isLockedPost(post) && isOfflinePost(post))
       .map((post) => {
         if (!post.coordinates) return null
         const distance = distanceKm(userLocation, post.coordinates)
