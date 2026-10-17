@@ -1564,6 +1564,8 @@ function App() {
     const text = query.trim().toLowerCase()
 
     return posts.filter((post) => {
+      // Hide any post tagged "Lock" from public listings and search results.
+      if ((post.labels || []).some((label) => String(label).trim().toLowerCase() === 'lock')) return false
       const labelMatch = activeLabel === 'All' || post.labels.some((label) => normalizeLabelForMatch(label) === normalizeLabelForMatch(activeLabel))
       const textMatch = !text || `${post.title} ${searchableLabels(post.labels)} ${post.excerpt} ${post.bloggerLocation || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase().includes(text)
       return labelMatch && textMatch
