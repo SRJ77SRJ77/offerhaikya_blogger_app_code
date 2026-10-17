@@ -2468,7 +2468,8 @@ a.ohk-card-click,
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  padding: 11px 20px !important;
+  padding: 2px 12px !important;
+  font-size: 10px !important;
   margin: 8px 0 !important;
   border: 1px solid #ff5b01 !important;
   border-radius: 8px !important;
