@@ -2691,3 +2691,22 @@ a.ohk-card-click,
 .ohk-coupons-empty{padding:20px;text-align:center;border:1px dashed #ffb58f;border-radius:12px;color:#777}
 .ohk-coupons-dark .ohk-coupons-empty{border-color:#68412e;color:#ddd}
 @media(max-width:640px){.ohk-coupons-section{padding:17px;margin:22px 0;border-radius:14px}.ohk-coupons-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ohk-coupon-card{padding:11px}.ohk-coupon-store{gap:6px;align-items:flex-start;flex-wrap:wrap}.ohk-coupon-store strong{font-size:13px}.ohk-coupon-pill{font-size:10px}.ohk-scratch-area{aspect-ratio:1/1;min-height:100px}.ohk-coupon-code{font-size:clamp(18px,5vw,25px);letter-spacing:1px}.ohk-coupon-hint{font-size:11px}}
+
+
+/* Coupon section spacing and terms popup */
+.ohk-coupons-banner{margin-bottom:24px}
+.ohk-coupons-search-box{margin:0 0 26px}
+.ohk-coupons-grid{row-gap:18px}
+.ohk-coupon-name-row{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.ohk-coupon-name-row strong{flex:1;min-width:0}
+.ohk-coupon-terms-trigger{flex:0 0 23px;width:23px;height:23px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ff5b01;border-radius:50%;background:transparent;color:#ff5b01;font:700 14px/1 Rubik,sans-serif;cursor:pointer;padding:0}
+.ohk-coupons-dark .ohk-coupon-terms-trigger{color:#ff9b69;border-color:#ff9b69}
+.ohk-coupon-terms-backdrop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.62)}
+.ohk-coupon-terms-dialog{width:min(100%,440px);max-height:min(80vh,560px);overflow:auto;padding:22px;border:1px solid #ffe0cf;border-radius:16px;background:#fff;color:#202020;box-shadow:0 18px 55px rgba(0,0,0,.3)}
+.ohk-coupons-dark .ohk-coupon-terms-dialog{background:#202020;color:#fff;border-color:#493023}
+.ohk-coupon-terms-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.ohk-coupon-terms-heading h3{margin:0;font-size:19px;line-height:1.3}
+.ohk-coupon-terms-close{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer}
+.ohk-coupon-terms-dialog ul{margin:0;padding-left:20px}
+.ohk-coupon-terms-dialog li{margin:10px 0;line-height:1.55}
+@media(max-width:640px){.ohk-coupons-banner{margin-bottom:18px}.ohk-coupons-search-box{margin-bottom:20px}.ohk-coupon-terms-dialog{padding:18px}}
