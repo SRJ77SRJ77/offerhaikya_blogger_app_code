@@ -28,7 +28,8 @@ function searchableLabels(labels = []) {
     .join(' ')
 }
 
-function stripHtml(value = '')
+function stripHtml(value = '') {
+  return value
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<[^>]+>/g, ' ')
