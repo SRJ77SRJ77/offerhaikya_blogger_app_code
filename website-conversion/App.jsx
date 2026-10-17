@@ -1998,7 +1998,7 @@ function App() {
                       key={tag}
                       type="button"
                       onClick={() => {
-                        setDetailTagFilter(tag)
+                        setDetailTagFilter(String(tag).replace(/imp$/i, '').trim())
                         document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                       }}
                     >
