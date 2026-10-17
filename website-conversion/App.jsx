@@ -695,7 +695,7 @@ function getPostCardLabel(post) {
       !/^(?:E\d+|EY\d+)$/i.test(value) &&
       !/^(?:verified|expired)$/i.test(value)
   })
-  return String(publicLabel ?? post?.label ?? '').trim()
+  return String(publicLabel ?? 'Offer').trim()
 }
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
