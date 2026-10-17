@@ -1048,8 +1048,8 @@ function CouponsSection({ dark, posts, couponSource }) {
   const parsedCoupons = []
   let currentCoupon = null
   couponLines.forEach((line) => {
-    const nameMatch = line.match(/^Name\\s*:\\s*(.+)$/i)
-    const codeMatch = line.match(/^Code\\s*:\\s*([A-Za-z0-9_-]+)\\s*$/i)
+    const nameMatch = line.match(/^Name\s*:\s*(.+)$/i)
+    const codeMatch = line.match(/^Code\s*:\s*([A-Za-z0-9_-]+)\s*$/i)
     if (nameMatch) {
       if (currentCoupon?.title && currentCoupon?.code) parsedCoupons.push(currentCoupon)
       currentCoupon = { title: nameMatch[1].trim(), store: nameMatch[1].trim(), code: '' }
