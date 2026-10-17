@@ -2242,16 +2242,15 @@ function App() {
                     ))}
                   </div>
                 ))}
-                <div className="ohk-category-mega-group">
-                  <strong>More</strong>
-                  <button type="button" onClick={() => {
-                    document.getElementById('ohk-coupons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    setDesktopCategoryOpen(false)
-                    setDesktopCategoryDismissed(true)
-                  }}>Coupons</button>
-                </div>
               </div>
             </div>
+            <button
+              type="button"
+              className="ohk-header-dropdown-button ohk-header-coupons-button"
+              onClick={() => document.getElementById('ohk-coupons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Coupons
+            </button>
           </div>
 
           <div className="ohk-header-page-links">
