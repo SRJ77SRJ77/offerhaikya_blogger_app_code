@@ -885,7 +885,7 @@ function CouponScratchCard({ item, dark }) {
     ctx.fillStyle = '#ffffff'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    let scratchFontSize = Math.min(12, rect.width * 0.035)
+    let scratchFontSize = Math.min(14, rect.width * 0.042)
     ctx.font = `700 ${scratchFontSize}px Rubik, sans-serif`
     while (scratchFontSize > 6 && ctx.measureText('SCRATCH HERE').width > rect.width - 16) {
       scratchFontSize -= 0.5
