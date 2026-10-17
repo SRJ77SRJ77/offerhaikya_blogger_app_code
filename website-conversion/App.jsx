@@ -1031,10 +1031,10 @@ function CouponScratchCard({ item, dark }) {
   )
 }
 
-function CouponsSection({ dark, posts }) {
+function CouponsSection({ dark, posts, couponSource }) {
   const [search, setSearch] = useState('')
   const [visibleCouponCount, setVisibleCouponCount] = useState(6)
-  const couponPost = posts.find((post) => String(post.title || '').trim().toLowerCase() === 'coupons')
+  const couponPost = couponSource || posts.find((post) => String(post.title || '').trim().toLowerCase() === 'coupons')
   const couponText = String(couponPost?.rawContent || couponPost?.searchDescription || '')
     .replace(/<\s*br\s*\/?\s*>/gi, '\n')
     .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, '\n')
@@ -1096,6 +1096,7 @@ function CouponsSection({ dark, posts }) {
 
 function App() {
   const [posts, setPosts] = useState([])
+  const [couponSource, setCouponSource] = useState(null)
   const detailRef = useRef(null)
 
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
@@ -1431,6 +1432,14 @@ function App() {
         const data = await loadFeed()
         if (!active) return
         const parsed = parseFeed(data)
+        const couponEntry = (data?.feed?.entry || []).find((entry) => String(entry?.title?.$t || '').trim().toLowerCase() === 'coupons')
+        if (couponEntry) {
+          setCouponSource({
+            title: couponEntry?.title?.$t || 'Coupons',
+            rawContent: couponEntry?.content?.$t || '',
+            searchDescription: stripHtml(couponEntry?.summary?.$t || ''),
+          })
+        }
         const previousKnown = JSON.parse(localStorage.getItem('offerhaikya_known_post_ids') || 'null')
         const previousVersions = JSON.parse(localStorage.getItem('offerhaikya_known_post_versions') || 'null')
         const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
@@ -2690,7 +2699,7 @@ function App() {
             )}
           </section>
 
-          <CouponsSection dark={dark} posts={posts} />
+          <CouponsSection dark={dark} posts={posts} couponSource={couponSource} />
 
           <section className="ohk-faq-section" aria-labelledby="ohk-faq-heading">
             <div className="ohk-faq-intro">
