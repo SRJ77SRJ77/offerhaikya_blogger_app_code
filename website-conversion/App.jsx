@@ -2229,16 +2229,6 @@ function App() {
           </button>
 
           <div className="ohk-header-dropdowns">
-            <button
-              type="button"
-              className="ohk-header-dropdown-button ohk-header-coupons-button"
-              onClick={() => {
-                const couponSection = document.getElementById('ohk-coupons-section')
-                couponSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }}
-            >
-              Coupons
-            </button>
             <div className={`ohk-header-dropdown${desktopCategoryDismissed ? " is-dismissed" : ""}`} onMouseLeave={() => setDesktopCategoryDismissed(false)}>
               <button className="ohk-header-dropdown-button">
                 <Icon name="tag" size={16} /> Categories
@@ -2252,6 +2242,14 @@ function App() {
                     ))}
                   </div>
                 ))}
+                <div className="ohk-category-mega-group">
+                  <strong>More</strong>
+                  <button type="button" onClick={() => {
+                    document.getElementById('ohk-coupons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    setDesktopCategoryOpen(false)
+                    setDesktopCategoryDismissed(true)
+                  }}>Coupons</button>
+                </div>
               </div>
             </div>
           </div>
@@ -2310,14 +2308,26 @@ function App() {
               >
                 Categories <span>{categoryOpen ? '−' : '+'}</span>
               </button>
-              {categoryOpen ? categoryGroups.map((group) => (
-                <div className="ohk-side-category-group" key={group.title}>
-                  <strong>{group.title}</strong>
-                  {group.tags.map((tag) => (
-                    <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false) }}>{String(tag).replace(/imp$/i, '').trim()}</button>
+              {categoryOpen ? (
+                <>
+                  {categoryGroups.map((group) => (
+                    <div className="ohk-side-category-group" key={group.title}>
+                      <strong>{group.title}</strong>
+                      {group.tags.map((tag) => (
+                        <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false) }}>{String(tag).replace(/imp$/i, '').trim()}</button>
+                      ))}
+                    </div>
                   ))}
-                </div>
-              )) : null}
+                  <div className="ohk-side-category-group">
+                    <strong>More</strong>
+                    <button type="button" onClick={() => {
+                      setMenuOpen(false)
+                      setCategoryOpen(false)
+                      window.setTimeout(() => document.getElementById('ohk-coupons-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                    }}>Coupons</button>
+                  </div>
+                </>
+              ) : null}
             </div>
           </aside>
         </div>
