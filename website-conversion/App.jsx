@@ -686,29 +686,10 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Blogger's feed may not preserve the order labels were entered in the editor.
-  // Prefer "Today's Offer" when present, then the first customer-facing label.
+  // Show exactly the first tag in the Blogger feed, with no filtering or prioritizing.
   // This only affects main post cards; detail-page tags remain unchanged.
-  const labels = (Array.isArray(post?.labels) ? post.labels : [])
-    .map((label) => String(label ?? '').trim())
-    .filter(Boolean)
-
-  const normalized = (label) => label.toLowerCase()
-  const hiddenLabels = new Set([
-    'e1', 'e2', 'ey1', 'ey2',
-    'verified', 'expired',
-    'online offer', 'online offers',
-    'offline offer', 'offline offers',
-  ])
-
-  const todaysOffer = labels.find((label) => normalized(label) === "today's offer")
-  if (todaysOffer) return todaysOffer
-
-  const visibleLabel = labels.find((label) => !hiddenLabels.has(normalized(label)))
-  if (visibleLabel) return visibleLabel
-
-  const fallback = String(post?.label ?? '').trim()
-  return hiddenLabels.has(normalized(fallback)) ? '' : fallback
+  const labels = Array.isArray(post?.labels) ? post.labels : []
+  return String(labels[0] ?? post?.label ?? '').trim()
 }
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
