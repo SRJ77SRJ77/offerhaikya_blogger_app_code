@@ -2661,7 +2661,9 @@ a.ohk-card-click,
 .ohk-coupons-dark{background:#171717;color:#fff;border-color:#493023}
 .ohk-coupons-heading{display:flex;align-items:stretch;flex-direction:column;gap:14px;margin-bottom:20px}
 .ohk-coupons-heading h2{font-size:clamp(24px,3vw,32px);margin:4px 0 5px;font-weight:800}
-.ohk-coupons-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#ff5b01}
+.ohk-coupons-title-brand{color:#202020}
+.ohk-coupons-title-accent{color:#ff5b01}
+.ohk-coupons-dark .ohk-coupons-title-brand{color:#fff}
 .ohk-coupons-search-box{width:100%;max-width:100%;margin:0;box-sizing:border-box}
 .ohk-coupons-search-box input{font:inherit}
 .ohk-coupons-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
