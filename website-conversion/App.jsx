@@ -905,6 +905,7 @@ function CouponsSection({ dark }) {
   }
 
   useEffect(() => {
+    if (revealed) return undefined
     paintScratchLayer()
     const canvas = canvasRef.current
     if (!canvas) return undefined
@@ -914,9 +915,8 @@ function CouponsSection({ dark }) {
     if (observer) observer.observe(canvas)
     return () => {
       if (observer) observer.disconnect()
-      if (resetTimerRef.current) clearInterval(resetTimerRef.current)
     }
-  }, [])
+  }, [revealed])
 
   useEffect(() => {
     if (!revealed) return undefined
