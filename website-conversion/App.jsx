@@ -291,7 +291,7 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // keeping each anchor's original destination and visible wording.
   container.querySelectorAll('a[href]').forEach((link) => {
     if (/^click\\s+to\\s+buy$/i.test((link.textContent || '').replace(/\\s+/g, ' ').trim())) {
-      link.textContent = 'Click to Buy'
+      link.textContent = 'Buy Now'
       link.classList.add('ohk-click-to-buy-button')
       link.style.removeProperty('color')
       link.style.removeProperty('background')
