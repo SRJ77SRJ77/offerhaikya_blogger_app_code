@@ -686,20 +686,29 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Skip internal/system labels and show the first user-facing Blogger tag.
-  // Keep this helper limited to post cards; detail-page tags remain unchanged.
-  const labels = Array.isArray(post?.labels) ? post.labels : []
+  // Blogger's feed may not preserve the order labels were entered in the editor.
+  // Prefer "Today's Offer" when present, then the first customer-facing label.
+  // This only affects main post cards; detail-page tags remain unchanged.
+  const labels = (Array.isArray(post?.labels) ? post.labels : [])
+    .map((label) => String(label ?? '').trim())
+    .filter(Boolean)
+
+  const normalized = (label) => label.toLowerCase()
   const hiddenLabels = new Set([
     'e1', 'e2', 'ey1', 'ey2',
     'verified', 'expired',
+    'online offer', 'online offers',
+    'offline offer', 'offline offers',
   ])
-  const visibleLabel = labels
-    .map((label) => String(label ?? '').trim())
-    .find((label) => label && !hiddenLabels.has(label.toLowerCase()))
 
+  const todaysOffer = labels.find((label) => normalized(label) === "today's offer")
+  if (todaysOffer) return todaysOffer
+
+  const visibleLabel = labels.find((label) => !hiddenLabels.has(normalized(label)))
   if (visibleLabel) return visibleLabel
+
   const fallback = String(post?.label ?? '').trim()
-  return hiddenLabels.has(fallback.toLowerCase()) ? '' : fallback
+  return hiddenLabels.has(normalized(fallback)) ? '' : fallback
 }
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
