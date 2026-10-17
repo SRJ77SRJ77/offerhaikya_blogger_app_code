@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { auth, db } from './firebase.js'
 import './App.css'
 import logoImage from './assets/logo.png'
 import darkLogoImage from './assets/logo_dm.png'
@@ -861,11 +864,129 @@ function App() {
   const [registrationName, setRegistrationName] = useState('')
   const [registrationPhone, setRegistrationPhone] = useState('')
   const [registrationEmail, setRegistrationEmail] = useState('')
+  const [authUser, setAuthUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [authBusy, setAuthBusy] = useState(false)
+  const [profileCategories, setProfileCategories] = useState([])
+  const [profilePhone, setProfilePhone] = useState('')
+  const [profileDocExists, setProfileDocExists] = useState(false)
+  const [profileError, setProfileError] = useState('')
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
   const [resolvedMapCoordinates, setResolvedMapCoordinates] = useState({})
   useEffect(() => { detailRef.current = detail }, [detail])
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setAuthUser(currentUser)
+      setAuthLoading(false)
+      setProfileError('')
+
+      if (!currentUser) {
+        setProfileDocExists(false)
+        setProfileCategories([])
+        setProfilePhone('')
+        return
+      }
+
+      try {
+        const profileSnapshot = await getDoc(doc(db, 'userProfiles', currentUser.uid))
+        if (profileSnapshot.exists()) {
+          const data = profileSnapshot.data()
+          const categories = Array.isArray(data.categories) ? data.categories : []
+          setProfileCategories(categories)
+          setProfilePhone(typeof data.phone === 'string' ? data.phone : '')
+          setProfileDocExists(categories.length > 0)
+          setProfileOpen(categories.length === 0)
+        } else {
+          setProfileCategories([])
+          setProfilePhone('')
+          setProfileDocExists(false)
+          setProfileOpen(true)
+        }
+      } catch (error) {
+        console.error('Offerhaikya profile load failed:', error)
+        setProfileDocExists(false)
+        setProfileOpen(true)
+        setProfileError('We could not load your profile. Please check the Firebase Firestore setup and try again.')
+      }
+    })
+
+    return unsubscribe
+  }, [])
+
+  const profileCategoryOptions = useMemo(() => {
+    const labels = posts.flatMap((post) => Array.isArray(post.labels) ? post.labels : [])
+    return [...new Set(labels
+      .map((label) => String(label || '').replace(/imp$/i, '').trim())
+      .filter((label) => label && !/^(?:E\\d+|EY\\d+)$/i.test(label)))]
+      .sort((a, b) => a.localeCompare(b))
+  }, [posts])
+
+  const handleGoogleSignIn = async () => {
+    setAuthBusy(true)
+    setProfileError('')
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider())
+    } catch (error) {
+      console.error('Offerhaikya Google sign-in failed:', error)
+      if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
+        setProfileError(error?.code === 'auth/unauthorized-domain'
+          ? 'This website domain is not authorized in Firebase Authentication.'
+          : 'Google sign-in failed. Please try again.')
+      }
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!authUser) {
+      setProfileError('Please sign in with Google first.')
+      return
+    }
+    if (!profileCategories.length) {
+      setProfileError('Please select at least one category to complete registration.')
+      return
+    }
+
+    setAuthBusy(true)
+    setProfileError('')
+    try {
+      await setDoc(doc(db, 'userProfiles', authUser.uid), {
+        uid: authUser.uid,
+        email: authUser.email || '',
+        displayName: authUser.displayName || '',
+        phone: profilePhone.trim(),
+        categories: profileCategories,
+        profileComplete: true,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true })
+      setProfileDocExists(true)
+      setProfileOpen(false)
+    } catch (error) {
+      console.error('Offerhaikya profile save failed:', error)
+      setProfileError('Your categories could not be saved. Please check that Cloud Firestore is enabled and its security rules allow signed-in users to save their own profile.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  const handleGoogleSignOut = async () => {
+    setAuthBusy(true)
+    setProfileError('')
+    try {
+      await signOut(auth)
+      setProfileOpen(false)
+    } catch (error) {
+      console.error('Offerhaikya sign-out failed:', error)
+      setProfileError('Sign-out failed. Please try again.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
   const [detailImageIndex, setDetailImageIndex] = useState(0)
@@ -2449,14 +2570,91 @@ function App() {
       ) : null}
 
       {profileOpen ? (
-        <div className="ohk-modal-backdrop" onClick={() => setProfileOpen(false)}>
-          <div className="ohk-modal" onClick={(event) => event.stopPropagation()}>
+        <div className={`ohk-modal-backdrop ${authUser && !profileDocExists ? 'ohk-profile-required-backdrop' : ''}`} onClick={() => {
+          if (!authUser || profileDocExists) setProfileOpen(false)
+        }}>
+          <div className="ohk-modal ohk-profile-modal" role="dialog" aria-modal="true" aria-labelledby="ohk-profile-title" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-modal-head">
-              <h2>Profile</h2>
-              <button onClick={() => setProfileOpen(false)} aria-label="Close profile"><Icon name="close" /></button>
+              <h2 id="ohk-profile-title">{authUser && !profileDocExists ? 'Complete your profile' : 'Profile'}</h2>
+              {(!authUser || profileDocExists) ? (
+                <button onClick={() => setProfileOpen(false)} aria-label="Close profile"><Icon name="close" /></button>
+              ) : null}
             </div>
-            <p className="ohk-registration-intro">Profile features are currently paused while Offerhaikya launches its offers and search experience.</p>
-            <button className="ohk-primary-button" onClick={() => setProfileOpen(false)}>Continue browsing</button>
+
+            {authLoading ? (
+              <p className="ohk-registration-intro">Checking your sign-in status…</p>
+            ) : !authUser ? (
+              <>
+                <p className="ohk-registration-intro">Sign in with Google to create your Offerhaikya profile and save the offer categories you care about.</p>
+                <button type="button" className="ohk-primary-button ohk-google-signin-button" onClick={handleGoogleSignIn} disabled={authBusy}>
+                  <strong className="ohk-google-mark" aria-hidden="true">G</strong>
+                  {authBusy ? 'Connecting to Google…' : 'Continue with Google'}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="ohk-profile-identity">
+                  {authUser.photoURL ? <img src={authUser.photoURL} alt="" /> : <span className="ohk-profile-avatar"><Icon name="user" size={22} /></span>}
+                  <div>
+                    <strong>{authUser.displayName || 'Offerhaikya user'}</strong>
+                    <span>{authUser.email}</span>
+                  </div>
+                </div>
+                <p className="ohk-registration-intro">
+                  {profileDocExists
+                    ? 'Update your interests below. Choose at least one category to save your profile.'
+                    : 'Choose at least one category to complete registration. You cannot finish sign-up without selecting a category.'}
+                </p>
+                <label className="ohk-profile-field-label" htmlFor="ohk-profile-phone">Phone number (optional)</label>
+                <input
+                  id="ohk-profile-phone"
+                  className="ohk-profile-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  value={profilePhone}
+                  onChange={(event) => setProfilePhone(event.target.value)}
+                  placeholder="Enter phone number (optional)"
+                />
+                <div className="ohk-profile-category-heading">
+                  <strong>Choose your offer categories <span aria-hidden="true">*</span></strong>
+                  <small>Select one or more</small>
+                </div>
+                {profileCategoryOptions.length ? (
+                  <div className="ohk-profile-category-list">
+                    {profileCategoryOptions.map((category) => (
+                      <label className="ohk-profile-category-option" key={category}>
+                        <input
+                          type="checkbox"
+                          checked={profileCategories.includes(category)}
+                          onChange={(event) => {
+                            setProfileCategories((current) => event.target.checked
+                              ? [...new Set([...current, category])]
+                              : current.filter((item) => item !== category))
+                            setProfileError('')
+                          }}
+                        />
+                        <span>{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="ohk-registration-intro">Offer categories are loading from Blogger. Please wait a moment and try again.</p>
+                )}
+                {profileError ? <p className="ohk-profile-error" role="alert">{profileError}</p> : null}
+                <button
+                  type="button"
+                  className="ohk-primary-button"
+                  onClick={handleSaveProfile}
+                  disabled={authBusy || profileCategories.length === 0 || profileCategoryOptions.length === 0}
+                >
+                  {authBusy ? 'Saving profile…' : profileDocExists ? 'Save profile' : 'Complete registration'}
+                </button>
+                {profileDocExists ? (
+                  <button type="button" className="ohk-secondary-button ohk-profile-signout" onClick={handleGoogleSignOut} disabled={authBusy}>Sign out</button>
+                ) : null}
+              </>
+            )}
+            {profileError && !authUser ? <p className="ohk-profile-error" role="alert">{profileError}</p> : null}
           </div>
         </div>
       ) : null}
