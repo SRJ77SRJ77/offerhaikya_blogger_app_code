@@ -22,7 +22,7 @@ const LOGO_URL = logoImage
 
 const HOME_FAQS = [
   {
-    question: 'Aaj koi naya offer hai kya? / Are there any new offers today?',
+    question: 'Aaj koi Offer Hai Kya? / Are there any new offers today?',
     answer: 'Check the Latest Offers section on Offerhaikya for recently published deals. Offers, stock, coupon validity and terms can change, so confirm the details on the retailer’s page before buying.',
     links: [{ label: 'Click to check current offers', href: 'https://www.offerhaikya.com/offer/aaj-ke-offers-offer-hai-kya' }],
   },
