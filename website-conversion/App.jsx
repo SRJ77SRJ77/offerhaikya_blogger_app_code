@@ -1069,7 +1069,7 @@ function CouponsSection({ dark, posts, couponSource }) {
   const visibleCoupons = matches.slice(0, visibleCouponCount)
 
   return (
-    <section className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
+    <section id="ohk-coupons-section" className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
       <div className="ohk-section-title ohk-section-banner ohk-coupons-banner" style={{ backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url(" + bgImage + ")" }}>
         <h2 id="ohk-coupons-heading">Offer Hai Kya – Exclusive Coupons</h2>
         <span>{coupons.length} coupons</span>
@@ -2229,6 +2229,16 @@ function App() {
           </button>
 
           <div className="ohk-header-dropdowns">
+            <button
+              type="button"
+              className="ohk-header-dropdown-button ohk-header-coupons-button"
+              onClick={() => {
+                const couponSection = document.getElementById('ohk-coupons-section')
+                couponSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+            >
+              Coupons
+            </button>
             <div className={`ohk-header-dropdown${desktopCategoryDismissed ? " is-dismissed" : ""}`} onMouseLeave={() => setDesktopCategoryDismissed(false)}>
               <button className="ohk-header-dropdown-button">
                 <Icon name="tag" size={16} /> Categories
