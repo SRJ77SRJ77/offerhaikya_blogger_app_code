@@ -861,17 +861,12 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
 }
 
 
-function CouponsSection({ dark }) {
+function CouponScratchCard({ item, dark }) {
   const canvasRef = useRef(null)
   const scratchRef = useRef({ drawing: false, lastX: 0, lastY: 0 })
   const resetTimerRef = useRef(null)
-  const [search, setSearch] = useState('')
   const [revealed, setRevealed] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [secondsLeft, setSecondsLeft] = useState(20)
-
-  const coupon = { id: 'amazon', title: 'Amazon Coupon Code', store: 'Amazon', description: 'Scratch the box to reveal your coupon code.', code: 'AMOHK' }
-  const matches = [coupon].filter((item) => (item.title + ' ' + item.store + ' ' + item.description).toLowerCase().includes(search.trim().toLowerCase()))
 
   const paintScratchLayer = () => {
     const canvas = canvasRef.current
@@ -895,15 +890,6 @@ function CouponsSection({ dark }) {
     ctx.fillText('✦', rect.width / 2, rect.height / 2 + 22)
   }
 
-  const resetCoupon = () => {
-    if (resetTimerRef.current) clearInterval(resetTimerRef.current)
-    resetTimerRef.current = null
-    setRevealed(false)
-    setCopied(false)
-    setSecondsLeft(20)
-    requestAnimationFrame(paintScratchLayer)
-  }
-
   useEffect(() => {
     if (revealed) return undefined
     paintScratchLayer()
@@ -920,15 +906,13 @@ function CouponsSection({ dark }) {
 
   useEffect(() => {
     if (!revealed) return undefined
-    setSecondsLeft(20)
-    const startedAt = Date.now()
-    resetTimerRef.current = setInterval(() => {
-      const left = Math.max(0, 20 - Math.floor((Date.now() - startedAt) / 1000))
-      setSecondsLeft(left)
-      if (left <= 0) resetCoupon()
-    }, 250)
+    resetTimerRef.current = setTimeout(() => {
+      setRevealed(false)
+      setCopied(false)
+      resetTimerRef.current = null
+    }, 20000)
     return () => {
-      if (resetTimerRef.current) clearInterval(resetTimerRef.current)
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
       resetTimerRef.current = null
     }
   }, [revealed])
@@ -976,20 +960,21 @@ function CouponsSection({ dark }) {
     const ctx = canvas.getContext('2d')
     const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data
     let transparent = 0
-    const total = pixels.length / 4
+    let sampled = 0
     for (let i = 3; i < pixels.length; i += 4 * 8) {
+      sampled += 1
       if (pixels[i] < 80) transparent += 1
     }
-    if (transparent / Math.ceil(total / 8) > 0.42) setRevealed(true)
+    if (sampled && transparent / sampled >= 0.8) setRevealed(true)
   }
 
   const copyCode = async () => {
     try {
-      await navigator.clipboard.writeText(coupon.code)
+      await navigator.clipboard.writeText(item.code)
       setCopied(true)
     } catch {
       const input = document.createElement('textarea')
-      input.value = coupon.code
+      input.value = item.code
       input.style.position = 'fixed'
       input.style.opacity = '0'
       document.body.appendChild(input)
@@ -1001,22 +986,43 @@ function CouponsSection({ dark }) {
   }
 
   return (
+    <article className="ohk-coupon-card">
+      <div className="ohk-coupon-store">
+        <div><strong>{item.title}</strong><span>{item.store}</span></div>
+        <span className="ohk-coupon-pill">Coupon</span>
+      </div>
+      <div className="ohk-scratch-area">
+        <button type="button" className={`ohk-coupon-code ${revealed ? 'is-revealed' : 'is-hidden'}`} onClick={revealed ? copyCode : undefined} disabled={!revealed} aria-label={revealed ? `Copy coupon code ${item.code}` : 'Scratch to reveal coupon code'}>
+          {revealed ? item.code : '••••••••'}
+        </button>
+        {!revealed ? <canvas ref={canvasRef} className="ohk-scratch-canvas" aria-label={`Scratch to reveal ${item.title}`} onPointerDown={scratchStart} onPointerMove={scratchMove} onPointerUp={scratchEnd} onPointerCancel={scratchEnd} /> : null}
+      </div>
+      {revealed ? <button type="button" className="ohk-coupon-copy-hint" onClick={copyCode}>{copied ? 'Copied!' : 'Click to Copy'}</button> : <span className="ohk-coupon-hint">Scratch to reveal</span>}
+    </article>
+  )
+}
+
+function CouponsSection({ dark }) {
+  const [search, setSearch] = useState('')
+  const coupons = [
+    { id: 'amazon', title: 'Amazon Coupon Code', store: 'Amazon', code: 'AMOHK' },
+    { id: 'offerhaikya', title: 'Offerhaikya Coupon', store: 'Offerhaikya', code: 'OHK' },
+    { id: 'spj', title: 'SPJ Coupon', store: 'SPJ', code: 'SPJ' },
+  ]
+  const matches = coupons.filter((item) => (item.title + ' ' + item.store + ' ' + item.code).toLowerCase().includes(search.trim().toLowerCase()))
+
+  return (
     <section className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
       <div className="ohk-coupons-heading">
-        <div><span className="ohk-coupons-eyebrow">OFFERHAIKYA EXCLUSIVE</span><h2 id="ohk-coupons-heading">Coupons</h2><p>Scratch, reveal and copy your coupon code.</p></div>
-        <label className="ohk-coupons-search"><span className="ohk-coupons-search-icon" aria-hidden="true">⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />{search ? <button type="button" onClick={() => setSearch('')} aria-label="Clear coupon search">×</button> : null}</label>
+        <div><span className="ohk-coupons-eyebrow">OFFERHAIKYA EXCLUSIVE</span><h2 id="ohk-coupons-heading">Coupons</h2></div>
+        <form className="ohk-search-box ohk-coupons-search-box" onSubmit={(event) => event.preventDefault()} role="search">
+          <Icon name="search" size={22} />
+          <input className="ohk-main-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />
+          {search ? <button type="button" className="ohk-search-clear" aria-label="Clear coupon search" onClick={() => setSearch('')}><Icon name="close" size={17} /></button> : null}
+          <button type="submit">GO</button>
+        </form>
       </div>
-      {matches.length ? <div className="ohk-coupons-grid">{matches.map((item) => (
-        <article className="ohk-coupon-card" key={item.id}>
-          <div className="ohk-coupon-store"><span className="ohk-coupon-store-mark">A</span><div><strong>{item.title}</strong><span>{item.store}</span></div><span className="ohk-coupon-pill">Coupon</span></div>
-          <p>{item.description}</p>
-          <div className="ohk-scratch-area">
-            <div className="ohk-coupon-code">{revealed ? item.code : '••••••••'}</div>
-            {!revealed ? <canvas ref={canvasRef} className="ohk-scratch-canvas" aria-label="Scratch to reveal coupon code" onPointerDown={scratchStart} onPointerMove={scratchMove} onPointerUp={scratchEnd} onPointerCancel={scratchEnd} /> : null}
-          </div>
-          {revealed ? <div className="ohk-coupon-reveal-actions"><button type="button" className="ohk-coupon-copy" onClick={copyCode}>{copied ? 'Copied!' : 'Copy Code'}</button><span>Resets in {secondsLeft}s</span></div> : <span className="ohk-coupon-hint">Use your finger or mouse to scratch</span>}
-        </article>
-      ))}</div> : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
+      {matches.length ? <div className="ohk-coupons-grid">{matches.map((item) => <CouponScratchCard key={item.id} item={item} dark={dark} />)}</div> : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
     </section>
   )
 }
