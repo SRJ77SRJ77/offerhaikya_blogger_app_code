@@ -1027,13 +1027,32 @@ function CouponScratchCard({ item, dark }) {
   )
 }
 
-function CouponsSection({ dark }) {
+function CouponsSection({ dark, posts }) {
   const [search, setSearch] = useState('')
-  const coupons = [
-    { id: 'amazon', title: 'Amazon Coupon Code', store: 'Amazon', code: 'AMOHK' },
-    { id: 'offerhaikya', title: 'Offerhaikya Coupon', store: 'Offerhaikya', code: 'OHK' },
-    { id: 'spj', title: 'SPJ Coupon', store: 'SPJ', code: 'SPJ' },
-  ]
+  const couponPost = posts.find((post) => String(post.title || '').trim().toLowerCase() === 'coupons')
+  const couponText = stripHtml(couponPost?.rawContent || couponPost?.searchDescription || '')
+    .replace(/\\u00a0/g, ' ')
+  const couponLines = couponText.split(/\\r?\\n/).map((line) => line.trim()).filter(Boolean)
+  const parsedCoupons = []
+  let currentCoupon = null
+  couponLines.forEach((line) => {
+    const nameMatch = line.match(/^Name\\s*:\\s*(.+)$/i)
+    const codeMatch = line.match(/^Code\\s*:\\s*([A-Za-z0-9_-]+)\\s*$/i)
+    if (nameMatch) {
+      if (currentCoupon?.title && currentCoupon?.code) parsedCoupons.push(currentCoupon)
+      currentCoupon = { title: nameMatch[1].trim(), store: nameMatch[1].trim(), code: '' }
+    } else if (codeMatch && currentCoupon) {
+      currentCoupon.code = codeMatch[1].trim()
+      if (currentCoupon.title) {
+        parsedCoupons.push({ ...currentCoupon, id: currentCoupon.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') })
+        currentCoupon = null
+      }
+    }
+  })
+  if (currentCoupon?.title && currentCoupon?.code) {
+    parsedCoupons.push({ ...currentCoupon, id: currentCoupon.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') })
+  }
+  const coupons = parsedCoupons
   const matches = coupons.filter((item) => (item.title + ' ' + item.store + ' ' + item.code).toLowerCase().includes(search.trim().toLowerCase()))
 
   return (
@@ -2648,7 +2667,7 @@ function App() {
             )}
           </section>
 
-          <CouponsSection dark={dark} />
+          <CouponsSection dark={dark} posts={posts} />
 
           <section className="ohk-faq-section" aria-labelledby="ohk-faq-heading">
             <div className="ohk-faq-intro">
