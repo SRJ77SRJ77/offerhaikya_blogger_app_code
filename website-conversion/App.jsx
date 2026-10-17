@@ -687,14 +687,17 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 
 function getPostCardLabel(post) {
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  const excludedLabel = /^(?:E\d+|EY\d+|verified|expired)$/i
-  const firstVisibleLabel = labels.find((label) => {
-    const value = String(label ?? '').trim()
-    return value && !excludedLabel.test(value)
-  })
+  const excludedLabel = /^(?:E\d+|EY\d+|verified|expired|online offers?|offline offers?)$/i
+  const visibleLabels = labels
+    .map((label) => String(label ?? '').trim())
+    .filter((value) => value && !excludedLabel.test(value))
+
+  // Prefer the specific offer label when present, rather than the broad Online/Offline Offers category.
+  const todaysOffer = visibleLabels.find((value) => /^today['’]?s offer$/i.test(value))
+  if (todaysOffer) return todaysOffer
 
   // Keep this selection limited to the post-card label; detail-page tags stay unchanged.
-  if (firstVisibleLabel) return String(firstVisibleLabel).trim()
+  if (visibleLabels.length) return visibleLabels[0]
 
   const fallbackLabel = String(post?.label ?? '').trim()
   return fallbackLabel && !excludedLabel.test(fallbackLabel) ? fallbackLabel : ''
