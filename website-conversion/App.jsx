@@ -1022,8 +1022,7 @@ function CouponsSection({ dark }) {
           <input className="ohk-main-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />
           {search ? <button type="button" className="ohk-search-clear" aria-label="Clear coupon search" onClick={() => setSearch('')}><Icon name="close" size={17} /></button> : null}
           <button type="submit">GO</button>
-        </form>
-      </div>
+      </form>
       {matches.length ? <div className="ohk-coupons-grid">{matches.map((item) => <CouponScratchCard key={item.id} item={item} dark={dark} />)}</div> : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
     </section>
   )
