@@ -685,9 +685,25 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
   )
 }
 
+function getPostCardLabel(post) {
+  const labels = Array.isArray(post?.labels) ? post.labels : []
+  const excludedLabel = /^(?:E\d+|EY\d+|verified|expired)$/i
+  const firstVisibleLabel = labels.find((label) => {
+    const value = String(label ?? '').trim()
+    return value && !excludedLabel.test(value)
+  })
+
+  // Keep this selection limited to the post-card label; detail-page tags stay unchanged.
+  if (firstVisibleLabel) return String(firstVisibleLabel).trim()
+
+  const fallbackLabel = String(post?.label ?? '').trim()
+  return fallbackLabel && !excludedLabel.test(fallbackLabel) ? fallbackLabel : ''
+}
+
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
+  const cardLabel = getPostCardLabel(post)
 
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`}>
@@ -771,7 +787,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
 
         <div className="ohk-card-body">
           <div className="ohk-card-meta-row">
-            <span className="ohk-card-label">{post.label}</span>
+            <span className="ohk-card-label">{cardLabel}</span>
             {expiry ? (
               <span className={`ohk-detail-status ${expiry === 'Expired' ? 'ohk-detail-status-expired' : 'ohk-detail-status-expiry'} ohk-card-expiry-inline`} title={expiry}>
                 <span className="ohk-card-expiry-full">{expiry}</span>
