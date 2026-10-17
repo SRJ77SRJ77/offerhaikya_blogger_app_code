@@ -686,10 +686,18 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Show only the first Blogger post label, exactly as Blogger provides it.
-  // Do not search for or prioritize labels such as Online Offers, E2, Verified, or Expired.
+  // Show the first useful Blogger label in its original order.
+  // Skip internal expiry/status labels and broad offer-type labels; never prioritize them.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  return String(labels[0] ?? '').trim()
+  const displayLabel = labels.find((label) => {
+    const normalized = String(label).trim()
+    if (!normalized) return false
+    if (/^(?:E\d+|EY\d+)$/i.test(normalized)) return false
+    if (/^(?:verified|expired)$/i.test(normalized)) return false
+    if (/^(?:online offers?|offline offers?)$/i.test(normalized)) return false
+    return true
+  })
+  return String(displayLabel ?? '').trim()
 }
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
