@@ -18,8 +18,17 @@ const PAGE_SIZE = 20
 const LOGO_URL = logoImage
 
 
-function stripHtml(value = '') {
-  return value
+function normalizeLabelForMatch(label = '') {
+  return String(label || '').trim().replace(/imp$/i, '').trim().toLowerCase()
+}
+
+function searchableLabels(labels = []) {
+  return (Array.isArray(labels) ? labels : [])
+    .flatMap((label) => [String(label || ''), normalizeLabelForMatch(label)])
+    .join(' ')
+}
+
+function stripHtml(value = '')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<[^>]+>/g, ' ')
@@ -686,9 +695,10 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Show only the first Blogger label. No filtering or prioritization.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  return String(labels[0] ?? '').trim()
+  const importantLabel = labels.find((label) => /imp$/i.test(String(label || '').trim()))
+  const selectedLabel = importantLabel ?? labels[0] ?? ''
+  return String(selectedLabel).trim().replace(/imp$/i, '').trim()
 }
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
@@ -1189,8 +1199,8 @@ function App() {
     const text = query.trim().toLowerCase()
 
     return posts.filter((post) => {
-      const labelMatch = activeLabel === 'All' || post.labels.some((label) => label.toLowerCase() === activeLabel.toLowerCase())
-      const textMatch = !text || `${post.title} ${post.labels.join(' ')} ${post.excerpt} ${post.bloggerLocation || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase().includes(text)
+      const labelMatch = activeLabel === 'All' || post.labels.some((label) => normalizeLabelForMatch(label) === normalizeLabelForMatch(activeLabel))
+      const textMatch = !text || `${post.title} ${searchableLabels(post.labels)} ${post.excerpt} ${post.bloggerLocation || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase().includes(text)
       return labelMatch && textMatch
     })
   }, [posts, query, activeLabel])
@@ -1203,7 +1213,7 @@ function App() {
     const matches = posts.filter((post) => {
       if (post.id === detail.id) return false
       if (!text) return true
-      const searchable = `${post.title} ${(post.labels || []).join(' ')} ${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
+      const searchable = `${post.title} ${searchableLabels(post.labels)} ${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
       return searchable.includes(text)
     })
     return [detail, ...matches].slice(0, 8)
@@ -1216,7 +1226,7 @@ function App() {
     if (!text) return []
     const score = (post) => {
       const title = (post.title || '').toLowerCase()
-      const tags = (post.labels || []).join(' ').toLowerCase()
+      const tags = searchableLabels(post.labels).toLowerCase()
       const description = `${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
       const location = (post.bloggerLocation || '').toLowerCase()
       if (title.includes(text)) return 0
