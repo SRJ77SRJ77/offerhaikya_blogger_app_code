@@ -686,10 +686,15 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  // Display the first Blogger label exactly as ordered in the feed.
+  // Never display internal expiry/status labels as the card's category.
   // Expiry and verification continue to use the full post.labels array separately.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  return String(labels[0] ?? post?.label ?? '').trim()
+  const displayLabel = labels.find((label) => {
+    const normalized = String(label).trim()
+    return normalized && !/^(?:E\d+|EY\d+)$/i.test(normalized) &&
+      !/^(?:verified|expired)$/i.test(normalized)
+  })
+  return String(displayLabel ?? post?.label ?? '').trim()
 }
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
   const expiry = getExpiryLabel(post)
