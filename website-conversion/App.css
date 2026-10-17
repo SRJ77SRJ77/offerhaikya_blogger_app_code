@@ -2658,6 +2658,7 @@ a.ohk-card-click,
 
 /* Homepage coupons section */
 .ohk-coupons-section{margin:30px 0 34px;padding:24px;border:1px solid #ffe0cf;border-radius:18px;background:#fff;color:#202020}
+.ohk-coupons-section{scroll-margin-top:96px}
 .ohk-coupons-dark{background:#171717;color:#fff;border-color:#493023}
 .ohk-coupons-heading{display:flex;align-items:stretch;flex-direction:column;gap:14px;margin-bottom:20px}
 .ohk-coupons-heading h2{font-size:clamp(24px,3vw,32px);margin:4px 0 5px;font-weight:800}
