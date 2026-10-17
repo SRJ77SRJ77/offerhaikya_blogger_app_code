@@ -1030,7 +1030,14 @@ function CouponScratchCard({ item, dark }) {
 function CouponsSection({ dark, posts }) {
   const [search, setSearch] = useState('')
   const couponPost = posts.find((post) => String(post.title || '').trim().toLowerCase() === 'coupons')
-  const couponText = stripHtml(couponPost?.rawContent || couponPost?.searchDescription || '')
+  const couponText = String(couponPost?.rawContent || couponPost?.searchDescription || '')
+    .replace(/<\\s*br\\s*\\/?\\s*>/gi, '\\n')
+    .replace(/<\\/\\s*(p|div|li|h[1-6])\\s*>/gi, '\\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
     .replace(/\\u00a0/g, ' ')
   const couponLines = couponText.split(/\\r?\\n/).map((line) => line.trim()).filter(Boolean)
   const parsedCoupons = []
