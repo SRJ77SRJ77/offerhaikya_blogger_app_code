@@ -290,7 +290,7 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
   // Turn Blogger links labelled "Click to Buy" into orange CTA buttons,
   // keeping each anchor's original destination and visible wording.
   container.querySelectorAll('a[href]').forEach((link) => {
-    if (/^click\\s+to\\s+buy$/i.test((link.textContent || '').replace(/\\s+/g, ' ').trim())) {
+    if (/^click\s+to\s+buy$/i.test((link.textContent || '').replace(/\s+/g, ' ').trim())) {
       link.textContent = 'Buy Now'
       link.classList.add('ohk-click-to-buy-button')
       link.style.removeProperty('color')
