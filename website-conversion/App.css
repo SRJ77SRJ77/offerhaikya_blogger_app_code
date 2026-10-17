@@ -2619,22 +2619,38 @@ a.ohk-card-click,
 .ohk-faq-links a {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #e94e00;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #ffd1b8;
+  border-radius: 7px;
+  background: #fff4ed;
+  color: #d94700;
   font-size: 12px;
-  line-height: 1.5;
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  line-height: 1.45;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
 }
-.ohk-faq-links a:hover { color: #b83d00; }
+.ohk-faq-links a:hover {
+  background: #ffe6d8;
+  border-color: #ff9b69;
+  color: #a93600;
+}
 .ohk-faq-links a:focus-visible {
   outline: 2px solid #ff5b01;
   outline-offset: 3px;
-  border-radius: 2px;
 }
-.ohk-dark .ohk-faq-links a { color: #ff9b69; }
+.ohk-dark .ohk-faq-links a {
+  background: #2a1b14;
+  border-color: #70432d;
+  color: #ffb58f;
+}
+.ohk-dark .ohk-faq-links a:hover {
+  background: #3b2419;
+  border-color: #ff9b69;
+  color: #ffd0b8;
+}
 @media (max-width: 600px) {
   .ohk-faq-links { padding: 0 11px 13px; }
-  .ohk-faq-links a { font-size: 12px; }
+  .ohk-faq-links a { font-size: 12px; padding: 7px 10px; }
 }
