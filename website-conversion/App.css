@@ -2710,3 +2710,13 @@ a.ohk-card-click,
 .ohk-coupon-terms-dialog ul{margin:0;padding-left:20px}
 .ohk-coupon-terms-dialog li{margin:10px 0;line-height:1.55}
 @media(max-width:640px){.ohk-coupons-banner{margin-bottom:18px}.ohk-coupons-search-box{margin-bottom:20px}.ohk-coupon-terms-dialog{padding:18px}}
+
+/* Coupon layout: place terms help at the top-right of each card */
+.ohk-coupon-card{position:relative}
+.ohk-coupon-store{display:block;padding-right:30px}
+.ohk-coupon-store>div.ohk-coupon-name-row{display:block;min-width:0}
+.ohk-coupon-name-row strong{display:block;min-width:0}
+.ohk-coupon-terms-trigger{position:absolute;top:12px;right:12px;z-index:1}
+@media(min-width:641px){.ohk-coupons-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:641px) and (max-width:1024px){.ohk-coupons-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.ohk-coupons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ohk-coupon-terms-trigger{top:9px;right:9px}.ohk-coupon-card{padding-top:12px}}
