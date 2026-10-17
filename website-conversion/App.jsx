@@ -2466,7 +2466,7 @@ function App() {
                   {faq.links?.length ? (
                     <div className="ohk-faq-links">
                       {faq.links.map((link) => (
-                        <a key={link.href} href={link.href}>{link.label} <span aria-hidden="true">→</span></a>
+                        <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">{link.label} <span aria-hidden="true">↗</span></a>
                       ))}
                     </div>
                   ) : null}
