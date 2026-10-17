@@ -23,34 +23,34 @@ const LOGO_URL = logoImage
 const HOME_FAQS = [
   {
     question: 'Aaj koi Offer Hai Kya? / Are there any new offers today?',
-    answer: 'Check the Latest Offers section on Offerhaikya for recently published deals. Offers, stock, coupon validity and terms can change, so confirm the details on the retailer’s page before buying.',
+    answer: 'Check the Latest Offers section on Offer Hai Kya (Offerhaikya) for recently published deals. Offers, stock, coupon validity and terms can change, so confirm the details on the retailer’s page before buying.',
     links: [{ label: 'Click to check current offers', href: 'https://www.offerhaikya.com/offer/aaj-ke-offers-offer-hai-kya' }],
   },
   {
     question: 'Amazon aur Flipkart par aaj ke offers kahan milenge? / Where can I find Amazon and Flipkart offers?',
-    answer: 'Browse the latest offer posts on Offerhaikya and open the deal you are interested in. Check the retailer’s page for the current price, bank offers, availability and terms before placing an order.',
+    answer: 'Browse the latest offer posts on Offer Hai Kya (Offerhaikya) and open the deal you are interested in. Check the retailer’s page for the current price, bank offers, availability and terms before placing an order.',
     links: [{ label: 'Click to check Amazon offer', href: 'https://www.offerhaikya.com/offer/amazon-great-indian-festival-2026-sbi-offer' }],
   },
   {
     question: 'Meesho ke trending products aur offers kaise dekhein? / How can I find Meesho product offers?',
-    answer: 'Look through Offerhaikya’s latest posts and shopping guides for Meesho products and offers. Product prices, coupons and availability can change, so verify them on Meesho before buying.',
+    answer: 'Look through Offer Hai Kya (Offerhaikya)’s latest posts and shopping guides for Meesho products and offers. Product prices, coupons and availability can change, so verify them on Meesho before buying.',
     links: [{ label: 'Click to check Meesho offers', href: 'https://www.offerhaikya.com/offer/meesho-block-buster-sale' }],
   },
   {
     question: 'Mere paas/city/area ke offers kaise milenge? / How do I find offers near me?',
-    answer: 'You can find nearby offers on Offerhaikya in three ways: (1) Use your current location by allowing location access on your device. (2) Enter a city or town in the Nearby Offers search. (3) Click “View Offer Map” on an offer to check its store location on the map. Nearby offers can be shown within a search range of up to 300 km when matching offers and location details are available. Map availability depends on the location information provided with the offer.',
+    answer: 'You can find nearby offers on Offer Hai Kya (Offerhaikya) in three ways: (1) Use your current location by allowing location access on your device. (2) Enter a city or town in the Nearby Offers search. (3) Click “View Offer Map” on an offer to check its store location on the map. Nearby offers can be shown within a search range of up to 300 km when matching offers and location details are available. Map availability depends on the location information provided with the offer.',
   },
   {
     question: 'Kya Offerhaikya par offline aur local shop offers bhi hain? / Does Offerhaikya list offline store offers?',
-    answer: 'Yes, Offerhaikya publishes online deals as well as offline and local-store offers when those offers are available. Check each post for the store location, validity and conditions.',
+    answer: 'Yes, Offer Hai Kya (Offerhaikya) publishes online deals as well as offline and local-store offers when those offers are available. Check each post for the store location, validity and conditions.',
   },
   {
     question: 'Offerhaikya par offers kitni baar update hote hain? / How often are offers updated?',
-    answer: 'We try to add new offers and update existing ones daily, including online deals, offline and local store offers, and coupons. Sometimes, updates may take a gap of 1–2 days. Please check Offerhaikya regularly for new deals and confirm an offer’s availability and validity with the retailer or store before purchasing.',
+    answer: 'We try to add new offers and update existing ones daily on Offer Hai Kya (Offerhaikya), including online deals, offline and local store offers, and coupons. Sometimes, updates may take a gap of 1–2 days. Please check Offerhaikya regularly for new deals and confirm an offer’s availability and validity with the retailer or store before purchasing.',
   },
   {
     question: 'Offer Hai Kya par apna offer kaise post karein? / How can I post an offer on Offerhaikya?',
-    answer: 'Have a great online deal, discount, coupon, or local store offer to share? Submit your offer using our offer submission form and include the product or store name, discount details, offer link or shop location, and validity information. Any applicable charges for publishing an offer will be discussed with you beforehand. Offers may be published after verification and approval.',
+    answer: 'Have a great online deal, discount, coupon, or local store offer to share? Submit your offer using the Offer Hai Kya (Offerhaikya) submission form and include the product or store name, discount details, offer link or shop location, and validity information. Any applicable charges for publishing an offer will be discussed with you beforehand. Offers may be published after verification and approval.',
     links: [{ label: 'Click here to submit your offer', href: 'https://docs.google.com/forms/d/e/1FAIpQLSf1bActE5s-pO1Ieedj4PsmbLaSQ_CgqPMnr8gRXyEj1y9q2Q/viewform?usp=header' }],
   },
 ]
@@ -2281,7 +2281,8 @@ function App() {
         <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
-            <h1>Find the best offers</h1>
+            <h1>Aaj Koi Offer Hai Kya?</h1>
+            <p className="ohk-hero-subtitle">Haan! Yahin Search Karo.</p>
 
             <form className="ohk-search-box" onSubmit={(event) => { event.preventDefault(); setVisible(PAGE_SIZE); setSearchOpen(false) }}>
               <Icon name="search" size={22} />
