@@ -24,17 +24,17 @@ const HOME_FAQS = [
   {
     question: 'Aaj koi naya offer hai kya? / Are there any new offers today?',
     answer: 'Check the Latest Offers section on Offerhaikya for recently published deals. Offers, stock, coupon validity and terms can change, so confirm the details on the retailer’s page before buying.',
-    links: [{ label: 'Aaj Ke Offers – Offer Hai Kya', href: 'https://www.offerhaikya.com/offer/aaj-ke-offers-offer-hai-kya' }],
+    links: [{ label: 'Click to check current offers', href: 'https://www.offerhaikya.com/offer/aaj-ke-offers-offer-hai-kya' }],
   },
   {
     question: 'Amazon aur Flipkart par aaj ke offers kahan milenge? / Where can I find Amazon and Flipkart offers?',
     answer: 'Browse the latest offer posts on Offerhaikya and open the deal you are interested in. Check the retailer’s page for the current price, bank offers, availability and terms before placing an order.',
-    links: [{ label: 'Amazon Great Indian Festival 2026 SBI Offer', href: 'https://www.offerhaikya.com/offer/amazon-great-indian-festival-2026-sbi-offer' }],
+    links: [{ label: 'Click to check Amazon offer', href: 'https://www.offerhaikya.com/offer/amazon-great-indian-festival-2026-sbi-offer' }],
   },
   {
     question: 'Meesho ke trending products aur offers kaise dekhein? / How can I find Meesho product offers?',
     answer: 'Look through Offerhaikya’s latest posts and shopping guides for Meesho products and offers. Product prices, coupons and availability can change, so verify them on Meesho before buying.',
-    links: [{ label: 'Meesho Block Buster Sale', href: 'https://www.offerhaikya.com/offer/meesho-block-buster-sale' }],
+    links: [{ label: 'Click to check Meesho offers', href: 'https://www.offerhaikya.com/offer/meesho-block-buster-sale' }],
   },
   {
     question: 'Mere paas/city/area ke offers kaise milenge? / How do I find offers near me?',
