@@ -2002,7 +2002,7 @@ function App() {
                         document.getElementById('detail-related')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                       }}
                     >
-                      {tag}
+                      {String(tag).replace(/imp$/i, '').trim()}
                     </button>
                   ))}
                 </div>
