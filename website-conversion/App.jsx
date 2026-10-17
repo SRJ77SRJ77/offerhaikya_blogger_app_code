@@ -894,7 +894,7 @@ function App() {
         const profileSnapshot = await getDoc(doc(db, 'userProfiles', currentUser.uid))
         if (profileSnapshot.exists()) {
           const data = profileSnapshot.data()
-          const categories = Array.isArray(data.categories) ? data.categories : []
+          const categories = Array.isArray(data.categories) ? data.categories.map((label) => String(label || '').replace(/imp$/i, '').trim()).filter(Boolean) : []
           setProfileCategories(categories)
           setProfilePhone(typeof data.phone === 'string' ? data.phone : '')
           setProfileDocExists(categories.length > 0)
@@ -920,7 +920,7 @@ function App() {
     const labels = posts.flatMap((post) => Array.isArray(post.labels) ? post.labels : [])
     return [...new Set(labels
       .map((label) => String(label || '').replace(/imp$/i, '').trim())
-      .filter((label) => label && !/^(?:E\\d+|EY\\d+)$/i.test(label)))]
+      .filter((label) => label && !/^(?:E\d+|EY\d+)$/i.test(label)))]
       .sort((a, b) => a.localeCompare(b))
   }, [posts])
 
