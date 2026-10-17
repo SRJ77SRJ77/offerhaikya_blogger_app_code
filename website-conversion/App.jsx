@@ -988,7 +988,7 @@ function CouponScratchCard({ item, dark }) {
   return (
     <article className="ohk-coupon-card">
       <div className="ohk-coupon-store">
-        <div><strong>{item.title}</strong><span>{item.store}</span></div>
+        <div><strong>{item.title}</strong></div>
         <span className="ohk-coupon-pill">Coupon</span>
       </div>
       <div className="ohk-scratch-area">
