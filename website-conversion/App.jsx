@@ -2280,7 +2280,7 @@ function App() {
           <div className="ohk-home-content">
         <section className="ohk-hero" style={{ backgroundImage: `url("${bgImage}")` }}>
           <div className="ohk-hero-content">
-            <div className="ohk-hero-small">LATEST DEALS & OFFERS</div>
+            <div className="ohk-hero-small">LOCAL OFFERS • ONLINE DEALS • COUPONS</div>
             <h1>Aaj Koi Offer Hai Kya?</h1>
             <p className="ohk-hero-subtitle">Haan! Yahin Search Karo.</p>
 
