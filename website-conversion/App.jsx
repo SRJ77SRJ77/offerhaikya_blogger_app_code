@@ -1013,8 +1013,9 @@ function CouponsSection({ dark }) {
 
   return (
     <section className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
-      <div className="ohk-coupons-heading">
-        <div><h2 id="ohk-coupons-heading"><span className="ohk-coupons-title-brand">Offer Hai Kya</span> <span className="ohk-coupons-title-accent">– Exclusive Coupons</span></h2></div>
+      <div className="ohk-section-title ohk-section-banner ohk-coupons-banner" style={{ backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url(" + bgImage + ")" }}>
+        <h2 id="ohk-coupons-heading">Offer Hai Kya – Exclusive Coupons</h2>
+        <span>{coupons.length} coupons</span>
         <form className="ohk-search-box ohk-coupons-search-box" onSubmit={(event) => event.preventDefault()} role="search">
           <Icon name="search" size={22} />
           <input className="ohk-main-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />
