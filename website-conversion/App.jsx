@@ -1816,7 +1816,7 @@ function App() {
           </button>
 
           <button className="ohk-logo-button" onClick={goHome} aria-label="Offerhaikya home">
-            <img src={dark ? darkLogoImage : LOGO_URL} alt="Offerhaikya" />
+            <img src={dark ? darkLogoImage : logoImage} alt="Offerhaikya" />
           </button>
 
           <div className="ohk-header-dropdowns">
