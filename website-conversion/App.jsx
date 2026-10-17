@@ -1104,62 +1104,6 @@ function App() {
   }, [])
 
 
-  useEffect(() => {
-    let active = true
-    let inFlight = false
-
-    const syncBloggerMenus = async () => {
-      if (!active || inFlight) return
-      inFlight = true
-      const sourceUrl = BLOG_URL + '/?ohk-menu-sync=' + Date.now()
-      const requests = [
-        // Public CORS proxies can rate-limit or temporarily fail, so try independent fallbacks.
-        () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
-        () => fetch('https://corsproxy.io/?url=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
-        () => fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(sourceUrl), { cache: 'no-store' }),
-        // Read the original Blogger site, where the Link List gadgets are managed.
-        () => fetch('https://r.jina.ai/http://offerhaikya.blogspot.com/', { cache: 'no-store' }),
-      ]
-      try {
-        let lastError = null
-        for (const request of requests) {
-          try {
-            const response = await request()
-            if (!response.ok) throw new Error('Blogger menu proxy returned HTTP ' + response.status)
-            const source = await response.text()
-            if (!active) return
-            const menus = parseBloggerLinkLists(source)
-            if (menus.specialDeals.length || menus.stores.length) {
-              setBloggerMenus((current) => ({
-                ...current,
-                specialDeals: menus.specialDeals.length ? menus.specialDeals : current.specialDeals,
-                stores: menus.stores.length ? menus.stores : current.stores,
-                categories: [],
-              }))
-              console.log('Offerhaikya Blogger Link Lists synced', {
-                specialDeals: menus.specialDeals.length,
-                stores: menus.stores.length,
-              })
-              return
-            }
-            lastError = new Error('Homepage response contained no readable Blogger Link List items')
-          } catch (error) {
-            lastError = error
-          }
-        }
-        console.warn('Offerhaikya Blogger Link List sync failed; will retry automatically.', lastError)
-      } finally {
-        inFlight = false
-      }
-    }
-
-    syncBloggerMenus()
-    const interval = window.setInterval(syncBloggerMenus, 30000)
-    return () => {
-      active = false
-      window.clearInterval(interval)
-    }
-  }, [])
 
     useEffect(() => {
     const path = window.location.pathname
