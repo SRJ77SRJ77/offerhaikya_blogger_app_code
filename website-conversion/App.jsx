@@ -1820,7 +1820,7 @@ function App() {
                   <div className="ohk-category-mega-group" key={group.title}>
                     <strong>{group.title}</strong>
                     {group.tags.map((tag) => (
-                      <button key={tag} onClick={(event) => { selectTag(tag); setDesktopCategoryOpen(false); setDesktopCategoryDismissed(true); event.currentTarget.blur() }}>{tag}</button>
+                      <button key={tag} onClick={(event) => { selectTag(tag); setDesktopCategoryOpen(false); setDesktopCategoryDismissed(true); event.currentTarget.blur() }}>{String(tag).replace(/imp$/i, '').trim()}</button>
                     ))}
                   </div>
                 ))}
@@ -1886,7 +1886,7 @@ function App() {
                 <div className="ohk-side-category-group" key={group.title}>
                   <strong>{group.title}</strong>
                   {group.tags.map((tag) => (
-                    <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false) }}>{tag}</button>
+                    <button key={tag} onClick={() => { selectTag(tag); setMenuOpen(false) }}>{String(tag).replace(/imp$/i, '').trim()}</button>
                   ))}
                 </div>
               )) : null}
@@ -2257,7 +2257,7 @@ function App() {
 
           <section id="deals" className="ohk-section">
             <div className="ohk-section-title ohk-section-banner" style={{ backgroundImage: "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18)), url(" + bgImage + ")" }}>
-              <h2>{query ? `Search: ${query}` : activeLabel !== 'All' ? activeLabel : 'Latest Offers'}</h2>
+              <h2>{query ? `Search: ${query}` : activeLabel !== 'All' ? String(activeLabel).replace(/imp$/i, '').trim() : 'Latest Offers'}</h2>
               <span>{filteredPosts.length} offers</span>
             </div>
 
