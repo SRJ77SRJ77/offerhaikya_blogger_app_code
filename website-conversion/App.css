@@ -2657,42 +2657,45 @@ a.ohk-card-click,
 
 
 /* Homepage coupons section */
-.ohk-coupons-section{margin:30px 0 34px;padding:24px;border:1px solid #ececec;border-radius:18px;background:#fff;color:#202020}
-.ohk-coupons-dark{background:#171717;color:#fff;border-color:#383838}
-.ohk-coupons-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px}
+.ohk-coupons-section{margin:30px 0 34px;padding:24px;border:1px solid #ffe0cf;border-radius:18px;background:#fff;color:#202020}
+.ohk-coupons-dark{background:#171717;color:#fff;border-color:#493023}
+.ohk-coupons-heading{display:flex;align-items:stretch;flex-direction:column;gap:14px;margin-bottom:20px}
 .ohk-coupons-heading h2{font-size:clamp(24px,3vw,32px);margin:4px 0 5px;font-weight:800}
 .ohk-coupons-heading p{margin:0;color:#666;font-size:14px}
 .ohk-coupons-dark .ohk-coupons-heading p{color:#d0d0d0}
-.ohk-coupons-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#f28c28}
-.ohk-coupons-search{display:flex;align-items:center;gap:8px;min-width:230px;max-width:320px;width:100%;height:44px;padding:0 12px;border:1px solid #dedede;border-radius:11px;background:#fff;color:#222}
-.ohk-coupons-dark .ohk-coupons-search{background:#242424;border-color:#484848;color:#fff}
-.ohk-coupons-search-icon{font-size:24px;color:#f28c28;line-height:1}
+.ohk-coupons-eyebrow{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#ff5b01}
+.ohk-coupons-search{display:flex;align-items:center;gap:8px;min-width:0;max-width:none;width:100%;height:46px;padding:0 12px;border:1px solid #ffb58f;border-radius:11px;background:#fff7f2;color:#202020}
+.ohk-coupons-dark .ohk-coupons-search{background:#242424;border-color:#ff7a32;color:#fff}
+.ohk-coupons-search:focus-within{border-color:#ff5b01;box-shadow:0 0 0 3px rgba(255,91,1,.13)}
+.ohk-coupons-search-icon{font-size:24px;color:#ff5b01;line-height:1}
 .ohk-coupons-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:inherit;font:inherit}
 .ohk-coupons-search input::placeholder{color:#888}
 .ohk-coupons-search button{border:0;background:transparent;color:inherit;font-size:22px;cursor:pointer}
-.ohk-coupons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:16px}
-.ohk-coupon-card{min-width:0;border:1px solid #e9e9e9;border-radius:15px;padding:17px;background:#fff;color:#202020}
-.ohk-coupons-dark .ohk-coupon-card{background:#202020;color:#fff;border-color:#3a3a3a}
+.ohk-coupons-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ohk-coupon-card{min-width:0;border:1px solid #ffe0cf;border-radius:15px;padding:17px;background:#fff;color:#202020}
+.ohk-coupons-dark .ohk-coupon-card{background:#202020;color:#fff;border-color:#493023}
 .ohk-coupon-store{display:flex;align-items:center;gap:10px}
-.ohk-coupon-store-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#f28c28;color:#fff;font-weight:900;font-size:24px}
+.ohk-coupon-store-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#ff5b01;color:#fff;font-weight:900;font-size:24px}
 .ohk-coupon-store>div{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .ohk-coupon-store strong{font-size:15px}
 .ohk-coupon-store>div span{font-size:12px;color:#777}
 .ohk-coupons-dark .ohk-coupon-store>div span{color:#c5c5c5}
-.ohk-coupon-pill{padding:5px 8px;border-radius:999px;background:rgba(242,140,40,.14);color:#d96f08;font-size:11px;font-weight:800}
-.ohk-coupons-dark .ohk-coupon-pill{color:#ffad5c}
+.ohk-coupon-pill{padding:5px 8px;border-radius:999px;background:#fff0e7;color:#d94800;font-size:11px;font-weight:800}
+.ohk-coupons-dark .ohk-coupon-pill{background:#3a2115;color:#ff9b69}
 .ohk-coupon-card>p{font-size:13px;line-height:1.5;color:#666;margin:15px 0 12px}
 .ohk-coupons-dark .ohk-coupon-card>p{color:#d0d0d0}
-.ohk-scratch-area{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1.9/1;min-height:132px;overflow:hidden;border:1px dashed #f28c28;border-radius:12px;background:rgba(242,140,40,.08)}
-.ohk-coupon-code{font-size:clamp(24px,4vw,32px);font-weight:900;letter-spacing:2px;color:#f28c28;user-select:all}
-.ohk-coupons-dark .ohk-coupon-code{color:#ffad5c}
+.ohk-scratch-area{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1.9/1;min-height:132px;overflow:hidden;border:1px dashed #ff5b01;border-radius:12px;background:#fff5ef}
+.ohk-coupons-dark .ohk-scratch-area{background:#2a1d17}
+.ohk-coupon-code{font-size:clamp(24px,4vw,32px);font-weight:900;letter-spacing:2px;color:#ff5b01;user-select:all}
+.ohk-coupons-dark .ohk-coupon-code{color:#ff9b69}
 .ohk-scratch-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .ohk-coupon-reveal-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
-.ohk-coupon-copy{border:0;border-radius:9px;background:#f28c28;color:#fff;font-weight:800;padding:11px 16px;cursor:pointer}
-.ohk-coupon-copy:hover{background:#df7611}
+.ohk-coupon-copy{border:0;border-radius:9px;background:#ff5b01;color:#fff;font-weight:800;padding:11px 16px;cursor:pointer}
+.ohk-coupon-copy:hover{background:#df4e00}
 .ohk-coupon-reveal-actions>span,.ohk-coupon-hint{font-size:12px;color:#777}
 .ohk-coupons-dark .ohk-coupon-reveal-actions>span,.ohk-coupons-dark .ohk-coupon-hint{color:#d0d0d0}
 .ohk-coupon-hint{display:block;margin-top:11px;text-align:center}
-.ohk-coupons-empty{padding:20px;text-align:center;border:1px dashed #ccc;border-radius:12px;color:#777}
-.ohk-coupons-dark .ohk-coupons-empty{border-color:#444;color:#ddd}
-@media(max-width:640px){.ohk-coupons-section{padding:17px;margin:22px 0;border-radius:14px}.ohk-coupons-heading{align-items:stretch;flex-direction:column;gap:14px}.ohk-coupons-search{max-width:none}.ohk-coupon-card{padding:14px}.ohk-scratch-area{aspect-ratio:1.6/1}}
+.ohk-coupons-empty{padding:20px;text-align:center;border:1px dashed #ffb58f;border-radius:12px;color:#777}
+.ohk-coupons-dark .ohk-coupons-empty{border-color:#68412e;color:#ddd}
+@media(min-width:641px) and (max-width:1024px){.ohk-coupons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.ohk-coupons-section{padding:17px;margin:22px 0;border-radius:14px}.ohk-coupons-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ohk-coupon-card{padding:11px}.ohk-coupon-store{gap:7px;align-items:flex-start;flex-wrap:wrap}.ohk-coupon-store-mark{width:34px;height:34px;flex-basis:34px;font-size:19px}.ohk-coupon-store strong{font-size:13px}.ohk-coupon-pill{font-size:10px}.ohk-coupon-card>p{font-size:12px}.ohk-scratch-area{aspect-ratio:1/1;min-height:110px}.ohk-coupon-reveal-actions{align-items:flex-start;flex-direction:column}.ohk-coupon-copy{width:100%}.ohk-coupon-reveal-actions>span{align-self:center}}
