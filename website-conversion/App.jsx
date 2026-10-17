@@ -37,8 +37,8 @@ const HOME_FAQS = [
     links: [{ label: 'Meesho Block Buster Sale', href: 'https://www.offerhaikya.com/offer/meesho-block-buster-sale' }],
   },
   {
-    question: 'Mere paas ke offers kaise milenge? / How do I find offers near me?',
-    answer: 'Allow location access or enter your city or town in the nearby-offers search. Offerhaikya can show matching local offers within its nearby search range when location details are available.',
+    question: 'Mere paas/city/area ke offers kaise milenge? / How do I find offers near me?',
+    answer: 'You can find nearby offers on Offerhaikya in three ways: (1) Use your current location by allowing location access on your device. (2) Enter a city or town in the Nearby Offers search. (3) Click “View Offer Map” on an offer to check its store location on the map. Nearby offers can be shown within a search range of up to 300 km when matching offers and location details are available. Map availability depends on the location information provided with the offer.',
   },
   {
     question: 'Kya Offerhaikya par offline aur local shop offers bhi hain? / Does Offerhaikya list offline store offers?',
@@ -46,7 +46,11 @@ const HOME_FAQS = [
   },
   {
     question: 'Offerhaikya par offers kitni baar update hote hain? / How often are offers updated?',
-    answer: 'Offerhaikya automatically checks its Blogger offer feed for published changes. A new or edited post may take a little time to appear; always confirm that an offer is still valid with the retailer or store.',
+    answer: 'We try to add new offers and update existing ones daily, including online deals, offline and local store offers, and coupons. Sometimes, updates may take a gap of 1–2 days. Please check Offerhaikya regularly for new deals and confirm an offer’s availability and validity with the retailer or store before purchasing.',
+  },
+  {
+    question: 'Offer Hai Kya par apna offer kaise post karein? / How can I post an offer on Offerhaikya?',
+    answer: 'Have a great online deal, discount, coupon, or local store offer to share? Contact Offerhaikya through our Contact Us page and provide the product or store name, discount details, offer link or shop location, and validity information. Any applicable charges for publishing an offer will be discussed with you beforehand. Offers may be published after verification and approval.',
   },
 ]
 
