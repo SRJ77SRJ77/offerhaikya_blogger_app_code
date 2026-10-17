@@ -1029,6 +1029,7 @@ function CouponScratchCard({ item, dark }) {
 
 function CouponsSection({ dark, posts }) {
   const [search, setSearch] = useState('')
+  const [visibleCouponCount, setVisibleCouponCount] = useState(6)
   const couponPost = posts.find((post) => String(post.title || '').trim().toLowerCase() === 'coupons')
   const couponText = String(couponPost?.rawContent || couponPost?.searchDescription || '')
     .replace(/<\\s*br\\s*\\/?\\s*>/gi, '\\n')
@@ -1061,6 +1062,7 @@ function CouponsSection({ dark, posts }) {
   }
   const coupons = parsedCoupons
   const matches = coupons.filter((item) => (item.title + ' ' + item.store + ' ' + item.code).toLowerCase().includes(search.trim().toLowerCase()))
+  const visibleCoupons = matches.slice(0, visibleCouponCount)
 
   return (
     <section className={`ohk-coupons-section ${dark ? 'ohk-coupons-dark' : 'ohk-coupons-light'}`} aria-labelledby="ohk-coupons-heading">
@@ -1070,11 +1072,20 @@ function CouponsSection({ dark, posts }) {
       </div>
       <form className="ohk-search-box ohk-coupons-search-box" onSubmit={(event) => event.preventDefault()} role="search">
           <Icon name="search" size={22} />
-          <input className="ohk-main-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search coupons..." aria-label="Search coupons" />
+          <input className="ohk-main-search-input" value={search} onChange={(event) => { setSearch(event.target.value); setVisibleCouponCount(6) }} placeholder="Search coupons..." aria-label="Search coupons" />
           {search ? <button type="button" className="ohk-search-clear" aria-label="Clear coupon search" onClick={() => setSearch('')}><Icon name="close" size={17} /></button> : null}
           <button type="submit">GO</button>
       </form>
-      {matches.length ? <div className="ohk-coupons-grid">{matches.map((item) => <CouponScratchCard key={item.id} item={item} dark={dark} />)}</div> : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
+      {matches.length ? (
+        <>
+          <div className="ohk-coupons-grid">{visibleCoupons.map((item) => <CouponScratchCard key={item.id} item={item} dark={dark} />)}</div>
+          {matches.length > visibleCouponCount ? (
+            <div className="ohk-load-more ohk-coupons-load-more">
+              <button type="button" onClick={() => setVisibleCouponCount((count) => count + 6)}>Load More</button>
+            </div>
+          ) : null}
+        </>
+      ) : <div className="ohk-coupons-empty">No coupons found. Try another search.</div>}
     </section>
   )
 }
