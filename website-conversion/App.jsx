@@ -50,7 +50,8 @@ const HOME_FAQS = [
   },
   {
     question: 'Offer Hai Kya par apna offer kaise post karein? / How can I post an offer on Offerhaikya?',
-    answer: 'Have a great online deal, discount, coupon, or local store offer to share? Contact Offerhaikya through our Contact Us page and provide the product or store name, discount details, offer link or shop location, and validity information. Any applicable charges for publishing an offer will be discussed with you beforehand. Offers may be published after verification and approval.',
+    answer: 'Have a great online deal, discount, coupon, or local store offer to share? Submit your offer using our offer submission form and include the product or store name, discount details, offer link or shop location, and validity information. Any applicable charges for publishing an offer will be discussed with you beforehand. Offers may be published after verification and approval.',
+    links: [{ label: 'Click here to submit your offer', href: 'https://docs.google.com/forms/d/e/1FAIpQLSf1bActE5s-pO1Ieedj4PsmbLaSQ_CgqPMnr8gRXyEj1y9q2Q/viewform?usp=header' }],
   },
 ]
 
