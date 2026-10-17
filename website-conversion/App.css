@@ -2461,3 +2461,33 @@ a.ohk-card-click,
 .ohk-nearby-prompt .ohk-nearby-search-row .ohk-nearby-find-button svg {
   flex: 0 0 auto;
 }
+
+
+/* Orange purchase CTA for Blogger links labelled "Click to Buy". */
+.ohk-detail-description-content a.ohk-click-to-buy-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px !important;
+  margin: 8px 0 !important;
+  border: 1px solid #ff5b01 !important;
+  border-radius: 8px !important;
+  background: #ff5b01 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  line-height: 1.25;
+  text-decoration: none !important;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color .18s ease, transform .18s ease;
+}
+.ohk-detail-description-content a.ohk-click-to-buy-button:hover {
+  background: #e94f00 !important;
+  border-color: #e94f00 !important;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+.ohk-detail-description-content a.ohk-click-to-buy-button:focus-visible {
+  outline: 3px solid rgba(255, 91, 1, .3);
+  outline-offset: 3px;
+}
