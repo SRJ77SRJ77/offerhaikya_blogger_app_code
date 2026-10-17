@@ -412,6 +412,7 @@ function parseFeed(data) {
   return entries.map((entry) => {
     const rawContent = entry?.content?.$t || ''
     const labels = (entry?.category || []).map((item) => item.term).filter(Boolean)
+    if (labels.some((label) => String(label).trim().toLowerCase() === 'lock')) return null
     const alternate = entry?.link?.find((item) => item.rel === 'alternate')?.href || BLOG_URL
     const image = highResImage(firstImage(rawContent))
 
@@ -441,7 +442,7 @@ function parseFeed(data) {
         return extractCoordinates(rawContent + ' ' + alternate)
       })(),
     }
-  })
+  }).filter(Boolean)
 }
 
 
