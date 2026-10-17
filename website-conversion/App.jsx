@@ -686,21 +686,13 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
+  // Always display the first tag in the latest Blogger feed on the main post card.
+  // The detail page's tag rendering is separate and remains unchanged.
   const labels = Array.isArray(post?.labels) ? post.labels : []
-  const excludedLabel = /^(?:E\d+|EY\d+|verified|expired|online offers?|offline offers?)$/i
-  const visibleLabels = labels
-    .map((label) => String(label ?? '').trim())
-    .filter((value) => value && !excludedLabel.test(value))
+  const firstLabel = String(labels[0] ?? '').trim()
+  if (firstLabel) return firstLabel
 
-  // Prefer the specific offer label when present, rather than the broad Online/Offline Offers category.
-  const todaysOffer = visibleLabels.find((value) => /^today['’]?s offer$/i.test(value))
-  if (todaysOffer) return todaysOffer
-
-  // Keep this selection limited to the post-card label; detail-page tags stay unchanged.
-  if (visibleLabels.length) return visibleLabels[0]
-
-  const fallbackLabel = String(post?.label ?? '').trim()
-  return fallbackLabel && !excludedLabel.test(fallbackLabel) ? fallbackLabel : ''
+  return String(post?.label ?? '').trim()
 }
 
 function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
