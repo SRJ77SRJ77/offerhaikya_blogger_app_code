@@ -25,9 +25,11 @@ function buildPopup(post, onOpen) {
     .filter((item) => /imp$/i.test(item))
     .map((item) => item.replace(/imp$/i, '').trim())
     .filter(Boolean)
+  // If an IMP tag exists, show only IMP tags (without the suffix). Otherwise
+  // show every tag in alphabetical order, matching the offer card's tag set.
   const visibleLabels = impLabels.length
     ? impLabels
-    : allLabels.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+    : [...allLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
   label.textContent = visibleLabels.join(' · ') || 'Offer'
   box.appendChild(label)
   const button = document.createElement('button')
