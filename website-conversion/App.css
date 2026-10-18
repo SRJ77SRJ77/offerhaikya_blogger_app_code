@@ -2791,3 +2791,55 @@ a.ohk-card-click,
 }
 
 /* Keep Leaflet's outer popup shell and pointer tip unchanged. */
+
+/* Compact detail-page action and location icons on phone/tablet; leave post cards untouched. */
+@media (max-width: 768px) {
+  .ohk-detail-page .ohk-detail-status-row {
+    gap: 6px;
+  }
+  .ohk-detail-page .ohk-detail-status-distance {
+    min-height: 22px;
+    gap: 3px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .92);
+    color: #77747a;
+    font-size: 9px;
+    font-weight: 900;
+  }
+  .ohk-dark .ohk-detail-page .ohk-detail-status-distance {
+    background: #242424;
+    color: #ddd;
+  }
+  .ohk-detail-page .ohk-detail-status-distance .ohk-icon {
+    width: 12px;
+    height: 12px;
+  }
+  .ohk-detail-page .ohk-detail-status-actions {
+    gap: 4px;
+  }
+  .ohk-detail-page .ohk-detail-status-actions button {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border-radius: 50%;
+  }
+  .ohk-detail-page .ohk-detail-status-actions .ohk-heart-icon {
+    width: 17px;
+    height: 17px;
+  }
+  .ohk-detail-page .ohk-detail-status-actions .ohk-icon {
+    width: 15px;
+    height: 15px;
+  }
+  .ohk-detail-page .ohk-detail-location a .ohk-icon,
+  .ohk-detail-page .ohk-detail-map-item > a .ohk-icon {
+    width: 13px;
+    height: 13px;
+  }
+  .ohk-detail-page .ohk-detail-location a {
+    gap: 4px;
+    font-size: 13px;
+  }
+}
+
