@@ -17,22 +17,17 @@ function buildPopup(post, onOpen) {
     .map((item) => String(item || '').trim())
     .filter(Boolean))]
   const isVerified = allLabels.some((item) => /^verified$/i.test(item))
-  if (isVerified) {
-    const verified = document.createElement('div')
-    verified.className = 'ohk-map-verified-badge'
-    verified.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 12.3 3l2.8-.1 1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1 2.6-2.8-.1L10 18.5l-2.3-1.7-2.8.1-1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1-2.6 2.8.1Z" fill="currentColor"/><path d="m6.2 10.2 2.4 2.4 5.2-5.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Verified</span>'
-    box.appendChild(verified)
-  }
+
   if (post.image) {
     const img = document.createElement('img')
-    img.src = post.image.replace(/\/s\d+(-[a-z]+)*\//i, '/s320/')
+    img.src = post.image.replace(/\\/s\\d+(-[a-z]+)*\\//i, '/s320/')
     img.alt = post.title || 'Offer'
     img.loading = 'lazy'
     box.appendChild(img)
   }
-  const title = document.createElement('strong')
-  title.textContent = post.title || 'Offer'
-  box.appendChild(title)
+
+  const metadata = document.createElement('div')
+  metadata.className = 'ohk-map-popup-meta'
   const label = document.createElement('small')
   const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
   const impLabels = displayLabels
@@ -45,7 +40,19 @@ function buildPopup(post, onOpen) {
     ? impLabels
     : [...displayLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).slice(0, 1)
   label.textContent = visibleLabels.join(' · ') || 'Offer'
-  box.appendChild(label)
+  metadata.appendChild(label)
+
+  if (isVerified) {
+    const verified = document.createElement('div')
+    verified.className = 'ohk-map-verified-badge'
+    verified.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 12.3 3l2.8-.1 1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1 2.6-2.8-.1L10 18.5l-2.3-1.7-2.8.1-1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1-2.6 2.8.1Z" fill="currentColor"/><path d="m6.2 10.2 2.4 2.4 5.2-5.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Verified</span>'
+    metadata.appendChild(verified)
+  }
+  box.appendChild(metadata)
+
+  const title = document.createElement('strong')
+  title.textContent = post.title || 'Offer'
+  box.appendChild(title)
   const button = document.createElement('button')
   button.type = 'button'
   button.textContent = 'View offer'
