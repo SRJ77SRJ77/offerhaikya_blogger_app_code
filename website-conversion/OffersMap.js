@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react'
 import L from 'leaflet'
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet'
+import { setWorkerUrl } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'leaflet/dist/leaflet.css'
+import 'maplibre-gl/dist/maplibre-gl.css'
+
+setWorkerUrl(workerUrl)
 
 const DEFAULT_CENTER = [15.8497, 74.4977]
 
@@ -54,8 +60,8 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
 
   useEffect(() => {
     const map = L.map(elementRef.current).setView(DEFAULT_CENTER, 11)
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+    maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/liberty',
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
     layerRef.current = L.layerGroup().addTo(map)
