@@ -18,10 +18,17 @@ function buildPopup(post, onOpen) {
   title.textContent = post.title || 'Offer'
   box.appendChild(title)
   const label = document.createElement('small')
-  const visibleLabels = (Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
-    .map((item) => String(item || '').replace(/imp$/i, '').trim())
+  const allLabels = [...new Set((Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
+    .map((item) => String(item || '').trim())
+    .filter(Boolean))]
+  const impLabels = allLabels
+    .filter((item) => /imp$/i.test(item))
+    .map((item) => item.replace(/imp$/i, '').trim())
     .filter(Boolean)
-  label.textContent = [...new Set(visibleLabels)].join(' · ') || 'Offer'
+  const visibleLabels = impLabels.length
+    ? impLabels
+    : allLabels.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  label.textContent = visibleLabels.join(' · ') || 'Offer'
   box.appendChild(label)
   const button = document.createElement('button')
   button.type = 'button'
