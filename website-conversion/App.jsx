@@ -805,17 +805,6 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
         </button>
       ) : null}
 
-      {nearby ? (
-        <div
-          className="ohk-card-distance"
-          aria-label={`Distance: ${formatDistance(post.nearbyDistanceKm)}`}
-        >
-          <Icon name="location" size={12} />
-          {formatDistance(post.nearbyDistanceKm)}
-        </div>
-      ) : null}
-
-
 
       <a
         className="ohk-card-click"
@@ -862,6 +851,15 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
           <p>{post.excerpt}</p>
           <div className="ohk-card-footer">
             <span className="ohk-read-more">Read more ›</span>
+            {nearby ? (
+              <span
+                className="ohk-card-distance"
+                aria-label={`Distance: ${formatDistance(post.nearbyDistanceKm)}`}
+              >
+                <Icon name="location" size={12} />
+                {formatDistance(post.nearbyDistanceKm)}
+              </span>
+            ) : null}
           </div>
         </div>
       </a>
