@@ -63,6 +63,14 @@ function buildPopup(post, onOpen) {
     button.addEventListener('click', () => onOpen(post))
   }
   box.appendChild(button)
+
+  if (post.isExpired) {
+    const overlay = document.createElement('div')
+    overlay.className = 'ohk-map-expired-overlay'
+    overlay.setAttribute('aria-hidden', 'true')
+    box.appendChild(overlay)
+  }
+
   return box
 }
 
