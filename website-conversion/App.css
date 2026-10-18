@@ -2780,8 +2780,13 @@ a.ohk-card-click,
   inset: 0;
   z-index: 4;
   border-radius: inherit;
-  background: rgba(110, 110, 110, .42);
+  background: rgba(110, 110, 110, .68);
   pointer-events: none;
+}
+.ohk-map-popup.ohk-map-popup-expired img,
+.ohk-map-popup.ohk-map-popup-expired .ohk-map-popup-meta,
+.ohk-map-popup.ohk-map-popup-expired strong {
+  filter: grayscale(1);
 }
 .ohk-map-popup.ohk-map-popup-expired button,
 .ohk-map-popup button:disabled {
