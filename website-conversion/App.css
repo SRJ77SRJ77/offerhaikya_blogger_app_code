@@ -2775,11 +2775,10 @@ a.ohk-card-click,
   overflow: hidden;
   border-radius: 8px;
 }
-.ohk-map-popup.ohk-map-popup-expired::after {
-  content: "";
+.ohk-map-popup .ohk-map-expired-overlay {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: 999;
   border-radius: inherit;
   background: rgba(110, 110, 110, .42);
   pointer-events: none;
