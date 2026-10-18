@@ -55,7 +55,7 @@ function buildPopup(post, onOpen) {
   box.appendChild(title)
   const button = document.createElement('button')
   button.type = 'button'
-  button.textContent = 'View offer'
+  button.textContent = 'View Offer Details'
   button.addEventListener('click', () => onOpen(post))
   box.appendChild(button)
   return box
