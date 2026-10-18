@@ -13,6 +13,16 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 function buildPopup(post, onOpen) {
   const box = document.createElement('div')
   box.className = 'ohk-map-popup'
+  const allLabels = [...new Set((Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
+    .map((item) => String(item || '').trim())
+    .filter(Boolean))]
+  const isVerified = allLabels.some((item) => /^verified$/i.test(item))
+  if (isVerified) {
+    const verified = document.createElement('div')
+    verified.className = 'ohk-map-verified-badge'
+    verified.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 12.3 3l2.8-.1 1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1 2.6-2.8-.1L10 18.5l-2.3-1.7-2.8.1-1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1-2.6 2.8.1Z" fill="currentColor"/><path d="m6.2 10.2 2.4 2.4 5.2-5.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Verified</span>'
+    box.appendChild(verified)
+  }
   if (post.image) {
     const img = document.createElement('img')
     img.src = post.image.replace(/\/s\d+(-[a-z]+)*\//i, '/s320/')
@@ -24,10 +34,8 @@ function buildPopup(post, onOpen) {
   title.textContent = post.title || 'Offer'
   box.appendChild(title)
   const label = document.createElement('small')
-  const allLabels = [...new Set((Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
-    .map((item) => String(item || '').trim())
-    .filter(Boolean))]
-  const impLabels = allLabels
+  const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
+  const impLabels = displayLabels
     .filter((item) => /imp/i.test(item))
     .map((item) => item.replace(/imp/ig, '').trim())
     .filter(Boolean)
@@ -35,7 +43,7 @@ function buildPopup(post, onOpen) {
   // the first tag alphabetically.
   const visibleLabels = impLabels.length
     ? impLabels
-    : [...allLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).slice(0, 1)
+    : [...displayLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).slice(0, 1)
   label.textContent = visibleLabels.join(' · ') || 'Offer'
   box.appendChild(label)
   const button = document.createElement('button')
