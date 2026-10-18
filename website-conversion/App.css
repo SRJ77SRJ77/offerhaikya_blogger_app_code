@@ -2764,3 +2764,30 @@ a.ohk-card-click,
   height: 15px;
   flex: 0 0 auto;
 }
+
+/* Expired offers remain discoverable on the map but are visibly locked. */
+.ohk-map-pin.ohk-map-pin-expired span {
+  background: #8b8b8b !important;
+}
+.ohk-map-popup.ohk-map-popup-expired {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.ohk-map-popup.ohk-map-popup-expired::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  background: rgba(110, 110, 110, .42);
+  pointer-events: none;
+}
+.ohk-map-popup.ohk-map-popup-expired button,
+.ohk-map-popup button:disabled {
+  position: relative;
+  z-index: 5;
+  background: #8b8b8b !important;
+  color: #fff !important;
+  cursor: not-allowed;
+}
