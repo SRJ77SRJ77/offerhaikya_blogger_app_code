@@ -2804,3 +2804,13 @@ a.ohk-card-click,
   color: #fff !important;
   cursor: not-allowed;
 }
+
+
+/* Grey the full Leaflet popup shell only when it contains an expired offer. */
+.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-content-wrapper,
+.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-tip {
+  background: #8b8b8b !important;
+}
+.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-content-wrapper {
+  color: #fff !important;
+}
