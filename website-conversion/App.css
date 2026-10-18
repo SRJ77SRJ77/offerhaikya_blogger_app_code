@@ -2280,7 +2280,7 @@ a.ohk-card-click,
 .ohk-map-pin span { display: block; width: 26px; height: 26px; margin: 2px; background: #ff5b01; border: 3px solid #ffffff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
 .ohk-map-popup { width: 210px; }
 .ohk-map-popup img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
-.ohk-map-popup strong { display: block; font-size: 14px; line-height: 1.3; margin-bottom: 4px; }
+.ohk-map-popup strong { display: block; font-size: 14px; line-height: 1.3; margin-bottom: 8px; }
 .ohk-map-popup small { display: block; color: #77747a; margin-bottom: 8px; }
 .ohk-map-popup button { width: 100%; border: 0; border-radius: 8px; padding: 8px; background: #ff5b01; color: #ffffff; font-weight: 700; cursor: pointer; }
 .ohk-map-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 500; max-width: 80%; padding: 14px 18px; text-align: center; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2); }
