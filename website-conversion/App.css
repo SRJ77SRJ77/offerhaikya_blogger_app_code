@@ -1821,10 +1821,10 @@ input, textarea, select, button { max-width: 100%; }
   color:#fff; font:inherit; font-weight:700; white-space:nowrap; cursor:pointer;
 }
 .ohk-section > .ohk-nearby-search-row .ohk-location-suggestions{top:56px;left:0;right:0;width:100%;box-sizing:border-box}
-.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button{display:flex;justify-content:flex-start;align-items:center;text-align:left;white-space:nowrap;overflow:hidden}
-.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button .ohk-icon{flex:0 0 auto}
-.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button span{display:block;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
-@media(max-width:600px){.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button{justify-content:flex-start!important;text-align:left!important;align-items:center!important}.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}}
+.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button,.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions button{display:flex;flex-direction:row;justify-content:flex-start;align-items:center;text-align:left;white-space:nowrap;overflow:hidden;width:100%}
+.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button .ohk-icon,.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions button .ohk-icon{flex:0 0 auto}
+.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button span,.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions button span{display:block;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;margin:0;padding:0}
+@media(max-width:600px){.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button,.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions button{flex-direction:row!important;justify-content:flex-start!important;text-align:left!important;align-items:center!important}.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button span,.ohk-nearby-prompt .ohk-nearby-search-row .ohk-location-suggestions button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;text-align:left!important}}
 @media(max-width:600px){
   .ohk-section > .ohk-nearby-search-row{gap:6px}
   .ohk-section > .ohk-nearby-search-row input{height:42px;min-height:42px;padding:8px 10px;font-size:13px}
