@@ -2773,6 +2773,14 @@ a.ohk-card-click,
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  background: #8b8b8b !important;
+  color: #fff !important;
+}
+.ohk-map-popup.ohk-map-popup-expired > * {
+  opacity: .58;
+}
+.ohk-map-popup.ohk-map-popup-expired > button {
+  opacity: 1;
 }
 .ohk-map-popup.ohk-map-popup-expired::after {
   content: "";
