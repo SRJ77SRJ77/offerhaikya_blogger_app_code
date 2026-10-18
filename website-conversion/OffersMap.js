@@ -18,7 +18,10 @@ function buildPopup(post, onOpen) {
   title.textContent = post.title || 'Offer'
   box.appendChild(title)
   const label = document.createElement('small')
-  label.textContent = String(post.label || 'Offer').replace(/imp$/i, '').trim() || 'Offer'
+  const visibleLabels = (Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
+    .map((item) => String(item || '').replace(/imp$/i, '').trim())
+    .filter(Boolean)
+  label.textContent = [...new Set(visibleLabels)].join(' · ') || 'Offer'
   box.appendChild(label)
   const button = document.createElement('button')
   button.type = 'button'
@@ -38,7 +41,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
 
   useEffect(() => { openRef.current = onOpenPost })
 
-  const postsKey = useMemo(() => posts.map((post) => post.id).join('|'), [posts])
+  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, (post.labels || []).join(','), post.label, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
 
   useEffect(() => {
     const map = L.map(elementRef.current).setView(DEFAULT_CENTER, 11)
