@@ -435,13 +435,9 @@ a{color:inherit;text-decoration:none}
 
 /* Offer details body typography: consistent black Rubik text. */
 .ohk-detail-page .ohk-detail-content-actions{display:flex;justify-content:flex-end;gap:10px;margin:0 0 14px}
-.ohk-detail-page .ohk-detail-status-actions{margin:0 0 0 auto;flex:0 0 auto;align-items:center;gap:6px}
-.ohk-detail-page .ohk-detail-status-actions button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;min-width:34px;padding:0;border:0;border-radius:50%;background:#fff;color:#171717;box-sizing:border-box}
-.ohk-detail-page .ohk-detail-status-actions button svg{display:block;width:19px;height:19px;color:currentColor;stroke:currentColor}
-.ohk-detail-page .ohk-detail-status-actions button .ohk-heart-icon{width:20px;height:20px}
-.ohk-detail-page .ohk-detail-status-distance{display:inline-flex;align-items:center;gap:5px;min-width:0}
-.ohk-detail-page .ohk-detail-status-distance svg,.ohk-detail-page .ohk-detail-location a svg,.ohk-detail-page .ohk-detail-map-item>a svg{display:inline-block;flex:0 0 auto;width:16px;height:16px;padding:3px;box-sizing:content-box;border-radius:50%;background:#fff;color:#171717;stroke:currentColor;vertical-align:middle}
-.ohk-detail-page .ohk-detail-location a,.ohk-detail-page .ohk-detail-map-item>a{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.ohk-detail-page .ohk-detail-status-actions{margin:0 0 0 auto;flex-shrink:0;align-items:center;gap:8px}
+.ohk-detail-page .ohk-detail-status-actions button{display:inline-flex;align-items:center;justify-content:center;padding:4px}
+.ohk-detail-page .ohk-detail-content-actions button{border:0;background:transparent;color:#111;padding:5px;font-size:22px;cursor:pointer}
 .ohk-detail-page .ohk-detail-html,.ohk-detail-page .ohk-detail-html p,.ohk-detail-page .ohk-detail-html h3{font-family:Rubik,Arial,sans-serif;color:#111!important}
 .ohk-detail-page .ohk-detail-html h1,.ohk-detail-page .ohk-detail-html h2,.ohk-detail-page .ohk-detail-html h3,.ohk-detail-page .ohk-detail-html h4,.ohk-detail-page .ohk-detail-html h5,.ohk-detail-page .ohk-detail-html h6{font-family:Rubik,Arial,sans-serif;color:#111!important;font-size:22px;line-height:1.4;font-weight:700;margin:1.1em 0 .55em}
 .ohk-detail-page .ohk-detail-html p{font-size:16px;line-height:1.85;margin:0 0 1.1em;color:#111!important}
@@ -1290,13 +1286,6 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-detail-thumbnails{order:2;flex-direction:row;align-self:stretch;width:100%;max-height:none;overflow-x:auto;overflow-y:hidden;padding:2px 2px 5px}
   .ohk-detail-thumbnails button{width:68px;height:68px}
 }
-@media(max-width:900px){
-  .ohk-detail-page .ohk-detail-status-actions{gap:4px}
-  .ohk-detail-page .ohk-detail-status-actions button{width:30px;height:30px;min-width:30px}
-  .ohk-detail-page .ohk-detail-status-actions button svg{width:17px;height:17px}
-  .ohk-detail-page .ohk-detail-status-actions button .ohk-heart-icon{width:18px;height:18px}
-  .ohk-detail-page .ohk-detail-status-distance svg,.ohk-detail-page .ohk-detail-location a svg,.ohk-detail-page .ohk-detail-map-item>a svg{width:14px;height:14px;padding:3px}
-}
 @media(max-width:600px){
   .ohk-detail-status-row{gap:6px;margin-bottom:14px}
   .ohk-detail-status{font-size:11px;min-height:26px;padding:5px 8px}
@@ -1306,14 +1295,6 @@ input, textarea, select, button { max-width: 100%; }
   .ohk-detail-thumbnails{gap:7px}
   .ohk-detail-thumbnails button{width:58px;height:58px}
   .ohk-detail-page .ohk-detail-description{font-size:15px;line-height:1.7}
-  .ohk-detail-page .ohk-detail-status-row{min-width:0;align-items:center}
-  .ohk-detail-page .ohk-detail-status-actions{gap:3px;margin-left:auto}
-  .ohk-detail-page .ohk-detail-status-actions button{width:26px;height:26px;min-width:26px}
-  .ohk-detail-page .ohk-detail-status-actions button svg{width:15px;height:15px}
-  .ohk-detail-page .ohk-detail-status-actions button .ohk-heart-icon{width:16px;height:16px}
-  .ohk-detail-page .ohk-detail-status-distance{gap:3px;min-height:22px;padding:3px 6px;font-size:9px;line-height:1.2}
-  .ohk-detail-page .ohk-detail-status-distance svg,.ohk-detail-page .ohk-detail-location a svg,.ohk-detail-page .ohk-detail-map-item>a svg{width:12px;height:12px;padding:2px}
-  .ohk-detail-page .ohk-detail-location a,.ohk-detail-page .ohk-detail-map-item>a{gap:4px;font-size:13px;line-height:1.4}
 }
 
 
@@ -2810,3 +2791,18 @@ a.ohk-card-click,
 }
 
 /* Keep Leaflet's outer popup shell and pointer tip unchanged. */
+
+
+/* Main offer cards: responsive icon circles. */
+.ohk-card-heart,.ohk-card-share {
+  width:34px;
+  height:34px;
+  background:#fff;
+  color:#171717;
+}
+.ohk-card-heart { color:#171717; }
+.ohk-card-heart.ohk-card-heart-unsaved,.ohk-card-heart.ohk-card-heart-saved { color:#171717; }
+.ohk-card-heart .ohk-heart-icon { width:20px;height:20px; }
+.ohk-card-share svg { width:18px;height:18px;color:#171717; }
+.ohk-card-distance { color:#171717; }
+.ohk-card-distance svg { color:#171717;flex:0 0 auto; }
