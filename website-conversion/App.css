@@ -1822,6 +1822,7 @@ input, textarea, select, button { max-width: 100%; }
 }
 .ohk-section > .ohk-nearby-search-row .ohk-location-suggestions{top:56px;left:0;right:0;width:100%;box-sizing:border-box}
 .ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button{display:flex;justify-content:flex-start;align-items:flex-start;text-align:left}
+@media(max-width:600px){.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button{justify-content:flex-start!important;text-align:left!important;align-items:flex-start!important}.ohk-section > .ohk-nearby-search-row .ohk-location-suggestions button span{flex:1;min-width:0;text-align:left;overflow-wrap:anywhere}}
 @media(max-width:600px){
   .ohk-section > .ohk-nearby-search-row{gap:6px}
   .ohk-section > .ohk-nearby-search-row input{height:42px;min-height:42px;padding:8px 10px;font-size:13px}
