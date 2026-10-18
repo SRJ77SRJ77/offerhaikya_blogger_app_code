@@ -2792,54 +2792,52 @@ a.ohk-card-click,
 
 /* Keep Leaflet's outer popup shell and pointer tip unchanged. */
 
-/* Compact detail-page action and location icons on phone/tablet; leave post cards untouched. */
-@media (max-width: 768px) {
-  .ohk-detail-page .ohk-detail-status-row {
-    gap: 6px;
+/* Phone/tablet: compact detail-page icons only. Keep card icons unchanged. */
+@media screen and (max-width: 768px) {
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    min-height: 22px !important;
+    padding: 3px 6px !important;
+    border-radius: 6px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
   }
-  .ohk-detail-page .ohk-detail-status-distance {
-    min-height: 22px;
-    gap: 3px;
-    padding: 3px 6px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, .92);
-    color: #77747a;
-    font-size: 9px;
-    font-weight: 900;
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance svg {
+    width: 12px !important;
+    height: 12px !important;
+    flex: 0 0 12px !important;
   }
-  .ohk-dark .ohk-detail-page .ohk-detail-status-distance {
-    background: #242424;
-    color: #ddd;
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions {
+    gap: 3px !important;
   }
-  .ohk-detail-page .ohk-detail-status-distance .ohk-icon {
-    width: 12px;
-    height: 12px;
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button {
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 26px !important;
+    padding: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
-  .ohk-detail-page .ohk-detail-status-actions {
-    gap: 4px;
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button svg {
+    width: 15px !important;
+    height: 15px !important;
   }
-  .ohk-detail-page .ohk-detail-status-actions button {
-    width: 28px;
-    height: 28px;
-    padding: 3px;
-    border-radius: 50%;
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button .ohk-heart-icon {
+    width: 17px !important;
+    height: 17px !important;
   }
-  .ohk-detail-page .ohk-detail-status-actions .ohk-heart-icon {
-    width: 17px;
-    height: 17px;
+  .ohk-detail-page .ohk-detail-location a svg,
+  .ohk-detail-page .ohk-detail-map-item > a svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex: 0 0 13px !important;
   }
-  .ohk-detail-page .ohk-detail-status-actions .ohk-icon {
-    width: 15px;
-    height: 15px;
-  }
-  .ohk-detail-page .ohk-detail-location a .ohk-icon,
-  .ohk-detail-page .ohk-detail-map-item > a .ohk-icon {
-    width: 13px;
-    height: 13px;
-  }
-  .ohk-detail-page .ohk-detail-location a {
-    gap: 4px;
-    font-size: 13px;
+  .ohk-detail-page .ohk-detail-location a,
+  .ohk-detail-page .ohk-detail-map-item > a {
+    gap: 4px !important;
+    font-size: 13px !important;
   }
 }
-
