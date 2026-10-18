@@ -1924,7 +1924,12 @@ function App() {
 
     const mapPosts = useMemo(() => {
     const source = mapScope === 'nearby' ? nearbyPosts : posts
-    return source.filter((post) => post.coordinates && getExpiryLabel(post) !== 'Expired')
+    return source
+      .filter((post) => post.coordinates && getExpiryLabel(post) !== 'Expired')
+      .map((post) => ({
+        ...post,
+        label: String(post.label || 'Offer').replace(/imp$/i, '').trim() || 'Offer',
+      }))
   }, [posts, nearbyPosts, mapScope])
 
   const openAllMap = () => { setMapScope('all'); setMapFocusId(null); setMapOpen(true) }
