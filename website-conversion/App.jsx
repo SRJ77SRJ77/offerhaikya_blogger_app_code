@@ -410,13 +410,17 @@ function isLockedPost(post) {
   return (post?.labels || []).some((label) => String(label).trim().toLowerCase() === 'lock')
 }
 
+function isHiddenPost(post) {
+  return isLockedPost(post) || String(post?.title || '').trim().toLowerCase() === 'coupons'
+}
+
 function parseFeed(data) {
   const entries = data?.feed?.entry || []
 
   return entries.map((entry) => {
     const rawContent = entry?.content?.$t || ''
     const labels = (entry?.category || []).map((item) => item.term).filter(Boolean)
-    if (isLockedPost({ labels })) return null
+    if (isHiddenPost({ labels, title: entry?.title?.$t })) return null
     const alternate = entry?.link?.find((item) => item.rel === 'alternate')?.href || BLOG_URL
     const image = highResImage(firstImage(rawContent))
 
@@ -1374,7 +1378,7 @@ function App() {
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
-      return Array.isArray(saved) ? limitNotificationSections(saved) : []
+      return Array.isArray(saved) ? limitNotificationSections(saved.filter((post) => !isHiddenPost(post))) : []
     } catch {
       return []
     }
@@ -1443,7 +1447,7 @@ function App() {
         const previousKnown = JSON.parse(localStorage.getItem('offerhaikya_known_post_ids') || 'null')
         const previousVersions = JSON.parse(localStorage.getItem('offerhaikya_known_post_versions') || 'null')
         const seen = new Set(JSON.parse(localStorage.getItem('offerhaikya_notification_seen') || '[]'))
-        const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]')
+        const existingNotifications = JSON.parse(localStorage.getItem('offerhaikya_notifications') || '[]').filter((post) => !isHiddenPost(post))
         const knownIds = new Set(Array.isArray(previousKnown) ? previousKnown : [])
         const knownVersions = previousVersions && typeof previousVersions === 'object' && !Array.isArray(previousVersions)
           ? previousVersions
@@ -1478,6 +1482,7 @@ function App() {
         // rather than keeping the stale entry or appending a duplicate.
         const refreshedIds = new Set(updatedAdditions.map((post) => String(post.id)))
         const retained = existingNotifications
+          .filter((post) => !isHiddenPost(post))
           .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
           .filter((post) => !refreshedIds.has(String(post.id)))
         const mergedNotifications = limitNotificationSections([...newAdditions, ...updatedAdditions, ...retained])
