@@ -2765,52 +2765,24 @@ a.ohk-card-click,
   flex: 0 0 auto;
 }
 
-/* Expired offers remain discoverable on the map but are visibly locked. */
+/* Expired offers: add only a translucent grey overlay over the whole card. */
 .ohk-map-pin.ohk-map-pin-expired span {
   background: #8b8b8b !important;
 }
 .ohk-map-popup.ohk-map-popup-expired {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   border-radius: 8px;
-  background: #8b8b8b !important;
-  color: #fff !important;
-}
-.ohk-map-popup.ohk-map-popup-expired > * {
-  opacity: .58;
-}
-.ohk-map-popup.ohk-map-popup-expired > button {
-  opacity: 1;
 }
 .ohk-map-popup.ohk-map-popup-expired::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 10;
   border-radius: inherit;
-  background: rgba(110, 110, 110, .68);
+  background: rgba(110, 110, 110, .42);
   pointer-events: none;
 }
-.ohk-map-popup.ohk-map-popup-expired img,
-.ohk-map-popup.ohk-map-popup-expired .ohk-map-popup-meta,
-.ohk-map-popup.ohk-map-popup-expired strong {
-  filter: grayscale(1);
-}
-.ohk-map-popup.ohk-map-popup-expired button,
-.ohk-map-popup button:disabled {
-  position: relative;
-  z-index: 5;
-  background: #8b8b8b !important;
-  color: #fff !important;
-  cursor: not-allowed;
-}
 
-
-/* Grey the full Leaflet popup shell only when it contains an expired offer. */
-.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-content-wrapper,
-.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-tip {
-  background: #8b8b8b !important;
-}
-.leaflet-popup:has(.ohk-map-popup-expired) .leaflet-popup-content-wrapper {
-  color: #fff !important;
-}
+/* Keep Leaflet's outer popup shell and pointer tip unchanged. */
