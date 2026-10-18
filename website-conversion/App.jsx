@@ -1617,7 +1617,7 @@ function App() {
 
   // Categories are intentionally hardcoded; only offers themselves are fetched from Blogger.
   const categoryGroups = [
-    { title: 'Brands', tags: ['Amazon', 'Flipkart', 'Meesho', 'MyIntra', 'Swiggy', 'Zomato', 'Blinkit'] },
+    { title: 'Brands', tags: ['Amazon', 'Flipkart', 'Meesho', 'Myntra', 'Swiggy', 'Zomato', 'Blinkit'] },
     { title: 'Offer Types', tags: ['Online Offers', 'Offline Offers', 'Local Offers', 'Free Delivery', 'Coupons & Promo Codes', 'Bank Offers', 'Buy 1 Get 1', 'Clearance Sale', '₹1 Deals'] },
     { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
   ]
