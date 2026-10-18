@@ -2358,7 +2358,7 @@ function App() {
               <div className="ohk-detail-status-row" aria-label="Offer status">
                 {detailVerified ? (
                   <span className="ohk-detail-status ohk-detail-status-verified">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m8 12 2.5 2.5L16.5 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 1.5 12.3 3l2.8-.1 1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1 2.6-2.8-.1L10 18.5l-2.3-1.7-2.8.1-1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1-2.6 2.8.1Z" fill="currentColor" /><path d="m6.2 10.2 2.4 2.4 5.2-5.2" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     Verified
                   </span>
                 ) : null}
