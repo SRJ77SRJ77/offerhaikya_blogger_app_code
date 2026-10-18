@@ -1577,6 +1577,14 @@ function App() {
             if (!cleanOfferSlug) return false
             return offerSlugFromTitle(post.title) === cleanOfferSlug || legacyOfferSlugFromTitle(post.title) === cleanOfferSlug
           })
+        if (found && getExpiryLabel(found) === 'Expired') {
+          // Expired offers must not be accessible through a direct /offer/ URL.
+          detailRef.current = null
+          setDetail(null)
+          setSitePage(null)
+          window.history.replaceState({}, '', '/')
+          return
+        }
         if (found) {
           detailRef.current = found
           setDetail(found)
