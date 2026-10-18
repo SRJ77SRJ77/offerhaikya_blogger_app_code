@@ -12,7 +12,7 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 
 function buildPopup(post, onOpen) {
   const box = document.createElement('div')
-  box.className = 'ohk-map-popup'
+  box.className = 'ohk-map-popup' + (post.isExpired ? ' ohk-map-popup-expired' : '')
   const allLabels = [...new Set((Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
     .map((item) => String(item || '').trim())
     .filter(Boolean))]
@@ -55,8 +55,13 @@ function buildPopup(post, onOpen) {
   box.appendChild(title)
   const button = document.createElement('button')
   button.type = 'button'
-  button.textContent = 'View Offer Details'
-  button.addEventListener('click', () => onOpen(post))
+  button.textContent = post.isExpired ? 'Expired' : 'View Offer Details'
+  if (post.isExpired) {
+    button.disabled = true
+    button.setAttribute('aria-label', 'This offer has expired')
+  } else {
+    button.addEventListener('click', () => onOpen(post))
+  }
   box.appendChild(button)
   return box
 }
@@ -100,7 +105,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
     posts.forEach((post) => {
       const { latitude, longitude } = post.coordinates
       const icon = L.divIcon({
-        className: 'ohk-map-pin',
+        className: 'ohk-map-pin' + (post.isExpired ? ' ohk-map-pin-expired' : ''),
         html: '<span></span>',
         iconSize: [30, 30],
         iconAnchor: [15, 30],
