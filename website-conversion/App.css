@@ -2792,52 +2792,135 @@ a.ohk-card-click,
 
 /* Keep Leaflet's outer popup shell and pointer tip unchanged. */
 
-/* Phone/tablet: compact detail-page icons only. Keep card icons unchanged. */
-@media screen and (max-width: 768px) {
-  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 3px !important;
-    min-height: 22px !important;
-    padding: 3px 6px !important;
-    border-radius: 6px !important;
-    font-size: 9px !important;
-    line-height: 1.2 !important;
-  }
-  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance svg {
-    width: 12px !important;
-    height: 12px !important;
-    flex: 0 0 12px !important;
-  }
-  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions {
-    gap: 3px !important;
-  }
+/* Detail-page action icons: responsive white circles; never affect offer cards. */
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff !important;
+  color: #171717 !important;
+  box-sizing: border-box;
+}
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button svg {
+  width: 19px;
+  height: 19px;
+  color: #171717 !important;
+  stroke: currentColor;
+}
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button .ohk-heart-icon {
+  width: 20px;
+  height: 20px;
+  color: #171717 !important;
+}
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance svg,
+.ohk-detail-page .ohk-detail-location a svg,
+.ohk-detail-page .ohk-detail-map-item > a svg {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  padding: 4px;
+  box-sizing: content-box;
+  border-radius: 50%;
+  background: #fff !important;
+  color: #171717 !important;
+  stroke: currentColor;
+  vertical-align: middle;
+}
+.ohk-detail-page .ohk-detail-location a,
+.ohk-detail-page .ohk-detail-map-item > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Tablet: reduce the circles and symbols together. */
+@media screen and (max-width: 1024px) {
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions { gap: 4px; }
   .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button {
-    width: 26px !important;
-    min-width: 26px !important;
-    height: 26px !important;
-    padding: 3px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
   }
   .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: 17px;
+    height: 17px;
   }
   .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button .ohk-heart-icon {
-    width: 17px !important;
-    height: 17px !important;
+    width: 18px;
+    height: 18px;
   }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance svg,
   .ohk-detail-page .ohk-detail-location a svg,
   .ohk-detail-page .ohk-detail-map-item > a svg {
-    width: 13px !important;
-    height: 13px !important;
-    flex: 0 0 13px !important;
+    width: 14px;
+    height: 14px;
+    padding: 3px;
+  }
+}
+
+/* Phone: compact circles and keep each map/location icon inline with its link. */
+@media screen and (max-width: 768px) {
+  .ohk-detail-page .ohk-detail-status-row {
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions {
+    gap: 3px;
+    margin-left: auto;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button svg {
+    width: 15px;
+    height: 15px;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-actions button .ohk-heart-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance {
+    gap: 3px;
+    min-height: 22px;
+    padding: 3px 6px;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+  .ohk-detail-page .ohk-detail-status-row .ohk-detail-status-distance svg,
+  .ohk-detail-page .ohk-detail-location a svg,
+  .ohk-detail-page .ohk-detail-map-item > a svg {
+    width: 12px;
+    height: 12px;
+    padding: 2px;
   }
   .ohk-detail-page .ohk-detail-location a,
   .ohk-detail-page .ohk-detail-map-item > a {
-    gap: 4px !important;
-    font-size: 13px !important;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.4;
   }
 }
