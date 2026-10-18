@@ -1930,9 +1930,10 @@ function App() {
     const mapPosts = useMemo(() => {
     const source = mapScope === 'nearby' ? nearbyPosts : posts
     return source
-      .filter((post) => post.coordinates && getExpiryLabel(post) !== 'Expired')
+      .filter((post) => post.coordinates)
       .map((post) => ({
         ...post,
+        isExpired: getExpiryLabel(post) === 'Expired',
         label: String(post.label || 'Offer').replace(/imp$/i, '').trim() || 'Offer',
       }))
   }, [posts, nearbyPosts, mapScope])
