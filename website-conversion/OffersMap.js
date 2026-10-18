@@ -18,7 +18,7 @@ function buildPopup(post, onOpen) {
   title.textContent = post.title || 'Offer'
   box.appendChild(title)
   const label = document.createElement('small')
-  label.textContent = post.label || 'Offer'
+  label.textContent = String(post.label || 'Offer').replace(/imp$/i, '').trim() || 'Offer'
   box.appendChild(label)
   const button = document.createElement('button')
   button.type = 'button'
