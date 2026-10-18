@@ -2356,7 +2356,12 @@ function App() {
               <button className="ohk-page-back" onClick={goHome}>← Back</button>
 
               <div className="ohk-detail-status-row" aria-label="Offer status">
-                {detailVerified ? <span className="ohk-detail-status ohk-detail-status-verified">✓ Verified</span> : null}
+                {detailVerified ? (
+                  <span className="ohk-detail-status ohk-detail-status-verified">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m8 12 2.5 2.5L16.5 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    Verified
+                  </span>
+                ) : null}
                 {detailExpiry ? (
                   <span className={`ohk-detail-status ${detailExpiry === 'Expired' ? 'ohk-detail-status-expired' : 'ohk-detail-status-expiry'}`}>
                     {detailExpiry === 'Expired' ? 'Expired' : detailExpiry}
