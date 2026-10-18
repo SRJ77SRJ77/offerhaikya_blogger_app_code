@@ -20,7 +20,7 @@ function buildPopup(post, onOpen) {
 
   if (post.image) {
     const img = document.createElement('img')
-    img.src = post.image.replace(/\\/s\\d+(-[a-z]+)*\\//i, '/s320/')
+    img.src = post.image.replace(/\/s\d+(-[a-z]+)?\//i, '/s320/')
     img.alt = post.title || 'Offer'
     img.loading = 'lazy'
     box.appendChild(img)
