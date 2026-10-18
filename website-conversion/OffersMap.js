@@ -41,7 +41,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
 
   useEffect(() => { openRef.current = onOpenPost })
 
-  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, (post.labels || []).join(','), post.label, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
+  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, post.searchDescription, post.excerpt, post.rawContent, post.bloggerLocation, (post.labels || []).join(','), post.label, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
 
   useEffect(() => {
     const map = L.map(elementRef.current).setView(DEFAULT_CENTER, 11)
