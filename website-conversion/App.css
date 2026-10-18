@@ -97,7 +97,8 @@ a{color:inherit;text-decoration:none}
 .ohk-card-heart.ohk-card-heart-unsaved,.ohk-card-heart.ohk-card-heart-saved{color:#171717}
 .ohk-card-share{top:48px}
 .ohk-card-share svg{width:18px;height:18px;color:#171717}
-.ohk-card-distance{position:absolute;top:88px;right:8px;z-index:4;min-height:22px;max-width:62%;padding:3px 6px;border-radius:6px;background:#fff;display:flex;align-items:center;gap:3px;color:#171717;font-size:9px;font-weight:900}
+.ohk-card .ohk-card-map{top:88px}
+.ohk-card-distance{position:absolute;top:128px;right:8px;z-index:4;min-height:22px;max-width:62%;padding:3px 6px;border-radius:6px;background:#fff;display:flex;align-items:center;gap:3px;color:#171717;font-size:9px;font-weight:900}
 .ohk-card-distance svg{color:#171717;flex:0 0 auto}
 
 .ohk-detail-page .ohk-detail-expiry{position:relative;top:auto;left:auto;display:table;max-width:100%;margin:0 0 10px}
@@ -254,8 +255,8 @@ a{color:inherit;text-decoration:none}
   .ohk-card-heart .ohk-heart-icon{width:16px;height:16px}
   .ohk-card-share{top:36px}
   .ohk-card-share svg{width:15px;height:15px}
-  .ohk-card .ohk-card-map{top:64px}
-  .ohk-card .ohk-card-distance{top:94px;right:6px;min-height:20px;padding:2px 5px;font-size:8px}
+  .ohk-card .ohk-card-distance{top:64px;right:6px;min-height:20px;padding:2px 5px;font-size:8px}
+  .ohk-card .ohk-card-map{top:94px}
   .ohk-nearby-prompt{align-items:flex-start;flex-direction:column}
   .ohk-nearby-prompt button{width:100%;justify-content:center}
   .ohk-footer-links{gap:12px}
@@ -2283,8 +2284,7 @@ a.ohk-card-click,
 .ohk-map-popup button { width: 100%; border: 0; border-radius: 8px; padding: 8px; background: #ff5b01; color: #ffffff; font-weight: 700; cursor: pointer; }
 .ohk-map-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 500; max-width: 80%; padding: 14px 18px; text-align: center; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2); }
 
-.ohk-card .ohk-card-map { top: 88px; }
-.ohk-card .ohk-card-distance { top: 128px; }
+
 .ohk-nearby-results-search { flex-wrap: wrap; }
 .ohk-nearby-map-button { order: 2; flex: 1 1 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; margin-top: 8px; border: 1.5px solid #ff5b01; border-radius: 9px; background: #ffffff; color: #ff5b01; font-weight: 800; font-size: 13px; cursor: pointer; }
 .ohk-nearby-map-button-all { order: 0; width: 100%; box-sizing: border-box; margin: 8px 0 0; }
