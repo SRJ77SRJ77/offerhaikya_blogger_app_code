@@ -1259,7 +1259,8 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-page-back{font-family:Rubik,Arial,sans-serif;font-size:14px;font-weight:700}
 .ohk-detail-status-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0 18px}
 .ohk-detail-status{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:5px 10px;border-radius:999px;font:700 12px/1.25 Rubik,Arial,sans-serif}
-.ohk-detail-status-verified{background:#e7f7ec;color:#18733a}
+.ohk-detail-status-verified{background:#e8f7ed;color:#16803d;padding:4px 8px;font:700 11px/1.2 Rubik,Arial,sans-serif}
+.ohk-detail-page .ohk-detail-status-verified svg{display:block;width:15px;height:15px;flex:0 0 auto}
 .ohk-detail-status-expired{background:#fde9e8;color:#b42318}
 .ohk-detail-status-expiry{background:#fff0e6;color:#ff5b01}
 .ohk-detail-status-distance{background:#e8f2ff;color:#1759a8}
