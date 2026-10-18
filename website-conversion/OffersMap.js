@@ -64,13 +64,6 @@ function buildPopup(post, onOpen) {
   }
   box.appendChild(button)
 
-  if (post.isExpired) {
-    const overlay = document.createElement('div')
-    overlay.className = 'ohk-map-expired-overlay'
-    overlay.setAttribute('aria-hidden', 'true')
-    box.appendChild(overlay)
-  }
-
   return box
 }
 
@@ -121,7 +114,15 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
       })
       const marker = L.marker([latitude, longitude], { icon, title: post.title })
         .bindPopup(buildPopup(post, (item) => openRef.current(item)), { minWidth: 210 })
-        .addTo(layer)
+      marker.on('popupopen', (event) => {
+        const wrapper = event.popup.getElement()?.querySelector('.leaflet-popup-content-wrapper')
+        wrapper?.classList.toggle('ohk-leaflet-expired-popup-wrapper', Boolean(post.isExpired))
+      })
+      marker.on('popupclose', (event) => {
+        event.popup.getElement()?.querySelector('.leaflet-popup-content-wrapper')
+          ?.classList.remove('ohk-leaflet-expired-popup-wrapper')
+      })
+      marker.addTo(layer)
       markersRef.current[post.id] = marker
       points.push([latitude, longitude])
     })
