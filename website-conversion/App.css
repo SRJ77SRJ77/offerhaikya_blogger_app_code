@@ -2775,7 +2775,13 @@ a.ohk-card-click,
   overflow: hidden;
   border-radius: 8px;
 }
-.ohk-map-popup .ohk-map-expired-overlay {
+.leaflet-popup-content-wrapper.ohk-leaflet-expired-popup-wrapper {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.leaflet-popup-content-wrapper.ohk-leaflet-expired-popup-wrapper::after {
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 999;
