@@ -773,7 +773,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
   const cardLabel = getPostCardLabel(post)
 
   return (
-    <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`}>
+    <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`} title={expiry === 'Expired' ? 'Expired' : undefined}>
       <button
         type="button"
         className={`ohk-card-heart ${saved ? 'ohk-card-heart-saved' : 'ohk-card-heart-unsaved'}`}
