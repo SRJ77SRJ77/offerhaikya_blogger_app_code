@@ -10,12 +10,6 @@ import bgImage from './assets/bg.webp'
 import OffersMap from './OffersMap.jsx'
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
-const FEED_URL = BLOG_URL + '/feeds/posts/default?alt=json&max-results=500'
-const ACCENT = '#ff5b01'
-const PAGE = '#f3f4f6'
-const WHITE = '#ffffff'
-const TEXT = '#202124'
-const MUTED = '#77747a'
 const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
 const LOGO_URL = logoImage
@@ -692,16 +686,19 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
     const ad = adRef.current
     if (!ad) return undefined
 
-    if (!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173"]')) {
-      const script = document.createElement('script')
-      script.async = true
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173'
-      script.crossOrigin = 'anonymous'
-      document.head.appendChild(script)
-    }
-
+    // Defer off-screen ads until they are close to entering the viewport.
+    // This keeps the existing ad placements and slots while reducing early page work.
     const initializeAd = () => {
       if (!ad.isConnected || ad.offsetParent === null || ad.dataset.ohkAdInitialized === 'true') return
+
+      if (!document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173"]')) {
+        const script = document.createElement('script')
+        script.async = true
+        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2974987879547173'
+        script.crossOrigin = 'anonymous'
+        document.head.appendChild(script)
+      }
+
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({})
         ad.dataset.ohkAdInitialized = 'true'
@@ -710,9 +707,20 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
       }
     }
 
-    initializeAd()
-    window.addEventListener('resize', initializeAd)
-    return () => window.removeEventListener('resize', initializeAd)
+    if (typeof IntersectionObserver === 'undefined') {
+      initializeAd()
+      return undefined
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        initializeAd()
+        observer.disconnect()
+      }
+    }, { rootMargin: '300px 0px' })
+
+    observer.observe(ad)
+    return () => observer.disconnect()
   }, [])
 
   if (kind === 'display') {
@@ -1109,7 +1117,6 @@ function App() {
     mediaQuery.addEventListener('change', updateLayout)
     return () => mediaQuery.removeEventListener('change', updateLayout)
   }, [])
-  const [bloggerMenus, setBloggerMenus] = useState({ categories: [], specialDeals: [], stores: [] })
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [activeLabel, setActiveLabel] = useState('All')
@@ -1141,7 +1148,6 @@ function App() {
   const [registrationOpen, setRegistrationOpen] = useState(false)
   const [locationPromptOpen, setLocationPromptOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [authMode, setAuthMode] = useState('choice')
   const [preloaderVisible, setPreloaderVisible] = useState(true)
   const [locationSearchPreloaderVisible, setLocationSearchPreloaderVisible] = useState(false)
   const [sitePage, setSitePage] = useState(null)
