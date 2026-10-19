@@ -3,10 +3,10 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
-import logoImage from './assets/logo.png'
-import darkLogoImage from './assets/logo_dm.png'
+import logoImage from './assets/logo.webp'
+import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
-import bgImage from './assets/bg.jpg'
+import bgImage from './assets/bg.webp'
 import OffersMap from './OffersMap.jsx'
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
