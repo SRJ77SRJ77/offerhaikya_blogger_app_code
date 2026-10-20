@@ -7,7 +7,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-const OffersMap = lazy(() => import('./OffersMap.jsx'))
+const OffersMap = lazy(() => import('./OffersMap.js'))
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const NEARBY_RADIUS_KM = 300
@@ -3072,14 +3072,16 @@ function App() {
       ) : null}
 
       {mapOpen ? (
-        <OffersMap
-          focusPostId={mapFocusId}
-          posts={mapPosts}
-          userLocation={userLocation}
-          onRequestLocation={requestLocation}
-          onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
-          onClose={() => setMapOpen(false)}
-        />
+        <Suspense fallback={<div role="status">Loading offers map…</div>}>
+          <OffersMap
+            focusPostId={mapFocusId}
+            posts={mapPosts}
+            userLocation={userLocation}
+            onRequestLocation={requestLocation}
+            onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
+            onClose={() => setMapOpen(false)}
+          />
+        </Suspense>
       ) : null}
 
       {imageViewerOpen && selectedDetailMedia?.type === 'image' ? (
