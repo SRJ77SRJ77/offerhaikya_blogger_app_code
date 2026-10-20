@@ -2477,14 +2477,20 @@ function App() {
               <section className="ohk-detail-description-section" aria-label="Offer details">
                 <div className="ohk-detail-description-content">
                   <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
+                  {detail.searchDescription || detail.excerpt ? (
+                    <p className="ohk-detail-short-description">
+                      {stripHtml(detail.searchDescription || detail.excerpt)}
+                    </p>
+                  ) : null}
+                  <h2 className="ohk-detail-information-heading">Full Offer Information</h2>
                   <div
                     className="ohk-detail-html"
-                dangerouslySetInnerHTML={{
-                  __html: cleanBloggerDetailHtml(
-                    detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
-                    detail.title
-                  )
-                  }}
+                    dangerouslySetInnerHTML={{
+                      __html: cleanBloggerDetailHtml(
+                        detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
+                        detail.title
+                      )
+                    }}
                   />
                 </div>
               </section>
