@@ -30,9 +30,9 @@ function buildPopup(post, onOpen) {
   metadata.className = 'ohk-map-popup-meta'
   const label = document.createElement('small')
   const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
-  const impLabels = displayLabels
-    .filter((item) => /imp/i.test(item))
-    .map((item) => item.replace(/imp/ig, '').trim())
+    const impLabels = displayLabels
+    .filter((item) => /.imp$/i.test(item))
+    .map((item) => item.replace(/\s*imp$/i, '').trim())
     .filter(Boolean)
   // Prefer tags marked with "imp", removing that marker. Otherwise show only
   // the first tag alphabetically.
@@ -77,13 +77,13 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
 
   useEffect(() => { openRef.current = onOpenPost })
 
-  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, post.searchDescription, post.excerpt, post.rawContent, post.bloggerLocation, (post.labels || []).join(','), post.label, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
+  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, (post.labels || []).join(','), post.isExpired, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
 
   useEffect(() => {
     const map = L.map(elementRef.current).setView(DEFAULT_CENTER, 11)
     maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/liberty',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
     }).addTo(map)
     layerRef.current = L.layerGroup().addTo(map)
     userLayerRef.current = L.layerGroup().addTo(map)
