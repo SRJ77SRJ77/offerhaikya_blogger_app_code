@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, browserPopupRedirectResolver, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
@@ -1221,7 +1221,7 @@ function App() {
     setAuthBusy(true)
     setProfileError('')
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider())
+    await signInWithPopup(auth, new GoogleAuthProvider(), browserPopupRedirectResolver)
     } catch (error) {
       console.error('Offerhaikya Google sign-in failed:', error)
       if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
@@ -2211,13 +2211,13 @@ function App() {
       const count = index + 1
       if (isPhoneAdLayout && count % 6 === 0 && count < items.length) {
         elements.push(
-          <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" role="complementary" aria-label="Advertisement">
+          <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
       } else if (!isPhoneAdLayout && count % 9 === 0 && count < items.length) {
         elements.push(
-          <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" role="complementary" aria-label="Advertisement">
+          <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
@@ -3072,16 +3072,14 @@ function App() {
       ) : null}
 
       {mapOpen ? (
-        <Suspense fallback={<div className="ohk-map-loading" role="status">Loading offers map…</div>}>
-          <OffersMap
-            focusPostId={mapFocusId}
-            posts={mapPosts}
-            userLocation={userLocation}
-            onRequestLocation={requestLocation}
-            onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
-            onClose={() => setMapOpen(false)}
-          />
-        </Suspense>
+        <OffersMap
+          focusPostId={mapFocusId}
+          posts={mapPosts}
+          userLocation={userLocation}
+          onRequestLocation={requestLocation}
+          onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
+          onClose={() => setMapOpen(false)}
+        />
       ) : null}
 
       {imageViewerOpen && selectedDetailMedia?.type === 'image' ? (
