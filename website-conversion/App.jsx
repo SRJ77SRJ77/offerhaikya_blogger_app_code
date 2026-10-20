@@ -1534,7 +1534,7 @@ function App() {
   }, [detail])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setPreloaderVisible(false), 2000)
+    const timer = window.setTimeout(() => setPreloaderVisible(false), 700)
     return () => window.clearTimeout(timer)
   }, [])
 
