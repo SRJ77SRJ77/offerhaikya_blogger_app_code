@@ -7,7 +7,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-const OffersMap = lazy(() => import('./OffersMap.tsx'))
+const OffersMap = lazy(() => import('./OffersMap'))
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const NEARBY_RADIUS_KM = 300
