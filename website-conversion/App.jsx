@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
@@ -7,7 +7,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-import OffersMap from './OffersMap.jsx'
+const OffersMap = lazy(() => import('./OffersMap.jsx'))
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const NEARBY_RADIUS_KM = 300
@@ -2211,13 +2211,13 @@ function App() {
       const count = index + 1
       if (isPhoneAdLayout && count % 6 === 0 && count < items.length) {
         elements.push(
-          <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" aria-label="Advertisement">
+          <div key={prefix + '-mobile-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-mobile" role="complementary" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
       } else if (!isPhoneAdLayout && count % 9 === 0 && count < items.length) {
         elements.push(
-          <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" aria-label="Advertisement">
+          <div key={prefix + '-desktop-ad-' + count} className="ohk-ad-feed-wrap ohk-ad-feed-desktop" role="complementary" aria-label="Advertisement">
             <AdSenseUnit slot="7436850854" kind="in-feed" />
           </div>
         )
@@ -3072,14 +3072,16 @@ function App() {
       ) : null}
 
       {mapOpen ? (
-        <OffersMap
-          focusPostId={mapFocusId}
-          posts={mapPosts}
-          userLocation={userLocation}
-          onRequestLocation={requestLocation}
-          onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
-          onClose={() => setMapOpen(false)}
-        />
+        <Suspense fallback={<div className="ohk-map-loading" role="status">Loading offers map…</div>}>
+          <OffersMap
+            focusPostId={mapFocusId}
+            posts={mapPosts}
+            userLocation={userLocation}
+            onRequestLocation={requestLocation}
+            onOpenPost={(post) => { setMapOpen(false); openPost(post) }}
+            onClose={() => setMapOpen(false)}
+          />
+        </Suspense>
       ) : null}
 
       {imageViewerOpen && selectedDetailMedia?.type === 'image' ? (
