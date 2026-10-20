@@ -825,7 +825,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
       >
         {post.image ? (
           <img
-            src={sizedImage(post.image, 400)}
+            src={sizedImage(post.image, 360)}
             alt={post.title || 'Offer image'}
             className="ohk-card-image"
             loading={imagePriority ? 'eager' : 'lazy'}
