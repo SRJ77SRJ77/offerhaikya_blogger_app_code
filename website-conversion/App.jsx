@@ -7,7 +7,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-const OffersMap = lazy(() => import('./OffersMap.tsx'))
+const OffersMap = lazy(() => import('./OffersMap.jsx'))
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
 const NEARBY_RADIUS_KM = 300
@@ -2477,20 +2477,14 @@ function App() {
               <section className="ohk-detail-description-section" aria-label="Offer details">
                 <div className="ohk-detail-description-content">
                   <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
-                  {detail.searchDescription || detail.excerpt ? (
-                    <p className="ohk-detail-short-description">
-                      {stripHtml(detail.searchDescription || detail.excerpt)}
-                    </p>
-                  ) : null}
-                  <h2 className="ohk-detail-information-heading">Full Offer Information</h2>
                   <div
                     className="ohk-detail-html"
-                    dangerouslySetInnerHTML={{
-                      __html: cleanBloggerDetailHtml(
-                        detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
-                        detail.title
-                      )
-                    }}
+                dangerouslySetInnerHTML={{
+                  __html: cleanBloggerDetailHtml(
+                    detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
+                    detail.title
+                  )
+                  }}
                   />
                 </div>
               </section>
