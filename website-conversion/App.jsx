@@ -1694,13 +1694,13 @@ function App() {
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
 
-    return posts.filter((post) => {
+    return sortPostsExpiredLast(posts.filter((post) => {
       // Hide any post tagged "Lock" from public listings and search results.
       if ((post.labels || []).some((label) => String(label).trim().toLowerCase() === 'lock')) return false
       const labelMatch = activeLabel === 'All' || post.labels.some((label) => normalizeLabelForMatch(label) === normalizeLabelForMatch(activeLabel))
       const textMatch = !text || `${post.title} ${searchableLabels(post.labels)} ${post.excerpt} ${post.bloggerLocation || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase().includes(text)
       return labelMatch && textMatch
-    })
+    }))
   }, [posts, query, activeLabel])
 
   const displayedPosts = filteredPosts.slice(0, visible)
@@ -1708,16 +1708,17 @@ function App() {
   const detailSuggestedPosts = useMemo(() => {
     if (!detail) return []
     const text = detailTagFilter.trim().toLowerCase()
-    const matches = posts.filter((post) => {
+    const matches = sortPostsExpiredLast(posts.filter((post) => {
       if (isLockedPost(post) || post.id === detail.id) return false
       if (!text) return true
       const searchable = `${post.title} ${searchableLabels(post.labels)} ${post.excerpt || ''} ${post.rawContent ? stripHtml(post.rawContent) : ''}`.toLowerCase()
       return searchable.includes(text)
-    })
-    return isLockedPost(detail) ? matches.slice(0, 8) : [detail, ...matches].slice(0, 8)
+    }))
+    const ordered = isLockedPost(detail) ? matches : sortPostsExpiredLast([detail, ...matches])
+    return ordered.slice(0, 8)
   }, [detail, detailTagFilter, posts])
 
-  const detailLatestPosts = useMemo(() => posts.filter((post) => !isLockedPost(post)).slice(0, 8), [posts])
+  const detailLatestPosts = useMemo(() => sortPostsExpiredLast(posts.filter((post) => !isLockedPost(post))).slice(0, 8), [posts])
 
   const searchSuggestions = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -1735,9 +1736,9 @@ function App() {
     }
     return posts
       .filter((post) => !isLockedPost(post))
-      .map((post, index) => ({ post, index, rank: score(post) }))
+      .map((post, index) => ({ post, index, rank: score(post), expired: getExpiryLabel(post) === 'Expired' }))
       .filter((item) => item.rank >= 0)
-      .sort((a, b) => a.rank - b.rank || a.index - b.index)
+      .sort((a, b) => Number(a.expired) - Number(b.expired) || a.rank - b.rank || a.index - b.index)
       .map((item) => item.post)
   }, [posts, query])
 
@@ -1999,7 +2000,11 @@ function App() {
         return distance <= NEARBY_RADIUS_KM ? { ...post, nearbyDistanceKm: distance } : null
       })
       .filter(Boolean)
-      .sort((a, b) => a.nearbyDistanceKm - b.nearbyDistanceKm)
+      .sort((a, b) => {
+        const aExpired = getExpiryLabel(a) === 'Expired' ? 1 : 0
+        const bExpired = getExpiryLabel(b) === 'Expired' ? 1 : 0
+        return aExpired - bExpired || a.nearbyDistanceKm - b.nearbyDistanceKm
+      })
   }, [posts, userLocation])
 
     const mapPosts = useMemo(() => {
