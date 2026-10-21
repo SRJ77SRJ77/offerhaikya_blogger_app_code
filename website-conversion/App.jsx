@@ -612,43 +612,73 @@ function getOfferPercent(post) {
   return null
 }
 
-function getExpiryLabel(post) {
-  const labels = (post.labels || []).map((label) => label.trim().toLowerCase())
-  // An explicit Blogger "Expired" label always shows the Expired badge.
-  if (labels.includes('expired')) return 'Expired'
+function getExpiryTimestamp(post) {
+  const labels = Array.isArray(post?.labels) ? post.labels : []
+  // An explicit Blogger "Expired" label always marks the offer as expired.
+  if (labels.some((label) => /^expired$/i.test(String(label).trim()))) return 0
 
-  // E<number> means days (E1 = 24 hours); EY<number> means years (EY1 = 365 days, EY2 = 730 days).
-  const expiryTag = (post.labels || []).find((label) => /^(?:E\d+|EY\d+)$/i.test(label.trim()))
-  // Use Blogger's last-updated timestamp so editing a listing starts its expiry window again.
+  // New fixed expiry format: E_DD_MM_YYYY_HH_MM_AM/PM (India Standard Time).
+  const fixedExpiryTag = labels.map((label) => String(label).trim()).find((label) =>
+    /^E_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_(?:AM|PM)$/i.test(label)
+  )
+  if (fixedExpiryTag) {
+    const match = fixedExpiryTag.match(/^E_(\d{2})_(\d{2})_(\d{4})_(\d{2})_(\d{2})_(AM|PM)$/i)
+    if (!match) return null
+    const [, dayText, monthText, yearText, hourText, minuteText, periodText] = match
+    const day = Number(dayText)
+    const month = Number(monthText)
+    const year = Number(yearText)
+    let hour = Number(hourText)
+    const minute = Number(minuteText)
+    if (hour < 1 || hour > 12 || minute > 59 || day < 1 || day > 31 || month < 1 || month > 12) return null
+    if (periodText.toUpperCase() === 'AM') hour = hour === 12 ? 0 : hour
+    else hour = hour === 12 ? 12 : hour + 12
+    // Convert the supplied IST wall-clock time to a UTC timestamp.
+    const utc = Date.UTC(year, month - 1, day, hour, minute) - 330 * 60 * 1000
+    const check = new Date(utc + 330 * 60 * 1000)
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
+    return utc
+  }
+
+  // Legacy E<number> day tags and EY<number> year tags remain supported.
+  const expiryTag = labels.find((label) => /^(?:E\d+|EY\d+)$/i.test(String(label).trim()))
   const expiryBase = post.updatedAt || post.publishedAt
-  if (!expiryTag || !expiryBase) return ''
-
-  const tag = expiryTag.trim().toUpperCase()
+  if (!expiryTag || !expiryBase) return null
+  const tag = String(expiryTag).trim().toUpperCase()
   const isYearTag = /^EY\d+$/.test(tag)
   const duration = Number(tag.slice(isYearTag ? 2 : 1))
-  if (!Number.isFinite(duration) || duration <= 0) return ''
-
+  if (!Number.isFinite(duration) || duration <= 0) return null
   const durationDays = isYearTag ? duration * 365 : duration
-  const expiryTime = new Date(expiryBase).getTime() + durationDays * 24 * 60 * 60 * 1000
-  const remainingMs = expiryTime - Date.now()
+  return new Date(expiryBase).getTime() + durationDays * 24 * 60 * 60 * 1000
+}
 
-  if (remainingMs <= 0) return 'Expired'
-
-  const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
+function getExpiryLabel(post) {
+  const labels = Array.isArray(post?.labels) ? post.labels : []
+  if (labels.some((label) => /^expired$/i.test(String(label).trim()))) return 'Expired'
+  const expiryTime = getExpiryTimestamp(post)
+  if (expiryTime === 0 || (expiryTime !== null && expiryTime <= Date.now())) return 'Expired'
+  if (expiryTime === null || !Number.isFinite(expiryTime)) return ''
   const expiryDate = new Date(expiryTime)
-  const expiryYear = expiryDate.getFullYear()
   const expiryDateTimeLabel = expiryDate.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
     hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
-  }).replace(/\\b(am|pm)\\b/i, (period) => period.toUpperCase())
-
-  // Always show the exact expiry date and time.
+  }).replace(/\b(am|pm)\b/i, (period) => period.toUpperCase())
   return `Expires on ${expiryDateTimeLabel}`
 }
 
+function sortPostsExpiredLast(posts) {
+  return [...posts].sort((a, b) => {
+    const aExpired = getExpiryLabel(a) === 'Expired' ? 1 : 0
+    const bExpired = getExpiryLabel(b) === 'Expired' ? 1 : 0
+    if (aExpired !== bExpired) return aExpired - bExpired
+    return (Date.parse(b.publishedAt || '') || 0) - (Date.parse(a.publishedAt || '') || 0)
+  })
+}
 
 function buildDetailFacts(post, distance) {
   const facts = []
@@ -1446,7 +1476,7 @@ function App() {
     try {
       const cached = JSON.parse(localStorage.getItem('offerhaikya_posts_cache') || '[]')
       if (Array.isArray(cached) && cached.length) {
-        setPosts(cached.filter((post) => !isLockedPost(post)))
+        setPosts(sortPostsExpiredLast(cached.filter((post) => !isLockedPost(post))))
         setLoading(false)
       }
     } catch {}
@@ -1513,7 +1543,7 @@ function App() {
           nextVersions[post.id] = String(post.updatedAt || post.publishedAt || '')
         })
 
-        setPosts(parsed)
+        setPosts(sortPostsExpiredLast(parsed))
         setNotifications(mergedNotifications)
         try { localStorage.setItem('offerhaikya_known_post_ids', JSON.stringify(parsed.map((post) => post.id))) } catch {}
         try { localStorage.setItem('offerhaikya_known_post_versions', JSON.stringify(nextVersions)) } catch {}
