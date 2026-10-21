@@ -648,6 +648,24 @@ function getExpiryLabel(post) {
   // Always show the exact expiry date and time.
   return `Expires on ${expiryDateTimeLabel}`
 }
+
+
+function buildDetailFacts(post, distance) {
+  const facts = []
+  const offline = isOfflinePost(post)
+  facts.push({ label: 'Offer type', value: offline ? 'In-store offer' : 'Online offer' })
+  const store = getPostCardLabel(post)
+  if (store) facts.push({ label: offline ? 'Area' : 'Store', value: store })
+  const percent = getOfferPercent(post)
+  if (percent !== null) facts.push({ label: 'Discount', value: 'Upto ' + percent + '% off', strong: true })
+  const expiry = getExpiryLabel(post)
+  if (expiry) facts.push({ label: 'Valid till', value: expiry === 'Expired' ? 'Expired' : expiry.replace(/^Expires on\s*/i, '') })
+  if ((post.labels || []).some((label) => /^verified$/i.test(String(label).trim()))) facts.push({ label: 'Status', value: 'Verified' })
+  if (Number.isFinite(distance)) facts.push({ label: 'Distance', value: formatDistance(distance) + ' away' })
+  return facts
+}
+
+
 function Icon({ name, size = 22 }) {
   const paths = {
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
@@ -2196,6 +2214,9 @@ function App() {
     return normalized !== 'verified' && normalized !== 'expired' && !/^e\d+$/i.test(normalized)
   })
 
+
+  const detailFacts = detail ? buildDetailFacts(detail, detailDistanceKm) : []
+
   const renderFeedItems = (items, cardProps, prefix) => {
     const elements = []
     items.forEach((post, index) => {
@@ -2474,60 +2495,81 @@ function App() {
                 </div>
               ) : null}
 
-              <section className="ohk-detail-description-section" aria-label="Offer details">
-                <div className="ohk-detail-description-content">
-                  <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
-                  <div
-                    className="ohk-detail-html"
-                dangerouslySetInnerHTML={{
-                  __html: cleanBloggerDetailHtml(
-                    detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
-                    detail.title
-                  )
-                  }}
-                  />
-                </div>
+                            <section className="ohk-dp-summary" aria-label="Offer summary">
+                <h1 className="ohk-detail-title">{detail.title || 'Offer'}</h1>
+                {(detail.searchDescription || detail.excerpt) ? (
+                  <p className="ohk-dp-short">{detail.searchDescription || detail.excerpt}</p>
+                ) : null}
               </section>
 
-              {detailMapLinks.length > 0 ? (
-              <section className="ohk-detail-location" aria-label="Offer location">
-                <h2>Map</h2>
-                {detail.coordinates ? (
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Icon name="location" size={16} /> Click to View on Google Maps
-                  </a>
-                ) : null}
-                {(detailMapLinks.length || detail.coordinates || detailAddress || detail.bloggerLocation) ? (
-                  <div className="ohk-detail-maps">
-                    {(detailMapLinks.length ? detailMapLinks : [{ url: '', label: 'Offer location' }]).map((mapLink, index) => (
-                      <div className="ohk-detail-map-item" key={mapLink.url || 'offer-location-map'}>
-                        <iframe
-                          title={mapLink.label || `Offer map ${index + 1}`}
-                          src={(() => {
-                            const coordinates = (mapLink.url && resolvedMapCoordinates[mapLink.url]) || detail.coordinates || (mapLink.url ? extractCoordinates(mapLink.url) : null)
-                            // Prefer Blogger coordinates, then the address. Never search using a short URL as text.
-                            const query = coordinates
-                              ? `${coordinates.latitude},${coordinates.longitude}`
-                              : detailAddress || detail.bloggerLocation || mapLink.url
-                            return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
-                          })()}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          allowFullScreen
-                        />
+              <div className="ohk-dp-grid">
+                <div className="ohk-dp-main">
+                  <section className="ohk-dp-card" aria-labelledby="ohk-dp-info-title">
+                    <h2 id="ohk-dp-info-title" className="ohk-dp-heading">Full information</h2>
+                    <div
+                      className="ohk-detail-html"
+                      dangerouslySetInnerHTML={{
+                        __html: cleanBloggerDetailHtml(
+                          detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>',
+                          detail.title
+                        )
+                      }}
+                    />
+                  </section>
+                </div>
+
+                <aside className="ohk-dp-side">
+                  {detailFacts.length ? (
+                    <section className="ohk-dp-card" aria-labelledby="ohk-dp-facts-title">
+                      <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer details</h2>
+                      <div className="ohk-dp-boxes">
+                        {detailFacts.map((fact) => (
+                          <div className={'ohk-dp-box' + (fact.strong ? ' ohk-dp-box-strong' : '')} key={fact.label}>
+                            <span>{fact.label}</span>
+                            <strong>{fact.value}</strong>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : null}
-                {!detailAddress && !detail.bloggerLocation && !detail.coordinates && !detailMapLinks.length ? (
-                  <p className="ohk-detail-location-hint">Add “Address - Belgaum” as plain text and add a Google Maps link after “Location” in the Blogger post to show the address and map here.</p>
-                ) : null}
-              </section>
-              ) : null}
+                    </section>
+                  ) : null}
+
+                  {detailMapLinks.length > 0 ? (
+                    <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
+                      <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
+                      <div className="ohk-detail-maps">
+                        {detailMapLinks.map((mapLink, index) => (
+                          <div className="ohk-detail-map-item" key={mapLink.url || 'offer-map-' + index}>
+                            <iframe
+                              title={mapLink.label || 'Offer map ' + (index + 1)}
+                              src={(() => {
+                                const coordinates = (mapLink.url && resolvedMapCoordinates[mapLink.url]) || detail.coordinates || (mapLink.url ? extractCoordinates(mapLink.url) : null)
+                                const query = coordinates
+                                  ? `${coordinates.latitude},${coordinates.longitude}`
+                                  : detailAddress || detail.bloggerLocation || mapLink.url
+                                return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+                              })()}
+                              loading="lazy"
+                              referrerPolicy="no-referrer-when-downgrade"
+                              allowFullScreen
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {detail.coordinates ? (
+                        <a
+                          className="ohk-dp-link"
+                          href={`https://www.google.com/maps/search/?api=1&query=${detail.coordinates.latitude},${detail.coordinates.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open in Google Maps
+                        </a>
+                      ) : null}
+                    </section>
+                  ) : null}
+                </aside>
+              </div>
+                
             </div>
 
             <div className="ohk-detail-ad" aria-label="Advertisement">
