@@ -429,7 +429,7 @@ function parseFeed(data) {
       publishedAt: entry?.published?.$t || '',
       updatedAt: entry?.updated?.$t || entry?.published?.$t || '',
       labels,
-      label: labels[0] || 'Offer',
+      label: labels.find((label) => !isExpiryControlLabel(label) && !/^(?:verified|expired)$/i.test(String(label || '').trim())) || 'Offer',
       image,
       excerpt: stripHtml(rawContent).slice(0, 180),
       rawContent,
