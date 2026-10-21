@@ -612,6 +612,10 @@ function getOfferPercent(post) {
   return null
 }
 
+function isExpiryControlLabel(label) {
+  return /^(?:E_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_(?:AM|PM)|E\d+|EY\d+)$/i.test(String(label || '').trim())
+}
+
 function getExpiryTimestamp(post) {
   const labels = Array.isArray(post?.labels) ? post.labels : []
   // An explicit Blogger "Expired" label always marks the offer as expired.
@@ -637,7 +641,9 @@ function getExpiryTimestamp(post) {
     const utc = Date.UTC(year, month - 1, day, hour, minute) - 330 * 60 * 1000
     const check = new Date(utc + 330 * 60 * 1000)
     if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
-    return utc
+    // Keep the Blogger tag unchanged for display, but expire internally 15 seconds early
+    // to account for the site's 15-second feed sync interval.
+    return utc - 15 * 1000
   }
 
   // Legacy E<number> day tags and EY<number> year tags remain supported.
@@ -658,7 +664,9 @@ function getExpiryLabel(post) {
   const expiryTime = getExpiryTimestamp(post)
   if (expiryTime === 0 || (expiryTime !== null && expiryTime <= Date.now())) return 'Expired'
   if (expiryTime === null || !Number.isFinite(expiryTime)) return ''
-  const expiryDate = new Date(expiryTime)
+  // Add the internal buffer back for display so visitors see the exact Blogger time.
+  const hasFixedExpiryTag = labels.some((label) => /^E_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_(?:AM|PM)$/i.test(String(label).trim()))
+  const expiryDate = new Date(expiryTime + (hasFixedExpiryTag ? 15 * 1000 : 0))
   const expiryDateTimeLabel = expiryDate.toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     day: 'numeric',
@@ -676,7 +684,9 @@ function sortPostsExpiredLast(posts) {
     const aExpired = getExpiryLabel(a) === 'Expired' ? 1 : 0
     const bExpired = getExpiryLabel(b) === 'Expired' ? 1 : 0
     if (aExpired !== bExpired) return aExpired - bExpired
-    return (Date.parse(b.publishedAt || '') || 0) - (Date.parse(a.publishedAt || '') || 0)
+    const aOrderTime = Date.parse(a.updatedAt || a.publishedAt || '') || 0
+    const bOrderTime = Date.parse(b.updatedAt || b.publishedAt || '') || 0
+    return bOrderTime - aOrderTime
   })
 }
 
@@ -813,7 +823,9 @@ function AdSenseUnit({ slot, kind = 'in-feed' }) {
 }
 
 function getPostCardLabel(post) {
-  const labels = Array.isArray(post?.labels) ? post.labels : []
+  const labels = (Array.isArray(post?.labels) ? post.labels : []).filter((label) =>
+    !isExpiryControlLabel(label) && !/^(?:verified|expired)$/i.test(String(label || '').trim())
+  )
   const importantLabel = labels.find((label) => /imp$/i.test(String(label || '').trim()))
   const selectedLabel = importantLabel ?? labels[0] ?? ''
   return String(selectedLabel).trim().replace(/imp$/i, '').trim()
@@ -1261,7 +1273,7 @@ function App() {
     const labels = posts.flatMap((post) => Array.isArray(post.labels) ? post.labels : [])
     return [...new Set(labels
       .map((label) => String(label || '').replace(/imp$/i, '').trim())
-      .filter((label) => label && !/^(?:E\d+|EY\d+)$/i.test(label)))]
+      .filter((label) => label && !isExpiryControlLabel(label) && !/^(?:verified|expired)$/i.test(label)))]
       .sort((a, b) => a.localeCompare(b))
   }, [posts])
 
@@ -1508,16 +1520,18 @@ function App() {
         let newAdditions = []
         let updatedAdditions = []
 
+        const activeForNotifications = parsed.filter((post) => getExpiryLabel(post) !== 'Expired')
+
         if (!Array.isArray(previousKnown)) {
-          // First visit: seed the bell with the 10 newest posts, not hundreds of historical edits.
-          newAdditions = parsed.slice(0, 10).map((post) => ({ ...post, notificationType: 'new' }))
+          // First visit: seed the bell with the 10 newest active posts only.
+          newAdditions = sortPostsExpiredLast(activeForNotifications).slice(0, 10).map((post) => ({ ...post, notificationType: 'new' }))
         } else {
-          newAdditions = parsed
+          newAdditions = activeForNotifications
             .filter((post) => !knownIds.has(post.id) && !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
             .map((post) => ({ ...post, notificationType: 'new' }))
 
           if (!firstVersionBaseline) {
-            updatedAdditions = parsed
+            updatedAdditions = activeForNotifications
               .filter((post) => {
                 const priorVersion = knownVersions[post.id]
                 return Boolean(priorVersion) &&
@@ -1535,6 +1549,7 @@ function App() {
         const refreshedIds = new Set(updatedAdditions.map((post) => String(post.id)))
         const retained = existingNotifications
           .filter((post) => !isHiddenPost(post))
+          .filter((post) => getExpiryLabel(post) !== 'Expired')
           .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
           .filter((post) => !refreshedIds.has(String(post.id)))
         const mergedNotifications = limitNotificationSections([...newAdditions, ...updatedAdditions, ...retained])
@@ -2241,7 +2256,7 @@ function App() {
   const detailDistanceKm = detail?.nearbyDistanceKm ?? (userLocation && detail?.coordinates ? distanceKm(userLocation, detail.coordinates) : null)
   const detailPublicTags = (detail?.labels || []).filter((label) => {
     const normalized = String(label).trim().toLowerCase()
-    return normalized !== 'verified' && normalized !== 'expired' && !/^e\d+$/i.test(normalized)
+    return normalized !== 'verified' && normalized !== 'expired' && !isExpiryControlLabel(normalized)
   })
 
 
