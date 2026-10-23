@@ -73,11 +73,90 @@ function stripHtml(value = '') {
     .trim()
 }
 
+
+function parseOhkDetailBlocks(html = '') {
+  const safeUrl = (value = '') => {
+    const raw = String(value || '').trim()
+    if (!raw) return ''
+    try {
+      const url = new URL(raw, window.location.origin)
+      return ['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol) ? url.href : ''
+    } catch { return '' }
+  }
+  const block = (name) => {
+    const match = String(html).match(new RegExp('OHK_' + name + '_START([\\s\\S]*?)OHK_' + name + '_END', 'i'))
+    return match ? match[1] : ''
+  }
+  const textOf = (value) => String(value || '').replace(/<br\\s*\\/?\s*>/gi, '\\n').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").trim()
+  const linesOf = (value) => {
+    const withImages = String(value || '').replace(/<img\\b[^>]*src=["']([^"']+)["'][^>]*>/gi, (_, url) => '\\n@@IMG@@' + url + '\\n').replace(/<\\/(?:p|div|li|h[1-6]|tr)>/gi, '\\n')
+    return withImages.split(/\\n|<br\\s*\\/?\s*>/i).map(textOf).filter(Boolean)
+  }
+  const products = []
+  let current = null
+  let imageTarget = null
+  const productKey = /^p(\\d*)(img|name|info|link|discount|dis|price|mrp)\\b\\s*[:：–-]?\\s*(.*)$/i
+  for (const line of linesOf(block('PRODUCTS'))) {
+    if (line.startsWith('@@IMG@@')) {
+      const image = safeUrl(line.slice(7))
+      if (image && imageTarget && !imageTarget.image) imageTarget.image = image
+      else if (image && current && !current.image) current.image = image
+      imageTarget = null
+      continue
+    }
+    const match = line.match(productKey)
+    if (!match) continue
+    const [, number, rawKey, rawValue] = match
+    const key = rawKey.toLowerCase()
+    const value = rawValue.trim()
+    let product
+    if (number) {
+      product = products.find((item) => item.number === number)
+      if (!product) { product = { number, image: '', name: '', info: '', link: '', discount: '', price: '', mrp: '' }; products.push(product) }
+      current = product
+    } else {
+      if (!current || key === 'img' || (key === 'name' && current.name)) {
+        current = { number: '', image: '', name: '', info: '', link: '', discount: '', price: '', mrp: '' }
+        products.push(current)
+      }
+      product = current
+    }
+    if (key === 'img') {
+      imageTarget = product
+      const image = safeUrl(value)
+      if (image) { product.image = image; imageTarget = null }
+    } else if (key === 'name') product.name = value
+    else if (key === 'info') product.info = value
+    else if (key === 'link') product.link = safeUrl(value)
+    else if (key === 'price') product.price = value
+    else if (key === 'mrp') product.mrp = value
+    else if (key === 'discount' || key === 'dis') product.discount = /^\\d+(?:\\.\\d+)?$/.test(value) ? value + '% Off' : value
+  }
+  const contacts = linesOf(block('CONTACT')).map((line) => {
+    const match = line.match(/^(email|phone|whatsapp|instagram|facebook|youtube|x|twitter|linkedin|website|web)\\s*[:：–-]?\\s*(.*)$/i)
+    if (!match) return null
+    const type = match[1].toLowerCase()
+    const value = match[2].trim()
+    if (!value) return null
+    let link = value
+    if (type === 'email') link = /^mailto:/i.test(value) ? value : 'mailto:' + value
+    else if (type === 'phone') link = /^tel:/i.test(value) ? value : 'tel:' + value.replace(/[^+\\d]/g, '')
+    else if (type === 'whatsapp') link = /^https?:/i.test(value) ? value : 'https://wa.me/' + value.replace(/\\D/g, '')
+    else if (!/^https?:/i.test(value)) link = 'https://' + value.replace(/^@/, '')
+    link = safeUrl(link)
+    if (!link) return null
+    const label = value.replace(/^(?:mailto:|tel:)/i, '')
+    const icon = ({ email: '✉', phone: '☎', whatsapp: '◉', instagram: '◎', facebook: 'f', youtube: '▶', x: '𝕏', twitter: '𝕏', linkedin: 'in', website: '↗', web: '↗' })[type] || '↗'
+    return { type, label, link, icon }
+  }).filter(Boolean)
+  return { products: products.filter((item) => item.name || item.image).slice(0, 5), contacts }
+}
+
 function sizedImage(url = '', size = 800) {
   if (!url) return ''
   const target = '/s' + size + '/'
   return url
-    .replace(/\/s\d+(-c)?\//i, target)
+    .replace(/\/s\d+(-[a-z]+)*\//i, target)
     .replace(/=w\d+(-h\d+)?(-p)?/i, '=s' + size)
     .replace(/\/w\d+(-h\d+)?\//i, target)
 }
@@ -2226,6 +2305,8 @@ function App() {
   const detailImages = detail ? extractPostImages(detail.image, detail.rawContent || '') : []
   const detailVideos = detail ? extractPostVideos(detail.rawContent || '') : []
   const detailMapLinks = detail ? extractMapLinks(detail.rawContent || '') : []
+  const detailOhkBlocks = useMemo(() => parseOhkDetailBlocks(detail?.rawContent || ''), [detail?.rawContent])
+
   useEffect(() => {
     let cancelled = false
     const shortLinks = detailMapLinks.filter((link) => /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(link.url))
@@ -2528,6 +2609,30 @@ function App() {
                 </div>
               ) : null}
 
+              {detailOhkBlocks.products.length > 0 ? (
+                <section className="ohk-dp-card ohk-dp-products-card" aria-labelledby="ohk-dp-products-title">
+                  <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Products in this offer</h2>
+                  <div className="ohk-dp-slider-wrap">
+                    <button type="button" className="ohk-dp-slider-arrow ohk-dp-slider-prev" aria-label="Previous products" onClick={(event) => { const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider'); if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' }) }}>‹</button>
+                    <div className="ohk-dp-slider">
+                      {detailOhkBlocks.products.map((product, index) => (
+                        <article className="ohk-dp-product" key={product.name + '-' + index}>
+                          {product.image ? <img src={sizedImage(product.image, 400)} alt={product.name || detail.title || 'Offer product'} loading="lazy" decoding="async" /> : <div className="ohk-dp-product-noimg">Offer</div>}
+                          <div className="ohk-dp-product-body">
+                            {product.discount ? <span className="ohk-dp-product-badge">{product.discount}</span> : null}
+                            {product.name ? <h3>{product.name}</h3> : null}
+                            {product.info ? <p>{product.info}</p> : null}
+                            <div className="ohk-dp-product-price">{product.price ? <strong>{product.price}</strong> : null}{product.mrp ? <s>{product.mrp}</s> : null}</div>
+                            {product.link ? <a className="ohk-dp-product-buy" href={product.link} target="_blank" rel="sponsored nofollow noopener noreferrer">Buy now</a> : null}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                    <button type="button" className="ohk-dp-slider-arrow ohk-dp-slider-next" aria-label="Next products" onClick={(event) => { const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider'); if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' }) }}>›</button>
+                  </div>
+                </section>
+              ) : null}
+
               {detailPublicTags.length > 0 ? (
                 <div className="ohk-detail-tags" aria-label="Tags for this offer">
                   {detailPublicTags.map((tag) => (
@@ -2578,6 +2683,19 @@ function App() {
                             <span>{fact.label}</span>
                             <strong>{fact.value}</strong>
                           </div>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {detailOhkBlocks.contacts.length > 0 ? (
+                    <section className="ohk-dp-card" aria-labelledby="ohk-dp-contact-title">
+                      <h2 id="ohk-dp-contact-title" className="ohk-dp-heading">Contact details</h2>
+                      <div className="ohk-dp-contacts">
+                        {detailOhkBlocks.contacts.map((contact, index) => (
+                          <a className="ohk-dp-contact" key={contact.type + '-' + index} href={contact.link} target={contact.link.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer">
+                            <span className="ohk-dp-contact-icon" aria-hidden="true">{contact.icon}</span><span>{contact.label}</span>
+                          </a>
                         ))}
                       </div>
                     </section>
