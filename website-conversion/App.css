@@ -2834,3 +2834,35 @@ a.ohk-card-click,
 .ohk-dark .ohk-dp-box-strong > strong, .ohk-dark .ohk-dp-link { color: #ff8c5e; }
 .ohk-dark .ohk-dp-link { border-color: #ff8c5e; }
 @media (max-width: 900px) { .ohk-dp-grid { grid-template-columns: 1fr; } }
+
+
+/* Offerhaikya product slider and contact links */
+.ohk-dp-slider-wrap { position: relative; }
+.ohk-dp-slider { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 2px 2px 10px; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.ohk-dp-product { flex: 0 0 calc((100% - 36px) / 4); min-width: 0; scroll-snap-align: start; display: flex; flex-direction: column; background: #fff; border: 1px solid #f1e3dc; border-radius: 14px; overflow: hidden; }
+.ohk-dp-product img, .ohk-dp-product-noimg { display: block; width: 100%; height: 150px; object-fit: cover; background: #f3f4f6; }
+.ohk-dp-product-noimg { display: flex; align-items: center; justify-content: center; color: #77747a; font-weight: 700; }
+.ohk-dp-product-body { display: flex; flex-direction: column; gap: 6px; flex: 1; padding: 10px 12px 12px; }
+.ohk-dp-product-badge { align-self: flex-start; padding: 3px 8px; border-radius: 999px; background: #a83900; color: #fff; font-size: 11px; font-weight: 800; }
+.ohk-dp-product-body h3 { margin: 0; font-size: 14px; line-height: 1.35; color: #271812; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ohk-dp-product-body p { margin: 0; font-size: 12px; line-height: 1.5; color: #5f6368; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ohk-dp-product-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.ohk-dp-product-price strong { font-size: 17px; font-weight: 800; color: #271812; }
+.ohk-dp-product-price s { font-size: 12px; color: #77747a; }
+.ohk-dp-product-buy { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; margin-top: 6px; border-radius: 9px; background: #a83900; color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+.ohk-dp-slider-arrow { position: absolute; top: 65px; z-index: 2; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255,255,255,.95); box-shadow: 0 2px 8px rgba(0,0,0,.25); color: #271812; font-size: 22px; line-height: 1; cursor: pointer; }
+.ohk-dp-slider-prev { left: -8px; }
+.ohk-dp-slider-next { right: -8px; }
+.ohk-dp-contacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.ohk-dp-contact { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: #fff8f6; border: 1px solid #f4dfd5; border-radius: 12px; color: #271812; font-size: 14px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.ohk-dp-contact:hover { border-color: #a83900; }
+.ohk-dp-contact-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: 8px; background: #fbe8df; color: #a83900; font-size: 16px; }
+.ohk-dark .ohk-dp-product { background: #1d1d1d; border-color: #2e2e2e; }
+.ohk-dark .ohk-dp-product-body h3, .ohk-dark .ohk-dp-product-price strong, .ohk-dark .ohk-dp-contact { color: #fff; }
+.ohk-dark .ohk-dp-product-body p, .ohk-dark .ohk-dp-product-price s { color: #b8b8b8; }
+.ohk-dark .ohk-dp-product-badge, .ohk-dark .ohk-dp-product-buy { background: #ff8c5e; color: #271812; }
+.ohk-dark .ohk-dp-contact { background: #1d1d1d; border-color: #2e2e2e; }
+.ohk-dark .ohk-dp-contact-icon { background: #39251d; color: #ff8c5e; }
+@media (hover: none) { .ohk-dp-slider-arrow { display: none; } }
+@media (max-width: 900px) { .ohk-dp-product { flex-basis: calc((100% - 24px) / 3); } }
+@media (max-width: 600px) { .ohk-dp-product { flex-basis: 62%; } .ohk-dp-product img, .ohk-dp-product-noimg { height: 130px; } .ohk-dp-slider-arrow { display: none; } }
