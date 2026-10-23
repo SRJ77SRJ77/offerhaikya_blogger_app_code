@@ -84,18 +84,18 @@ function parseOhkDetailBlocks(html = '') {
     } catch { return '' }
   }
   const block = (name) => {
-    const match = String(html).match(new RegExp('OHK_' + name + '_START([\\s\\S]*?)OHK_' + name + '_END', 'i'))
+    const match = String(html).match(new RegExp('OHK_' + name + '_START([\s\S]*?)OHK_' + name + '_END', 'i'))
     return match ? match[1] : ''
   }
-  const textOf = (value) => String(value || '').replace(/<br\\s*\\/?\s*>/gi, '\\n').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").trim()
+  const textOf = (value) => String(value || '').replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").trim()
   const linesOf = (value) => {
-    const withImages = String(value || '').replace(/<img\\b[^>]*src=["']([^"']+)["'][^>]*>/gi, (_, url) => '\\n@@IMG@@' + url + '\\n').replace(/<\\/(?:p|div|li|h[1-6]|tr)>/gi, '\\n')
-    return withImages.split(/\\n|<br\\s*\\/?\s*>/i).map(textOf).filter(Boolean)
+    const withImages = String(value || '').replace(/<img\b[^>]*src=["']([^"']+)["'][^>]*>/gi, (_, url) => '\n@@IMG@@' + url + '\n').replace(/<\/(?:p|div|li|h[1-6]|tr)>/gi, '\n')
+    return withImages.split(/\n|<br\s*\/?\s*>/i).map(textOf).filter(Boolean)
   }
   const products = []
   let current = null
   let imageTarget = null
-  const productKey = /^p(\\d*)(img|name|info|link|discount|dis|price|mrp)\\b\\s*[:：–-]?\\s*(.*)$/i
+  const productKey = /^p(\d*)(img|name|info|link|discount|dis|price|mrp)\b\s*[:：–-]?\s*(.*)$/i
   for (const line of linesOf(block('PRODUCTS'))) {
     if (line.startsWith('@@IMG@@')) {
       const image = safeUrl(line.slice(7))
@@ -130,18 +130,18 @@ function parseOhkDetailBlocks(html = '') {
     else if (key === 'link') product.link = safeUrl(value)
     else if (key === 'price') product.price = value
     else if (key === 'mrp') product.mrp = value
-    else if (key === 'discount' || key === 'dis') product.discount = /^\\d+(?:\\.\\d+)?$/.test(value) ? value + '% Off' : value
+    else if (key === 'discount' || key === 'dis') product.discount = /^\d+(?:\.\d+)?$/.test(value) ? value + '% Off' : value
   }
   const contacts = linesOf(block('CONTACT')).map((line) => {
-    const match = line.match(/^(email|phone|whatsapp|instagram|facebook|youtube|x|twitter|linkedin|website|web)\\s*[:：–-]?\\s*(.*)$/i)
+    const match = line.match(/^(email|phone|whatsapp|instagram|facebook|youtube|x|twitter|linkedin|website|web)\s*[:：–-]?\s*(.*)$/i)
     if (!match) return null
     const type = match[1].toLowerCase()
     const value = match[2].trim()
     if (!value) return null
     let link = value
     if (type === 'email') link = /^mailto:/i.test(value) ? value : 'mailto:' + value
-    else if (type === 'phone') link = /^tel:/i.test(value) ? value : 'tel:' + value.replace(/[^+\\d]/g, '')
-    else if (type === 'whatsapp') link = /^https?:/i.test(value) ? value : 'https://wa.me/' + value.replace(/\\D/g, '')
+    else if (type === 'phone') link = /^tel:/i.test(value) ? value : 'tel:' + value.replace(/[^+\d]/g, '')
+    else if (type === 'whatsapp') link = /^https?:/i.test(value) ? value : 'https://wa.me/' + value.replace(/\D/g, '')
     else if (!/^https?:/i.test(value)) link = 'https://' + value.replace(/^@/, '')
     link = safeUrl(link)
     if (!link) return null
