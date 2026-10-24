@@ -2842,10 +2842,10 @@ a.ohk-card-click,
 .ohk-dp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
 .ohk-dp-tile { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: #fff5ef; border: 1px solid #ffe0cf; border-radius: 12px; }
 .ohk-dp-tile > strong { font-size: 14px; line-height: 1.35; color: #271812; overflow-wrap: anywhere; }
-.ohk-dp-tile-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #fff0e7; color: #ff5b01; }
+.ohk-dp-tile-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #ff5b01; border-radius: 50%; background: #fff0e7; color: #ff5b01; }
 .ohk-dark .ohk-dp-tile { background: #1d1d1d; border-color: #2e2e2e; }
 .ohk-dark .ohk-dp-tile > strong { color: #ffffff; }
-.ohk-dark .ohk-dp-tile-icon { background: #2a1a12; color: #ff9b69; }
+.ohk-dark .ohk-dp-tile-icon { border-color: #ff9b69; background: #2a1a12; color: #ff9b69; }
 
 .ohk-dp-slider-wrap { position: relative; }
 .ohk-dp-slider { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 2px 2px 10px; scrollbar-width: thin; overscroll-behavior-x: contain; }
