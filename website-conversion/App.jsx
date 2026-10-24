@@ -239,7 +239,8 @@ function ensureCanonical(url) {
 
 function seoTitle(value, isHome = false) {
   const base = String(value || '').replace(/\s+/g, ' ').trim()
-  const suffix = isHome ? ' | Offerhaikya' : ' | Offerhaikya'
+  if (isHome) return base
+  const suffix = ' | Offerhaikya'
   let title = base.toLowerCase().includes('offerhaikya') ? base : base + suffix
   if (title.length < 50 && title.length + ' | Deals & Offers'.length <= 70) {
     title += ' | Deals & Offers'
@@ -262,9 +263,9 @@ function seoDescription(value) {
 }
 
 function setPageMetadata(post = null) {
-  const rawTitle = post?.title || 'Offerhaikya | Online Deals, Local Offers and Shopping Offers'
+  const rawTitle = post?.title || 'Offer Hai Kya – Aaj Ke Local & Online Offers | Offerhaikya'
   const title = seoTitle(rawTitle, !post)
-  const rawDescription = post?.searchDescription || post?.excerpt || 'Discover online deals, local offers, shopping discounts and useful offers on Offerhaikya.'
+  const rawDescription = post?.searchDescription || post?.excerpt || 'Offer Hai Kya – Aaj ke local offers, discounts aur deals. Find nearby local & offline stores plus Amazon, Flipkart and Meesho offers.'
   const description = seoDescription(rawDescription)
   const url = post?.title
     ? window.location.origin + '/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))
@@ -304,6 +305,7 @@ function setPageMetadata(post = null) {
       {
         '@type': 'WebSite',
         name: 'Offerhaikya',
+        alternateName: ['Offer Hai Kya', 'Offer Hai Kya?', 'OHK'],
         url: window.location.origin + '/'
       },
       {
@@ -2284,6 +2286,10 @@ function App() {
     return normalized !== 'verified' && normalized !== 'expired' && !isExpiryControlLabel(normalized)
   })
 
+  const detailProductPages = []
+  if (detailOhk && detailOhk.has) {
+    for (let i = 0; i < detailOhk.products.length; i += 8) detailProductPages.push(detailOhk.products.slice(i, i + 8))
+  }
 
   const detailFacts = detail ? buildDetailFacts(detail, detailDistanceKm) : []
 
@@ -2579,13 +2585,13 @@ function App() {
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
                           <div className="ohk-dp-tile" key={index}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
+                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name={TILE_ICONS[tile.kind] || 'tag'} size={20} /></span>
                             <strong>{tile.text}</strong>
                           </div>
                         ))
                       : detailFacts.map((fact) => (
                           <div className="ohk-dp-tile" key={fact.label}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
+                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="tag" size={20} /></span>
                             <strong>{fact.label}: {fact.value}</strong>
                           </div>
                         ))}
@@ -2608,7 +2614,8 @@ function App() {
                 </section>
               ) : null}
 
-                            {detailOhk.has && detailOhk.products.length > 0 ? (
+
+                {detailOhk.has && detailOhk.products.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
                   <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Products in this offer</h2>
                   <div className="ohk-dp-slider-wrap">
