@@ -2582,7 +2582,6 @@ function App() {
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-facts-title">
                   <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer details</h2>
                   <div className="ohk-dp-tiles">
-                    {/* Previous dynamic icon logic — keep for later:
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
                           <div className="ohk-dp-tile" key={index}>
@@ -2593,20 +2592,6 @@ function App() {
                       : detailFacts.map((fact) => (
                           <div className="ohk-dp-tile" key={fact.label}>
                             <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="tag" size={20} /></span>
-                            <strong>{fact.label}: {fact.value}</strong>
-                          </div>
-                        ))}
-                    */}
-                    {detailOhk.has
-                      ? detailOhk.tiles.map((tile, index) => (
-                          <div className="ohk-dp-tile" key={index}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
-                            <strong>{tile.text}</strong>
-                          </div>
-                        ))
-                      : detailFacts.map((fact) => (
-                          <div className="ohk-dp-tile" key={fact.label}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
                             <strong>{fact.label}: {fact.value}</strong>
                           </div>
                         ))}
