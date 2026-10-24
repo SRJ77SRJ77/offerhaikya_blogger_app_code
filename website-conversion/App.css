@@ -2866,3 +2866,127 @@ a.ohk-card-click,
 @media (hover: none) { .ohk-dp-slider-arrow { display: none; } }
 @media (max-width: 900px) { .ohk-dp-product { flex-basis: calc((100% - 24px) / 3); } }
 @media (max-width: 600px) { .ohk-dp-product { flex-basis: 62%; } .ohk-dp-product img, .ohk-dp-product-noimg { height: 130px; } .ohk-dp-slider-arrow { display: none; } }
+
+
+/* ==========================================================================
+   OFFERHAIKYA BRAND TOKENS — shared by the main site and offer detail pages
+   Centralize the brand orange here so future color changes stay consistent.
+   ========================================================================== */
+:root {
+  --ohk-brand-50: #fff8f4;
+  --ohk-brand-100: #fff1e9;
+  --ohk-brand-200: #ffdcc8;
+  --ohk-brand-300: #ffb58f;
+  --ohk-brand-400: #ff8a45;
+  --ohk-brand-500: #ff5b01;
+  --ohk-brand-600: #e94f00;
+  --ohk-brand-700: #d94800;
+  --ohk-brand-800: #a93600;
+  --ohk-brand-900: #7a2800;
+
+  --ohk-brand: var(--ohk-brand-500);
+  --ohk-brand-hover: var(--ohk-brand-600);
+  --ohk-brand-text: var(--ohk-brand-700);
+  --ohk-brand-soft: var(--ohk-brand-100);
+  --ohk-brand-soft-2: var(--ohk-brand-50);
+  --ohk-brand-border: var(--ohk-brand-200);
+  --ohk-brand-ring: rgba(255, 91, 1, .28);
+  --ohk-on-brand: #fff;
+
+  --ohk-bg: #f3f4f6;
+  --ohk-surface: #fff;
+  --ohk-surface-2: #fafafa;
+  --ohk-text: #202124;
+  --ohk-text-soft: #4f4c52;
+  --ohk-muted: #77747a;
+  --ohk-border: #ececec;
+  --ohk-radius-sm: 8px;
+  --ohk-radius-md: 12px;
+  --ohk-radius-lg: 16px;
+  --ohk-ease: .18s ease;
+  accent-color: var(--ohk-brand);
+}
+
+.ohk-app.ohk-dark,
+.ohk-dark {
+  --ohk-brand-text: var(--ohk-brand-300);
+  --ohk-brand-soft: #2b1b13;
+  --ohk-brand-soft-2: #1f1611;
+  --ohk-brand-border: #5a3320;
+  --ohk-brand-ring: rgba(255, 138, 69, .35);
+  --ohk-bg: #000;
+  --ohk-surface: #171717;
+  --ohk-surface-2: #1d1d1d;
+  --ohk-text: #f5f5f5;
+  --ohk-text-soft: #d4d4d4;
+  --ohk-muted: #b8b8b8;
+  --ohk-border: #2e2e2e;
+}
+
+.ohk-app {
+  background: var(--ohk-bg);
+  color: var(--ohk-text);
+  accent-color: var(--ohk-brand);
+}
+
+/* Normalize brand accents on both listing and detail views. */
+.ohk-app :is(.ohk-primary-button, .ohk-load-more button,
+  .ohk-search-box > button[type="submit"], .ohk-nearby-actions > button,
+  .ohk-nearby-prompt .ohk-nearby-search-row > button,
+  .ohk-map-bar button:not(.ohk-map-close), .ohk-map-popup button,
+  .ohk-detail-page .ohk-dp-product-buy) {
+  background: var(--ohk-brand);
+  color: var(--ohk-on-brand);
+}
+
+.ohk-app :is(.ohk-primary-button, .ohk-load-more button,
+  .ohk-search-box > button[type="submit"], .ohk-nearby-actions > button,
+  .ohk-nearby-prompt .ohk-nearby-search-row > button,
+  .ohk-map-bar button:not(.ohk-map-close), .ohk-map-popup button,
+  .ohk-detail-page .ohk-dp-product-buy):hover:not(:disabled) {
+  background: var(--ohk-brand-hover);
+}
+
+.ohk-app :is(.ohk-card, .ohk-detail-page-inner, .ohk-dp-card,
+  .ohk-detail-related-inner, .ohk-coupon-card, .ohk-coupons-section) {
+  background-color: var(--ohk-surface);
+  color: var(--ohk-text);
+}
+
+.ohk-app :is(.ohk-card-body h2, .ohk-dp-heading,
+  .ohk-dp-product-body h3, .ohk-dp-product-price strong) {
+  color: var(--ohk-text);
+}
+
+.ohk-app :is(.ohk-read-more, .ohk-card-offer-percent, .ohk-page-back,
+  .ohk-detail-page .ohk-detail-tags button, .ohk-dp-link) {
+  color: var(--ohk-brand-text);
+}
+
+.ohk-app .ohk-card-discount-badge,
+.ohk-app .ohk-dp-product-badge {
+  background: var(--ohk-brand);
+  color: var(--ohk-on-brand);
+}
+
+.ohk-app .ohk-detail-page .ohk-detail-tags button,
+.ohk-app .ohk-dp-tile,
+.ohk-app .ohk-dp-box,
+.ohk-app .ohk-dp-contact {
+  background-color: var(--ohk-brand-soft-2);
+  border-color: var(--ohk-brand-border);
+}
+
+.ohk-app :is(input, textarea, select):focus {
+  border-color: var(--ohk-brand);
+  outline-color: var(--ohk-brand-ring);
+}
+
+.ohk-app :is(a, button, summary, [role="button"]):focus-visible {
+  outline: 2px solid var(--ohk-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ohk-app * { transition: none !important; }
+}
