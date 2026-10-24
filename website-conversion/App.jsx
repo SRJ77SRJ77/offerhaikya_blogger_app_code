@@ -2579,13 +2579,13 @@ function App() {
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
                           <div className="ohk-dp-tile" key={index}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name={TILE_ICONS[tile.kind] || 'tag'} size={20} /></span>
+                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
                             <strong>{tile.text}</strong>
                           </div>
                         ))
                       : detailFacts.map((fact) => (
                           <div className="ohk-dp-tile" key={fact.label}>
-                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="tag" size={20} /></span>
+                            <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name="circle-check" size={20} /></span>
                             <strong>{fact.label}: {fact.value}</strong>
                           </div>
                         ))}
