@@ -149,3 +149,32 @@
 
 /* Dark mode: keep the danger button readable */
 .ohk-dark .ohk-danger-button { background: #d9453a; }
+
+
+/* Keep scrolling inside the account dialog, never the page behind it. */
+.ohk-app .ohk-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.ohk-app .ohk-auth-modal {
+  max-height: calc(100dvh - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+@supports (height: 100dvh) {
+  .ohk-app .ohk-auth-modal {
+    max-height: calc(100dvh - 32px);
+  }
+}
