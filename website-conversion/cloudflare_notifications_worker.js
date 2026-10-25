@@ -21,7 +21,7 @@
  */
 
 const VERSION = "OFFERHAIKYA_CLOUDFLARE_NOTIFICATIONS_V2";
-const FEED_URL = "https://www.offerhaikya.com/feeds/posts/default";
+const FEED_URL = "https://offerhaikya.blogspot.com/feeds/posts/default";
 const FIRESTORE_ROOT = "https://firestore.googleapis.com/v1/projects/";
 const OAUTH_URL = "https://oauth2.googleapis.com/token";
 const RESEND_URL = "https://api.resend.com/emails";
