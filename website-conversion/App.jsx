@@ -2608,7 +2608,7 @@ function App() {
                 <section className="ohk-dp-card ohk-dp-youtube-card" aria-labelledby="ohk-dp-youtube-title">
                   <h2 id="ohk-dp-youtube-title" className="ohk-dp-heading">YouTube Video</h2>
                   <div className="ohk-dp-slider-wrap ohk-dp-youtube-wrap">
-                    {detailOhk.youtubeVideos.length > 1 ? <button
+                    <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-prev"
                       aria-label="Previous videos"
@@ -2616,7 +2616,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
                         if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >‹</button> : null}
+                    >‹</button>
                     <div className="ohk-dp-slider ohk-dp-youtube-slider">
                       {detailOhk.youtubeVideos.slice(0, 3).map((video, index) => (
                         <article className="ohk-dp-youtube-slide" key={video}>
@@ -2633,7 +2633,7 @@ function App() {
                         </article>
                       ))}
                     </div>
-                    {detailOhk.youtubeVideos.length > 1 ? <button
+                    <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-next"
                       aria-label="Next videos"
@@ -2641,7 +2641,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
                         if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >›</button> : null}
+                    >›</button>
                   </div>
                 </section>
               ) : null}
@@ -2650,7 +2650,7 @@ function App() {
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
                   <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Our Products</h2>
                   <div className="ohk-dp-slider-wrap">
-                    {detailOhk.products.length > 1 ? <button
+                    <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-prev"
                       aria-label="Previous products"
@@ -2658,7 +2658,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider')
                         if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >‹</button> : null}
+                    >‹</button>
                     <div className="ohk-dp-slider">
                       {detailOhk.products.map((product, index) => (
                         <article className="ohk-dp-product" key={index}>
@@ -2682,7 +2682,7 @@ function App() {
                         </article>
                       ))}
                     </div>
-                    {detailOhk.products.length > 1 ? <button
+                    <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-next"
                       aria-label="Next products"
@@ -2690,7 +2690,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider')
                         if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >›</button> : null}
+                    >›</button>
                   </div>
                 </section>
               ) : null}
