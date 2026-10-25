@@ -2905,16 +2905,18 @@ a.ohk-card-click,
 .ohk-dp-youtube-frame iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
 .ohk-dp-youtube-wrap .ohk-dp-slider-arrow { top: calc(50% - 17px); }
 
-/* Detail page brand-orange accents: subtle borders, consistent icon/tag color. */
-.ohk-detail-page .ohk-dp-card,
+/* Detail page: keep icons, accent borders, tags, and Offer Details consistently brand orange in light and dark modes. */
+.ohk-detail-page .ohk-dp-card {
+  border-color: #ff5b01;
+}
 .ohk-detail-page .ohk-dp-box,
 .ohk-detail-page .ohk-dp-tile,
 .ohk-detail-page .ohk-dp-contact {
-  border-color: rgba(255, 91, 1, 0.28);
+  border-color: #ff5b01;
 }
 .ohk-detail-page .ohk-dp-tile-icon {
-  border-color: rgba(255, 91, 1, 0.45);
-  background: rgba(255, 91, 1, 0.08);
+  border-color: #ff5b01;
+  background: #fff0e7;
   color: #ff5b01;
 }
 .ohk-detail-page .ohk-dp-box-strong > strong,
@@ -2923,34 +2925,36 @@ a.ohk-card-click,
   color: #ff5b01;
 }
 .ohk-detail-page .ohk-dp-link {
-  border-color: rgba(255, 91, 1, 0.55);
+  border-color: #ff5b01;
 }
 .ohk-detail-page .ohk-dp-card .ohk-dp-detail-tag,
 .ohk-detail-page .ohk-dp-card .ohk-dp-tag {
-  border-color: rgba(255, 91, 1, 0.4);
+  border-color: #ff5b01;
   color: #ff5b01;
 }
-.ohk-dark .ohk-detail-page .ohk-dp-card,
+.ohk-dark .ohk-detail-page .ohk-dp-card {
+  border-color: #ff5b01;
+}
 .ohk-dark .ohk-detail-page .ohk-dp-box,
 .ohk-dark .ohk-detail-page .ohk-dp-tile,
 .ohk-dark .ohk-detail-page .ohk-dp-contact {
-  border-color: rgba(255, 91, 1, 0.3);
+  border-color: #ff5b01;
 }
 .ohk-dark .ohk-detail-page .ohk-dp-tile-icon {
-  border-color: rgba(255, 91, 1, 0.5);
-  background: rgba(255, 91, 1, 0.1);
-  color: #ff7a32;
+  border-color: #ff5b01;
+  background: #2a1a12;
+  color: #ff5b01;
 }
 .ohk-dark .ohk-detail-page .ohk-dp-box-strong > strong,
 .ohk-dark .ohk-detail-page .ohk-dp-link,
 .ohk-dark .ohk-detail-page .ohk-dp-heading {
-  color: #ff7a32;
+  color: #ff5b01;
 }
 .ohk-dark .ohk-detail-page .ohk-dp-link {
-  border-color: rgba(255, 91, 1, 0.55);
+  border-color: #ff5b01;
 }
 .ohk-dark .ohk-detail-page .ohk-dp-card .ohk-dp-detail-tag,
 .ohk-dark .ohk-detail-page .ohk-dp-card .ohk-dp-tag {
-  border-color: rgba(255, 91, 1, 0.45);
-  color: #ff7a32;
+  border-color: #ff5b01;
+  color: #ff5b01;
 }
