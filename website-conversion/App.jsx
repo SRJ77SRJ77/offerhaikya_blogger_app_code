@@ -17,6 +17,13 @@ const PAGE_SIZE = 20
 const LOGO_URL = logoImage
 
 const CATEGORY_GROUPS = [
+  { title: 'Brands', tags: ['Amazon', 'Meesho', 'Flipkart', 'Myntra', 'AJIO', 'Nykaa', 'Tata CLiQ', 'Croma', 'Reliance Digital', 'JioMart', 'BigBasket', 'Blinkit', 'Zepto', 'Swiggy', 'Zomato', 'Shoppers Stop', 'Westside', 'Tira', 'Reliance Trends', 'Studio'] },
+  { title: 'Offer Types', tags: ['Local Offers', 'Online Offers', 'Offline Offers'] },
+  { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
+]
+
+// Signup and profile forms show offer categories first, followed by every brand.
+const FORM_CATEGORY_GROUPS = [
   { title: 'Offer Types', tags: ['Local Offers', 'Online Offers', 'Offline Offers'] },
   { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
   { title: 'Brands', tags: ['Amazon', 'Meesho', 'Flipkart', 'Myntra', 'AJIO', 'Nykaa', 'Tata CLiQ', 'Croma', 'Reliance Digital', 'JioMart', 'BigBasket', 'Blinkit', 'Zepto', 'Swiggy', 'Zomato', 'Shoppers Stop', 'Westside', 'Tira', 'Reliance Trends', 'Studio'] },
@@ -1329,7 +1336,7 @@ function App() {
     return unsubscribe
   }, [])
 
-  const profileCategoryOptions = useMemo(() => CATEGORY_GROUPS.flatMap((group) => group.tags), [])
+  const profileCategoryOptions = useMemo(() => FORM_CATEGORY_GROUPS.flatMap((group) => group.tags), [])
 
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
