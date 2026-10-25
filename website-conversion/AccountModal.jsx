@@ -355,7 +355,7 @@ export default function AccountModal({
       {mode === 'signup' ? (
         <form className="ohk-auth-form" onSubmit={handleSignUp} noValidate>
           <Field id="ohk-auth-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} placeholder="Your name" />
-          <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
+          <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
           <div className="ohk-profile-category-heading">
             <strong>Category <span aria-hidden="true">*</span></strong>
             <small>Select one or more</small>
@@ -429,7 +429,7 @@ export default function AccountModal({
         ) : null}
 
         <Field id="ohk-acc-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} />
-        <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
+        <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
         <Field id="ohk-acc-email" label="Email" type="email" value={authUser.email || ''} disabled readOnly />
 
         <div className="ohk-profile-category-heading">
