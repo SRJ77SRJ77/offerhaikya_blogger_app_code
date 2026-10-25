@@ -280,6 +280,7 @@ export default function AccountModal({
     run(async () => {
       if (isPasswordUser) {
         await reauthenticateWithCredential(authUser, EmailAuthProvider.credential(authUser.email, deletePassword))
+      }
       await deleteDoc(doc(db, 'userProfiles', authUser.uid))
       await deleteUser(authUser)
       onProfileChange?.({ name: '', phone: '', categories: [] })
