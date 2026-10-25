@@ -320,13 +320,6 @@ export default function AccountModal({
 
   const signedOutView = (
     <>
-      {mode !== 'forgot' ? (
-        <div className="ohk-auth-tabs" role="tablist" aria-label="Log in or sign up">
-          <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => switchMode('login')}>Log in</button>
-          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => switchMode('signup')}>Sign up</button>
-        </div>
-      ) : null}
-
       {mode === 'login' ? (
         <form className="ohk-auth-form" onSubmit={handleLogin} noValidate>
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
@@ -351,6 +344,13 @@ export default function AccountModal({
           {messages}
           <button type="submit" className="ohk-primary-button" disabled={busy}>{busy ? 'Creating account…' : 'Create account'}</button>
         </form>
+      ) : null}
+
+      {mode !== 'forgot' ? (
+        <div className="ohk-auth-tabs ohk-auth-tabs-bottom" role="tablist" aria-label="Log in or sign up">
+          <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => switchMode('login')}>Log in</button>
+          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => switchMode('signup')}>Sign up / Create account</button>
+        </div>
       ) : null}
 
       {mode === 'forgot' ? (
