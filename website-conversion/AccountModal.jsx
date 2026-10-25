@@ -381,7 +381,7 @@ export default function AccountModal({
           ) : (
             <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
           )}
-          <Field id="ohk-auth-location" label="(City or State) *" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" required />
+          <Field id="ohk-auth-location" label="Location (City or State) *" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" required />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <label className="ohk-auth-terms">
