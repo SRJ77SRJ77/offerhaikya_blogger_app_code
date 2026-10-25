@@ -51,7 +51,9 @@ export function extractOhkBlocks(html = '') {
   const re = /OHK_([A-Z]+)_START([\s\S]*?)OHK_\1_END/g
   let match
   while ((match = re.exec(String(html)))) {
-    if (!(match[1] in blocks)) blocks[match[1]] = match[2]
+    // Accept the common YOUTUDE typo as an alias for the YouTube block.
+    const key = match[1] === 'YOUTUDE' ? 'YOUTUBE' : match[1]
+    if (!(key in blocks)) blocks[key] = match[2]
   }
   return blocks
 }
