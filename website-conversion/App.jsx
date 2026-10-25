@@ -2599,22 +2599,6 @@ function App() {
                 </section>
               ) : null}
 
-              {(!detailOhk.has || detailOhk.fullInfoHtml.trim()) ? (
-                <section className="ohk-dp-card" aria-labelledby="ohk-dp-info-title">
-                  <h2 id="ohk-dp-info-title" className="ohk-dp-heading">Full information</h2>
-                  <div
-                    className="ohk-detail-html"
-                    dangerouslySetInnerHTML={{
-                      __html: cleanBloggerDetailHtml(
-                        detailOhk.has ? detailOhk.fullInfoHtml : (detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>'),
-                        detail.title
-                      )
-                    }}
-                  />
-                </section>
-              ) : null}
-
-
                 {detailOhk.has && detailOhk.products.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
                   <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Products in this offer</h2>
@@ -2663,6 +2647,22 @@ function App() {
                   </div>
                 </section>
               ) : null}
+
+                            {(!detailOhk.has || detailOhk.fullInfoHtml.trim()) ? (
+                <section className="ohk-dp-card" aria-labelledby="ohk-dp-info-title">
+                  <h2 id="ohk-dp-info-title" className="ohk-dp-heading">Full information</h2>
+                  <div
+                    className="ohk-detail-html"
+                    dangerouslySetInnerHTML={{
+                      __html: cleanBloggerDetailHtml(
+                        detailOhk.has ? detailOhk.fullInfoHtml : (detail.rawContent || '<p>' + (detail.searchDescription || detail.excerpt) + '</p>'),
+                        detail.title
+                      )
+                    }}
+                  />
+                </section>
+              ) : null}
+
 
               {detailOhk.has && detailOhk.offerDetailHtml.trim() ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-offer-title">
