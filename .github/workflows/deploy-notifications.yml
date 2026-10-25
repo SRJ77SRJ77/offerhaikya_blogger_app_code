@@ -1,4 +1,4 @@
-name: Deploy OfferHaikya Notifications
+name: Deploy OfferHaikya Firestore Rules
 
 on:
   push:
@@ -6,11 +6,6 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      deploy_functions:
-        description: 'Deploy Cloud Functions (requires Firebase Blaze plan)'
-        required: true
-        type: boolean
-        default: false
 
 jobs:
   validate-app-source:
@@ -45,28 +40,3 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: firebase deploy --only firestore:rules --project offerhaikya-app --token "$FIREBASE_TOKEN"
-
-  deploy-functions:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_functions == true }}
-    needs: deploy-firestore-rules
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Install function dependencies
-        working-directory: functions
-        run: npm install
-
-      - name: Deploy notification function (requires Blaze plan)
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase deploy --only functions:sendNewOfferNotifications --project offerhaikya-app --token "$FIREBASE_TOKEN"
