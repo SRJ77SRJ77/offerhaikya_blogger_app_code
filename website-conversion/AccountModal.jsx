@@ -175,7 +175,7 @@ export default function AccountModal({
     const rawPhone = form.phone.trim()
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
     if (name.length < 2) { setError('Please enter your name.'); return }
-    if (!phone) { setError('Please enter a valid 10-digit Indian mobile number.'); return }
+    if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!EMAIL_RE.test(email)) { setError('Please enter a valid email address.'); return }
     if (form.password.length < MIN_PASSWORD) { setError('Password must be at least ' + MIN_PASSWORD + ' characters.'); return }
     run(async () => {
@@ -234,7 +234,7 @@ export default function AccountModal({
     const rawPhone = form.phone.trim()
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
     if (name.length < 2) { setError('Please enter your name.'); return }
-    if (!phone) { setError('Please enter a valid 10-digit Indian mobile number.'); return }
+    if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!categories.length) { setError('Please select at least one category.'); return }
     const wasRequired = required
     run(async () => {
@@ -333,7 +333,7 @@ export default function AccountModal({
       {mode === 'signup' ? (
         <form className="ohk-auth-form" onSubmit={handleSignUp} noValidate>
           <Field id="ohk-auth-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} placeholder="Your name" />
-          <Field id="ohk-auth-phone" label="Mobile number" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" required />
+          <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <p className="ohk-auth-hint">
@@ -391,7 +391,7 @@ export default function AccountModal({
         ) : null}
 
         <Field id="ohk-acc-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} />
-        <Field id="ohk-acc-phone" label="Mobile number" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" required />
+        <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" />
         <Field id="ohk-acc-email" label="Email" type="email" value={authUser.email || ''} disabled readOnly />
 
         <div className="ohk-profile-category-heading">
