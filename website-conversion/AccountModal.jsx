@@ -322,6 +322,18 @@ export default function AccountModal({
 
   const handleSignOut = () => run(async () => {
     await signOut(auth)
+    setMode('login')
+    setView('account')
+    setError('')
+    setNotice('')
+    setShowPassword(false)
+    setAcceptedTerms(false)
+    setForm({ name: '', phone: '', location: '', email: '', password: '' })
+    setCategories([])
+    setPw({ current: '', next: '' })
+    setConfirmText('')
+    setDeletePassword('')
+    onProfileChange?.({ name: '', phone: '', categories: [], location: '' })
     onClose()
   })
 
