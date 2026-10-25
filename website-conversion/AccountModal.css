@@ -22,7 +22,7 @@
   margin: 0 0 14px;
   padding: 4px;
   border-radius: 12px;
-  background: var(--ohk-brand-soft, #fff1e9);
+  background: rgba(255, 241, 233, .5);
 }
 .ohk-app .ohk-auth-tabs button {
   min-height: 40px;
@@ -34,7 +34,7 @@
   cursor: pointer;
 }
 .ohk-app .ohk-auth-tabs button.is-active {
-  background: var(--ohk-brand, #ff5b01);
+  background: rgba(255, 91, 1, .5);
   color: var(--ohk-on-brand, #fff);
 }
 
@@ -151,26 +151,30 @@
 .ohk-dark .ohk-danger-button { background: #d9453a; }
 
 
-/* Keep scrolling inside the account dialog, never the page behind it. */
+/* Keep the page scrollable while the dialog stays viewport-centered. */
 .ohk-app .ohk-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .ohk-app .ohk-auth-modal {
-  max-height: calc(100dvh - 32px);
+  width: min(460px, 100%);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-  margin-top: 16px;
-  margin-bottom: 16px;
+  margin: auto;
 }
 
 @supports (height: 100dvh) {
@@ -179,7 +183,6 @@
   }
 }
 
-
 /* Smooth, brand-matched account modal motion and internal scrollbar. */
 .ohk-app .ohk-modal-backdrop:has(.ohk-auth-modal) {
   animation: ohk-auth-backdrop-in 220ms ease-out both;
@@ -187,7 +190,7 @@
 
 .ohk-app .ohk-auth-modal {
   scrollbar-width: thin;
-  scrollbar-color: var(--ohk-brand, #ff5b01) var(--ohk-brand-soft, #fff1e9);
+  scrollbar-color: rgba(255, 91, 1, .5) rgba(255, 241, 233, .5);
   animation: ohk-auth-modal-in 300ms cubic-bezier(.2, .75, .25, 1) both;
   transform-origin: center top;
 }
@@ -203,7 +206,7 @@
 }
 
 .ohk-app .ohk-auth-modal::-webkit-scrollbar-thumb {
-  border: 2px solid var(--ohk-brand-soft, #fff1e9);
+  border: 2px solid rgba(255, 241, 233, .5);
   border-radius: 999px;
   background: var(--ohk-brand, #ff5b01);
 }
