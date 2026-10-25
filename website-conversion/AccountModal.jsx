@@ -349,7 +349,7 @@ export default function AccountModal({
       {mode !== 'forgot' ? (
         <div className="ohk-auth-tabs ohk-auth-tabs-bottom" role="tablist" aria-label="Log in or sign up">
           <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => switchMode('login')}>Log in</button>
-          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => switchMode('signup')}>Sign up / Create account</button>
+          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => switchMode('signup')}>Sign up</button>
         </div>
       ) : null}
 
