@@ -31,7 +31,8 @@ function phoneForInput(value = '') {
 }
 
 function friendlyError(error) {
-  switch (error?.code) {
+  const code = String(error?.code || '').replace(/^firebase:/i, '').trim().toLowerCase()
+  switch (code) {
     case 'auth/email-already-in-use':
       return 'This email is already registered. Please log in or reset your password.'
     case 'auth/invalid-email':
@@ -42,24 +43,43 @@ function friendlyError(error) {
     case 'auth/wrong-password':
     case 'auth/user-not-found':
     case 'auth/invalid-login-credentials':
-      return 'Email or password is incorrect.'
+      return 'Email or password is incorrect. Check your details and try again.'
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.'
     case 'auth/too-many-requests':
-      return 'Too many attempts. Please wait a few minutes or reset your password.'
+      return 'Too many attempts. Please wait a few minutes before trying again, or reset your password.'
     case 'auth/network-request-failed':
-      return 'Network problem. Check your internet and try again.'
+      return 'Network problem. Check your internet connection and try again.'
+    case 'auth/timeout':
+      return 'The request timed out. Check your connection and try again.'
     case 'auth/requires-recent-login':
       return 'For security, please log in again and then try once more.'
     case 'auth/unauthorized-domain':
-      return 'This website domain is not authorized in Firebase Authentication.'
+      return 'This website domain is not authorized in Firebase Authentication. Add it under Firebase Authentication settings.'
     case 'auth/operation-not-allowed':
-      return 'This login method is not enabled yet in Firebase.'
+      return 'Email/password login is not enabled in Firebase Authentication.'
+    case 'auth/invalid-api-key':
+    case 'auth/app-not-authorized':
+      return 'Firebase configuration is invalid for this website. Please check the project configuration.'
+    case 'auth/web-storage-unsupported':
+    case 'auth/operation-not-supported-in-this-environment':
+      return 'Your browser is blocking the sign-in session. Enable cookies/site storage and try again.'
     case 'auth/popup-closed-by-user':
     case 'auth/cancelled-popup-request':
       return ''
     case 'permission-denied':
     case 'firestore/permission-denied':
-      return 'We could not save your profile. Please try again.'
+      return 'You signed in, but your profile could not be accessed. Check Firestore permissions and try again.'
+    case 'unavailable':
+    case 'firestore/unavailable':
+      return 'The profile service is temporarily unavailable. Please try again shortly.'
     default:
+      if (code.startsWith('auth/')) {
+        return 'Login failed (' + code.replace('auth/', '') + '). Please try again or contact support with this error code.'
+      }
+      if (code.includes('permission-denied')) {
+        return 'Your profile could not be saved because access was denied. Check Firestore permissions.'
+      }
       return 'Something went wrong. Please try again.'
   }
 }
