@@ -1281,6 +1281,11 @@ function App() {
         setProfilePhone('')
         setProfileName('')
         setProfileLocation('')
+        setLoginEmail('')
+        setLoginPassword('')
+        setRegistrationName('')
+        setRegistrationPhone('')
+        setRegistrationEmail('')
         return
       }
 
