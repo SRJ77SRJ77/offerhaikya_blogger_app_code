@@ -22,7 +22,7 @@
   margin: 0 0 14px;
   padding: 4px;
   border-radius: 12px;
-  background: rgba(255, 241, 233, .5);
+  background: var(--ohk-brand-soft, #fff1e9);
 }
 .ohk-app .ohk-auth-tabs button {
   min-height: 40px;
@@ -34,7 +34,7 @@
   cursor: pointer;
 }
 .ohk-app .ohk-auth-tabs button.is-active {
-  background: rgba(255, 91, 1, .5);
+  background: var(--ohk-brand, #ff5b01);
   color: var(--ohk-on-brand, #fff);
 }
 
@@ -202,13 +202,13 @@
 .ohk-app .ohk-auth-modal::-webkit-scrollbar-track {
   margin-block: 12px;
   border-radius: 999px;
-  background: var(--ohk-brand-soft, #fff1e9);
+  background: rgba(255, 241, 233, .5);
 }
 
 .ohk-app .ohk-auth-modal::-webkit-scrollbar-thumb {
   border: 2px solid rgba(255, 241, 233, .5);
   border-radius: 999px;
-  background: var(--ohk-brand, #ff5b01);
+  background: rgba(255, 91, 1, .5);
 }
 
 .ohk-app .ohk-auth-modal::-webkit-scrollbar-thumb:hover {
