@@ -711,7 +711,7 @@ function buildDetailFacts(post, distance) {
 }
 
 const CONTACT_ICONS = { email: 'mail', phone: 'phone', whatsapp: 'whatsapp', instagram: 'instagram', facebook: 'facebook', youtube: 'youtube', x: 'x', twitter: 'x', linkedin: 'linkedin', website: 'globe', web: 'globe' }
-const TILE_ICONS = { online: 'tag', offline: 'location', discount: 'percent', time: 'clock', verified: 'check', store: 'store', info: 'tag' }
+const TILE_ICONS = { online: 'tag', offline: 'location', discount: 'percent', time: 'clock', verified: 'check', store: 'store', gaming: 'gamepad', price: 'rupee', platform: 'monitor', availability: 'calendar', bonus: 'gift', info: 'tag' }
 
 function Icon({ name, size = 22 }) {
   const paths = {
@@ -734,6 +734,11 @@ function Icon({ name, size = 22 }) {
     whatsapp: <><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3L3 21Z" /><path d="M9 9.5c.5 2 2.5 4 4.5 4.5l1.2-1.2-1.8-1-.8.6a3 3 0 0 1-1.7-1.7l.6-.8-1-1.8L9 9.5Z" /></>,
     globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>,
     store: <><path d="M4 9h16l-1-5H5L4 9Z" /><path d="M5 9v11h14V9" /><path d="M10 20v-6h4v6" /></>,
+    gamepad: <><path d="M6 9h12a4 4 0 0 1 3.8 5.2l-1 3A2.5 2.5 0 0 1 16.5 18L14 15h-4l-2.5 3a2.5 2.5 0 0 1-4.3-.8l-1-3A4 4 0 0 1 6 9Z" /><path d="M7 12v4M5 14h4M16.5 13.5h.01M18.5 15.5h.01" /></>,
+    rupee: <><path d="M5 4h14M5 8h14M7 4c5 0 7 2 7 5s-2 5-7 5h-2l9 6" /><path d="M5 4h14" /></>,
+    monitor: <><rect x="3" y="4" width="18" height="13" rx="1.5" /><path d="M8 21h8M12 17v4" /></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></>,
+    gift: <><rect x="3" y="9" width="18" height="12" rx="1" /><path d="M2 6h20v4H2zM12 6v15M12 6C8 6 6 4 7 2c3-1 5 2 5 4ZM12 6c4 0 6-2 5-4-3-1-5 2-5 4Z" /></>,
     map: <><path d="M9 4 3 6.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4Z" /><path d="M9 4v13.5M15 6.5V20" /></>,
     edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></>,
     youtube: <><path d="M22 8.2a2.8 2.8 0 0 0-2-2C18.3 5.7 12 5.7 12 5.7s-6.3 0-8 .5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.5 12a29 29 0 0 0 .5 3.8 2.8 2.8 0 0 0 2 2c1.7.5 8 .5 8 .5s6.3 0 8-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22.5 12a29 29 0 0 0-.5-3.8Z" /><path d="m10 9 5 3-5 3Z" /></>,
