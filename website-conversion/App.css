@@ -2896,3 +2896,11 @@ a.ohk-card-click,
 .ohk-dark .ohk-detail-page .ohk-dp-card .ohk-detail-html a {
   color: #ff9b69 !important;
 }
+
+
+/* YouTube video carousel parsed from OHK_YOUTUBE_START / OHK_YOUTUBE_END. */
+.ohk-dp-youtube-slider { scroll-padding-inline: 2px; }
+.ohk-dp-youtube-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; }
+.ohk-dp-youtube-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #111; }
+.ohk-dp-youtube-frame iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
+.ohk-dp-youtube-wrap .ohk-dp-slider-arrow { top: calc(50% - 17px); }
