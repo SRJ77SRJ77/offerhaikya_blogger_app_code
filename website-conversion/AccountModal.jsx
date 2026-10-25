@@ -131,7 +131,7 @@ export default function AccountModal({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [form, setForm] = useState({ name: '', phone: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', phone: '', location: '', email: '', password: '' })
   const [categories, setCategories] = useState([])
   const [pw, setPw] = useState({ current: '', next: '' })
   const [confirmText, setConfirmText] = useState('')
@@ -147,10 +147,11 @@ export default function AccountModal({
       ...current,
       name: profile?.name || authUser.displayName || '',
       phone: phoneForInput(profile?.phone),
+      location: typeof profile?.location === 'string' ? profile.location : '',
       email: authUser.email || '',
     }))
     setCategories(Array.isArray(profile?.categories) ? profile.categories : [])
-  }, [authUser?.uid, profile?.name, profile?.phone, profile?.categories])
+  }, [authUser?.uid, profile?.name, profile?.phone, profile?.location, profile?.categories])
 
   // Lock the page behind the modal, including on mobile browsers.
   // Restore the exact previous body styles and scroll position when it closes.
@@ -221,6 +222,7 @@ export default function AccountModal({
     const email = form.email.trim()
     const rawPhone = form.phone.trim()
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
+    const location = String(form.location || '').trim().slice(0, 100)
     if (name.length < 2) { setError('Please enter your name.'); return }
     if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!categoryOptions.length) { setError('Categories are still loading. Please try again in a moment.'); return }
@@ -241,12 +243,13 @@ export default function AccountModal({
           name,
           phone,
           categories,
+          location,
           profileComplete: true,
           provider: 'password',
           createdAt: now,
           updatedAt: now,
         }, { merge: true })
-        onProfileChange?.({ name, phone, categories })
+        onProfileChange?.({ name, phone, categories, location })
         setForm((current) => ({ ...current, password: '' }))
         onClose()
       } finally {
@@ -286,6 +289,7 @@ export default function AccountModal({
     const name = form.name.trim()
     const rawPhone = form.phone.trim()
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
+    const location = String(form.location || '').trim().slice(0, 100)
     if (name.length < 2) { setError('Please enter your name.'); return }
     if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!categories.length) { setError('Please select at least one category.'); return }
@@ -298,11 +302,12 @@ export default function AccountModal({
         name,
         phone,
         categories,
+        location,
         profileComplete: true,
         updatedAt: new Date().toISOString(),
       }, { merge: true })
       if (name !== (authUser.displayName || '')) await updateProfile(authUser, { displayName: name })
-      onProfileChange?.({ name, phone, categories })
+      onProfileChange?.({ name, phone, categories, location })
       if (wasRequired) onClose()
       else setNotice('Profile saved.')
     })
@@ -331,7 +336,7 @@ export default function AccountModal({
       }
       await deleteDoc(doc(db, 'userProfiles', authUser.uid))
       await deleteUser(authUser)
-      onProfileChange?.({ name: '', phone: '', categories: [] })
+      onProfileChange?.({ name: '', phone: '', categories: [], location: '' })
       onClose()
     })
   }
@@ -382,6 +387,7 @@ export default function AccountModal({
         <form className="ohk-auth-form" onSubmit={handleSignUp} noValidate>
           <Field id="ohk-auth-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} placeholder="Your name" />
           <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
+          <Field id="ohk-auth-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="e.g. Belagavi" />
           <div className="ohk-profile-category-heading">
             <strong>Category <span aria-hidden="true">*</span></strong>
             <small>Select one or more</small>
@@ -449,6 +455,7 @@ export default function AccountModal({
 
         <Field id="ohk-acc-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} />
         <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
+        <Field id="ohk-acc-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="e.g. Belagavi" />
         <Field id="ohk-acc-email" label="Email" type="email" value={authUser.email || ''} disabled readOnly />
 
         <div className="ohk-profile-category-heading">
