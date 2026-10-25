@@ -403,7 +403,7 @@ export default function AccountModal({
           ) : (
             <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
           )}
-          <Field id="ohk-auth-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="e.g. Belagavi" />
+          <Field id="ohk-auth-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <p className="ohk-auth-hint">
@@ -473,7 +473,7 @@ export default function AccountModal({
         ) : (
           <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
         )}
-                <Field id="ohk-acc-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="e.g. Belagavi" />
+                <Field id="ohk-acc-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" />
 
         {messages}
         <button type="submit" className="ohk-primary-button" disabled={busy || !categoryOptions.length}>
