@@ -1,6 +1,7 @@
 const MAX_BANNER = 5
 const MAX_PRODUCTS = 25
 const MAX_YOUTUBE_VIDEOS = 3
+const MAX_YOUINS_LINKS = 5
 const MAX_CONTACTS = 4
 const IMG_RE = /<img\b[^>]*>/gi
 
@@ -216,6 +217,37 @@ function parseYouTubeVideos(inner = '') {
   return urls.slice(0, MAX_YOUTUBE_VIDEOS)
 }
 
+function parseYouInsLinks(inner = '') {
+  const items = []
+  const seen = new Set()
+  const add = (value) => {
+    const raw = decode(String(value || '')).trim().replace(/[),.;]+$/, '')
+    try {
+      const url = new URL(raw.startsWith('//') ? 'https:' + raw : raw)
+      const host = url.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '')
+      let item = null
+      if (host === 'youtube.com' || host === 'youtu.be' || host === 'youtube-nocookie.com') {
+        let id = ''
+        if (host === 'youtu.be') id = url.pathname.split('/').filter(Boolean)[0] || ''
+        else if (url.pathname === '/watch') id = url.searchParams.get('v') || ''
+        else if (/^\/(embed|shorts|live)\//.test(url.pathname)) id = url.pathname.split('/')[2] || ''
+        if (/^[a-zA-Z0-9_-]{11}$/.test(id)) item = { platform: 'youtube', url: 'https://www.youtube-nocookie.com/embed/' + id }
+      } else if (host === 'instagram.com') {
+        const match = url.pathname.match(/^\/(p|reel|tv)\/([A-Za-z0-9_-]+)/)
+        if (match) item = { platform: 'instagram', url: 'https://www.instagram.com/' + match[1] + '/' + match[2] + '/embed' }
+      }
+      if (item && !seen.has(item.url)) {
+        seen.add(item.url)
+        items.push(item)
+      }
+    } catch {}
+  }
+  String(inner).replace(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi, (_, href) => { add(href); return _ })
+  const text = decode(String(inner).replace(/<[^>]+>/g, ' '))
+  ;(text.match(/https?:\/\/[^\s<>"']+/gi) || []).forEach(add)
+  return items.slice(0, MAX_YOUINS_LINKS)
+}
+
 export function parseOhk(html = '') {
   const blocks = extractOhkBlocks(html)
   const contact = parseContacts(blocks.CONTACT || '')
@@ -227,6 +259,7 @@ export function parseOhk(html = '') {
     fullInfoHtml: blocks.FULLINFO || '',
     products: parseProducts(blocks.PRODUCTS || ''),
     youtubeVideos: parseYouTubeVideos(blocks.YOUTUBE || ''),
+    youInsLinks: parseYouInsLinks(blocks.YOUINS || '').length ? parseYouInsLinks(blocks.YOUINS || '') : parseYouTubeVideos(blocks.YOUTUBE || '').map((url) => ({ platform: 'youtube', url })),
     offerDetailHtml: blocks.OFFERDETAIL || '',
     contacts: contact.contacts,
     map: contact.map,
