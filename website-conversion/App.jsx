@@ -3151,9 +3151,9 @@ function App() {
           <div className="ohk-modal ohk-profile-modal" role="dialog" aria-modal="true" aria-labelledby="ohk-profile-title" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-modal-head">
               <h2 id="ohk-profile-title">{authUser && !profileDocExists ? 'Complete your profile' : 'Profile'}</h2>
-              {(!authUser || profileDocExists) ? (
-                <button onClick={() => setProfileOpen(false)} aria-label="Close profile"><Icon name="close" /></button>
-              ) : null}
+              <button type="button" className="ohk-modal-close" onClick={() => setProfileOpen(false)} aria-label="Close sign-in and profile dialog" title="Close">
+                <Icon name="close" />
+              </button>
             </div>
 
             {authLoading ? (
