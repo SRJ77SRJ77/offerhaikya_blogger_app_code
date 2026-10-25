@@ -475,7 +475,7 @@ export default function AccountModal({
         ) : (
           <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
         )}
-                <Field id="ohk-acc-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" />
+                <Field id="ohk-acc-location" label="Location (city or state) *" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" required />
 
         {messages}
         <button type="submit" className="ohk-primary-button" disabled={busy || !categoryOptions.length}>
