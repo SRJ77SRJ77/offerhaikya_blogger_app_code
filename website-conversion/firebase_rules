@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Basic validation so nobody can store huge or wrongly shaped data
+    function validProfile(uid) {
+      let d = request.resource.data;
+      return d.uid == uid
+        && d.categories is list && d.categories.size() <= 100
+        && (!('name' in d)  || (d.name is string  && d.name.size()  <= 80))
+        && (!('phone' in d) || (d.phone is string && d.phone.size() <= 20))
+        && (!('email' in d) || (d.email is string && d.email.size() <= 254));
+    }
+
+    // Each signed-in user can only touch their own profile
+    match /userProfiles/{uid} {
+      allow read:   if isOwner(uid);
+      allow create, update: if isOwner(uid) && validProfile(uid);
+      allow delete: if isOwner(uid);
+    }
+
+    // Everything else stays closed
+  }
+}
