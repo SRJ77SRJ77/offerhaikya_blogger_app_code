@@ -18,6 +18,21 @@ service cloud.firestore {
     }
 
 
+    // Each signed-in user can read and maintain only their own saved offer IDs.
+    match /userFavorites/{uid} {
+      allow read: if request.auth != null
+        && request.auth.uid == uid;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.postIds is list
+        && request.resource.data.postIds.size() <= 500;
+
+      allow delete: if request.auth != null
+        && request.auth.uid == uid;
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create, update:
