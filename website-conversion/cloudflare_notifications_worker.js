@@ -37,12 +37,15 @@ const DELIVERY_COLLECTION = "notificationDeliveries";
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Normalize trailing slashes so /health/ works the same as /health.
+    const pathname = url.pathname.replace(/\\/+$/, "") || "/";
 
-    if (request.method === "GET" && url.pathname === "/health") {
+    // Keep the health check available at both the root and /health.
+    if (request.method === "GET" && (pathname === "/" || pathname === "/health")) {
       return json({ ok: true, worker: VERSION, mode: "health-only" });
     }
 
-    if (request.method === "POST" && (url.pathname === "/run" || url.pathname === "/test")) {
+    if (request.method === "POST" && (pathname === "/run" || pathname === "/test")) {
       if (!env.ADMIN_SECRET || request.headers.get("Authorization") !== "Bearer " + env.ADMIN_SECRET) {
         return json({ ok: false, error: "Unauthorized" }, 401);
       }
