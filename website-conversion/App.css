@@ -2882,7 +2882,6 @@ a.ohk-card-click,
 .ohk-dark .ohk-dp-product-body p, .ohk-dark .ohk-dp-product-price s { color: #b8b8b8; }
 .ohk-dark .ohk-dp-product-badge, .ohk-dark .ohk-dp-product-buy { background: #ff9b69; color: #271812; }
 .ohk-dark .ohk-dp-contact { background: #1d1d1d; border-color: #2e2e2e; }
-@media (hover: none) { .ohk-dp-slider-arrow { display: none; } }
 @media (max-width: 900px) { .ohk-dp-product { flex-basis: calc((100% - 24px) / 3); } }
 @media (max-width: 600px) { .ohk-dp-product { flex-basis: 62%; } .ohk-dp-product img { height: auto; } .ohk-dp-product-noimg { height: 130px; } }
 
