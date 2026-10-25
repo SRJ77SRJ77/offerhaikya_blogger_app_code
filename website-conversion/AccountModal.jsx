@@ -457,7 +457,7 @@ export default function AccountModal({
   else if (authUser) body = required || view === 'account' ? profileView : view === 'password' ? passwordView : deleteView
 
   return (
-    <div className={'ohk-modal-backdrop' + (required ? ' ohk-profile-required-backdrop' : '')} onClick={() => { if (!required) onClose() }}>
+    <div className={'ohk-modal-backdrop' + (required ? ' ohk-profile-required-backdrop' : '')}>
       <div className="ohk-modal ohk-profile-modal ohk-auth-modal" role="dialog" aria-modal="true" aria-labelledby="ohk-auth-title" onClick={(event) => event.stopPropagation()}>
         <div className="ohk-modal-head">
           <h2 id="ohk-auth-title">{title}</h2>
