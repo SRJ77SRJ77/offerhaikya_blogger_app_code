@@ -175,31 +175,40 @@ function parseBloggerFeed(data) {
   }).filter((post) => post.id && post.url);
 }
 
+// Blogger labels ending in "imp" use that suffix as a display/importance
+// marker (for example "meeshoimp", "goaimp", or "online offerimp").
+// Ignore the marker for notification matching without changing the original label.
+function normalizeMatchLabel(value) {
+  return normalize(value).replace(/imp$/, "").trim();
+}
+
+function canonicalCategory(value) {
+  return normalizeMatchLabel(value).replace(/\boffers\b/g, "offer");
+}
+
 function isTypeLabel(label) {
   return [
-    "online offer", "online offers", "online",
-    "offline offer", "offline offers", "offline",
-    "local offer", "local offers", "local",
-    "nearby offer", "nearby offers",
-  ].includes(normalize(label));
+    "online offer", "online", "offline offer", "offline",
+    "local offer", "local", "nearby offer",
+  ].includes(canonicalCategory(label));
 }
 
 function offerType(post) {
-  const labels = post.labels.map(normalize);
-  if (labels.some((label) => ["offline offer", "offline offers", "offline", "local offer", "local offers", "local", "nearby offer", "nearby offers"].includes(label))) return "local";
-  if (labels.some((label) => ["online offer", "online offers", "online"].includes(label))) return "online";
+  const labels = post.labels.map(canonicalCategory);
+  if (labels.some((label) => ["offline offer", "offline", "local offer", "local", "nearby offer"].includes(label))) return "local";
+  if (labels.some((label) => ["online offer", "online"].includes(label))) return "online";
   return "unknown";
 }
 
 function postCategories(post) {
-  return post.labels.map(normalize).filter((label) => label && !isTypeLabel(label) &&
+  return post.labels.map(canonicalCategory).filter((label) => label && !isTypeLabel(label) &&
     !/^(expired|verified|lock|coupons)$/.test(label) &&
     !/^e(?:_|y?\d)/i.test(label));
 }
 
 function userCategories(profile) {
   return (Array.isArray(profile.categories) ? profile.categories : [])
-    .map(normalize).filter(Boolean);
+    .map(canonicalCategory).filter(Boolean);
 }
 
 function categoriesMatch(post, profile) {
@@ -211,8 +220,8 @@ function categoriesMatch(post, profile) {
 
 function wantsType(profile, type) {
   const selected = userCategories(profile);
-  if (type === "local") return selected.includes("local offers") || selected.includes("local offer") || selected.includes("offline offers") || selected.includes("offline offer");
-  if (type === "online") return selected.includes("online offers") || selected.includes("online offer");
+  if (type === "local") return selected.includes("local offer") || selected.includes("offline offer");
+  if (type === "online") return selected.includes("online offer");
   return false;
 }
 
@@ -452,9 +461,12 @@ function getUserPlace(profile) {
 
 function localOfferPlace(post) {
   if (post.locationName) return post.locationName;
-  const labels = post.labels.filter((label) => !isTypeLabel(label) && !/^(expired|verified|lock)$/i.test(label));
-  // Tags may contain an explicit location such as "Kolhapur, Maharashtra".
-  const tagged = labels.find((label) => /,/.test(label) || /\b(maharashtra|karnataka|goa|gujarat|mumbai|pune|kolhapur|belagavi|sangli|satara)\b/i.test(label));
+  // Strip the Blogger "imp" marker only for interpreting the label as a place.
+  const labels = post.labels
+    .map((label) => normalizeMatchLabel(label))
+    .filter((label) => label && !isTypeLabel(label) && !/^(expired|verified|lock)$/i.test(label));
+  // Tags may contain a city/location directly, including labels such as "goaimp".
+  const tagged = labels.find((label) => /,/.test(label) || /\b(maharashtra|karnataka|goa|gujarat|mumbai|pune|kolhapur|belagavi|belgaum|sangli|satara)\b/i.test(label));
   return tagged || "";
 }
 
