@@ -86,10 +86,10 @@ function parseTiles(inner = '') {
   return htmlToLines(inner).slice(0, 7).map((text) => ({ text, kind: tileKind(text) }))
 }
 
-const PRODUCT_KEY = /^p(\d*)(img|name|info|link|discount|dis|price|mrp)\b\s*[:：–-]?\s*(.*)$/i
+const PRODUCT_KEY = /^p(\d*)(img|name|info|link|discount|dis|price|mrp|btn)\b\s*[:：–-]?\s*(.*)$/i
 
 function newProduct() {
-  return { image: '', name: '', info: '', link: '', discount: '', price: '', mrp: '' }
+  return { image: '', name: '', info: '', link: '', discount: '', price: '', mrp: '', buttonText: '' }
 }
 
 function parseProducts(inner = '') {
@@ -142,6 +142,7 @@ function parseProducts(inner = '') {
     if (key === 'discount' || key === 'dis') product.discount = /^\d+(\.\d+)?$/.test(value) ? value + '% Off' : value
     if (key === 'price') product.price = value
     if (key === 'mrp') product.mrp = value
+    if (key === 'btn') product.buttonText = value
   })
   return products.filter((p) => p.name || p.image).slice(0, MAX_PRODUCTS)
 }
