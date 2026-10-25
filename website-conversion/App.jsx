@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
 import AccountModal from './AccountModal.jsx'
@@ -1194,6 +1194,8 @@ function App() {
   const [couponSource, setCouponSource] = useState(null)
   const detailRef = useRef(null)
   const signingUpRef = useRef(false)
+  const favoritesReadyRef = useRef(false)
+  const hadUserRef = useRef(false)
   const [detailViewportWidth, setDetailViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1200)
   useEffect(() => {
     const updateWidth = () => setDetailViewportWidth(window.innerWidth)
@@ -1256,7 +1258,13 @@ function App() {
   const [profileName, setProfileName] = useState('')
   const [profileLocation, setProfileLocation] = useState('')
   const [profileDocExists, setProfileDocExists] = useState(false)
-  const [saved, setSaved] = useState({})
+  const [saved, setSaved] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('offerhaikya_favorites') || '{}') || {}
+    } catch {
+      return {}
+    }
+  })
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
   const [resolvedMapCoordinates, setResolvedMapCoordinates] = useState({})
@@ -1659,8 +1667,68 @@ function App() {
   }, [posts])
 
   useEffect(() => {
-    localStorage.setItem('offerhaikya_favorites', JSON.stringify(saved))
+    try {
+      localStorage.setItem('offerhaikya_favorites', JSON.stringify(saved))
+    } catch {}
   }, [saved])
+
+  // Load account favorites and merge them with any favorites saved by a guest.
+  useEffect(() => {
+    favoritesReadyRef.current = false
+
+    if (!authUser) {
+      if (hadUserRef.current) {
+        // Clear account favorites from this browser on sign-out.
+        hadUserRef.current = false
+        setSaved({})
+        try {
+          localStorage.removeItem('offerhaikya_favorites')
+        } catch {}
+      }
+      return undefined
+    }
+
+    hadUserRef.current = true
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const snapshot = await getDoc(doc(db, 'userFavorites', authUser.uid))
+        if (cancelled) return
+
+        const cloudIds = snapshot.exists() && Array.isArray(snapshot.data().postIds)
+          ? snapshot.data().postIds
+          : []
+
+        setSaved((local) => {
+          const merged = { ...local }
+          cloudIds.forEach((id) => { merged[id] = true })
+          return merged
+        })
+        favoritesReadyRef.current = true
+      } catch (error) {
+        console.error('Offerhaikya favorites load failed:', error)
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [authUser?.uid])
+
+  // Persist changes to the signed-in user's account after the initial load finishes.
+  useEffect(() => {
+    if (!authUser || !favoritesReadyRef.current) return undefined
+
+    const timer = window.setTimeout(() => {
+      const postIds = Object.keys(saved).filter((id) => saved[id]).slice(-500)
+      setDoc(doc(db, 'userFavorites', authUser.uid), {
+        uid: authUser.uid,
+        postIds,
+        updatedAt: new Date().toISOString(),
+      }).catch((error) => console.error('Offerhaikya favorites save failed:', error))
+    }, 600)
+
+    return () => window.clearTimeout(timer)
+  }, [saved, authUser?.uid])
 
   // Keep website filters and signup/profile categories in sync.
   const categoryGroups = CATEGORY_GROUPS
