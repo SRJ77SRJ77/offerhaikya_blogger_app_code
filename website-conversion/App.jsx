@@ -1248,6 +1248,7 @@ function App() {
   const [profileCategories, setProfileCategories] = useState([])
   const [profilePhone, setProfilePhone] = useState('')
   const [profileName, setProfileName] = useState('')
+  const [profileLocation, setProfileLocation] = useState('')
   const [profileDocExists, setProfileDocExists] = useState(false)
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
@@ -1265,6 +1266,7 @@ function App() {
         setProfileCategories([])
         setProfilePhone('')
         setProfileName('')
+        setProfileLocation('')
         return
       }
 
@@ -1283,12 +1285,14 @@ function App() {
           setProfileCategories(categories)
           setProfilePhone(typeof data.phone === 'string' ? data.phone : '')
           setProfileName(typeof data.name === 'string' && data.name ? data.name : (currentUser.displayName || ''))
+          setProfileLocation(typeof data.location === 'string' ? data.location : '')
           setProfileDocExists(categories.length > 0)
           setProfileOpen(categories.length === 0)
         } else {
           setProfileCategories([])
           setProfilePhone('')
           setProfileName(currentUser.displayName || '')
+          setProfileLocation('')
           setProfileDocExists(false)
           setProfileOpen(true)
         }
@@ -1297,6 +1301,7 @@ function App() {
         setProfileCategories([])
         setProfilePhone('')
         setProfileName(currentUser.displayName || '')
+        setProfileLocation('')
         setProfileDocExists(false)
         setProfileOpen(true)
       }
@@ -3150,6 +3155,7 @@ function App() {
           name: profileName || authUser?.displayName || '',
           phone: profilePhone,
           categories: profileCategories,
+          location: profileLocation,
         }}
         profileComplete={profileDocExists}
         categoryOptions={profileCategoryOptions}
@@ -3160,6 +3166,7 @@ function App() {
           }
           if (typeof nextProfile.phone === 'string') setProfilePhone(nextProfile.phone)
           if (typeof nextProfile.name === 'string') setProfileName(nextProfile.name)
+          if (typeof nextProfile.location === 'string') setProfileLocation(nextProfile.location)
         }}
         onSignupStateChange={(value) => { signingUpRef.current = value }}
       />
