@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
   EmailAuthProvider,
-  GoogleAuthProvider,
-  browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   deleteUser,
   reauthenticateWithCredential,
-  reauthenticateWithPopup,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut,
   updatePassword,
   updateProfile,
@@ -230,10 +226,6 @@ export default function AccountModal({
     })
   }
 
-  const handleGoogle = () => run(async () => {
-    await signInWithPopup(auth, new GoogleAuthProvider(), browserPopupRedirectResolver)
-  })
-
   const handleSaveProfile = (event) => {
     event.preventDefault()
     if (!authUser) return
@@ -287,9 +279,6 @@ export default function AccountModal({
     run(async () => {
       if (isPasswordUser) {
         await reauthenticateWithCredential(authUser, EmailAuthProvider.credential(authUser.email, deletePassword))
-      } else {
-        await reauthenticateWithPopup(authUser, new GoogleAuthProvider(), browserPopupRedirectResolver)
-      }
       await deleteDoc(doc(db, 'userProfiles', authUser.uid))
       await deleteUser(authUser)
       onProfileChange?.({ name: '', phone: '', categories: [] })
@@ -372,15 +361,6 @@ export default function AccountModal({
         </form>
       ) : null}
 
-      {mode !== 'forgot' ? (
-        <>
-          <div className="ohk-auth-divider"><span>or</span></div>
-          <button type="button" className="ohk-secondary-button ohk-google-signin-button" onClick={handleGoogle} disabled={busy}>
-            <strong className="ohk-google-mark" aria-hidden="true">G</strong>
-            Continue with Google
-          </button>
-        </>
-      ) : null}
     </>
   )
 
@@ -461,7 +441,7 @@ export default function AccountModal({
       {isPasswordUser ? (
         <PasswordField id="ohk-del-password" label="Your password" autoComplete="current-password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} show={showPassword} onToggle={togglePassword} />
       ) : (
-        <p className="ohk-auth-hint">You will be asked to confirm with Google.</p>
+        <p className="ohk-auth-hint">For security, you may need to sign in again before deleting this account.</p>
       )}
       <Field id="ohk-del-confirm" label="Type DELETE to confirm" type="text" autoComplete="off" value={confirmText} onChange={(event) => setConfirmText(event.target.value)} />
       {messages}
