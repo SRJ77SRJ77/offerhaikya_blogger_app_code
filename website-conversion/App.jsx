@@ -3,6 +3,7 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, browserPopupRe
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
+import AccountModal from './AccountModal.jsx'
 import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
@@ -3192,95 +3193,27 @@ function App() {
         </div>
       ) : null}
 
-      {profileOpen ? (
-        <div className={`ohk-modal-backdrop ${authUser && !profileDocExists ? 'ohk-profile-required-backdrop' : ''}`} onClick={() => {
-          if (!authUser || profileDocExists) setProfileOpen(false)
-        }}>
-          <div className="ohk-modal ohk-profile-modal" role="dialog" aria-modal="true" aria-labelledby="ohk-profile-title" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-modal-head">
-              <h2 id="ohk-profile-title">{authUser && !profileDocExists ? 'Complete your profile' : 'Profile'}</h2>
-              <button type="button" className="ohk-modal-close" onClick={() => setProfileOpen(false)} aria-label="Close sign-in and profile dialog" title="Close">
-                <Icon name="close" />
-              </button>
-            </div>
-
-            {authLoading ? (
-              <p className="ohk-registration-intro">Checking your sign-in status…</p>
-            ) : !authUser ? (
-              <>
-                <p className="ohk-registration-intro">Sign in with Google to create your Offerhaikya profile and save the offer categories you care about.</p>
-                <button type="button" className="ohk-primary-button ohk-google-signin-button" onClick={handleGoogleSignIn} disabled={authBusy}>
-                  <strong className="ohk-google-mark" aria-hidden="true">G</strong>
-                  {authBusy ? 'Connecting to Google…' : 'Continue with Google'}
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="ohk-profile-identity">
-                  {authUser.photoURL ? <img src={authUser.photoURL} alt="" /> : <span className="ohk-profile-avatar"><Icon name="user" size={22} /></span>}
-                  <div>
-                    <strong>{authUser.displayName || 'Offerhaikya user'}</strong>
-                    <span>{authUser.email}</span>
-                  </div>
-                </div>
-                <p className="ohk-registration-intro">
-                  {profileDocExists
-                    ? 'Update your interests below. Choose at least one category to save your profile.'
-                    : 'Choose at least one category to complete registration. You cannot finish sign-up without selecting a category.'}
-                </p>
-                <label className="ohk-profile-field-label" htmlFor="ohk-profile-phone">Phone number (optional)</label>
-                <input
-                  id="ohk-profile-phone"
-                  className="ohk-profile-phone"
-                  type="tel"
-                  autoComplete="tel"
-                  value={profilePhone}
-                  onChange={(event) => setProfilePhone(event.target.value)}
-                  placeholder="Enter phone number (optional)"
-                />
-                <div className="ohk-profile-category-heading">
-                  <strong>Choose your offer categories <span aria-hidden="true">*</span></strong>
-                  <small>Select one or more</small>
-                </div>
-                {profileCategoryOptions.length ? (
-                  <div className="ohk-profile-category-list">
-                    {profileCategoryOptions.map((category) => (
-                      <label className="ohk-profile-category-option" key={category}>
-                        <input
-                          type="checkbox"
-                          checked={profileCategories.includes(category)}
-                          onChange={(event) => {
-                            setProfileCategories((current) => event.target.checked
-                              ? [...new Set([...current, category])]
-                              : current.filter((item) => item !== category))
-                            setProfileError('')
-                          }}
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="ohk-registration-intro">Offer categories are loading from Blogger. Please wait a moment and try again.</p>
-                )}
-                {profileError ? <p className="ohk-profile-error" role="alert">{profileError}</p> : null}
-                <button
-                  type="button"
-                  className="ohk-primary-button"
-                  onClick={handleSaveProfile}
-                  disabled={authBusy || profileCategories.length === 0 || profileCategoryOptions.length === 0}
-                >
-                  {authBusy ? 'Saving profile…' : profileDocExists ? 'Save profile' : 'Complete registration'}
-                </button>
-                {profileDocExists ? (
-                  <button type="button" className="ohk-secondary-button ohk-profile-signout" onClick={handleGoogleSignOut} disabled={authBusy}>Sign out</button>
-                ) : null}
-              </>
-            )}
-            {profileError && !authUser ? <p className="ohk-profile-error" role="alert">{profileError}</p> : null}
-          </div>
-        </div>
-      ) : null}
+      <AccountModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        authUser={authUser}
+        authLoading={authLoading}
+        profile={{
+          name: authUser?.displayName || '',
+          phone: profilePhone,
+          categories: profileCategories,
+        }}
+        profileComplete={profileDocExists}
+        categoryOptions={profileCategoryOptions}
+        onProfileChange={(nextProfile = {}) => {
+          if (Array.isArray(nextProfile.categories)) {
+            setProfileCategories(nextProfile.categories)
+            setProfileDocExists(nextProfile.categories.length > 0)
+          }
+          if (typeof nextProfile.phone === 'string') setProfilePhone(nextProfile.phone)
+          setProfileError('')
+        }}
+      />
 
       {shareTarget ? (
         <div className="ohk-modal-backdrop" onClick={() => setShareTarget(null)}>
