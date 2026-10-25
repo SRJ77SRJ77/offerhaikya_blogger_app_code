@@ -131,6 +131,7 @@ export default function AccountModal({
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', location: '', email: '', password: '' })
   const [categories, setCategories] = useState([])
   const [pw, setPw] = useState({ current: '', next: '' })
@@ -161,6 +162,7 @@ export default function AccountModal({
     setError('')
     setNotice('')
     setShowPassword(false)
+    setAcceptedTerms(false)
     setPw({ current: '', next: '' })
     setConfirmText('')
     setDeletePassword('')
@@ -173,7 +175,7 @@ export default function AccountModal({
 
   const setField = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
   const clearMessages = () => { setError(''); setNotice('') }
-  const switchMode = (next) => { setMode(next); clearMessages(); setShowPassword(false) }
+  const switchMode = (next) => { setMode(next); clearMessages(); setShowPassword(false); if (next !== 'signup') setAcceptedTerms(false) }
   const goView = (next) => { setView(next); clearMessages(); setShowPassword(false) }
 
   const run = async (task) => {
@@ -203,6 +205,7 @@ export default function AccountModal({
     if (!categories.length) { setError('Please select at least one category.'); return }
     if (!EMAIL_RE.test(email)) { setError('Please enter a valid email address.'); return }
     if (form.password.length < MIN_PASSWORD) { setError('Password must be at least ' + MIN_PASSWORD + ' characters.'); return }
+    if (!acceptedTerms) { setError('Please accept the Terms & Conditions and Privacy Policy to create your account.'); return }
     run(async () => {
       onSignupStateChange?.(true)
       try {
@@ -381,11 +384,18 @@ export default function AccountModal({
           <Field id="ohk-auth-location" label="Location (city or state) *" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" required />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
-          <p className="ohk-auth-hint">
-            By creating an account you agree to our{' '}
-            <a href="/terms-and-condition" target="_blank" rel="noopener noreferrer">Terms</a> and{' '}
-            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
-          </p>
+          <label className="ohk-auth-terms">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => { setAcceptedTerms(event.target.checked); if (event.target.checked) setError('') }}
+              required
+              aria-required="true"
+            />
+            <span>
+              I agree to the <a href="/terms-and-condition" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a> and <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            </span>
+          </label>
           {messages}
           <button type="submit" className="ohk-primary-button" disabled={busy}>{busy ? 'Creating account…' : 'Create account'}</button>
         </form>
