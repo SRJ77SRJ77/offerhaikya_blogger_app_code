@@ -42,12 +42,14 @@ export default {
       return json({ ok: true, worker: VERSION, mode: "health-only" });
     }
 
-    if (request.method === "POST" && url.pathname === "/run") {
+    if (request.method === "POST" && (url.pathname === "/run" || url.pathname === "/test")) {
       if (!env.ADMIN_SECRET || request.headers.get("Authorization") !== "Bearer " + env.ADMIN_SECRET) {
         return json({ ok: false, error: "Unauthorized" }, 401);
       }
       try {
-        const result = await runNotificationCycle(env);
+        const result = url.pathname === "/test"
+          ? await runSafeTest(env)
+          : await runNotificationCycle(env);
         return json(result);
       } catch (error) {
         return json({ ok: false, worker: VERSION, error: safeError(error) }, 500);
@@ -540,6 +542,64 @@ async function fetchBloggerPosts() {
   if (!response.ok) throw new Error("Blogger feed request failed: HTTP " + response.status);
   const posts = parseBloggerFeed(await response.json());
   return posts.sort((a, b) => (Date.parse(a.publishedAt) || 0) - (Date.parse(b.publishedAt) || 0));
+}
+
+async function runSafeTest(env) {
+  const token = await getFirebaseAccessToken(env);
+  const posts = (await fetchBloggerPosts()).filter((post) => !isExpired(post)).slice(-10).reverse();
+  const profiles = await listCollection(env, token, PROFILE_COLLECTION);
+  const geocodes = new Map();
+  const results = [];
+
+  for (const post of posts) {
+    const type = offerType(post);
+    const matched = [];
+    let skippedRoutes = 0;
+    for (const profileDoc of profiles) {
+      const profile = profileDoc.data || {};
+      const basic = findProfileMatch(post, profile);
+      if (!basic.matched) continue;
+      let locationMatch = { matched: true, reason: "ONLINE_CATEGORY_MATCH" };
+      if (type === "local") {
+        try {
+          locationMatch = await getLocalMatch(env, token, post, profile, geocodes);
+        } catch (error) {
+          locationMatch = { matched: false, reason: "ROUTING_SERVICE_ERROR" };
+        }
+        if (!locationMatch.matched) {
+          if (["ROAD_ROUTE_UNAVAILABLE", "GEOCODING_FAILED", "LOCATION_MISSING", "ROUTING_SERVICE_ERROR"].includes(locationMatch.reason)) skippedRoutes++;
+          continue;
+        }
+      }
+      matched.push({
+        userId: profileDoc.id,
+        category: basic.category,
+        type,
+        roadDistanceKm: locationMatch.roadDistanceKm || null,
+        matchReason: locationMatch.reason,
+      });
+    }
+    results.push({
+      postId: post.id,
+      title: post.title,
+      type,
+      categories: postCategories(post),
+      matchingProfiles: matched.length,
+      skippedBecauseLocationOrRouteUnavailable: skippedRoutes,
+      matches: matched,
+    });
+  }
+  return {
+    ok: true,
+    worker: VERSION,
+    mode: "SAFE_TEST_NO_DELIVERY",
+    profilesChecked: profiles.length,
+    postsChecked: results.length,
+    results,
+    notificationsSent: 0,
+    stateChanged: false,
+    message: "Dry run only. No emails or push notifications were sent. Geocoding cache entries may be saved.",
+  };
 }
 
 async function runNotificationCycle(env) {
