@@ -333,7 +333,7 @@ export default function AccountModal({
       {mode === 'signup' ? (
         <form className="ohk-auth-form" onSubmit={handleSignUp} noValidate>
           <Field id="ohk-auth-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} placeholder="Your name" />
-          <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" />
+          <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setField('phone')({ ...event, target: { ...event.target, value: event.target.value.replace(/\\D/g, '').slice(0, 10) } })} maxLength={10} placeholder="10-digit mobile number" />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <p className="ohk-auth-hint">
@@ -391,7 +391,7 @@ export default function AccountModal({
         ) : null}
 
         <Field id="ohk-acc-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} />
-        <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={setField('phone')} placeholder="10-digit mobile number" />
+        <Field id="ohk-acc-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setField('phone')({ ...event, target: { ...event.target, value: event.target.value.replace(/\\D/g, '').slice(0, 10) } })} maxLength={10} placeholder="10-digit mobile number" />
         <Field id="ohk-acc-email" label="Email" type="email" value={authUser.email || ''} disabled readOnly />
 
         <div className="ohk-profile-category-heading">
