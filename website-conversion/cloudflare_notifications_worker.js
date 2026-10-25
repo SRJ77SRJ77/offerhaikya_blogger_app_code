@@ -221,7 +221,7 @@ function categoriesMatch(post, profile) {
 function wantsType(profile, type) {
   const selected = userCategories(profile);
   if (type === "local") return selected.includes("local offer") || selected.includes("offline offer");
-  if (type === "online") return selected.includes("online offer");
+  if (type === "online") return selected.includes("online offer") || selected.some((category) => category && !["local offer", "offline offer"].includes(category));
   return false;
 }
 
@@ -507,10 +507,18 @@ function findProfileMatch(post, profile) {
   // and the 300 km road-distance check, not by an additional product category.
   if (type === "local") return { matched: true, type, category: "local offer" };
 
-  // Online offers still require a selected category match (e.g. Amazon/Meesho).
+  // Selecting Online Offers opts into every online offer. If the post also
+  // matches a specific selected category (e.g. Amazon/Meesho), report that
+  // category; otherwise the broad online preference is sufficient.
   const category = categoriesMatch(post, profile);
-  if (!category) return { matched: false, reason: "NO_CATEGORY_MATCH" };
-  return { matched: true, type, category };
+  if (type === "online") {
+    if (userCategories(profile).includes("online offer")) {
+      return { matched: true, type, category: category || "online offer" };
+    }
+    if (!category) return { matched: false, reason: "NO_CATEGORY_MATCH" };
+    return { matched: true, type, category };
+  }
+  return { matched: true, type, category: category || "local offer" };
 }
 
 async function sendEmail(env, profile, post) {
