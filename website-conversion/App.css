@@ -1479,7 +1479,7 @@ input, textarea, select, button { max-width: 100%; }
 .ohk-detail-page .ohk-detail-main-image {
   width: 100%;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 15px;
 }
 .ohk-detail-page .ohk-detail-main-image .ohk-detail-featured-image {
   display: block;
