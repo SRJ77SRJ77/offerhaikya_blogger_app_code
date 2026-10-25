@@ -224,6 +224,7 @@ export default function AccountModal({
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
     const location = String(form.location || '').trim().slice(0, 100)
     if (name.length < 2) { setError('Please enter your name.'); return }
+    if (!location) { setError('Please enter your city or state.'); return }
     if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!categoryOptions.length) { setError('Categories are still loading. Please try again in a moment.'); return }
     if (!categories.length) { setError('Please select at least one category.'); return }
@@ -291,6 +292,7 @@ export default function AccountModal({
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
     const location = String(form.location || '').trim().slice(0, 100)
     if (name.length < 2) { setError('Please enter your name.'); return }
+    if (!location) { setError('Please enter your city or state.'); return }
     if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
     if (!categories.length) { setError('Please select at least one category.'); return }
     const wasRequired = required
@@ -403,7 +405,7 @@ export default function AccountModal({
           ) : (
             <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
           )}
-          <Field id="ohk-auth-location" label="Location (city or town, optional)" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" />
+          <Field id="ohk-auth-location" label="Location (city or state) *" type="text" autoComplete="address-level2" value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value.slice(0, 100) }))} maxLength={100} placeholder="Enter City or State" required />
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <p className="ohk-auth-hint">
