@@ -1259,6 +1259,7 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setAuthUser(currentUser)
       setAuthLoading(false)
+
       if (!currentUser) {
         setProfileDocExists(false)
         setProfileCategories([])
@@ -1267,16 +1268,21 @@ function App() {
         return
       }
 
+      // Do not let the auth listener reopen the profile modal while signup is saving.
       if (signingUpRef.current) return
 
       try {
         const profileSnapshot = await getDoc(doc(db, 'userProfiles', currentUser.uid))
+
         if (profileSnapshot.exists()) {
           const data = profileSnapshot.data()
-          const categories = Array.isArray(data.categories) ? data.categories.map((label) => String(label || '').replace(/imp$/i, '').trim()).filter(Boolean) : []
+          const categories = Array.isArray(data.categories)
+            ? data.categories.map((label) => String(label || '').replace(/imp$/i, '').trim()).filter(Boolean)
+            : []
+
           setProfileCategories(categories)
           setProfilePhone(typeof data.phone === 'string' ? data.phone : '')
-          setProfileName(typeof data.name === 'string' && data.name ? data.name : (typeof data.displayName === 'string' ? data.displayName : (currentUser.displayName || '')))
+          setProfileName(typeof data.name === 'string' && data.name ? data.name : (currentUser.displayName || ''))
           setProfileDocExists(categories.length > 0)
           setProfileOpen(categories.length === 0)
         } else {
@@ -1288,9 +1294,11 @@ function App() {
         }
       } catch (error) {
         console.error('Offerhaikya profile load failed:', error)
+        setProfileCategories([])
+        setProfilePhone('')
+        setProfileName(currentUser.displayName || '')
         setProfileDocExists(false)
         setProfileOpen(true)
-        setProfileName(currentUser.displayName || '')
       }
     })
 
