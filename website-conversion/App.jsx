@@ -2604,26 +2604,26 @@ function App() {
                 </section>
               ) : null}
 
-                {detailOhk.has && detailOhk.youInsLinks.length > 0 ? (
-                <section className="ohk-dp-card ohk-dp-youins-card" aria-labelledby="ohk-dp-youins-title">
-                  <h2 id="ohk-dp-youins-title" className="ohk-dp-heading">Instagram &amp; YouTube</h2>
+                {detailOhk.has && detailOhk.youtubeVideos.length > 0 ? (
+                <section className="ohk-dp-card ohk-dp-youtube-card" aria-labelledby="ohk-dp-youtube-title">
+                  <h2 id="ohk-dp-youtube-title" className="ohk-dp-heading">YouTube Video</h2>
                   <div className="ohk-dp-slider-wrap ohk-dp-youtube-wrap">
-                    {detailOhk.youInsLinks.length > 1 ? <button
+                    {detailOhk.youtubeVideos.length > 1 ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-prev"
-                      aria-label="Previous Instagram and YouTube posts"
+                      aria-label="Previous videos"
                       onClick={(event) => {
-                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youins-slider')
-                        if (row) row.scrollBy({ left: -row.clientWidth, behavior: 'smooth' })
+                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
+                        if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
                     >‹</button> : null}
-                    <div className="ohk-dp-slider ohk-dp-youtube-slider ohk-dp-youins-slider">
-                      {detailOhk.youInsLinks.map((item, index) => (
-                        <article className="ohk-dp-youtube-slide" key={item.url}>
-                          <div className={item.platform === 'instagram' ? 'ohk-dp-youtube-frame ohk-dp-instagram-frame' : 'ohk-dp-youtube-frame'}>
+                    <div className="ohk-dp-slider ohk-dp-youtube-slider">
+                      {detailOhk.youtubeVideos.slice(0, 3).map((video, index) => (
+                        <article className="ohk-dp-youtube-slide" key={video}>
+                          <div className="ohk-dp-youtube-frame">
                             <iframe
-                              src={item.url}
-                              title={`${detail.title || 'Offer'} ${item.platform === 'instagram' ? 'Instagram post' : 'YouTube video'} ${index + 1}`}
+                              src={video}
+                              title={`${detail.title || 'Offer'} YouTube video ${index + 1}`}
                               loading="lazy"
                               referrerPolicy="strict-origin-when-cross-origin"
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -2633,13 +2633,13 @@ function App() {
                         </article>
                       ))}
                     </div>
-                    {detailOhk.youInsLinks.length > 1 ? <button
+                    {detailOhk.youtubeVideos.length > 1 ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-next"
-                      aria-label="Next Instagram and YouTube posts"
+                      aria-label="Next videos"
                       onClick={(event) => {
-                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youins-slider')
-                        if (row) row.scrollBy({ left: row.clientWidth, behavior: 'smooth' })
+                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
+                        if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
                     >›</button> : null}
                   </div>
