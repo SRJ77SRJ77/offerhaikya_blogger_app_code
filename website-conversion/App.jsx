@@ -1186,6 +1186,12 @@ function App() {
   const [posts, setPosts] = useState([])
   const [couponSource, setCouponSource] = useState(null)
   const detailRef = useRef(null)
+  const [detailViewportWidth, setDetailViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const updateWidth = () => setDetailViewportWidth(window.innerWidth)
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
 
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
@@ -2608,7 +2614,7 @@ function App() {
                 <section className="ohk-dp-card ohk-dp-youtube-card" aria-labelledby="ohk-dp-youtube-title">
                   <h2 id="ohk-dp-youtube-title" className="ohk-dp-heading">YouTube Video</h2>
                   <div className="ohk-dp-slider-wrap ohk-dp-youtube-wrap">
-                    <button
+                    {detailOhk.youtubeVideos.length > 1 ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-prev"
                       aria-label="Previous videos"
@@ -2616,7 +2622,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
                         if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >‹</button>
+                    >‹</button> : null}
                     <div className="ohk-dp-slider ohk-dp-youtube-slider">
                       {detailOhk.youtubeVideos.slice(0, 3).map((video, index) => (
                         <article className="ohk-dp-youtube-slide" key={video}>
@@ -2633,7 +2639,7 @@ function App() {
                         </article>
                       ))}
                     </div>
-                    <button
+                    {detailOhk.youtubeVideos.length > 1 ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-next"
                       aria-label="Next videos"
@@ -2641,7 +2647,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
                         if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >›</button>
+                    >›</button> : null}
                   </div>
                 </section>
               ) : null}
@@ -2650,7 +2656,7 @@ function App() {
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
                   <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Our Products</h2>
                   <div className="ohk-dp-slider-wrap">
-                    <button
+                    {detailOhk.products.length > (detailViewportWidth <= 600 ? 1 : detailViewportWidth <= 900 ? 3 : 4) ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-prev"
                       aria-label="Previous products"
@@ -2658,7 +2664,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider')
                         if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >‹</button>
+                    >‹</button> : null}
                     <div className="ohk-dp-slider">
                       {detailOhk.products.map((product, index) => (
                         <article className="ohk-dp-product" key={index}>
@@ -2682,7 +2688,7 @@ function App() {
                         </article>
                       ))}
                     </div>
-                    <button
+                    {detailOhk.products.length > (detailViewportWidth <= 600 ? 1 : detailViewportWidth <= 900 ? 3 : 4) ? <button
                       type="button"
                       className="ohk-dp-slider-arrow ohk-dp-slider-next"
                       aria-label="Next products"
@@ -2690,7 +2696,7 @@ function App() {
                         const row = event.currentTarget.parentElement.querySelector('.ohk-dp-slider')
                         if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
                       }}
-                    >›</button>
+                    >›</button> : null}
                   </div>
                 </section>
               ) : null}
