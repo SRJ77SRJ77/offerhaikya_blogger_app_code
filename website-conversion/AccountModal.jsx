@@ -467,9 +467,9 @@ export default function AccountModal({
       </form>
 
       <div className="ohk-auth-actions">
-        {!required && isPasswordUser ? <button type="button" className="ohk-auth-link" onClick={() => goView('password')}>Change password</button> : null}
-        <button type="button" className="ohk-auth-link" onClick={handleSignOut} disabled={busy}>Sign out</button>
-        {!required ? <button type="button" className="ohk-auth-link is-danger" onClick={() => goView('delete')}>Delete my account</button> : null}
+        {!required && isPasswordUser ? <button type="button" className="ohk-auth-link" onClick={() => goView('password')}>Change Password</button> : null}
+        <button type="button" className="ohk-auth-link" onClick={handleSignOut} disabled={busy}>Logout</button>
+        {!required ? <button type="button" className="ohk-auth-link is-danger" onClick={() => goView('delete')}>Delete Account</button> : null}
       </div>
     </>
   ) : null
