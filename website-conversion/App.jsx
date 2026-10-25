@@ -2723,7 +2723,7 @@ function App() {
 
                             {detailOhk.has && detailOhk.contacts.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-contact-title">
-                  <h2 id="ohk-dp-contact-title" className="ohk-dp-heading">Contact details</h2>
+                  <h2 id="ohk-dp-contact-title" className="ohk-dp-heading">Contact &amp; Social Details</h2>
                   <div className="ohk-dp-contacts">
                     {detailOhk.contacts.map((contact, index) => (
                       <a
