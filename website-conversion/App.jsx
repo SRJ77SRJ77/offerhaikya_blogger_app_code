@@ -2604,6 +2604,48 @@ function App() {
                 </section>
               ) : null}
 
+                {detailOhk.has && detailOhk.youtubeVideos.length > 0 ? (
+                <section className="ohk-dp-card ohk-dp-youtube-card" aria-labelledby="ohk-dp-youtube-title">
+                  <h2 id="ohk-dp-youtube-title" className="ohk-dp-heading">YouTube Video</h2>
+                  <div className="ohk-dp-slider-wrap ohk-dp-youtube-wrap">
+                    <button
+                      type="button"
+                      className="ohk-dp-slider-arrow ohk-dp-slider-prev"
+                      aria-label="Previous videos"
+                      onClick={(event) => {
+                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
+                        if (row) row.scrollBy({ left: -row.clientWidth * 0.8, behavior: 'smooth' })
+                      }}
+                    >‹</button>
+                    <div className="ohk-dp-slider ohk-dp-youtube-slider">
+                      {detailOhk.youtubeVideos.slice(0, 3).map((video, index) => (
+                        <article className="ohk-dp-youtube-slide" key={video}>
+                          <div className="ohk-dp-youtube-frame">
+                            <iframe
+                              src={video}
+                              title={`${detail.title || 'Offer'} YouTube video ${index + 1}`}
+                              loading="lazy"
+                              referrerPolicy="strict-origin-when-cross-origin"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="ohk-dp-slider-arrow ohk-dp-slider-next"
+                      aria-label="Next videos"
+                      onClick={(event) => {
+                        const row = event.currentTarget.parentElement.querySelector('.ohk-dp-youtube-slider')
+                        if (row) row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' })
+                      }}
+                    >›</button>
+                  </div>
+                </section>
+              ) : null}
+
                 {detailOhk.has && detailOhk.products.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
                   <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Our Products</h2>
