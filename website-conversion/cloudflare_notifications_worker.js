@@ -38,7 +38,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     // Normalize trailing slashes so /health/ works the same as /health.
-    const pathname = url.pathname.replace(/\\/+$/, "") || "/";
+    const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
     // Keep the health check available at both the root and /health.
     if (request.method === "GET" && (pathname === "/" || pathname === "/health")) {
