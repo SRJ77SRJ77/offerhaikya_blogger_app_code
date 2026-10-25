@@ -17,9 +17,9 @@ const PAGE_SIZE = 20
 const LOGO_URL = logoImage
 
 const CATEGORY_GROUPS = [
-  { title: 'Brands', tags: ['Amazon', 'Meesho', 'Flipkart', 'Myntra', 'AJIO', 'Nykaa', 'Tata CLiQ', 'Croma', 'Reliance Digital', 'JioMart', 'BigBasket', 'Blinkit', 'Zepto', 'Swiggy', 'Zomato', 'Shoppers Stop', 'Westside', 'Tira', 'Reliance Trends', 'Studio'] },
   { title: 'Offer Types', tags: ['Local Offers', 'Online Offers', 'Offline Offers'] },
   { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
+  { title: 'Brands', tags: ['Amazon', 'Meesho', 'Flipkart', 'Myntra', 'AJIO', 'Nykaa', 'Tata CLiQ', 'Croma', 'Reliance Digital', 'JioMart', 'BigBasket', 'Blinkit', 'Zepto', 'Swiggy', 'Zomato', 'Shoppers Stop', 'Westside', 'Tira', 'Reliance Trends', 'Studio'] },
 ]
 
 const HOME_FAQS = [
