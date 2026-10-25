@@ -4,7 +4,6 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   reauthenticateWithCredential,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
@@ -124,6 +123,7 @@ export default function AccountModal({
   profileComplete,
   categoryOptions = [],
   onProfileChange,
+  onSignupStateChange,
 }) {
   const [mode, setMode] = useState('login') // signed out: login | signup | forgot
   const [view, setView] = useState('account') // signed in: account | password | delete
@@ -201,26 +201,30 @@ export default function AccountModal({
     if (!EMAIL_RE.test(email)) { setError('Please enter a valid email address.'); return }
     if (form.password.length < MIN_PASSWORD) { setError('Password must be at least ' + MIN_PASSWORD + ' characters.'); return }
     run(async () => {
-      const credential = await createUserWithEmailAndPassword(auth, email, form.password)
-      const user = credential.user
-      await updateProfile(user, { displayName: name })
-      const now = new Date().toISOString()
-      await setDoc(doc(db, 'userProfiles', user.uid), {
-        uid: user.uid,
-        email: user.email || email,
-        displayName: name,
-        name,
-        phone,
-        categories,
-        profileComplete: true,
-        provider: 'password',
-        createdAt: now,
-        updatedAt: now,
-      }, { merge: true })
-      onProfileChange?.({ name, phone, categories })
-      try { await sendEmailVerification(user) } catch { /* verification email is optional */ }
-      setForm((current) => ({ ...current, password: '' }))
-      setNotice('Account created successfully. You can now explore offers.')
+      onSignupStateChange?.(true)
+      try {
+        const credential = await createUserWithEmailAndPassword(auth, email, form.password)
+        const user = credential.user
+        await updateProfile(user, { displayName: name })
+        const now = new Date().toISOString()
+        await setDoc(doc(db, 'userProfiles', user.uid), {
+          uid: user.uid,
+          email: user.email || email,
+          displayName: name,
+          name,
+          phone,
+          categories,
+          profileComplete: true,
+          provider: 'password',
+          createdAt: now,
+          updatedAt: now,
+        }, { merge: true })
+        onProfileChange?.({ name, phone, categories })
+        setForm((current) => ({ ...current, password: '' }))
+        onClose()
+      } finally {
+        onSignupStateChange?.(false)
+      }
     })
   }
 
@@ -276,11 +280,6 @@ export default function AccountModal({
       else setNotice('Profile saved.')
     })
   }
-
-  const handleResendVerification = () => run(async () => {
-    await sendEmailVerification(authUser)
-    setNotice('Verification email sent. Please check your inbox and spam folder.')
-  })
 
   const handleChangePassword = (event) => {
     event.preventDefault()
@@ -416,13 +415,6 @@ export default function AccountModal({
             <span>{authUser.email}</span>
           </div>
         </div>
-
-        {isPasswordUser && !authUser.emailVerified ? (
-          <p className="ohk-auth-hint">
-            Your email is not verified yet.{' '}
-            <button type="button" className="ohk-auth-link" onClick={handleResendVerification} disabled={busy}>Resend verification email</button>
-          </p>
-        ) : null}
 
         {required ? (
           <p className="ohk-registration-intro">Choose at least one category to finish registration.</p>
