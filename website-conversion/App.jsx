@@ -2629,7 +2629,7 @@ function App() {
                               {product.mrp ? <s>{product.mrp}</s> : null}
                             </div>
                             {product.link ? (
-                              <a className="ohk-dp-product-buy" href={product.link} target="_blank" rel="sponsored nofollow noopener noreferrer">Buy now</a>
+                              <a className="ohk-dp-product-buy" href={product.link} target="_blank" rel="sponsored nofollow noopener noreferrer">{product.buttonText || 'Buy Now'}</a>
                             ) : null}
                           </div>
                         </article>
