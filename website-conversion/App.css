@@ -2888,22 +2888,11 @@ a.ohk-card-click,
 
 
 
-/* Final dark-mode override for the detail-page description (including Blogger inline styles). */
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html p,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html li,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html span,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html strong,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html em,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h1,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h2,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h3,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h4,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h5,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html h6,
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html *:not(a):not(img):not(video):not(iframe):not(svg) {
-  color: #fff !important;
+/* Dark-mode text fix for Blogger HTML in the actual Full Details / Full Offers Details cards. */
+.ohk-dark .ohk-detail-page .ohk-dp-card .ohk-detail-html,
+.ohk-dark .ohk-detail-page .ohk-dp-card .ohk-detail-html *:not(a):not(img):not(video):not(iframe):not(svg) {
+  color: #ffffff !important;
 }
-.ohk-dark .ohk-detail-page .ohk-detail-description-content .ohk-detail-html a {
+.ohk-dark .ohk-detail-page .ohk-dp-card .ohk-detail-html a {
   color: #ff9b69 !important;
 }
