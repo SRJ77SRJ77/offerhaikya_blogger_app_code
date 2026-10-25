@@ -196,6 +196,8 @@ export default function AccountModal({
     const phone = rawPhone ? normalizePhone(rawPhone) : ''
     if (name.length < 2) { setError('Please enter your name.'); return }
     if (rawPhone && !phone) { setError('Please enter a valid 10-digit mobile number, or leave it empty.'); return }
+    if (!categoryOptions.length) { setError('Categories are still loading. Please try again in a moment.'); return }
+    if (!categories.length) { setError('Please select at least one category.'); return }
     if (!EMAIL_RE.test(email)) { setError('Please enter a valid email address.'); return }
     if (form.password.length < MIN_PASSWORD) { setError('Password must be at least ' + MIN_PASSWORD + ' characters.'); return }
     run(async () => {
@@ -209,16 +211,16 @@ export default function AccountModal({
         displayName: name,
         name,
         phone,
-        categories: [],
-        profileComplete: false,
+        categories,
+        profileComplete: true,
         provider: 'password',
         createdAt: now,
         updatedAt: now,
       }, { merge: true })
-      onProfileChange?.({ name, phone })
+      onProfileChange?.({ name, phone, categories })
       try { await sendEmailVerification(user) } catch { /* verification email is optional */ }
       setForm((current) => ({ ...current, password: '' }))
-      setNotice('Account created. We sent a verification link to your email. Now choose your categories.')
+      setNotice('Account created successfully. You can now explore offers.')
     })
   }
 
@@ -354,6 +356,22 @@ export default function AccountModal({
         <form className="ohk-auth-form" onSubmit={handleSignUp} noValidate>
           <Field id="ohk-auth-name" label="Full name" type="text" autoComplete="name" value={form.name} onChange={setField('name')} placeholder="Your name" />
           <Field id="ohk-auth-phone" label="Mobile number (optional)" type="tel" inputMode="numeric" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.replace(/\\D/g, '').slice(0, 10) }))} maxLength={10} placeholder="10-digit mobile number" />
+          <div className="ohk-profile-category-heading">
+            <strong>Category <span aria-hidden="true">*</span></strong>
+            <small>Select one or more</small>
+          </div>
+          {categoryOptions.length ? (
+            <div className="ohk-profile-category-list">
+              {categoryOptions.map((category) => (
+                <label className="ohk-profile-category-option" key={category}>
+                  <input type="checkbox" checked={categories.includes(category)} onChange={(event) => toggleCategory(category, event.target.checked)} />
+                  <span>{category}</span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="ohk-registration-intro">Categories are loading. Please wait a moment.</p>
+          )}
           <Field id="ohk-auth-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" />
           <PasswordField id="ohk-auth-password" label="Password" autoComplete="new-password" value={form.password} onChange={setField('password')} show={showPassword} onToggle={togglePassword} placeholder={'At least ' + MIN_PASSWORD + ' characters'} />
           <p className="ohk-auth-hint">
