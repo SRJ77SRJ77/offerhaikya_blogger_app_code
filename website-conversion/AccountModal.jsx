@@ -169,7 +169,19 @@ export default function AccountModal({
     setForm((current) => ({ ...current, password: '' }))
   }, [open])
 
-  useEffect(() => { setView('account') }, [authUser?.uid])
+  useEffect(() => {
+    setView('account')
+    if (authUser) return
+    setForm({ name: '', phone: '', location: '', email: '', password: '' })
+    setCategories([])
+    setPw({ current: '', next: '' })
+    setConfirmText('')
+    setDeletePassword('')
+    setAcceptedTerms(false)
+    setShowPassword(false)
+    setError('')
+    setNotice('')
+  }, [authUser?.uid])
 
   if (!open) return null
 
