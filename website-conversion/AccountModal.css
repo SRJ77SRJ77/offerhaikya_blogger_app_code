@@ -264,3 +264,32 @@
     transition: none;
   }
 }
+
+
+/* Required Terms & Conditions acceptance on signup. */
+.ohk-app .ohk-auth-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 4px;
+  color: var(--ohk-text, #202124);
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.ohk-app .ohk-auth-terms input[type="checkbox"] {
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  margin: 2px 0 0;
+  accent-color: var(--ohk-brand, #ff5b01);
+  cursor: pointer;
+}
+
+.ohk-app .ohk-auth-terms a {
+  color: var(--ohk-brand-text, #d94800);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
