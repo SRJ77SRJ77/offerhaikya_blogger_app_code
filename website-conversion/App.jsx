@@ -414,6 +414,38 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
     replacement.innerHTML = heading.innerHTML
     heading.replaceWith(replacement)
   })
+
+  // Blogger post HTML is external input. Strip executable attributes and
+  // active-content elements before returning markup for dangerouslySetInnerHTML.
+  container.querySelectorAll('object, embed, applet, base, meta, link, form, input, button, textarea, select, option, svg, math').forEach((node) => node.remove())
+  container.querySelectorAll('*').forEach((node) => {
+    Array.from(node.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase()
+      const compactValue = String(attr.value || '').replace(/[\\u0000-\\u0020]+/g, '').toLowerCase()
+      if (
+        name.startsWith('on') ||
+        name === 'srcdoc' ||
+        name === 'formaction' ||
+        name === 'action' ||
+        name === 'xlink:href'
+      ) {
+        node.removeAttribute(attr.name)
+        return
+      }
+
+      if (['href', 'src', 'poster', 'cite'].includes(name) && /^(?:javascript|vbscript|data|file):/i.test(compactValue)) {
+        node.removeAttribute(attr.name)
+        return
+      }
+
+      // Inline CSS from post content must not load active content or use legacy
+      // script-capable CSS constructs.
+      if (name === 'style' && /url\\s*\\(|expression\\s*\\(|@import/i.test(attr.value)) {
+        node.removeAttribute(attr.name)
+      }
+    })
+  })
+
   return container.innerHTML
 }
 
