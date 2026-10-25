@@ -412,6 +412,37 @@ async function roadDistanceKm(origin, destination) {
   return meters / 1000;
 }
 
+async function cachedRoadDistanceKm(env, token, origin, destination, routeCache) {
+  const rounded = (point) => ({
+    latitude: Number(Number(point.latitude).toFixed(4)),
+    longitude: Number(Number(point.longitude).toFixed(4)),
+  });
+  const a = rounded(origin);
+  const b = rounded(destination);
+  const pair = [a, b].sort((left, right) =>
+    (left.latitude - right.latitude) || (left.longitude - right.longitude)
+  );
+  const keyText = pair.map((point) => point.latitude + "," + point.longitude).join("|");
+  if (routeCache.has(keyText)) return routeCache.get(keyText);
+  const cacheId = "route_" + await sha256Id(keyText);
+  const saved = await readDocument(env, token, CACHE_COLLECTION + "/" + cacheId);
+  if (saved && saved.data && Number.isFinite(Number(saved.data.roadDistanceKm))) {
+    const km = Number(saved.data.roadDistanceKm);
+    routeCache.set(keyText, km);
+    return km;
+  }
+  const km = await roadDistanceKm(origin, destination);
+  routeCache.set(keyText, km);
+  if (Number.isFinite(km)) {
+    await writeDocument(env, token, CACHE_COLLECTION + "/" + cacheId, {
+      roadDistanceKm: Number(km.toFixed(2)),
+      cachedAt: new Date().toISOString(),
+      cacheType: "road-distance",
+    });
+  }
+  return km;
+}
+
 function getUserPlace(profile) {
   return String(profile.location || profile.locationLabel || profile.areaCity || "").trim();
 }
@@ -424,7 +455,7 @@ function localOfferPlace(post) {
   return tagged || "";
 }
 
-async function getLocalMatch(env, token, post, profile, geocodes) {
+async function getLocalMatch(env, token, post, profile, geocodes, routeCache) {
   const userPlace = getUserPlace(profile);
   const offerPlace = localOfferPlace(post);
   if (!userPlace || !offerPlace) return { matched: false, reason: "LOCATION_MISSING" };
@@ -440,7 +471,7 @@ async function getLocalMatch(env, token, post, profile, geocodes) {
   if (!offerPoint) offerPoint = await cachedGeocode(env, token, offerPlace, geocodes);
   if (!userPoint || !offerPoint) return { matched: false, reason: "GEOCODING_FAILED" };
 
-  const km = await roadDistanceKm(userPoint, offerPoint);
+  const km = await cachedRoadDistanceKm(env, token, userPoint, offerPoint, routeCache);
   if (!Number.isFinite(km)) return { matched: false, reason: "ROAD_ROUTE_UNAVAILABLE" };
   return {
     matched: km <= MAX_ROAD_DISTANCE_KM,
@@ -549,6 +580,7 @@ async function runSafeTest(env) {
   const posts = (await fetchBloggerPosts()).filter((post) => !isExpired(post)).slice(-10).reverse();
   const profiles = await listCollection(env, token, PROFILE_COLLECTION);
   const geocodes = new Map();
+  const routeCache = new Map();
   const results = [];
 
   for (const post of posts) {
@@ -562,7 +594,7 @@ async function runSafeTest(env) {
       let locationMatch = { matched: true, reason: "ONLINE_CATEGORY_MATCH" };
       if (type === "local") {
         try {
-          locationMatch = await getLocalMatch(env, token, post, profile, geocodes);
+          locationMatch = await getLocalMatch(env, token, post, profile, geocodes, routeCache);
         } catch (error) {
           locationMatch = { matched: false, reason: "ROUTING_SERVICE_ERROR" };
         }
@@ -637,6 +669,7 @@ async function runNotificationCycle(env) {
 
   const profiles = await listCollection(env, token, PROFILE_COLLECTION);
   const geocodes = new Map();
+  const routeCache = new Map();
   const summary = [];
   let hadDeliveryFailure = false;
   let notificationCount = 0;
@@ -656,7 +689,11 @@ async function runNotificationCycle(env) {
 
       let locationMatch = { matched: true, reason: "ONLINE_CATEGORY_MATCH" };
       if (type === "local") {
-        locationMatch = await getLocalMatch(env, token, post, profile, geocodes);
+        try {
+          locationMatch = await getLocalMatch(env, token, post, profile, geocodes, routeCache);
+        } catch (error) {
+          locationMatch = { matched: false, reason: "ROUTING_SERVICE_ERROR" };
+        }
         if (!locationMatch.matched) {
           if (locationMatch.reason === "ROAD_ROUTE_UNAVAILABLE" || locationMatch.reason === "GEOCODING_FAILED" || locationMatch.reason === "LOCATION_MISSING") routeSkipped++;
           continue;
