@@ -73,17 +73,24 @@ function parseBanner(inner = '') {
 }
 
 function tileKind(text) {
-  if (/^offline\b/i.test(text)) return 'offline'
-  if (/^online\b/i.test(text)) return 'online'
-  if (/%|\boff\b|discount|cashback/i.test(text)) return 'discount'
-  if (/valid|expire|till|until|last date|ends?\b/i.test(text)) return 'time'
-  if (/verified/i.test(text)) return 'verified'
-  if (/available on|store|brand|shop|amazon|flipkart|meesho|myntra/i.test(text)) return 'store'
+  const value = String(text || '').trim()
+  if (/verified/i.test(value)) return 'verified'
+  if (/\b(gta|game|gaming|playstation|xbox|nintendo|console|pc gaming)\b/i.test(value)) return 'gaming'
+  if (/\b(launch|release)\s*date\b|\b(valid|expire|expiry|till|until|last date|ends?)\b/i.test(value)) return 'time'
+  if (/\b(pre[- ]?order|coming soon|upcoming|available now|in stock|out of stock)\b/i.test(value)) return 'availability'
+  if (/₹|\b(price|mrp|rs\.?|rupees?)\b/i.test(value)) return 'price'
+  if (/\b(ps[345]|playstation|xbox|series x|series s|nintendo|steam|epic games|platform)\b/i.test(value)) return 'platform'
+  if (/\b(amazon|flipkart|meesho|myntra|retailer|store|shop|available on)\b/i.test(value)) return 'store'
+  if (/^offline\b/i.test(value)) return 'offline'
+  if (/^online\b|\boffer\b|\bdeal\b/i.test(value)) return 'online'
+  if (/%|\boff\b|discount|cashback|save\b/i.test(value)) return 'discount'
+  if (/\b(category|type|mode)\b/i.test(value)) return 'info'
+  if (/\b(bonus|gift|free|included|bundle)\b/i.test(value)) return 'bonus'
   return 'info'
 }
 
 function parseTiles(inner = '') {
-  return htmlToLines(inner).slice(0, 7).map((text) => ({ text, kind: tileKind(text) }))
+  return htmlToLines(inner).slice(0, 30).map((text) => ({ text, kind: tileKind(text) }))
 }
 
 const PRODUCT_KEY = /^p(\d*)(img|name|info|link|discount|dis|price|mrp|btn)\b\s*[:：–-]?\s*(.*)$/i
