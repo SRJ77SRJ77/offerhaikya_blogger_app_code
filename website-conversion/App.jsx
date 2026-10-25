@@ -16,6 +16,12 @@ const NEARBY_RADIUS_KM = 300
 const PAGE_SIZE = 20
 const LOGO_URL = logoImage
 
+const CATEGORY_GROUPS = [
+  { title: 'Brands', tags: ['Amazon', 'Meesho', 'Flipkart', 'Myntra', 'AJIO', 'Nykaa', 'Tata CLiQ', 'Croma', 'Reliance Digital', 'JioMart', 'BigBasket', 'Blinkit', 'Zepto', 'Swiggy', 'Zomato', 'Shoppers Stop', 'Westside', 'Tira', 'Reliance Trends', 'Studio'] },
+  { title: 'Offer Types', tags: ['Local Offers', 'Online Offers', 'Offline Offers'] },
+  { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
+]
+
 const HOME_FAQS = [
   {
     question: 'Aaj koi Offer Hai Kya? / Are there any new offers today?',
@@ -1310,13 +1316,7 @@ function App() {
     return unsubscribe
   }, [])
 
-  const profileCategoryOptions = useMemo(() => {
-    const labels = posts.flatMap((post) => Array.isArray(post.labels) ? post.labels : [])
-    return [...new Set(labels
-      .map((label) => String(label || '').replace(/imp$/i, '').trim())
-      .filter((label) => label && !isExpiryControlLabel(label) && !/^(?:verified|expired)$/i.test(label)))]
-      .sort((a, b) => a.localeCompare(b))
-  }, [posts])
+  const profileCategoryOptions = useMemo(() => CATEGORY_GROUPS.flatMap((group) => group.tags), [])
 
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
@@ -1662,12 +1662,8 @@ function App() {
     localStorage.setItem('offerhaikya_favorites', JSON.stringify(saved))
   }, [saved])
 
-  // Categories are intentionally hardcoded; only offers themselves are fetched from Blogger.
-  const categoryGroups = [
-    { title: 'Brands', tags: ['Amazon', 'Flipkart', 'Meesho', 'Myntra', 'Swiggy', 'Zomato', 'Blinkit'] },
-    { title: 'Offer Types', tags: ['Online Offers', 'Offline Offers', 'Local Offers', 'Free Delivery', 'Coupons & Promo Codes', 'Bank Offers', 'Buy 1 Get 1', 'Clearance Sale', '₹1 Deals'] },
-    { title: 'Discounts', tags: ['Upto 20% Off', 'Upto 40% Off', 'Upto 60% Off', 'Upto 80% Off'] },
-  ]
+  // Keep website filters and signup/profile categories in sync.
+  const categoryGroups = CATEGORY_GROUPS
 
   const filteredPosts = useMemo(() => {
     const text = query.trim().toLowerCase()
