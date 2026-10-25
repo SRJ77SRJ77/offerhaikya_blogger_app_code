@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, browserPopupRedirectResolver, signOut } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
@@ -1244,11 +1244,10 @@ function App() {
   const [registrationEmail, setRegistrationEmail] = useState('')
   const [authUser, setAuthUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [authBusy, setAuthBusy] = useState(false)
   const [profileCategories, setProfileCategories] = useState([])
   const [profilePhone, setProfilePhone] = useState('')
+  const [profileName, setProfileName] = useState('')
   const [profileDocExists, setProfileDocExists] = useState(false)
-  const [profileError, setProfileError] = useState('')
   const [saved, setSaved] = useState({})
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
@@ -1259,12 +1258,11 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setAuthUser(currentUser)
       setAuthLoading(false)
-      setProfileError('')
-
       if (!currentUser) {
         setProfileDocExists(false)
         setProfileCategories([])
         setProfilePhone('')
+        setProfileName('')
         return
       }
 
@@ -1275,11 +1273,13 @@ function App() {
           const categories = Array.isArray(data.categories) ? data.categories.map((label) => String(label || '').replace(/imp$/i, '').trim()).filter(Boolean) : []
           setProfileCategories(categories)
           setProfilePhone(typeof data.phone === 'string' ? data.phone : '')
+          setProfileName(typeof data.name === 'string' && data.name ? data.name : (typeof data.displayName === 'string' ? data.displayName : (currentUser.displayName || '')))
           setProfileDocExists(categories.length > 0)
           setProfileOpen(categories.length === 0)
         } else {
           setProfileCategories([])
           setProfilePhone('')
+          setProfileName(currentUser.displayName || '')
           setProfileDocExists(false)
           setProfileOpen(true)
         }
@@ -1287,7 +1287,7 @@ function App() {
         console.error('Offerhaikya profile load failed:', error)
         setProfileDocExists(false)
         setProfileOpen(true)
-        setProfileError('We could not load your profile. Please check the Firebase Firestore setup and try again.')
+        setProfileName(currentUser.displayName || '')
       }
     })
 
@@ -1301,69 +1301,6 @@ function App() {
       .filter((label) => label && !isExpiryControlLabel(label) && !/^(?:verified|expired)$/i.test(label)))]
       .sort((a, b) => a.localeCompare(b))
   }, [posts])
-
-  const handleGoogleSignIn = async () => {
-    setAuthBusy(true)
-    setProfileError('')
-    try {
-    await signInWithPopup(auth, new GoogleAuthProvider(), browserPopupRedirectResolver)
-    } catch (error) {
-      console.error('Offerhaikya Google sign-in failed:', error)
-      if (error?.code !== 'auth/popup-closed-by-user' && error?.code !== 'auth/cancelled-popup-request') {
-        setProfileError(error?.code === 'auth/unauthorized-domain'
-          ? 'This website domain is not authorized in Firebase Authentication.'
-          : 'Google sign-in failed. Please try again.')
-      }
-    } finally {
-      setAuthBusy(false)
-    }
-  }
-
-  const handleSaveProfile = async () => {
-    if (!authUser) {
-      setProfileError('Please sign in with Google first.')
-      return
-    }
-    if (!profileCategories.length) {
-      setProfileError('Please select at least one category to complete registration.')
-      return
-    }
-
-    setAuthBusy(true)
-    setProfileError('')
-    try {
-      await setDoc(doc(db, 'userProfiles', authUser.uid), {
-        uid: authUser.uid,
-        email: authUser.email || '',
-        displayName: authUser.displayName || '',
-        phone: profilePhone.trim(),
-        categories: profileCategories,
-        profileComplete: true,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true })
-      setProfileDocExists(true)
-      setProfileOpen(false)
-    } catch (error) {
-      console.error('Offerhaikya profile save failed:', error)
-      setProfileError('Your categories could not be saved. Please check that Cloud Firestore is enabled and its security rules allow signed-in users to save their own profile.')
-    } finally {
-      setAuthBusy(false)
-    }
-  }
-
-  const handleGoogleSignOut = async () => {
-    setAuthBusy(true)
-    setProfileError('')
-    try {
-      await signOut(auth)
-      setProfileOpen(false)
-    } catch (error) {
-      console.error('Offerhaikya sign-out failed:', error)
-      setProfileError('Sign-out failed. Please try again.')
-    } finally {
-      setAuthBusy(false)
-    }
-  }
 
   useEffect(() => { setDetailImageIndex(0) }, [detail?.id])
   const [detailTagFilter, setDetailTagFilter] = useState('')
@@ -3199,7 +3136,7 @@ function App() {
         authUser={authUser}
         authLoading={authLoading}
         profile={{
-          name: authUser?.displayName || '',
+          name: profileName || authUser?.displayName || '',
           phone: profilePhone,
           categories: profileCategories,
         }}
@@ -3211,7 +3148,7 @@ function App() {
             setProfileDocExists(nextProfile.categories.length > 0)
           }
           if (typeof nextProfile.phone === 'string') setProfilePhone(nextProfile.phone)
-          setProfileError('')
+          if (typeof nextProfile.name === 'string') setProfileName(nextProfile.name)
         }}
       />
 
