@@ -198,11 +198,11 @@ function parseYouTubeVideos(inner = '') {
     let id = ''
     try {
       const url = new URL(raw.startsWith('//') ? 'https:' + raw : raw)
-      const host = url.hostname.toLowerCase().replace(/^www\\./, '').replace(/^m\\./, '')
+      const host = url.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '')
       if (host === 'youtu.be') id = url.pathname.split('/').filter(Boolean)[0] || ''
       else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
         if (url.pathname === '/watch') id = url.searchParams.get('v') || ''
-        else if (/^\\/(embed|shorts|live)\\//.test(url.pathname)) id = url.pathname.split('/')[2] || ''
+        else if (/^\/(embed|shorts|live)\//.test(url.pathname)) id = url.pathname.split('/')[2] || ''
       }
     } catch { return }
     if (/^[a-zA-Z0-9_-]{11}$/.test(id)) {
@@ -210,9 +210,9 @@ function parseYouTubeVideos(inner = '') {
       if (!urls.includes(embed)) urls.push(embed)
     }
   }
-  String(inner).replace(/<a\\b[^>]*href\\s*=\\s*["']([^"']+)["'][^>]*>[\\s\\S]*?<\\/a>/gi, (_, href) => { add(href); return _ })
+  String(inner).replace(/<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi, (_, href) => { add(href); return _ })
   const text = decode(String(inner).replace(/<[^>]+>/g, ' '))
-  ;(text.match(/https?:\\/\\/[^\\s<>"']+/gi) || []).forEach((url) => add(url.replace(/[),.;]+$/, '')))
+  ;(text.match(/https?:\/\/[^\s<>"']+/gi) || []).forEach((url) => add(url.replace(/[),.;]+$/, '')))
   return urls.slice(0, MAX_YOUTUBE_VIDEOS)
 }
 
