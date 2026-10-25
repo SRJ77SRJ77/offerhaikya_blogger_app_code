@@ -2580,7 +2580,7 @@ function App() {
 
               {(detailOhk.has ? detailOhk.tiles.length > 0 : detailFacts.length > 0) ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-facts-title">
-                  <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer details</h2>
+                  <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer Details</h2>
                   <div className="ohk-dp-tiles">
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
@@ -2601,7 +2601,7 @@ function App() {
 
                 {detailOhk.has && detailOhk.products.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-products-title">
-                  <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Products in this offer</h2>
+                  <h2 id="ohk-dp-products-title" className="ohk-dp-heading">Our Products</h2>
                   <div className="ohk-dp-slider-wrap">
                     <button
                       type="button"
@@ -2650,7 +2650,7 @@ function App() {
 
                             {(!detailOhk.has || detailOhk.fullInfoHtml.trim()) ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-info-title">
-                  <h2 id="ohk-dp-info-title" className="ohk-dp-heading">Full information</h2>
+                  <h2 id="ohk-dp-info-title" className="ohk-dp-heading">Full Details</h2>
                   <div
                     className="ohk-detail-html"
                     dangerouslySetInnerHTML={{
@@ -2666,7 +2666,7 @@ function App() {
 
               {detailOhk.has && detailOhk.offerDetailHtml.trim() ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-offer-title">
-                  <h2 id="ohk-dp-offer-title" className="ohk-dp-heading">Full offer details and coupons</h2>
+                  <h2 id="ohk-dp-offer-title" className="ohk-dp-heading">Full Offers Details</h2>
                   <div
                     className="ohk-detail-html"
                     dangerouslySetInnerHTML={{ __html: cleanBloggerDetailHtml(detailOhk.offerDetailHtml, detail.title) }}
