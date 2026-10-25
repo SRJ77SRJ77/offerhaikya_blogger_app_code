@@ -126,11 +126,25 @@
 
 .ohk-app .ohk-auth-actions {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
   margin-top: 12px;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--ohk-border, #ececec);
+}
+
+.ohk-app .ohk-auth-actions .ohk-auth-link {
+  align-self: auto;
+  padding: 4px 0;
+  color: var(--ohk-text, #202124);
+  white-space: nowrap;
+}
+
+.ohk-app .ohk-auth-actions .ohk-auth-link.is-danger {
+  color: var(--ohk-danger, #b42318);
 }
 
 .ohk-app .ohk-danger-button {
