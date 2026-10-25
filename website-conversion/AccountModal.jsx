@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import {
   EmailAuthProvider,
+  GoogleAuthProvider,
+  browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   deleteUser,
   reauthenticateWithCredential,
+  reauthenticateWithPopup,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updatePassword,
   updateProfile,
