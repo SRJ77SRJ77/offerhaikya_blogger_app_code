@@ -2780,7 +2780,7 @@ function App() {
           <div className="ohk-hero-content">
             <div className="ohk-hero-small">LOCAL OFFERS • ONLINE DEALS • COUPONS</div>
             <h1>Aaj Koi Offer Hai Kya?</h1>
-            <p className="ohk-hero-subtitle">Haan! Yahin Search Karo.</p>
+            <p className="ohk-hero-subtitle">{authUser ? (profileName || authUser.displayName || authUser.email?.split('@')[0] || 'Welcome back!') : 'Haan! Yahin Search Karo.'}</p>
 
             <form className="ohk-search-box" onSubmit={(event) => { event.preventDefault(); setVisible(PAGE_SIZE); setSearchOpen(false) }}>
               <Icon name="search" size={22} />
