@@ -502,6 +502,12 @@ function findProfileMatch(post, profile) {
   const type = offerType(post);
   if (type === "unknown") return { matched: false, reason: "OFFER_TYPE_NOT_TAGGED" };
   if (!wantsType(profile, type)) return { matched: false, reason: "OFFER_TYPE_NOT_SELECTED" };
+
+  // Local/offline offer eligibility is decided by the user's saved location
+  // and the 300 km road-distance check, not by an additional product category.
+  if (type === "local") return { matched: true, type, category: "local offer" };
+
+  // Online offers still require a selected category match (e.g. Amazon/Meesho).
   const category = categoriesMatch(post, profile);
   if (!category) return { matched: false, reason: "NO_CATEGORY_MATCH" };
   return { matched: true, type, category };
