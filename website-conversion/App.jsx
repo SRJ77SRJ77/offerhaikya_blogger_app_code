@@ -270,7 +270,7 @@ function setPageMetadata(post = null) {
   const url = post?.title
     ? window.location.origin + '/offer/' + encodeURIComponent(offerSlugFromTitle(post.title))
     : window.location.origin + '/'
-  const image = new URL(post?.image || LOGO_URL, window.location.origin).href
+  const image = new URL(post?.image || '/og-image.png', window.location.origin).href
   document.title = title
   ensureMeta('meta[name="description"]', 'name', 'description', description)
   ensureMeta('meta[property="og:type"]', 'property', 'og:type', post ? 'article' : 'website')
