@@ -1187,6 +1187,7 @@ function App() {
   const [posts, setPosts] = useState([])
   const [couponSource, setCouponSource] = useState(null)
   const detailRef = useRef(null)
+  const signingUpRef = useRef(false)
   const [detailViewportWidth, setDetailViewportWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1200)
   useEffect(() => {
     const updateWidth = () => setDetailViewportWidth(window.innerWidth)
@@ -1265,6 +1266,8 @@ function App() {
         setProfileName('')
         return
       }
+
+      if (signingUpRef.current) return
 
       try {
         const profileSnapshot = await getDoc(doc(db, 'userProfiles', currentUser.uid))
@@ -3150,6 +3153,7 @@ function App() {
           if (typeof nextProfile.phone === 'string') setProfilePhone(nextProfile.phone)
           if (typeof nextProfile.name === 'string') setProfileName(nextProfile.name)
         }}
+        onSignupStateChange={(value) => { signingUpRef.current = value }}
       />
 
       {shareTarget ? (
