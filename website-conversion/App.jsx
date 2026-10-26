@@ -75,6 +75,25 @@ function searchableLabels(labels = []) {
     .join(' ')
 }
 
+function normalizeNotificationTag(label = '') {
+  return String(label || '')
+    .normalize('NFKD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/imp$/i, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9%]+/g, ' ')
+    .replace(/\\s+/g, ' ')
+    .trim()
+}
+
+function postMatchesNotificationPreferences(post, selectedCategories = []) {
+  if (!Array.isArray(selectedCategories) || selectedCategories.length === 0) return false
+  const selected = new Set(selectedCategories.map(normalizeNotificationTag).filter(Boolean))
+  const labels = (Array.isArray(post?.labels) ? post.labels : []).map(normalizeNotificationTag).filter(Boolean)
+  return labels.some((label) => selected.has(label))
+}
+
 function stripHtml(value = '') {
   return value
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -1293,6 +1312,8 @@ function App() {
   const [authUser, setAuthUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [profileCategories, setProfileCategories] = useState([])
+  const profileCategoriesRef = useRef([])
+  useEffect(() => { profileCategoriesRef.current = profileCategories }, [profileCategories])
   const [profilePhone, setProfilePhone] = useState('')
   const [profileName, setProfileName] = useState('')
   const [profileLocation, setProfileLocation] = useState('')
@@ -1569,7 +1590,15 @@ function App() {
         try {
           notificationsAreEnabled = localStorage.getItem('offerhaikya_notifications_enabled') !== 'false'
         } catch {}
-        const activeForNotifications = notificationsAreEnabled ? parsed.filter((post) => getExpiryLabel(post) !== 'Expired') : []
+        // Notifications are personalized to the signed-in profile's selected Blogger tags.
+        // No selected tags means no offer notifications; the feed itself remains visible.
+        const selectedNotificationCategories = profileCategoriesRef.current
+        const activeForNotifications = notificationsAreEnabled
+          ? parsed.filter((post) =>
+              getExpiryLabel(post) !== 'Expired' &&
+              postMatchesNotificationPreferences(post, selectedNotificationCategories)
+            )
+          : []
 
         if (!Array.isArray(previousKnown)) {
           // First visit: seed the bell with the 10 newest active posts only.
