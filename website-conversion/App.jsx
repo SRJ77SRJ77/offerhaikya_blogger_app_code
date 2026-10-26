@@ -3241,24 +3241,49 @@ function App() {
                       try { localStorage.setItem('offerhaikya_notifications', '[]') } catch {}
                     }
                   }}
+                  role="switch"
+                  aria-checked={notificationsEnabled}
                   style={{
-                    width: 'auto',
-                    minWidth: 0,
-                    height: 'auto',
-                    flexShrink: 0,
-                    border: 0,
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    position: 'relative',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: notificationsEnabled ? 'flex-end' : 'flex-start',
+                    width: '54px',
+                    minWidth: '54px',
+                    height: '30px',
+                    minHeight: '30px',
+                    padding: '3px',
+                    flex: '0 0 54px',
+                    border: '1px solid rgba(0,0,0,0.12)',
                     borderRadius: '999px',
-                    padding: '6px 10px',
-                    fontSize: '12px',
-                    fontWeight: 700,
+                    boxSizing: 'border-box',
                     cursor: 'pointer',
-                    color: notificationsEnabled ? '#fff' : 'inherit',
-                    background: notificationsEnabled ? '#16803c' : 'var(--ohk-muted, #777)',
-                    whiteSpace: 'nowrap'
+                    background: notificationsEnabled ? '#16a34a' : '#dc2626',
+                    transition: 'background 160ms ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.18)'
                   }}
                 >
-                  Notifications {notificationsEnabled ? 'ON' : 'OFF'}
+                  <span aria-hidden="true" style={{
+                    display: 'block',
+                    width: '22px',
+                    height: '22px',
+                    flex: '0 0 22px',
+                    borderRadius: '50%',
+                    background: '#fff',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.28)',
+                    transition: 'transform 160ms ease'
+                  }} />
                 </button>
+                <span style={{
+                  minWidth: '24px',
+                  fontSize: '11px',
+                  lineHeight: 1,
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                  color: notificationsEnabled ? '#15803d' : '#dc2626'
+                }}>{notificationsEnabled ? 'ON' : 'OFF'}</span>
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen(false)}
