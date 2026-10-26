@@ -767,6 +767,15 @@ async function runNotificationCycle(env) {
         if (pushResult.status === "sent") { pushSent++; notificationCount++; }
         if (pushResult.status === "failed") hadDeliveryFailure = true;
       }
+
+      if (env.WEB_PUSH_ENABLED === "true") {
+        const subscriptionDoc = pushByUid.get(profileDoc.id);
+        if (subscriptionDoc && subscriptionDoc.data && subscriptionDoc.data.enabled !== false && subscriptionDoc.data.token) {
+          const webPushResult = await deliverOnce(env, token, post, profileDoc, "webpush", () => sendFirebaseWebPush(env, token, subscriptionDoc, post));
+          if (webPushResult.status === "sent") { webPushSent++; notificationCount++; }
+          if (webPushResult.status === "failed") hadDeliveryFailure = true;
+        }
+      }
     }
 
     summary.push({
@@ -777,6 +786,7 @@ async function runNotificationCycle(env) {
       matchedProfiles,
       emailSent,
       expoPushSent: pushSent,
+      webPushSent,
       localRoutesSkipped: routeSkipped,
     });
   }
