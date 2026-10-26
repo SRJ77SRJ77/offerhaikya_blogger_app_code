@@ -33,6 +33,7 @@ const PROFILE_COLLECTION = "userProfiles";
 const STATE_DOC = "notificationState/cloudflareV2";
 const CACHE_COLLECTION = "notificationGeoCache";
 const DELIVERY_COLLECTION = "notificationDeliveries";
+const PUSH_SUBSCRIPTION_COLLECTION = "pushSubscriptions";
 
 export default {
   async fetch(request, env) {
@@ -268,7 +269,7 @@ async function getFirebaseAccessToken(env) {
   const header = { alg: "RS256", typ: "JWT" };
   const payload = {
     iss: account.client_email,
-    scope: "https://www.googleapis.com/auth/datastore",
+    scope: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/firebase.messaging",
     aud: OAUTH_URL,
     iat: now,
     exp: now + 3600,
