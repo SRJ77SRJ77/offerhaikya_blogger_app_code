@@ -567,6 +567,30 @@ async function sendExpoPush(env, profile, post) {
   return { sent: true };
 }
 
+async function sendFirebaseWebPush(env, accessToken, subscriptionDoc, post) {
+  const subscription = subscriptionDoc && subscriptionDoc.data || {};
+  const fcmToken = String(subscription.token || "").trim();
+  if (!fcmToken || subscription.enabled === false) return { sent: false, reason: "NO_ACTIVE_WEB_PUSH_TOKEN" };
+  const response = await fetch("https://fcm.googleapis.com/v1/projects/" + encodeURIComponent(env.FIREBASE_PROJECT_ID) + "/messages:send", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: {
+        token: fcmToken,
+        notification: {
+          title: String(post.title || "New offer on OfferHaikya").slice(0, 100),
+          body: String(post.description || "A new offer matches your preferences.").slice(0, 180),
+        },
+        data: { postId: String(post.id || ""), url: safeHttpUrl(post.url), offerType: String(offerType(post)) },
+        webpush: { fcmOptions: { link: safeHttpUrl(post.url) }, notification: { icon: "https://www.offerhaikya.com/favicon.ico" } },
+      },
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error("Firebase Web Push failed: " + String(result.error && result.error.message || ("HTTP " + response.status)));
+  return { sent: true, providerId: result.name || "" };
+}
+
 async function deliverOnce(env, token, post, profileDoc, channel, sendFn) {
   const deliveryId = await sha256Id(post.id + "::" + profileDoc.id + "::" + channel);
   const path = DELIVERY_COLLECTION + "/" + deliveryId;
