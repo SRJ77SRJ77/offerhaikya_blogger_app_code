@@ -633,6 +633,8 @@ async function runSafeTest(env) {
   const token = await getFirebaseAccessToken(env);
   const posts = (await fetchBloggerPosts()).filter((post) => !isExpired(post)).slice(-10).reverse();
   const profiles = await listCollection(env, token, PROFILE_COLLECTION);
+  const pushSubscriptions = env.WEB_PUSH_ENABLED === "true" ? await listCollection(env, token, PUSH_SUBSCRIPTION_COLLECTION) : [];
+  const pushByUid = new Map(pushSubscriptions.map((item) => [item.id, item]));
   const geocodes = new Map();
   const routeCache = new Map();
   const results = [];
@@ -734,6 +736,7 @@ async function runNotificationCycle(env) {
     let matchedProfiles = 0;
     let emailSent = 0;
     let pushSent = 0;
+    let webPushSent = 0;
     let routeSkipped = 0;
 
     for (const profileDoc of profiles) {
