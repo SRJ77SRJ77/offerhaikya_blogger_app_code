@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { getMessaging, getToken, isSupported } from 'firebase/messaging'
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
 import AccountModal from './AccountModal.jsx'
@@ -1506,6 +1507,9 @@ function App() {
       return true
     }
   })
+  const [pushSubscriptionEnabled, setPushSubscriptionEnabled] = useState(false)
+  const [pushSubscriptionBusy, setPushSubscriptionBusy] = useState(false)
+  const [pushSubscriptionMessage, setPushSubscriptionMessage] = useState('')
   const [browserNotificationPermission, setBrowserNotificationPermission] = useState(() => {
     try {
       return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
@@ -3221,23 +3225,46 @@ function App() {
             <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
-                {browserNotificationPermission !== 'granted' ? (
+                {authUser ? (
                   <button
                     type="button"
-                    disabled={browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported'}
+                    disabled={pushSubscriptionBusy || browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported'}
                     onClick={async () => {
-                      if (!('Notification' in window)) {
-                        setBrowserNotificationPermission('unsupported')
-                        return
-                      }
+                      setPushSubscriptionBusy(true)
+                      setPushSubscriptionMessage('')
                       try {
-                        const permission = await Notification.requestPermission()
+                        if (!authUser) throw new Error('Sign in first to enable offer notifications.')
+                        if (!('Notification' in window) || !('serviceWorker' in navigator)) throw new Error('This browser does not support push notifications.')
+                        let permission = Notification.permission
+                        if (permission !== 'granted') permission = await Notification.requestPermission()
                         setBrowserNotificationPermission(permission)
-                      } catch {
-                        setBrowserNotificationPermission('denied')
+                        if (permission !== 'granted') throw new Error(permission === 'denied' ? 'Notifications are blocked in browser settings.' : 'Notification permission was not granted.')
+                        if (!(await isSupported())) throw new Error('Firebase Messaging is not supported in this browser.')
+                        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                        const messaging = getMessaging()
+                        const fcmToken = await getToken(messaging, {
+                          vapidKey: 'BAYUuXwFIzA_GcCvT_WciwKxwshnuBf2ivdGiNsJJ2NVXMS_B1ZkhF1elvqaaw_pp2ITSROWE8BYeCpG8GF8cTg',
+                          serviceWorkerRegistration: registration,
+                        })
+                        if (!fcmToken) throw new Error('Firebase did not return a push token. Check Firebase Cloud Messaging setup.')
+                        await setDoc(doc(db, 'pushSubscriptions', authUser.uid), {
+                          uid: authUser.uid,
+                          token: fcmToken,
+                          enabled: true,
+                          platform: 'web',
+                          updatedAt: new Date().toISOString(),
+                          userAgent: navigator.userAgent.slice(0, 300),
+                        }, { merge: true })
+                        setPushSubscriptionEnabled(true)
+                        setPushSubscriptionMessage('Push notifications enabled on this device.')
+                      } catch (error) {
+                        console.error('OfferHaikya push registration failed:', error)
+                        setPushSubscriptionMessage(error?.message || 'Could not enable push notifications.')
+                      } finally {
+                        setPushSubscriptionBusy(false)
                       }
                     }}
-                    aria-label="Enable browser notifications"
+                    aria-label="Enable push notifications"
                     style={{
                       width: 'auto',
                       minWidth: 0,
@@ -3253,9 +3280,12 @@ function App() {
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    {browserNotificationPermission === 'denied' ? 'Alerts blocked in browser' : browserNotificationPermission === 'unsupported' ? 'Browser alerts unavailable' : 'Enable browser alerts'}
+                    {pushSubscriptionBusy ? 'Enabling…' : pushSubscriptionEnabled ? 'Push enabled' : browserNotificationPermission === 'denied' ? 'Alerts blocked in browser' : browserNotificationPermission === 'unsupported' ? 'Push unavailable' : 'Enable push alerts'}
                   </button>
-                ) : null}
+                ) : (
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ohk-muted, #666)' }}>Sign in to enable push</span>
+                )}
+                {pushSubscriptionMessage ? <span role="status" style={{ flexBasis: '100%', fontSize: '12px' }}>{pushSubscriptionMessage}</span> : null}
                 <button
                   type="button"
                   role="switch"
