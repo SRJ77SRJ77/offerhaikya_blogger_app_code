@@ -12,12 +12,13 @@
  *   ADMIN_SECRET                   (long random secret for manual POST /run)
  *
  * Optional:
- *   EXPO_PUSH_ENABLED=true          (only if profiles actually contain expoPushToken)
+ *   EXPO_PUSH_ENABLED=true          (optional Expo push channel)
+ *   WEB_PUSH_ENABLED=true            (enable Firebase Web Push from pushSubscriptions)
  *   ROUTING_USER_AGENT              (identify requests to public Nominatim service)
  *
  * Free-service note: Nominatim and OSRM public endpoints are community services
  * with usage limits and no uptime guarantee. Do not use for high-volume traffic.
- * This worker does NOT implement browser Web Push subscription registration.
+ * Browser FCM tokens are stored by the website in pushSubscriptions/{uid}.
  */
 
 const VERSION = "OFFERHAIKYA_CLOUDFLARE_NOTIFICATIONS_V2";
