@@ -85,7 +85,8 @@ const PAGE_SIZE = 20;
 const NEARBY_RADIUS_KM = 300;
 // Temporary lightweight APK mode: browse without login and keep push notifications disabled.
 const LOGIN_ENABLED = false;
-const PUSH_NOTIFICATIONS_ENABLED = false;
+// Push notifications are enabled by default; the OS permission prompt still requires user approval.
+const PUSH_NOTIFICATIONS_ENABLED = true;
 const MAIN_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const METADATA_AUTO_SYNC_INTERVAL_MS = 60 * 1000;
 const INFO_PAGE_AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
@@ -532,7 +533,7 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Post[]>([]);
-  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
   const [pushToggleBusy, setPushToggleBusy] = useState(false);
   const dismissedNotificationIdsRef = useRef<Set<string>>(new Set());
   const guestDismissedNotificationRef = useRef<Record<string, number>>({});
@@ -3023,7 +3024,7 @@ export default function App() {
     }
     try {
       const profile = await getDoc(doc(db, 'users', user.uid));
-      setPushNotificationsEnabled(profile.exists() && profile.data()?.notificationsEnabled === true);
+      setPushNotificationsEnabled(profile.exists() && profile.data()?.notificationsEnabled === false ? false : true);
     } catch {
       // Keep the toggle usable if reading the saved preference fails.
     }
