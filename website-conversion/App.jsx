@@ -440,7 +440,7 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
 
       // Inline CSS from post content must not load active content or use legacy
       // script-capable CSS constructs.
-      if (name === 'style' && /url\\s*\\(|expression\\s*\\(|@import/i.test(attr.value)) {
+      if (name === 'style' && /url\s*\(|expression\s*\(|@import/i.test(attr.value)) {
         node.removeAttribute(attr.name)
       }
     })
