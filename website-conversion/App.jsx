@@ -1485,6 +1485,13 @@ function App() {
       return true
     }
   })
+  const [browserNotificationPermission, setBrowserNotificationPermission] = useState(() => {
+    try {
+      return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
+    } catch {
+      return 'unsupported'
+    }
+  })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
@@ -1595,6 +1602,28 @@ function App() {
           .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
           .filter((post) => !refreshedIds.has(String(post.id)))
         const mergedNotifications = limitNotificationSections([...newAdditions, ...updatedAdditions, ...retained])
+
+        // Show native browser alerts only after the first feed baseline and only
+        // when the visitor has explicitly granted browser notification permission.
+        if (Array.isArray(previousKnown) && notificationsAreEnabled && typeof window !== 'undefined' &&
+            'Notification' in window && Notification.permission === 'granted') {
+          ;[...newAdditions, ...updatedAdditions].slice(0, 5).forEach((post) => {
+            try {
+              const notification = new Notification(post.notificationType === 'updated' ? 'Offer updated' : 'New offer on OfferHaikya', {
+                body: String(post.title || 'A new offer is available').slice(0, 160),
+                icon: post.image || '/favicon.ico',
+                tag: notificationVersionKey(post),
+              })
+              notification.onclick = () => {
+                window.focus()
+                notification.close()
+              }
+            } catch (error) {
+              console.warn('OfferHaikya browser notification could not be shown.', error)
+            }
+          })
+        }
+
         const nextVersions = {}
         parsed.forEach((post) => {
           nextVersions[post.id] = String(post.updatedAt || post.publishedAt || '')
@@ -3163,6 +3192,37 @@ function App() {
             <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {browserNotificationPermission !== 'granted' ? (
+                  <button
+                    type="button"
+                    disabled={browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported'}
+                    onClick={async () => {
+                      if (!('Notification' in window)) {
+                        setBrowserNotificationPermission('unsupported')
+                        return
+                      }
+                      try {
+                        const permission = await Notification.requestPermission()
+                        setBrowserNotificationPermission(permission)
+                      } catch {
+                        setBrowserNotificationPermission('denied')
+                      }
+                    }}
+                    aria-label="Enable browser notifications"
+                    style={{
+                      border: '1px solid var(--ohk-border, #ccc)',
+                      borderRadius: '999px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported' ? 'default' : 'pointer',
+                      opacity: browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported' ? 0.7 : 1,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {browserNotificationPermission === 'denied' ? 'Alerts blocked in browser' : browserNotificationPermission === 'unsupported' ? 'Browser alerts unavailable' : 'Enable browser alerts'}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   role="switch"
