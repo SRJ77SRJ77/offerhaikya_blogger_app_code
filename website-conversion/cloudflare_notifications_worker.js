@@ -724,6 +724,8 @@ async function runNotificationCycle(env) {
   }
 
   const profiles = await listCollection(env, token, PROFILE_COLLECTION);
+  const pushSubscriptions = env.WEB_PUSH_ENABLED === "true" ? await listCollection(env, token, PUSH_SUBSCRIPTION_COLLECTION) : [];
+  const pushByUid = new Map(pushSubscriptions.map((item) => [item.id, item]));
   const geocodes = new Map();
   const routeCache = new Map();
   const summary = [];
