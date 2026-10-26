@@ -3229,7 +3229,7 @@ function App() {
                 {authUser ? (
                   <button
                     type="button"
-                    onClick={() => { setPushSubscriptionMessage(''); setPushSetupOpen(true) }}
+                    onClick={() => { setNotificationsOpen(false); setPushSubscriptionMessage(''); setPushSetupOpen(true) }}
                     style={{ border: '1px solid var(--ohk-border, #ccc)', borderRadius: '999px', padding: '7px 11px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', background: 'var(--ohk-card, #fff)' }}
                   >
                     {pushSubscriptionEnabled ? 'Push settings' : 'Enable push alerts'}
