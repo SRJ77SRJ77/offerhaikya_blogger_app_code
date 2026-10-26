@@ -1477,6 +1477,14 @@ function App() {
       return []
     }
   })
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem('offerhaikya_notifications_enabled')
+      return saved === null ? true : saved === 'true'
+    } catch {
+      return true
+    }
+  })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [wishlistOpen, setWishlistOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
@@ -1550,7 +1558,7 @@ function App() {
         let newAdditions = []
         let updatedAdditions = []
 
-        const activeForNotifications = parsed.filter((post) => getExpiryLabel(post) !== 'Expired')
+        const activeForNotifications = notificationsEnabled ? parsed.filter((post) => getExpiryLabel(post) !== 'Expired') : []
 
         if (!Array.isArray(previousKnown)) {
           // First visit: seed the bell with the 10 newest active posts only.
@@ -1577,7 +1585,7 @@ function App() {
         // If a post already has a notification, replace it with its newest version
         // rather than keeping the stale entry or appending a duplicate.
         const refreshedIds = new Set(updatedAdditions.map((post) => String(post.id)))
-        const retained = existingNotifications
+        const retained = (notificationsEnabled ? existingNotifications : [])
           .filter((post) => !isHiddenPost(post))
           .filter((post) => getExpiryLabel(post) !== 'Expired')
           .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
@@ -3150,12 +3158,42 @@ function App() {
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
-              <button onClick={() => setNotificationsOpen(false)}>×</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={notificationsEnabled}
+                  aria-label="Enable offer notifications"
+                  onClick={() => {
+                    const nextEnabled = !notificationsEnabled
+                    setNotificationsEnabled(nextEnabled)
+                    try { localStorage.setItem('offerhaikya_notifications_enabled', String(nextEnabled)) } catch {}
+                    if (!nextEnabled) {
+                      setNotifications([])
+                      try { localStorage.setItem('offerhaikya_notifications', '[]') } catch {}
+                    }
+                  }}
+                  style={{
+                    border: 0,
+                    borderRadius: '999px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    color: notificationsEnabled ? '#fff' : 'inherit',
+                    background: notificationsEnabled ? '#16803c' : 'var(--ohk-muted, #777)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Notifications {notificationsEnabled ? 'ON' : 'OFF'}
+                </button>
+                <button onClick={() => setNotificationsOpen(false)} aria-label="Close notifications">×</button>
+              </div>
             </div>
             {notifications.length === 0 ? (
               <div className="ohk-favorite-empty">
-                <strong>No notifications yet</strong>
-                <span>New offer notifications will appear here.</span>
+                <strong>{notificationsEnabled ? 'No notifications yet' : 'Notifications are off'}</strong>
+                <span>{notificationsEnabled ? 'New offer notifications will appear here.' : 'Turn notifications on to see new and updated offers here.'}</span>
               </div>
             ) : (
               <div className="ohk-favorite-list">
