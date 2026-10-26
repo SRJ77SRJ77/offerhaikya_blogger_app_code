@@ -3191,7 +3191,7 @@ function App() {
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
             <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
                 {browserNotificationPermission !== 'granted' ? (
                   <button
                     type="button"
@@ -3210,6 +3210,10 @@ function App() {
                     }}
                     aria-label="Enable browser notifications"
                     style={{
+                      width: 'auto',
+                      minWidth: 0,
+                      height: 'auto',
+                      flexShrink: 1,
                       border: '1px solid var(--ohk-border, #ccc)',
                       borderRadius: '999px',
                       padding: '6px 10px',
@@ -3238,6 +3242,10 @@ function App() {
                     }
                   }}
                   style={{
+                    width: 'auto',
+                    minWidth: 0,
+                    height: 'auto',
+                    flexShrink: 0,
                     border: 0,
                     borderRadius: '999px',
                     padding: '6px 10px',
@@ -3251,7 +3259,12 @@ function App() {
                 >
                   Notifications {notificationsEnabled ? 'ON' : 'OFF'}
                 </button>
-                <button onClick={() => setNotificationsOpen(false)} aria-label="Close notifications">×</button>
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(false)}
+                  aria-label="Close notifications"
+                  style={{ flex: '0 0 32px', width: '32px', minWidth: '32px', height: '32px', padding: 0, fontSize: '24px', lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                >×</button>
               </div>
             </div>
             {notifications.length === 0 ? (
