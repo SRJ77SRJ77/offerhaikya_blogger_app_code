@@ -1558,7 +1558,11 @@ function App() {
         let newAdditions = []
         let updatedAdditions = []
 
-        const activeForNotifications = notificationsEnabled ? parsed.filter((post) => getExpiryLabel(post) !== 'Expired') : []
+        let notificationsAreEnabled = true
+        try {
+          notificationsAreEnabled = localStorage.getItem('offerhaikya_notifications_enabled') !== 'false'
+        } catch {}
+        const activeForNotifications = notificationsAreEnabled ? parsed.filter((post) => getExpiryLabel(post) !== 'Expired') : []
 
         if (!Array.isArray(previousKnown)) {
           // First visit: seed the bell with the 10 newest active posts only.
@@ -1585,7 +1589,7 @@ function App() {
         // If a post already has a notification, replace it with its newest version
         // rather than keeping the stale entry or appending a duplicate.
         const refreshedIds = new Set(updatedAdditions.map((post) => String(post.id)))
-        const retained = (notificationsEnabled ? existingNotifications : [])
+        const retained = (notificationsAreEnabled ? existingNotifications : [])
           .filter((post) => !isHiddenPost(post))
           .filter((post) => getExpiryLabel(post) !== 'Expired')
           .filter((post) => !seen.has(notificationVersionKey(post)) && !seen.has(post.id))
