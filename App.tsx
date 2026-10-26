@@ -532,6 +532,8 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Post[]>([]);
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
+  const [pushToggleBusy, setPushToggleBusy] = useState(false);
   const dismissedNotificationIdsRef = useRef<Set<string>>(new Set());
   const guestDismissedNotificationRef = useRef<Record<string, number>>({});
   const [menuOpen, setMenuOpen] = useState(false);
@@ -3013,7 +3015,77 @@ export default function App() {
     }
   };
 
-  const deleteAllNotifications = () => {
+  const loadPushNotificationPreference = async () => {
+    const user = auth.currentUser;
+    if (!user?.uid) {
+      setPushNotificationsEnabled(false);
+      return;
+    }
+    try {
+      const profile = await getDoc(doc(db, 'users', user.uid));
+      setPushNotificationsEnabled(profile.exists() && profile.data()?.notificationsEnabled === true);
+    } catch {
+      // Keep the toggle usable if reading the saved preference fails.
+    }
+  };
+
+  const togglePushNotifications = async () => {
+    if (pushToggleBusy) return;
+    const user = auth.currentUser;
+    if (!user?.uid) {
+      Alert.alert('Login required', 'Please log in to enable push notifications.');
+      return;
+    }
+
+    setPushToggleBusy(true);
+    try {
+      if (pushNotificationsEnabled) {
+        await setDoc(doc(db, 'users', user.uid), { notificationsEnabled: false }, { merge: true });
+        setPushNotificationsEnabled(false);
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Offerhaikya',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+        });
+      }
+
+      let permission = await Notifications.getPermissionsAsync();
+      if (permission.status !== 'granted') permission = await Notifications.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert('Notifications are off', 'Allow notifications in your device settings, then try again.');
+        return;
+      }
+
+      const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+      if (!projectId) {
+        Alert.alert('Could not enable notifications', 'The app notification project ID is missing.');
+        return;
+      }
+
+      const pushToken = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+      if (!pushToken) {
+        Alert.alert('Could not enable notifications', 'Please try again.');
+        return;
+      }
+
+      await setDoc(doc(db, 'users', user.uid), {
+        expoPushToken: pushToken,
+        notificationsEnabled: true,
+        notificationPermission: 'granted',
+      }, { merge: true });
+      setPushNotificationsEnabled(true);
+    } catch {
+      Alert.alert('Could not update notifications', 'Please try again in a moment.');
+    } finally {
+      setPushToggleBusy(false);
+    }
+  };
+
+  const deleteAllNotifications = () {
     if (notifications.length === 0) return;
 
     Alert.alert(
@@ -4634,6 +4706,26 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: darkMode ? '#383838' : '#eeeeee' }}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: darkMode ? WHITE : TEXT }}>Push notifications</Text>
+            <Text style={{ fontSize: 12, marginTop: 3, color: darkMode ? '#bdbdbd' : MUTED }}>
+              {pushNotificationsEnabled ? 'Enabled on this device' : 'Get new offer alerts on this device'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => { void togglePushNotifications(); }}
+            disabled={pushToggleBusy}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: pushNotificationsEnabled, disabled: pushToggleBusy }}
+            style={{ minWidth: 62, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, alignItems: 'center', backgroundColor: pushNotificationsEnabled ? ACCENT : (darkMode ? '#444444' : '#e5e5e5'), opacity: pushToggleBusy ? 0.6 : 1 }}
+          >
+            <Text style={{ color: pushNotificationsEnabled ? WHITE : (darkMode ? WHITE : TEXT), fontSize: 12, fontWeight: '900' }}>
+              {pushToggleBusy ? '…' : pushNotificationsEnabled ? 'ON' : 'OFF'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {notifications.length === 0 ? (
           <View style={styles.favoriteEmpty}>
             <Text style={[styles.errorTitle, darkMode && styles.darkText]}>No notifications yet</Text>
@@ -5983,10 +6075,9 @@ export default function App() {
             </Svg>
           </TouchableOpacity>
 
-          {PUSH_NOTIFICATIONS_ENABLED ? (
           <TouchableOpacity
             style={styles.headerActionButton}
-            onPress={() => setNotificationsOpen(true)}
+            onPress={() => { void loadPushNotificationPreference(); setNotificationsOpen(true); }}
             accessibilityLabel="Notifications"
           >
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
@@ -6010,8 +6101,6 @@ export default function App() {
               </View>
             ) : null}
           </TouchableOpacity>
-
-          ) : null}
           {LOGIN_ENABLED ? (
           <TouchableOpacity
             style={styles.headerActionButton}
@@ -7004,7 +7093,7 @@ export default function App() {
         </View>
       </Modal>
 
-    {PUSH_NOTIFICATIONS_ENABLED ? notificationPopup : null}
+    {notificationPopup}
     {favoritePopup}
     </SafeAreaView>
   );
