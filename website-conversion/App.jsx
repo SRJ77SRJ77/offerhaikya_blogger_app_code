@@ -3228,7 +3228,7 @@ function App() {
                 {authUser ? (
                   <button
                     type="button"
-                    disabled={pushSubscriptionBusy || browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported'}
+                    disabled={pushSubscriptionBusy || browserNotificationPermission === 'unsupported'}
                     onClick={async () => {
                       setPushSubscriptionBusy(true)
                       setPushSubscriptionMessage('')
@@ -3275,8 +3275,8 @@ function App() {
                       padding: '6px 10px',
                       fontSize: '12px',
                       fontWeight: 700,
-                      cursor: browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported' ? 'default' : 'pointer',
-                      opacity: browserNotificationPermission === 'denied' || browserNotificationPermission === 'unsupported' ? 0.7 : 1,
+                      cursor: browserNotificationPermission === 'unsupported' ? 'default' : 'pointer',
+                      opacity: browserNotificationPermission === 'unsupported' ? 0.7 : 1,
                       whiteSpace: 'nowrap'
                     }}
                   >
