@@ -3300,8 +3300,6 @@ function App() {
                       try { localStorage.setItem('offerhaikya_notifications', '[]') } catch {}
                     }
                   }}
-                  role="switch"
-                  aria-checked={notificationsEnabled}
                   style={{
                     appearance: 'none',
                     WebkitAppearance: 'none',
