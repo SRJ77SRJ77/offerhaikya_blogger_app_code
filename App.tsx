@@ -3085,7 +3085,7 @@ export default function App() {
     }
   };
 
-  const deleteAllNotifications = () {
+  const deleteAllNotifications = () => {
     if (notifications.length === 0) return;
 
     Alert.alert(
