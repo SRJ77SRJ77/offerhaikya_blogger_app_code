@@ -3235,7 +3235,7 @@ const getSitePage = (type) => {
         <div className="ohk-notification-alert-backdrop" onClick={() => setNotificationAlertMessage('')}>
           <div className="ohk-notification-alert" role="alertdialog" aria-modal="true" aria-label="Notification permission message" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="ohk-notification-alert-close" aria-label="Close message" onClick={() => setNotificationAlertMessage('')}>×</button>
-            <h3>Notifications blocked</h3>
+            <h3>{notificationAlertMessage === 'Notifications are blocked in browser settings.' ? 'Alerts blocked in browser' : 'Couldn’t enable push alerts'}</h3>
             <p>{notificationAlertMessage}</p>
           </div>
         </div>
