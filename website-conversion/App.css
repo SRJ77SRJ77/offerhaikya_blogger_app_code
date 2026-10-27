@@ -2904,3 +2904,41 @@ a.ohk-card-click,
 .ohk-dp-youtube-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #111; }
 .ohk-dp-youtube-frame iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; }
 .ohk-dp-youtube-wrap .ohk-dp-slider-arrow { top: calc(50% - 17px); }
+
+
+/* Notification popup layout: keep the title and controls readable at every viewport width. */
+.ohk-favorite-popup-header.ohk-notification-header{
+  height:auto;
+  min-height:58px;
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+}
+.ohk-notification-header h2{flex:0 0 auto;line-height:1.2}
+.ohk-notification-controls{flex:1 1 auto;min-width:0}
+.ohk-notification-controls>button{flex-shrink:0}
+.ohk-notification-controls [role="status"]{overflow-wrap:anywhere}
+.ohk-notification-controls button:focus-visible{
+  outline:2px solid #ff5b01;
+  outline-offset:3px;
+}
+@media(max-width:600px){
+  .ohk-favorite-popup-header.ohk-notification-header{
+    align-items:stretch;
+    flex-direction:column;
+    gap:10px;
+    padding:14px;
+  }
+  .ohk-notification-header h2{width:100%;font-size:20px}
+  .ohk-notification-controls{
+    width:100%;
+    justify-content:flex-start!important;
+    gap:7px!important;
+  }
+  .ohk-notification-controls>button[aria-label="Close notifications"]{margin-left:auto}
+}
+@media(max-width:380px){
+  .ohk-notification-controls{gap:5px!important}
+  .ohk-notification-controls>button:not([role="switch"]){font-size:11px!important;padding:6px 8px!important}
+  .ohk-notification-controls [role="switch"]{width:46px!important;min-width:46px!important;flex-basis:46px!important}
+}
