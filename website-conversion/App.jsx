@@ -1510,6 +1510,7 @@ function App() {
   const [pushSubscriptionEnabled, setPushSubscriptionEnabled] = useState(false)
   const [pushSubscriptionBusy, setPushSubscriptionBusy] = useState(false)
   const [pushSubscriptionMessage, setPushSubscriptionMessage] = useState('')
+  const [notificationAlertMessage, setNotificationAlertMessage] = useState('')
   const [browserNotificationPermission, setBrowserNotificationPermission] = useState(() => {
     try {
       return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
@@ -1523,6 +1524,12 @@ function App() {
   const [mapOpen, setMapOpen] = useState(false)
   const [mapScope, setMapScope] = useState('all')
   const [mapFocusId, setMapFocusId] = useState(null)
+
+  useEffect(() => {
+    if (!notificationAlertMessage) return undefined
+    const timeoutId = window.setTimeout(() => setNotificationAlertMessage(''), 3000)
+    return () => window.clearTimeout(timeoutId)
+  }, [notificationAlertMessage])
 
   useEffect(() => {
     let active = true
@@ -3224,6 +3231,16 @@ const getSitePage = (type) => {
         ))}
       </nav>
 
+      {notificationAlertMessage ? (
+        <div className="ohk-notification-alert-backdrop" onClick={() => setNotificationAlertMessage('')}>
+          <div className="ohk-notification-alert" role="alertdialog" aria-modal="true" aria-label="Notification permission message" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="ohk-notification-alert-close" aria-label="Close message" onClick={() => setNotificationAlertMessage('')}>×</button>
+            <h3>Notifications blocked</h3>
+            <p>{notificationAlertMessage}</p>
+          </div>
+        </div>
+      ) : null}
+
       {notificationsOpen ? (
         <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
@@ -3235,6 +3252,10 @@ const getSitePage = (type) => {
                     type="button"
                     disabled={pushSubscriptionBusy || browserNotificationPermission === 'unsupported'}
                     onClick={async () => {
+                      if (browserNotificationPermission === 'denied' || (('Notification' in window) && Notification.permission === 'denied')) {
+                        setNotificationAlertMessage('Notifications are blocked in browser settings.')
+                        return
+                      }
                       setPushSubscriptionBusy(true)
                       setPushSubscriptionMessage('')
                       try {
