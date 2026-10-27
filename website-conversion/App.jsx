@@ -4,6 +4,7 @@ import { getMessaging, getToken, isSupported } from 'firebase/messaging'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
+import OfferLocationsMap from './OfferLocationsMap.jsx'
 import AccountModal from './AccountModal.jsx'
 import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
@@ -1328,7 +1329,6 @@ function App() {
   })
   // Keep main-page card hearts independent from the detail-page Suggested/Latest cards.
   const [detail, setDetail] = useState(null)
-  const [resolvedMapCoordinates, setResolvedMapCoordinates] = useState({})
   useEffect(() => { detailRef.current = detail }, [detail])
 
   useEffect(() => {
@@ -2404,37 +2404,31 @@ const getSitePage = (type) => {
     : []
   const detailMapLinks = detail
     ? (detailOhk.has
-        ? (detailOhk.map ? [{ url: detailOhk.map, label: 'Offer location' }] : [])
+        ? (detailOhk.map ? [{ url: detailOhk.map, label: 'Main location' }] : [])
         : extractMapLinks(detail.rawContent || ''))
     : []
-  useEffect(() => {
-    let cancelled = false
-    const shortLinks = detailMapLinks.filter((link) => /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(link.url))
-    if (!shortLinks.length) {
-      setResolvedMapCoordinates({})
-      return () => { cancelled = true }
-    }
-    setResolvedMapCoordinates({})
-    shortLinks.forEach(async (link) => {
-      try {
-        // Resolve Google Maps short links through a CORS-readable redirect fetch.
-        // If the final Google Maps HTML exposes coordinates, embed those coordinates
-        // instead of asking Google Maps to search for the short URL as text.
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(link.url)
-        const response = await fetch(proxyUrl)
-        if (!response.ok) return
-        const html = await response.text()
-        const coordinates = extractCoordinates(html)
-        if (!cancelled && coordinates) {
-          setResolvedMapCoordinates((current) => ({ ...current, [link.url]: coordinates }))
-        }
-      } catch {
-        // Keep the existing map-link fallback if short-link resolution is unavailable.
-      }
-    })
-    return () => { cancelled = true }
-  }, [detail?.id, detailMapLinks.map((link) => link.url).join('|')])
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
+  const detailMapLocations = detail ? (() => {
+    const locations = []
+    const addLocation = (label, value) => {
+      const cleanValue = String(value || '').trim()
+      if (!cleanValue || locations.some((location) => location.value === cleanValue)) return
+      locations.push({ label, value: cleanValue })
+    }
+    // Blogger's geo coordinates are the primary location whenever supplied.
+    if (detail.coordinates) addLocation('Main location', detail.coordinates.latitude + ', ' + detail.coordinates.longitude)
+    else if (detailOhk.map) addLocation('Main location', detailOhk.map)
+    else if (detailAddress) addLocation('Main location', detailAddress)
+    else if (detail.bloggerLocation) addLocation('Main location', detail.bloggerLocation)
+    else if (detailMapLinks[0]?.url) addLocation('Main location', detailMapLinks[0].url)
+    // Additional locations are read from googlelocation1, googlelocation2, etc.
+    ;(detailOhk.locations || []).forEach((location) => addLocation(location.label, location.value))
+    // Preserve any other map links on legacy Blogger posts as extra pins.
+    detailMapLinks.forEach((mapLink) => {
+      if (mapLink.url !== detailOhk.map) addLocation(mapLink.label || 'Additional location ' + (locations.length + 1), mapLink.url)
+    })
+    return locations
+  })() : []
   const detailMedia = [...detailImages.map((url) => ({ type: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
   const selectedDetailMedia = detailMedia[detailImageIndex] || detailMedia[0] || null
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
@@ -2895,28 +2889,10 @@ const getSitePage = (type) => {
                 </section>
               ) : null}
 
-              {detailMapLinks.length > 0 ? (
+              {detailMapLocations.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
                   <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
-                  <div className="ohk-detail-maps">
-                    {detailMapLinks.map((mapLink, index) => (
-                      <div className="ohk-detail-map-item" key={mapLink.url || 'offer-map-' + index}>
-                        <iframe
-                          title={mapLink.label || 'Offer map ' + (index + 1)}
-                          src={(() => {
-                            const coordinates = (mapLink.url && resolvedMapCoordinates[mapLink.url]) || detail.coordinates || (mapLink.url ? extractCoordinates(mapLink.url) : null)
-                            const query = coordinates
-                              ? `${coordinates.latitude},${coordinates.longitude}`
-                              : detailAddress || detail.bloggerLocation || mapLink.url
-                            return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
-                          })()}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          allowFullScreen
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <OfferLocationsMap locations={detailMapLocations} />
                   {detail.coordinates ? (
                     <a
                       className="ohk-dp-link"
@@ -2924,7 +2900,7 @@ const getSitePage = (type) => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Open in Google Maps
+                      Open main location in Google Maps
                     </a>
                   ) : null}
                 </section>
