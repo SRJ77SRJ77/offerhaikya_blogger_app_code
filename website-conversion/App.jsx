@@ -3223,9 +3223,9 @@ function App() {
       {notificationsOpen ? (
         <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-favorite-popup-header">
+            <div className="ohk-favorite-popup-header ohk-notification-header">
               <h2>Notifications</h2>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
+              <div className="ohk-notification-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
                 {authUser ? (
                   <button
                     type="button"
@@ -3472,7 +3472,7 @@ function App() {
 
       {pushSetupOpen ? (
         <div className="ohk-favorite-overlay" role="presentation" onClick={() => setPushSetupOpen(false)} style={{ zIndex: 10050 }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="ohk-push-setup-title" onClick={(event) => event.stopPropagation()} style={{ width: 'min(420px, calc(100vw - 32px))', maxHeight: '85vh', overflowY: 'auto', margin: 'auto', padding: '22px', borderRadius: '18px', background: 'var(--ohk-card, #fff)', color: 'var(--ohk-text, #111)', boxShadow: '0 18px 60px rgba(0,0,0,.28)' }}>
+          <section className="ohk-push-setup-popup" role="dialog" aria-modal="true" aria-labelledby="ohk-push-setup-title" onClick={(event) => event.stopPropagation()} style={{ width: 'min(420px, calc(100vw - 32px))', maxHeight: '85vh', overflowY: 'auto', margin: 'auto', padding: '22px', borderRadius: '18px', background: 'var(--ohk-card, #fff)', color: 'var(--ohk-text, #111)', boxShadow: '0 18px 60px rgba(0,0,0,.28)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
             <h2 id="ohk-push-setup-title" style={{ margin: 0, fontSize: '19px' }}>Push notification setup</h2>
             <button type="button" onClick={() => setPushSetupOpen(false)} aria-label="Close push setup" style={{ border: 0, background: 'transparent', fontSize: '24px', cursor: 'pointer' }}>×</button>
