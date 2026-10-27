@@ -3227,9 +3227,9 @@ const getSitePage = (type) => {
       {notificationsOpen ? (
         <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-favorite-popup-header">
+            <div className="ohk-favorite-popup-header ohk-notification-header">
               <h2>Notifications</h2>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
+              <div className="ohk-notification-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
                 {authUser ? (
                   <button
                     type="button"
