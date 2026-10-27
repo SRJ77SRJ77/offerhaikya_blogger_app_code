@@ -3285,7 +3285,8 @@ const getSitePage = (type) => {
                         setPushSubscriptionMessage('Push notifications enabled on this device.')
                       } catch (error) {
                         console.error('OfferHaikya push registration failed:', error)
-                        setPushSubscriptionMessage(error?.message || 'Could not enable push notifications.')
+                        setPushSubscriptionMessage('')
+                        setNotificationAlertMessage(error?.message || 'Could not enable push notifications.')
                       } finally {
                         setPushSubscriptionBusy(false)
                       }
