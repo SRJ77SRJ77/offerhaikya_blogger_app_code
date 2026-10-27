@@ -1508,7 +1508,6 @@ function App() {
     }
   })
   const [pushSubscriptionEnabled, setPushSubscriptionEnabled] = useState(false)
-  const [pushSetupOpen, setPushSetupOpen] = useState(false)
   const [pushSubscriptionBusy, setPushSubscriptionBusy] = useState(false)
   const [pushSubscriptionMessage, setPushSubscriptionMessage] = useState('')
   const [browserNotificationPermission, setBrowserNotificationPermission] = useState(() => {
@@ -2330,15 +2329,20 @@ function App() {
     }, 180)
   }
 
-  const getSitePage = (type) => {
-    if (POLICY_PAGES[type]) return POLICY_PAGES[type]
-    return bloggerPages.find((item) => {
-      const title = item.title.toLowerCase()
-      if (type === 'about-us') return title.includes('about')
-      if (type === 'contact-us') return title.includes('contact')
-      return false
-    })
-  }
+const getSitePage = (type) => {
+  return bloggerPages.find((item) => {
+    const title = (item.title || '').toLowerCase()
+
+    if (type === 'about-us') return title.includes('about')
+    if (type === 'contact-us') return title.includes('contact')
+    if (type === 'privacy-policy') return title.includes('privacy')
+    if (type === 'terms-and-condition') {
+      return title.includes('terms') || title.includes('conditions')
+    }
+
+    return false
+  })
+}
 
   const openSitePage = (type) => {
     setDetail(null)
@@ -3223,20 +3227,70 @@ function App() {
       {notificationsOpen ? (
         <div className="ohk-favorite-overlay" onClick={() => setNotificationsOpen(false)}>
           <div className="ohk-favorite-popup" onClick={(event) => event.stopPropagation()}>
-            <div className="ohk-favorite-popup-header ohk-notification-header">
+            <div className="ohk-favorite-popup-header">
               <h2>Notifications</h2>
-              <div className="ohk-notification-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
                 {authUser ? (
                   <button
                     type="button"
-                    onClick={() => { setNotificationsOpen(false); setPushSubscriptionMessage(''); setPushSetupOpen(true) }}
-                    style={{ border: '1px solid var(--ohk-border, #ccc)', borderRadius: '999px', padding: '7px 11px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', background: 'var(--ohk-card, #fff)' }}
+                    disabled={pushSubscriptionBusy || browserNotificationPermission === 'unsupported'}
+                    onClick={async () => {
+                      setPushSubscriptionBusy(true)
+                      setPushSubscriptionMessage('')
+                      try {
+                        if (!authUser) throw new Error('Sign in first to enable offer notifications.')
+                        if (!('Notification' in window) || !('serviceWorker' in navigator)) throw new Error('This browser does not support push notifications.')
+                        let permission = Notification.permission
+                        if (permission !== 'granted') permission = await Notification.requestPermission()
+                        setBrowserNotificationPermission(permission)
+                        if (permission !== 'granted') throw new Error(permission === 'denied' ? 'Notifications are blocked in browser settings.' : 'Notification permission was not granted.')
+                        if (!(await isSupported())) throw new Error('Firebase Messaging is not supported in this browser.')
+                        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                        const messaging = getMessaging()
+                        const fcmToken = await getToken(messaging, {
+                          vapidKey: 'BAYUuXwFIzA_GcCvT_WciwKxwshnuBf2ivdGiNsJJ2NVXMS_B1ZkhF1elvqaaw_pp2ITSROWE8BYeCpG8GF8cTg',
+                          serviceWorkerRegistration: registration,
+                        })
+                        if (!fcmToken) throw new Error('Firebase did not return a push token. Check Firebase Cloud Messaging setup.')
+                        await setDoc(doc(db, 'pushSubscriptions', authUser.uid), {
+                          uid: authUser.uid,
+                          token: fcmToken,
+                          enabled: true,
+                          platform: 'web',
+                          updatedAt: new Date().toISOString(),
+                          userAgent: navigator.userAgent.slice(0, 300),
+                        }, { merge: true })
+                        setPushSubscriptionEnabled(true)
+                        setPushSubscriptionMessage('Push notifications enabled on this device.')
+                      } catch (error) {
+                        console.error('OfferHaikya push registration failed:', error)
+                        setPushSubscriptionMessage(error?.message || 'Could not enable push notifications.')
+                      } finally {
+                        setPushSubscriptionBusy(false)
+                      }
+                    }}
+                    aria-label="Enable push notifications"
+                    style={{
+                      width: 'auto',
+                      minWidth: 0,
+                      height: 'auto',
+                      flexShrink: 1,
+                      border: '1px solid var(--ohk-border, #ccc)',
+                      borderRadius: '999px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: browserNotificationPermission === 'unsupported' ? 'default' : 'pointer',
+                      opacity: browserNotificationPermission === 'unsupported' ? 0.7 : 1,
+                      whiteSpace: 'nowrap'
+                    }}
                   >
-                    {pushSubscriptionEnabled ? 'Push settings' : 'Enable push alerts'}
+                    {pushSubscriptionBusy ? 'Enabling…' : pushSubscriptionEnabled ? 'Push enabled' : browserNotificationPermission === 'denied' ? 'Alerts blocked in browser' : browserNotificationPermission === 'unsupported' ? 'Push unavailable' : 'Enable push alerts'}
                   </button>
                 ) : (
                   <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ohk-muted, #666)' }}>Sign in to enable push</span>
                 )}
+                {pushSubscriptionMessage ? <span role="status" style={{ flexBasis: '100%', fontSize: '12px' }}>{pushSubscriptionMessage}</span> : null}
                 <button
                   type="button"
                   role="switch"
@@ -3467,62 +3521,6 @@ function App() {
               <button className="ohk-primary-button" onClick={() => setRequestOpen(false)}>Send Request</button>
             </div>
           </div>
-        </div>
-      ) : null}
-
-      {pushSetupOpen ? (
-        <div className="ohk-favorite-overlay" role="presentation" onClick={() => setPushSetupOpen(false)} style={{ zIndex: 10050 }}>
-          <section className="ohk-push-setup-popup" role="dialog" aria-modal="true" aria-labelledby="ohk-push-setup-title" onClick={(event) => event.stopPropagation()} style={{ width: 'min(420px, calc(100vw - 32px))', maxHeight: '85vh', overflowY: 'auto', margin: 'auto', padding: '22px', borderRadius: '18px', background: 'var(--ohk-card, #fff)', color: 'var(--ohk-text, #111)', boxShadow: '0 18px 60px rgba(0,0,0,.28)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
-            <h2 id="ohk-push-setup-title" style={{ margin: 0, fontSize: '19px' }}>Push notification setup</h2>
-            <button type="button" onClick={() => setPushSetupOpen(false)} aria-label="Close push setup" style={{ border: 0, background: 'transparent', fontSize: '24px', cursor: 'pointer' }}>×</button>
-          </div>
-          <p style={{ fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px' }}>Enable browser permission and register this device so new matching offers can reach you when the site is closed.</p>
-          {authUser ? (
-            <button
-              type="button"
-              disabled={pushSubscriptionBusy}
-              onClick={async () => {
-                setPushSubscriptionBusy(true)
-                setPushSubscriptionMessage('')
-                try {
-                  if (!authUser) throw new Error('Sign in first to enable offer notifications.')
-                  if (!('Notification' in window) || !('serviceWorker' in navigator)) throw new Error('This browser does not support push notifications.')
-                  let permission = Notification.permission
-                  if (permission !== 'granted') permission = await Notification.requestPermission()
-                  setBrowserNotificationPermission(permission)
-                  if (permission !== 'granted') throw new Error(permission === 'denied' ? 'Notifications are blocked in Chrome site settings. Allow them there, then try again.' : 'Notification permission was not granted.')
-                  if (!(await isSupported())) throw new Error('Firebase Messaging is not supported in this browser.')
-                  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                  const messaging = getMessaging()
-                  const fcmToken = await getToken(messaging, {
-                    vapidKey: 'BAYUuXwFIzA_GcCvT_WciwKxwshnuBf2ivdGiNsJJ2NVXMS_B1ZkhF1elvqaaw_pp2ITSROWE8BYeCpG8GF8cTg',
-                    serviceWorkerRegistration: registration,
-                  })
-                  if (!fcmToken) throw new Error('Firebase did not return a push token. Check Firebase Cloud Messaging setup.')
-                  await setDoc(doc(db, 'pushSubscriptions', authUser.uid), {
-                    uid: authUser.uid, token: fcmToken, enabled: true, platform: 'web',
-                    updatedAt: new Date().toISOString(), userAgent: navigator.userAgent.slice(0, 300),
-                  }, { merge: true })
-                  setPushSubscriptionEnabled(true)
-                  setPushSubscriptionMessage('Push notifications enabled on this device.')
-                } catch (error) {
-                  console.error('OfferHaikya push registration failed:', error)
-                  setPushSubscriptionMessage(error?.message || 'Could not enable push notifications.')
-                } finally {
-                  setPushSubscriptionBusy(false)
-                }
-              }}
-              style={{ width: '100%', border: 0, borderRadius: '12px', padding: '12px 14px', background: '#16a34a', color: '#fff', fontSize: '14px', fontWeight: 800, cursor: pushSubscriptionBusy ? 'wait' : 'pointer', opacity: pushSubscriptionBusy ? .7 : 1 }}
-            >
-              {pushSubscriptionBusy ? 'Enabling push…' : pushSubscriptionEnabled ? 'Refresh push registration' : 'Enable push on this device'}
-            </button>
-          ) : <p>Please sign in first, then open this setup again.</p>}
-          <div role="status" aria-live="polite" style={{ marginTop: '12px', fontSize: '13px', lineHeight: 1.5, overflowWrap: 'anywhere' }}>
-            {pushSubscriptionMessage || (browserNotificationPermission === 'granted' ? 'Chrome permission is allowed. Finish device registration above.' : browserNotificationPermission === 'denied' ? 'Chrome currently blocks notifications for this site. Change Site settings in Chrome, then retry.' : 'Chrome may not show a permission prompt if you already decided earlier; this popup will show the registration result.')}
-          </div>
-          <button type="button" onClick={() => setPushSetupOpen(false)} style={{ width: '100%', marginTop: '14px', padding: '10px', border: '1px solid var(--ohk-border, #ccc)', borderRadius: '10px', background: 'transparent', cursor: 'pointer' }}>Close</button>
-          </section>
         </div>
       ) : null}
 
