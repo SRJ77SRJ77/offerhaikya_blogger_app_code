@@ -2766,19 +2766,12 @@ a.ohk-card-click,
   margin: 0 0 8px;
   min-width: 0;
 }
-.ohk-map-popup .ohk-map-popup-meta-left > small:not(.ohk-map-popup-distance) {
-  display: inline;
+.ohk-map-popup > .ohk-map-popup-meta > small {
+  display: block;
   min-width: 0;
   margin: 0;
   color: #ff5b01 !important;
   overflow-wrap: anywhere;
-}
-.ohk-map-popup .ohk-map-popup-meta-left > .ohk-map-popup-distance,
-.ohk-dark .ohk-map-popup .ohk-map-popup-meta-left > .ohk-map-popup-distance {
-  display: inline;
-  margin: 0 0 0 6px;
-  color: #000000 !important;
-  white-space: nowrap;
 }
 .ohk-map-popup .ohk-map-verified-badge {
   display: inline-flex;
@@ -2989,7 +2982,6 @@ a.ohk-card-click,
 .ohk-map-pin-expired>span{background:#888}
 
 /* Keep map category tags in the original brand-orange color. */
-/* Popup labels now live inside the left-side flex row beside the distance. */
-.ohk-map-popup .ohk-map-popup-meta-left > small:not(.ohk-map-popup-distance) { color: #ff5b01 !important; }
-.ohk-map-popup .ohk-map-popup-meta-left > .ohk-map-popup-distance,
-.ohk-dark .ohk-map-popup .ohk-map-popup-meta-left > .ohk-map-popup-distance { color: #000000 !important; }
+.ohk-map-popup .ohk-map-popup-meta > small { color: #ff5b01 !important; }
+.ohk-map-popup .ohk-map-popup-meta > .ohk-map-popup-distance { color: #000000 !important; display: inline; margin: 0 0 0 6px; }
+.ohk-dark .ohk-map-popup .ohk-map-popup-meta > .ohk-map-popup-distance { color: #000000 !important; }
