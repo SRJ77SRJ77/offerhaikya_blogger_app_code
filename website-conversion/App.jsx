@@ -914,10 +914,14 @@ function getPostCardLabel(post) {
   const selectedLabel = importantLabel ?? labels[0] ?? ''
   return String(selectedLabel).trim().replace(/imp$/i, '').trim()
 }
-function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false }) {
+function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap, dark, nearby, imagePriority = false, userLocation }) {
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
   const cardLabel = getPostCardLabel(post)
+  const locationTag = String(post.bloggerLocation || post.location || '').trim()
+  const cardDistanceKm = Number.isFinite(post.nearbyDistanceKm)
+    ? post.nearbyDistanceKm
+    : (userLocation && post.coordinates ? distanceKm(userLocation, post.coordinates) : null)
 
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`} title={expiry === 'Expired' ? 'Expired' : undefined}>
@@ -998,6 +1002,12 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
               </span>
             ) : null}
           </div>
+          {locationTag ? (
+            <div className="ohk-card-location-row">
+              <span className="ohk-card-location">{locationTag}</span>
+              {Number.isFinite(cardDistanceKm) ? <span className="ohk-card-location-distance">· {formatDistance(cardDistanceKm)}</span> : null}
+            </div>
+          ) : null}
           <h2>{post.title}</h2>
           <div className="ohk-card-date">{post.date}</div>
           <p>{post.excerpt}</p>
@@ -3037,7 +3047,7 @@ const getSitePage = (type) => {
               {nearbyPosts.length ? (
                 <>
                   <div className="ohk-grid">
-                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, onMap: openMapForPost, dark, nearby: true }, 'nearby')}
+                    {renderFeedItems(nearbyPosts.slice(0, nearbyVisible), { saved, onSave: toggleSave, onOpen: openPost, onOpenDistance: openPostDistance, onShare: sharePost, onMap: openMapForPost, dark, nearby: true, userLocation }, 'nearby')}
                   </div>
                   {nearbyVisible < nearbyPosts.length ? (
                     <div className="ohk-load-more"><button onClick={() => setNearbyVisible((value) => value + PAGE_SIZE)}>Load More Nearby Offers</button></div>
@@ -3102,7 +3112,7 @@ const getSitePage = (type) => {
             ) : displayedPosts.length ? (
               <>
                 <div className="ohk-grid">
-                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, onMap: openMapForPost, dark }, 'main-feed')}
+                  {renderFeedItems(displayedPosts, { saved, onSave: toggleSave, onOpen: openPost, onShare: sharePost, onMap: openMapForPost, dark, userLocation }, 'main-feed')}
                 </div>
 
                 {visible < filteredPosts.length ? (
