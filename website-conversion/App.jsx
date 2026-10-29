@@ -2619,29 +2619,6 @@ const getSitePage = (type) => {
                 </div>
               </div>
 
-              {detailMapLocations.length > 0 ? (
-                <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
-                  <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
-                  <div className="ohk-detail-maps">
-                    {detailMapLocations.map((location, index) => (
-                      <div className="ohk-detail-map-item" key={location.value || 'offer-map-' + index}>
-                        <h3 className="ohk-dp-subheading">{location.label || 'Main location'}</h3>
-                        <iframe
-                          title={location.label || 'Offer map ' + (index + 1)}
-                          src={`https://www.google.com/maps?q=${encodeURIComponent(location.value)}&output=embed`}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          allowFullScreen
-                        />
-                        <a className="ohk-dp-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.value)}`} target="_blank" rel="noopener noreferrer">
-                          Open in Google Maps
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-                
 
               {detailMedia.length ? (
                 <div className={`ohk-detail-gallery ${detailMedia.length > 1 ? 'has-thumbnails' : 'single-image'}`}>
@@ -2892,6 +2869,28 @@ const getSitePage = (type) => {
                         <span className="ohk-dp-tile-icon" aria-hidden="true"><Icon name={CONTACT_ICONS[contact.type] || 'tag'} size={20} /></span>
                         <span>{contact.label}</span>
                       </a>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {detailMapLocations.length > 0 ? (
+                <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
+                  <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
+                  <div className="ohk-detail-maps">
+                    {detailMapLocations.map((location, index) => (
+                      <div className="ohk-detail-map-item" key={location.value || 'offer-map-' + index}>
+                        <iframe
+                          title={`Offer map ${index + 1}`}
+                          src={`https://www.google.com/maps?q=${encodeURIComponent(location.value)}&output=embed`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          allowFullScreen
+                        />
+                        <a className="ohk-dp-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.value)}`} target="_blank" rel="noopener noreferrer">
+                          Open in Google Maps
+                        </a>
+                      </div>
                     ))}
                   </div>
                 </section>
