@@ -4,6 +4,7 @@ import { getMessaging, getToken, isSupported } from 'firebase/messaging'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
+import OfferLocationsMap from './OfferLocationsMap.jsx'
 import AccountModal from './AccountModal.jsx'
 import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
@@ -2888,7 +2889,12 @@ const getSitePage = (type) => {
                 </section>
               ) : null}
 
-
+              {detailMapLocations.length > 0 ? (
+                <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
+                  <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
+                  <OfferLocationsMap locations={detailMapLocations.slice(0, 5)} />
+                </section>
+              ) : null}
                 
             </div>
 
