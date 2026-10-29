@@ -5,7 +5,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import './App.css'
 import AccountModal from './AccountModal.jsx'
-import OfferLocationsMap from './OfferLocationsMap.jsx'
 import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
@@ -2623,7 +2622,23 @@ const getSitePage = (type) => {
               {detailMapLocations.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
                   <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
-                  <OfferLocationsMap locations={detailMapLocations} />
+                  <div className="ohk-detail-maps">
+                    {detailMapLocations.map((location, index) => (
+                      <div className="ohk-detail-map-item" key={location.value || 'offer-map-' + index}>
+                        <h3 className="ohk-dp-subheading">{location.label || 'Main location'}</h3>
+                        <iframe
+                          title={location.label || 'Offer map ' + (index + 1)}
+                          src={`https://www.google.com/maps?q=${encodeURIComponent(location.value)}&output=embed`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          allowFullScreen
+                        />
+                        <a className="ohk-dp-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.value)}`} target="_blank" rel="noopener noreferrer">
+                          Open in Google Maps
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </section>
               ) : null}
                 
