@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 
 function coordinatesFrom(value = '') {
   const text = String(value || '').trim()
@@ -13,141 +11,94 @@ function coordinatesFrom(value = '') {
   for (const pattern of patterns) {
     const match = text.match(pattern)
     if (!match) continue
-    const latitude = Number(match[1])
-    const longitude = Number(match[2])
-    if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
-      return [latitude, longitude]
-    }
+    const lat = Number(match[1])
+    const lng = Number(match[2])
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return { lat, lng }
   }
   return null
 }
 
-async function resolveLocation(location) {
-  const raw = String(location.value || '').trim()
-  if (!raw) return null
-  const direct = coordinatesFrom(raw)
-  if (direct) return { ...location, coords: direct }
-
-  let query = raw
-  if (/^https?:\/\//i.test(raw)) {
-    try {
-      const url = new URL(raw)
-      const q = url.searchParams.get('q') || url.searchParams.get('query') || url.searchParams.get('destination')
-      if (q && !coordinatesFrom(q)) query = q
-      else if (q && coordinatesFrom(q)) return { ...location, coords: coordinatesFrom(q) }
-      else if (/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(raw)) {
-        const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(raw))
-        if (response.ok) {
-          const html = await response.text()
-          const coords = coordinatesFrom(html)
-          if (coords) return { ...location, coords }
-        }
-        return null
-      } else {
-        const place = url.pathname.split('/').filter(Boolean).pop() || ''
-        query = decodeURIComponent(place.replace(/\+/g, ' ')).replace(/,/g, ' ')
-        if (!query || /^(maps|search|dir|place)$/i.test(query)) return null
-      }
-    } catch {
-      return null
-    }
-  }
-
-  try {
-    const response = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query))
-    if (!response.ok) return null
-    const results = await response.json()
-    if (!results?.length) return null
-    const latitude = Number(results[0].lat)
-    const longitude = Number(results[0].lon)
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
-    return { ...location, coords: [latitude, longitude] }
-  } catch {
-    return null
-  }
+function loadGoogleMaps(apiKey) {
+  if (window.google?.maps) return Promise.resolve(window.google.maps)
+  if (window.__ohkGoogleMapsPromise) return window.__ohkGoogleMapsPromise
+  if (!apiKey) return Promise.reject(new Error('Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY.'))
+  window.__ohkGoogleMapsPromise = new Promise((resolve, reject) => {
+    const callbackName = '__ohkGoogleMapsReady'
+    window[callbackName] = () => resolve(window.google.maps)
+    const script = document.createElement('script')
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(apiKey) + '&callback=' + callbackName
+    script.async = true
+    script.onerror = () => reject(new Error('Google Maps JavaScript API could not be loaded.'))
+    document.head.appendChild(script)
+  })
+  return window.__ohkGoogleMapsPromise
 }
 
 export default function OfferLocationsMap({ locations = [] }) {
   const mapElement = useRef(null)
   const mapRef = useRef(null)
-  const [resolved, setResolved] = useState([])
-  const [loading, setLoading] = useState(false)
+  const markersRef = useRef([])
+  const [status, setStatus] = useState('Loading map…')
 
   useEffect(() => {
     let cancelled = false
-    const validLocations = locations.filter((location) => String(location?.value || '').trim())
-    setResolved(validLocations.map((location) => {
-      const coords = coordinatesFrom(location.value)
-      return coords ? { ...location, coords } : null
-    }).filter(Boolean))
-    const needsResolution = validLocations.filter((location) => !coordinatesFrom(location.value))
-    if (!needsResolution.length) {
-      setLoading(false)
-      return () => { cancelled = true }
-    }
-    setLoading(true)
-    Promise.all(needsResolution.map(resolveLocation)).then((results) => {
-      if (cancelled) return
-      const direct = validLocations.map((location) => {
-        const coords = coordinatesFrom(location.value)
-        return coords ? { ...location, coords } : null
-      }).filter(Boolean)
-      const byValue = new Map(direct.map((location) => [location.value, location]))
-      results.filter(Boolean).forEach((location) => byValue.set(location.value, location))
-      setResolved([...byValue.values()])
-      setLoading(false)
-    })
-    return () => { cancelled = true }
-  }, [locations.map((location) => location.label + ':' + location.value).join('|')])
-
-  useEffect(() => {
-    if (!mapElement.current) return
-    if (!mapRef.current) {
-      mapRef.current = L.map(mapElement.current, { scrollWheelZoom: false })
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(mapRef.current)
-    }
-    const map = mapRef.current
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) map.removeLayer(layer)
-    })
-    const markers = resolved.map((location) => {
-      const icon = L.divIcon({
-        className: 'ohk-location-pin-wrap',
-        html: '<span class="ohk-location-pin"></span>',
-        iconSize: [22, 28],
-        iconAnchor: [11, 27],
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    loadGoogleMaps(apiKey).then((maps) => {
+      if (cancelled || !mapElement.current) return
+      const map = new maps.Map(mapElement.current, {
+        center: { lat: 20.5937, lng: 78.9629 },
+        zoom: 5,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
       })
-      const marker = L.marker(location.coords, { icon }).addTo(map)
-      marker.bindPopup(String(location.label || 'Business location').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char])))
-      return marker
+      mapRef.current = map
+      const geocoder = new maps.Geocoder()
+      const validLocations = locations.filter((item) => String(item?.value || '').trim()).slice(0, 5)
+      Promise.all(validLocations.map(async (location) => {
+        const direct = coordinatesFrom(location.value)
+        if (direct) return { ...location, position: direct }
+        try {
+          const result = await geocoder.geocode({ address: String(location.value) })
+          const position = result.results?.[0]?.geometry?.location
+          if (!position) return null
+          return { ...location, position: { lat: position.lat(), lng: position.lng() } }
+        } catch {
+          return null
+        }
+      })).then((resolved) => {
+        if (cancelled) return
+        const points = resolved.filter(Boolean)
+        markersRef.current.forEach((marker) => marker.setMap(null))
+        markersRef.current = points.map((location) => {
+          const marker = new maps.Marker({ map, position: location.position, title: location.label || 'Business location' })
+          const info = new maps.InfoWindow({ content: document.createTextNode(String(location.label || 'Business location')) })
+          marker.addListener('click', () => info.open({ map, anchor: marker }))
+          return marker
+        })
+        if (points.length > 1) {
+          const bounds = new maps.LatLngBounds()
+          points.forEach((point) => bounds.extend(point.position))
+          map.fitBounds(bounds, 48)
+        } else if (points.length === 1) {
+          map.setCenter(points[0].position)
+          map.setZoom(14)
+        }
+        setStatus(points.length ? points.length + ' location' + (points.length === 1 ? '' : 's') + ' shown on one map' : 'No locations could be placed. Add coordinates or full addresses.')
+      })
+    }).catch((error) => {
+      if (!cancelled) setStatus(error.message || 'Google Maps could not be loaded.')
     })
-    if (markers.length > 1) {
-      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.18), { maxZoom: 14 })
-    } else if (markers.length === 1) {
-      map.setView(markers[0].getLatLng(), 14)
-    } else {
-      map.setView([20.5937, 78.9629], 4)
-    }
-    const resizeTimer = window.setTimeout(() => map.invalidateSize(), 80)
-    return () => window.clearTimeout(resizeTimer)
-  }, [resolved])
-
-  useEffect(() => () => {
-    if (mapRef.current) {
-      mapRef.current.remove()
+    return () => {
+      cancelled = true
+      markersRef.current.forEach((marker) => marker.setMap(null))
+      markersRef.current = []
       mapRef.current = null
     }
-  }, [])
+  }, [locations.map((item) => item.label + ':' + item.value).join('|')])
 
-  return (
-    <div className="ohk-multi-location-map-wrap">
-      <div className="ohk-multi-location-map" ref={mapElement} aria-label="Map showing business locations" />
-      {loading ? <p className="ohk-location-map-status">Finding business locations…</p> : null}
-      {!loading && !resolved.length ? <p className="ohk-location-map-status">We couldn’t locate these map links. Try adding coordinates or a full street address for each location.</p> : null}
-      {resolved.length ? <p className="ohk-location-map-status">{resolved.length} location{resolved.length === 1 ? '' : 's'} shown on the map</p> : null}
-    </div>
-  )
+  return <div className="ohk-multi-location-map-wrap">
+    <div className="ohk-multi-location-map" ref={mapElement} aria-label="Google Map showing multiple business locations" />
+    <p className="ohk-location-map-status">{status}</p>
+  </div>
 }
