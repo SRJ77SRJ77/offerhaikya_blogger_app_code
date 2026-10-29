@@ -2957,3 +2957,12 @@ a.ohk-card-click,
 
 /* Single map with red pins for every Blogger business location. */
 
+
+.ohk-multi-location-map-wrap{width:100%;margin-top:16px}
+.ohk-multi-location-map{width:100%;height:360px;overflow:hidden;border:1px solid var(--ohk-border,#e5e7eb);border-radius:14px;background:#f1f5f9;z-index:0}
+.ohk-location-pin-wrap{background:transparent;border:0}
+.ohk-location-pin{position:absolute;left:4px;top:2px;width:16px;height:16px;border:3px solid #fff;border-radius:50% 50% 50% 0;background:#dc2626;box-shadow:0 2px 7px rgba(0,0,0,.35);transform:rotate(-45deg)}
+.ohk-location-map-status{margin:8px 2px 0;color:var(--ohk-muted,#777);font-size:12px;line-height:1.5}
+.ohk-multi-location-map .leaflet-popup-content-wrapper{border-radius:10px}
+.ohk-multi-location-map .leaflet-popup-content{font:600 13px/1.45 Rubik,Nunito,Arial,sans-serif}
+@media(max-width:600px){.ohk-multi-location-map{height:280px}}
