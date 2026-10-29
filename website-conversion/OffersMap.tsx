@@ -13,7 +13,7 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 
 function categoryMarkerIcon(post) {
   const labels = (Array.isArray(post?.labels) ? post.labels : [post?.label || ''])
-    .map((label) => String(label || '').trim().toLowerCase())
+    .map((label) => String(label || '').replace(/\s*imp\s*$/i, '').trim().toLowerCase())
   const categories = [
     { keys: ['car', 'cars', 'automobile', 'automotive'], icon: '<path d="M5 11l1.5-4h11L19 11l1.5 1.5V18h-2v-2H5.5v2h-2v-5.5L5 11Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11h10M6 13.5h2m8 0h2" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
     { keys: ['dress', 'clothing', 'fashion', 'apparel'], icon: '<path d="M8 4 10 3h4l2 1 4 3-2 4-3-1v10H9V9l-3 2-2-4 4-3Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>' },
@@ -28,7 +28,7 @@ function categoryMarkerIcon(post) {
     { keys: ['travel', 'tourism', 'flight'], icon: '<path d="m3 14 7-2 2-8 2-1 1 9 6 3-1 2-6-1-2 4-2 1v-5l-6-1Z" fill="none" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>' },
     { keys: ['services', 'service'], icon: '<path d="M14 6a4 4 0 0 0-5 5L4 16a2 2 0 0 0 3 3l5-5a4 4 0 0 0 5-5l-3 3-3-3 3-3Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>' },
   ]
-  const matched = categories.find((category) => labels.some((label) => category.keys.includes(label)))
+  const matched = categories.find((category) => labels.some((label) => category.keys.some((key) => label === key || label.includes(key))))
   const bag = '<path d="M4 8h16l-1 12H5L4 8Zm4 0V6a4 4 0 0 1 8 0v2" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
   return '<svg class="ohk-map-pin-icon" viewBox="0 0 24 24" aria-hidden="true">' + (matched?.icon || bag) + '</svg>'
 }
