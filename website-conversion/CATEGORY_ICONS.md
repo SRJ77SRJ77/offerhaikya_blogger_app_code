@@ -9,6 +9,18 @@ The map selects a category icon by checking Blogger tags/labels only. Matching i
 | Fairs & melas | fair, fairs, mela, melas, trade fair, book fair |
 | Sales & discounts | sale, sales, discount, discounts, clearance sale, offers sale |
 | Flats & apartments | flat, flats, apartment, apartments, apartment for sale, residential flat |
+| Jewellery & accessories | jewellery, jewelry, gold, silver, accessories, jewellery shop |
+| Grocery & daily needs | grocery, groceries, supermarket, daily needs, provisions |
+| Baby & kids | baby products, kids products, diapers, baby care, baby |
+| Jobs & recruitment | jobs, job, hiring, recruitment, vacancies, career, careers |
+| Rentals & property | rentals, rental, rent, house for rent, commercial property |
+| Beauty salons & spas | salon, spa, haircut, beauty salon, beauty parlour, beauty parlor |
+| Fitness & sports | gym, fitness, sports, yoga, workout |
+| Repairs & maintenance | repair, repairs, servicing, maintenance, mechanic, service center, service centre |
+| Gifts & flowers | gifts, gift shop, flowers, florist, bouquet |
+| Pets & pet supplies | pets, pet food, pet supplies, pet shop, animal care |
+| Mobile recharge & internet | recharge, mobile recharge, broadband, internet plans, data plans |
+| Travel packages | tour packages, holiday packages, travel deals, vacation packages |
 | Motorbike | motorbike, motorcycle, motorcycles, motor bike, bike, bikes |
 | Cycle | bicycle, bicycles, cycle, cycles, cycling |
 | Toys | toys, toy, kids toys, children toys, baby toys |
