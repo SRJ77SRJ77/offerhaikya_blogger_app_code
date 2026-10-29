@@ -14,6 +14,7 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 function categoryMarkerIcon(post) {
   const labels = [...(Array.isArray(post?.labels) ? post.labels : []), post?.label || '']
     .map((label) => String(label || '').replace(/\s*imp\s*$/i, '').trim().toLowerCase())
+    .filter((label) => label && !/^(verified|expired)$/.test(label))
   const categories = [
     { keys: ['car', 'cars', 'automobile', 'automotive'], icon: '<path d="M5 11l1.5-4h11L19 11l1.5 1.5V18h-2v-2H5.5v2h-2v-5.5L5 11Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11h10M6 13.5h2m8 0h2" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
     { keys: ['dress', 'clothing', 'fashion', 'apparel'], icon: '<path d="M8 4 10 3h4l2 1 4 3-2 4-3-1v10H9V9l-3 2-2-4 4-3Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>' },
@@ -92,7 +93,8 @@ function buildPopup(post, onOpen, userLocation) {
     const distance = document.createElement('small')
     distance.className = 'ohk-map-popup-distance'
     distance.textContent = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${Math.round(distanceKm)} km`
-    box.appendChild(distance)
+    label.append(' · ', distance.textContent)
+    distance.remove()
   }
   const button = document.createElement('button')
   button.type = 'button'
