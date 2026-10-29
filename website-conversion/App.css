@@ -2973,3 +2973,10 @@ a.ohk-card-click,
 .ohk-card-location-distance{flex:none;white-space:nowrap;font-weight:700;color:#ff5b01}
 .ohk-card-dark .ohk-card-location-row{color:#c5c5c5}
 .ohk-card-dark .ohk-card-location-distance{color:#ff9b69}
+
+
+/* Category icons inside the existing orange Leaflet offer pins. */
+.ohk-map-pin{background:transparent!important;border:0!important}
+.ohk-map-pin>span{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;background:#ff5b01;border:2px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.35);transform:rotate(-45deg);box-sizing:border-box}
+.ohk-map-pin-icon{display:block;width:16px;height:16px;transform:rotate(45deg);overflow:visible}
+.ohk-map-pin-expired>span{background:#888}
