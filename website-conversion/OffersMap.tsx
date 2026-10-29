@@ -12,14 +12,14 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 
 
 function categoryMarkerIcon(post) {
-  const labels = (Array.isArray(post?.labels) ? post.labels : [post?.label || ''])
+  const labels = [...(Array.isArray(post?.labels) ? post.labels : []), post?.label || '']
     .map((label) => String(label || '').replace(/\s*imp\s*$/i, '').trim().toLowerCase())
   const categories = [
     { keys: ['car', 'cars', 'automobile', 'automotive'], icon: '<path d="M5 11l1.5-4h11L19 11l1.5 1.5V18h-2v-2H5.5v2h-2v-5.5L5 11Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11h10M6 13.5h2m8 0h2" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
     { keys: ['dress', 'clothing', 'fashion', 'apparel'], icon: '<path d="M8 4 10 3h4l2 1 4 3-2 4-3-1v10H9V9l-3 2-2-4 4-3Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>' },
     { keys: ['hotel', 'hotels', 'stay', 'accommodation'], icon: '<path d="M4 20V5h10v15M14 10h6v10M7 8h2m2 0h.1M7 12h2m2 0h.1M7 16h2m2 0h.1M16 13h2m-2 3h2" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
     { keys: ['gaming', 'game', 'games', 'video games'], icon: '<path d="M7 9h10a4 4 0 0 1 3.8 5.2l-.8 2.4a2 2 0 0 1-3.2.9L14 15h-4l-2.8 2.5a2 2 0 0 1-3.2-.9l-.8-2.4A4 4 0 0 1 7 9Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11v4m-2-2h4m6-1h.1m2 2h.1" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
-    { keys: ['restaurant', 'restaurants', 'food', 'cafe', 'dining'], icon: '<path d="M6 3v7m-3-7v4a3 3 0 0 0 6 0V3M6 10v11M16 3v18m0-18c3 2 3 6 0 8" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' },
+    { keys: ['fast food', 'fast-food', 'fastfood', 'restaurant', 'restaurants', 'food', 'cafe', 'dining'], icon: '<path d="M6 3v7m-3-7v4a3 3 0 0 0 6 0V3M6 10v11M16 3v18m0-18c3 2 3 6 0 8" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' },
     { keys: ['home', 'house', 'real estate', 'property'], icon: '<path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' },
     { keys: ['home appliances', 'home appliance', 'appliance', 'appliances'], icon: '<rect x="6" y="3" width="12" height="18" rx="1.5" fill="none" stroke="white" stroke-width="1.8"/><path d="M6 8h12m-9 3v1m3-1v1" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
     { keys: ['electronics', 'electronic', 'mobile', 'computer', 'laptop'], icon: '<rect x="7" y="3" width="10" height="18" rx="1.5" fill="none" stroke="white" stroke-width="1.8"/><path d="M10 6h4m-2 12h.1" stroke="white" stroke-width="1.8" stroke-linecap="round"/>' },
@@ -118,7 +118,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
 
   useEffect(() => { openRef.current = onOpenPost })
 
-  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, (post.labels || []).join(','), post.isExpired, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
+  const postsKey = useMemo(() => posts.map((post) => [post.id, post.updatedAt, post.title, post.image, [...(post.labels || []), post.label || ''].join(','), post.isExpired, post.coordinates?.latitude, post.coordinates?.longitude].join('::')).join('|'), [posts])
 
   useEffect(() => {
     const map = L.map(elementRef.current).setView(DEFAULT_CENTER, 11)
