@@ -12,7 +12,7 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 
 
 function categoryMarkerIcon(post) {
-  const labels = [...(Array.isArray(post?.labels) ? post.labels : []), post?.label || '', post?.title || '']
+  const labels = [...(Array.isArray(post?.labels) ? post.labels : []), post?.label || '', post?.category || '', post?.categoryName || '', post?.type || '', post?.title || '']
     .map((label) => String(label || '')
       .replace(/\s*imp\s*$/i, '')
       .replace(/\b(?:expired|verified)\b/gi, ' ')
@@ -60,8 +60,16 @@ function buildPopup(post, onOpen, userLocation) {
 
   const metadata = document.createElement('div')
   metadata.className = 'ohk-map-popup-meta'
+  metadata.style.display = 'flex'
+  metadata.style.alignItems = 'center'
+  metadata.style.justifyContent = 'space-between'
+  metadata.style.gap = '8px'
   const leftMeta = document.createElement('div')
   leftMeta.className = 'ohk-map-popup-meta-left'
+  leftMeta.style.display = 'flex'
+  leftMeta.style.alignItems = 'center'
+  leftMeta.style.gap = '6px'
+  leftMeta.style.minWidth = '0'
   const label = document.createElement('small')
   const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
     const impLabels = displayLabels
@@ -100,6 +108,8 @@ function buildPopup(post, onOpen, userLocation) {
     const distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
     const distance = document.createElement('small')
     distance.className = 'ohk-map-popup-distance'
+    distance.style.color = '#000'
+    distance.style.whiteSpace = 'nowrap'
     distance.textContent = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${Math.round(distanceKm)} km`
     leftMeta.appendChild(distance)
   }
