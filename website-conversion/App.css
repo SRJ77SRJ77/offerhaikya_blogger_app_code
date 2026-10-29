@@ -2983,4 +2983,5 @@ a.ohk-card-click,
 
 /* Keep map category tags in the original brand-orange color. */
 .ohk-map-popup .ohk-map-popup-meta > small { color: #ff5b01 !important; }
-.ohk-map-popup .ohk-map-popup-distance { color: #ff5b01 !important; display: inline; margin: 0; }
+.ohk-map-popup .ohk-map-popup-meta > .ohk-map-popup-distance { color: #000000 !important; display: inline; margin: 0 0 0 6px; }
+.ohk-dark .ohk-map-popup .ohk-map-popup-meta > .ohk-map-popup-distance { color: #000000 !important; }
