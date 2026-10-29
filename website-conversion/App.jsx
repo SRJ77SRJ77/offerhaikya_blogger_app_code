@@ -438,6 +438,8 @@ function cleanBloggerDetailHtml(html = '', title = 'Offer') {
 
   // Blogger post HTML is external input. Strip executable attributes and
   // active-content elements before returning markup for dangerouslySetInnerHTML.
+  // Keep location maps in the dedicated multi-marker map section only; Blogger embeds can otherwise create a second map on the detail page.
+  container.querySelectorAll('iframe[src*="google.com/maps"], iframe[src*="maps.google"], iframe[src*="maps.app.goo.gl"]').forEach((node) => node.remove())
   container.querySelectorAll('object, embed, applet, base, meta, link, form, input, button, textarea, select, option, svg, math').forEach((node) => node.remove())
   container.querySelectorAll('*').forEach((node) => {
     Array.from(node.attributes).forEach((attr) => {
