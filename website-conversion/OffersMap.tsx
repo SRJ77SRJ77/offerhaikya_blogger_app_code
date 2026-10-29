@@ -93,8 +93,7 @@ function buildPopup(post, onOpen, userLocation) {
     const distance = document.createElement('small')
     distance.className = 'ohk-map-popup-distance'
     distance.textContent = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${Math.round(distanceKm)} km`
-    label.append(' · ', distance.textContent)
-    distance.remove()
+    metadata.appendChild(distance)
   }
   const button = document.createElement('button')
   button.type = 'button'
