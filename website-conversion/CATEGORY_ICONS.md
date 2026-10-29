@@ -4,6 +4,11 @@ The map selects a category icon by checking Blogger tags/labels only. Matching i
 
 | Icon category | Matching tag keywords |
 |---|---|
+| Exhibitions & expos | exhibition, exhibitions, expo, expos, trade show, trade shows |
+| Events | events, event, concert, concerts, festival, festivals |
+| Fairs & melas | fair, fairs, mela, melas, trade fair, book fair |
+| Sales & discounts | sale, sales, discount, discounts, clearance sale, offers sale |
+| Flats & apartments | flat, flats, apartment, apartments, apartment for sale, residential flat |
 | Motorbike | motorbike, motorcycle, motorcycles, motor bike, bike, bikes |
 | Cycle | bicycle, bicycles, cycle, cycles, cycling |
 | Toys | toys, toy, kids toys, children toys, baby toys |
@@ -29,6 +34,9 @@ The map selects a category icon by checking Blogger tags/labels only. Matching i
 | Health & medical | health, medical, pharmacy |
 | Travel | travel, tourism, flight |
 | Services | services, service |
+
+## Suggested additional categories
+Depending on the tags you use, these may also be useful later: restaurants/food delivery, grocery, jewellery, gifts, baby products, pet supplies, jobs/recruitment, real estate/rentals, banking/finance, internet/mobile recharge, repairs, beauty salons, gyms/fitness, and travel/tour packages.
 
 ## Important
 - Only Blogger tags/labels should be used to choose the icon; titles and other post fields should not be checked.
