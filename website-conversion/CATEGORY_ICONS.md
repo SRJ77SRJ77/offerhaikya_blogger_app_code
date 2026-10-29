@@ -1,0 +1,36 @@
+# Blogger Map Category Icons
+
+The map selects a category icon by checking Blogger tags/labels only. Matching is case-insensitive; the matcher removes a trailing `imp` and the status words `expired` and `verified` before matching. If multiple categories match, the longest matching keyword wins.
+
+| Icon category | Matching tag keywords |
+|---|---|
+| Motorbike | motorbike, motorcycle, motorcycles, motor bike, bike, bikes |
+| Cycle | bicycle, bicycles, cycle, cycles, cycling |
+| Toys | toys, toy, kids toys, children toys, baby toys |
+| Factory | factory, factories, manufacturing, industrial, industry |
+| Firecrackers | firecracker, firecrackers, fire cracker, fire crackers, fireworks, crackers |
+| Fruits & vegetables | vegetable, vegetables, fruit, fruits, produce, grocery produce |
+| Furniture | furniture, furnitures, sofa, beds, bed, chair, chairs, table, tables |
+| Books & stationery | stationery, books, book, books and stationery, pen, pens, notebook, notebooks, school supplies |
+| Software | software, software services, app development, web development, saas |
+| Courses & learning | study course, studying course, courses, course, coaching, tuition, training, education, learning |
+| School & college | school, schools, college, colleges, university, universities, school college, school/college |
+| Laptop | laptop, laptops, notebook computer |
+| Beauty products | beauty products, beauty product, cosmetics, makeup, skin care, skincare, beauty, personal care |
+| Cars | car, cars, automobile, automotive |
+| Clothing & fashion | dress, clothing, fashion, apparel |
+| Hotels & stays | hotel, hotels, stay, accommodation |
+| Gaming | gaming, game, games, video games |
+| Food & restaurants | fast food, fast-food, fastfood, restaurant, restaurants, food, cafe, dining |
+| Home & property | home, house, real estate, property |
+| Home appliances | home appliances, home appliance, appliance, appliances |
+| Electronics & mobile | electronics, electronic, mobile, computer, laptop |
+| Shopping | shopping, shop, store |
+| Health & medical | health, medical, pharmacy |
+| Travel | travel, tourism, flight |
+| Services | services, service |
+
+## Important
+- Only Blogger tags/labels should be used to choose the icon; titles and other post fields should not be checked.
+- A tag must actually be present in the post's parsed `labels` field to be matched.
+- If a tag contains more than one category keyword, the longest matching keyword takes priority.
