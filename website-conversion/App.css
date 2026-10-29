@@ -2980,3 +2980,7 @@ a.ohk-card-click,
 .ohk-map-pin>span{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;background:#ff5b01;border:2px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.35);transform:rotate(-45deg);box-sizing:border-box}
 .ohk-map-pin-icon{display:block;width:16px;height:16px;transform:rotate(45deg);overflow:visible}
 .ohk-map-pin-expired>span{background:#888}
+
+/* Map popup tag row: keep category and distance together with readable black text. */
+.ohk-map-popup .ohk-map-popup-meta > small { color: #000 !important; }
+.ohk-map-popup .ohk-map-popup-distance { color: #000 !important; display: inline; margin: 0; }
