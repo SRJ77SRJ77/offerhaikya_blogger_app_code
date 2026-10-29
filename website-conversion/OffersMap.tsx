@@ -28,7 +28,10 @@ function categoryMarkerIcon(post) {
     { keys: ['travel', 'tourism', 'flight'], icon: '<path d="m3 14 7-2 2-8 2-1 1 9 6 3-1 2-6-1-2 4-2 1v-5l-6-1Z" fill="none" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>' },
     { keys: ['services', 'service'], icon: '<path d="M14 6a4 4 0 0 0-5 5L4 16a2 2 0 0 0 3 3l5-5a4 4 0 0 0 5-5l-3 3-3-3 3-3Z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>' },
   ]
-  const matched = categories.find((category) => labels.some((label) => category.keys.some((key) => label === key || label.includes(key))))
+  const matched = categories
+    .map((category) => ({ category, matchLength: Math.max(0, ...labels.flatMap((label) => category.keys.filter((key) => label === key || label.includes(key)).map((key) => key.length))) }))
+    .filter((item) => item.matchLength > 0)
+    .sort((a, b) => b.matchLength - a.matchLength)[0]?.category
   const bag = '<path d="M4 8h16l-1 12H5L4 8Zm4 0V6a4 4 0 0 1 8 0v2" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
   return '<svg class="ohk-map-pin-icon" viewBox="0 0 24 24" aria-hidden="true">' + (matched?.icon || bag) + '</svg>'
 }
