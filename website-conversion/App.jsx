@@ -2882,12 +2882,7 @@ const getSitePage = (type) => {
                 </section>
               ) : null}
 
-              {detailMapLocations.length > 0 ? (
-                <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
-                  <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
-                  <OfferLocationsMap locations={detailMapLocations} />
-                </section>
-              ) : null}
+
                 
             </div>
 
