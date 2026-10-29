@@ -36,7 +36,7 @@ function categoryMarkerIcon(post) {
   return '<svg class="ohk-map-pin-icon" viewBox="0 0 24 24" aria-hidden="true">' + (matched?.icon || bag) + '</svg>'
 }
 
-function buildPopup(post, onOpen) {
+function buildPopup(post, onOpen, userLocation) {
   const box = document.createElement('div')
   box.className = 'ohk-map-popup' + (post.isExpired ? ' ohk-map-popup-expired' : '')
   const allLabels = [...new Set((Array.isArray(post.labels) ? post.labels : [post.label || 'Offer'])
@@ -79,6 +79,21 @@ function buildPopup(post, onOpen) {
   const title = document.createElement('strong')
   title.textContent = post.title || 'Offer'
   box.appendChild(title)
+
+  if (userLocation && post.coordinates) {
+    const toRadians = (degrees) => degrees * Math.PI / 180
+    const lat1 = toRadians(userLocation.latitude)
+    const lat2 = toRadians(post.coordinates.latitude)
+    const deltaLat = lat2 - lat1
+    const deltaLon = toRadians(post.coordinates.longitude - userLocation.longitude)
+    const haversine = Math.sin(deltaLat / 2) ** 2
+      + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2
+    const distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+    const distance = document.createElement('small')
+    distance.className = 'ohk-map-popup-distance'
+    distance.textContent = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${Math.round(distanceKm)} km`
+    box.appendChild(distance)
+  }
   const button = document.createElement('button')
   button.type = 'button'
   button.textContent = post.isExpired ? 'Expired' : 'View Offer Details'
@@ -139,7 +154,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
         popupAnchor: [0, -28],
       })
       const marker = L.marker([latitude, longitude], { icon, title: post.title })
-        .bindPopup(buildPopup(post, (item) => openRef.current(item)), { minWidth: 210 })
+        .bindPopup(buildPopup(post, (item) => openRef.current(item), userLocation), { minWidth: 210 })
       marker.on('popupopen', (event) => {
         const wrapper = event.popup.getElement()?.querySelector('.leaflet-popup-content-wrapper')
         wrapper?.classList.toggle('ohk-leaflet-expired-popup-wrapper', Boolean(post.isExpired))
@@ -166,7 +181,7 @@ export default function OffersMap({ posts, userLocation, focusPostId, onRequestL
       map.setView([userLocation.latitude, userLocation.longitude], 12)
     }
     return () => { if (timer) window.clearTimeout(timer) }
-  }, [postsKey, focusPostId])
+  }, [postsKey, focusPostId, userLocation])
 
   useEffect(() => {
     const layer = userLayerRef.current
