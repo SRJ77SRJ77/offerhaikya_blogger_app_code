@@ -159,27 +159,16 @@ const fullNumber = (digits) => (digits.length === 10 ? '91' + digits : digits)
 
 function parseContacts(inner = '') {
   const contacts = []
-  const locations = []
   let current = null
   let map = ''
   htmlToLines(inner).forEach((line) => {
-    const match = line.match(/^(ctype|cvalue|clink|map|cmap|googlelocation\d*)\s*[:：]\s*(.*)$/i)
+    const match = line.match(/^(ctype|cvalue|clink|map|cmap)\s*[:：]\s*(.*)$/i)
     if (!match) return
     const key = match[1].toLowerCase()
     const value = match[2].trim()
     if (key === 'map' || key === 'cmap') {
       const markdown = value.match(/^\[([^\]]*)\]\((https?:\/\/[^)]+)\)$/i)
       map = markdown ? markdown[2].trim() : value
-      return
-    }
-    if (key.startsWith('googlelocation')) {
-      if (value) {
-        const markdown = value.match(/^\[([^\]]*)\]\((https?:\/\/[^)]+)\)$/i)
-        locations.push({
-          label: markdown ? markdown[1].trim() || 'Additional location ' + (locations.length + 2) : 'Additional location ' + (locations.length + 2),
-          value: markdown ? markdown[2].trim() : value,
-        })
-      }
       return
     }
     if (key === 'ctype') { current = { type: value.toLowerCase(), value: '', link: '' }; contacts.push(current); return }
@@ -203,7 +192,7 @@ function parseContacts(inner = '') {
     if (!label) label = c.type.charAt(0).toUpperCase() + c.type.slice(1)
     return { type: c.type, label, link }
   }).filter((c) => c.link)
-  return { contacts: built.slice(0, MAX_CONTACTS), map, locations }
+  return { contacts: built.slice(0, MAX_CONTACTS), map }
 }
 
 function parseYouTubeVideos(inner = '') {
@@ -245,7 +234,6 @@ export function parseOhk(html = '') {
     offerDetailHtml: blocks.OFFERDETAIL || '',
     contacts: contact.contacts,
     map: contact.map,
-    locations: contact.locations,
   }
 }
 
