@@ -2966,3 +2966,10 @@ a.ohk-card-click,
 .ohk-location-pin{position:absolute;left:4px;top:2px;width:16px;height:16px;border:3px solid #fff;border-radius:50% 50% 50% 0;background:#dc2626;box-shadow:0 2px 7px rgba(0,0,0,.35);transform:rotate(-45deg)}
 .ohk-location-map-status{margin:8px 2px 0;color:var(--ohk-muted,#777);font-size:12px;line-height:1.5}
 @media(max-width:600px){.ohk-multi-location-map{height:280px}}
+
+
+.ohk-card-location-row{display:flex;align-items:center;gap:5px;min-width:0;margin:5px 0 7px;color:#77747a;font-size:12px;line-height:1.35}
+.ohk-card-location{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ohk-card-location-distance{flex:none;white-space:nowrap;font-weight:700;color:#ff5b01}
+.ohk-card-dark .ohk-card-location-row{color:#c5c5c5}
+.ohk-card-dark .ohk-card-location-distance{color:#ff9b69}
