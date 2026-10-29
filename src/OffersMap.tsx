@@ -44,6 +44,7 @@ function buildPopup(post, onOpen) {
     ? impLabels
     : [...displayLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).slice(0, 1)
   label.textContent = visibleLabels.join(' · ') || 'Offer'
+  label.style.color = '#f97316'
   metadata.appendChild(label)
 
   if (isVerified) {
