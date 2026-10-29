@@ -12,8 +12,21 @@ const DEFAULT_CENTER = [15.8497, 74.4977]
 
 
 function categoryMarkerIcon(post) {
-  const labels = [...(Array.isArray(post?.labels) ? post.labels : []), post?.label || '', post?.category || '', post?.categoryName || '', post?.type || '', post?.title || '']
-    .map((label) => String(label || '')
+  // Inspect all post fields so a category tag is recognized wherever the importer stores it.
+  // Ignore non-string values and normalize status suffixes before matching.
+  const collectStrings = (value, output = [], depth = 0) => {
+    if (depth > 5 || value == null) return output
+    if (typeof value === 'string' || typeof value === 'number') {
+      output.push(String(value))
+    } else if (Array.isArray(value)) {
+      value.forEach((item) => collectStrings(item, output, depth + 1))
+    } else if (typeof value === 'object') {
+      Object.values(value).forEach((item) => collectStrings(item, output, depth + 1))
+    }
+    return output
+  }
+  const labels = [...new Set(collectStrings(post))]
+    .map((label) => label
       .replace(/\s*imp\s*$/i, '')
       .replace(/\b(?:expired|verified)\b/gi, ' ')
       .replace(/\s+/g, ' ')
