@@ -918,10 +918,6 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
   const cardLabel = getPostCardLabel(post)
-  const locationTag = String(post.bloggerLocation || post.location || post.locationName || '').trim()
-  const cardDistanceKm = Number.isFinite(post.nearbyDistanceKm)
-    ? post.nearbyDistanceKm
-    : (userLocation && post.coordinates ? distanceKm(userLocation, post.coordinates) : null)
 
   return (
     <article className={`ohk-card ${dark ? 'ohk-card-dark' : ''} ${expiry === 'Expired' ? 'ohk-card-expired-locked' : ''}`} title={expiry === 'Expired' ? 'Expired' : undefined}>
@@ -1002,12 +998,6 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
               </span>
             ) : null}
           </div>
-          {locationTag || Number.isFinite(cardDistanceKm) ? (
-            <div className="ohk-card-location-row">
-              {locationTag ? <span className="ohk-card-location">{locationTag}</span> : null}
-              {Number.isFinite(cardDistanceKm) ? <span className="ohk-card-location-distance">{locationTag ? '· ' : ''}{formatDistance(cardDistanceKm)}</span> : null}
-            </div>
-          ) : null}
           <h2>{post.title}</h2>
           <div className="ohk-card-date">{post.date}</div>
           <p>{post.excerpt}</p>
