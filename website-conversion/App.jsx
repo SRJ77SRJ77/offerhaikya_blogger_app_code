@@ -9,7 +9,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-const OffersMap = lazy(() => import('./OffersMap.jsx'))
+const OffersMap = lazy(() => import('./OffersMap.tsx'))
 import { parseOhk, extractOhkBlocks, ohkPlainText } from './ohkBlocks.js'
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
