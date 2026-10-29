@@ -2981,6 +2981,6 @@ a.ohk-card-click,
 .ohk-map-pin-icon{display:block;width:16px;height:16px;transform:rotate(45deg);overflow:visible}
 .ohk-map-pin-expired>span{background:#888}
 
-/* Map popup tag row: keep category and distance together with readable black text. */
-.ohk-map-popup .ohk-map-popup-meta > small { color: #000 !important; }
-.ohk-map-popup .ohk-map-popup-distance { color: #000 !important; display: inline; margin: 0; }
+/* Keep map category tags in the original brand-orange color. */
+.ohk-map-popup .ohk-map-popup-meta > small { color: #ff5b01 !important; }
+.ohk-map-popup .ohk-map-popup-distance { color: #ff5b01 !important; display: inline; margin: 0; }
