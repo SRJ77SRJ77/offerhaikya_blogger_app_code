@@ -60,6 +60,8 @@ function buildPopup(post, onOpen, userLocation) {
 
   const metadata = document.createElement('div')
   metadata.className = 'ohk-map-popup-meta'
+  const leftMeta = document.createElement('div')
+  leftMeta.className = 'ohk-map-popup-meta-left'
   const label = document.createElement('small')
   const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
     const impLabels = displayLabels
@@ -72,7 +74,7 @@ function buildPopup(post, onOpen, userLocation) {
     ? impLabels
     : [...displayLabels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).slice(0, 1)
   label.textContent = visibleLabels.join(' · ') || 'Offer'
-  metadata.appendChild(label)
+  leftMeta.appendChild(label)
 
   if (isVerified) {
     const verified = document.createElement('div')
@@ -80,6 +82,7 @@ function buildPopup(post, onOpen, userLocation) {
     verified.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 12.3 3l2.8-.1 1 2.6 2.2 1.7-.8 2.7.8 2.7-2.2 1.7-1 2.6-2.8-.1L10 18.5l-2.3-1.7-2.8.1-1-2.6-2.2-1.7.8-2.7-.8-2.7 2.2-1.7 1-2.6 2.8.1Z" fill="currentColor"/><path d="m6.2 10.2 2.4 2.4 5.2-5.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Verified</span>'
     metadata.appendChild(verified)
   }
+  metadata.prepend(leftMeta)
   box.appendChild(metadata)
 
   const title = document.createElement('strong')
@@ -98,7 +101,7 @@ function buildPopup(post, onOpen, userLocation) {
     const distance = document.createElement('small')
     distance.className = 'ohk-map-popup-distance'
     distance.textContent = distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${Math.round(distanceKm)} km`
-    metadata.appendChild(distance)
+    leftMeta.appendChild(distance)
   }
   const button = document.createElement('button')
   button.type = 'button'
