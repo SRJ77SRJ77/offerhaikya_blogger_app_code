@@ -2407,8 +2407,7 @@ const getSitePage = (type) => {
         : extractMapLinks(detail.rawContent || ''))
     : []
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
-  const detailMapLocations = detail ? (() => {
-    constype: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
+  const detailMedia = [...detailImages.map((url) => ({ type: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
   const selectedDetailMedia = detailMedia[detailImageIndex] || detailMedia[0] || null
   const detailVerified = (detail?.labels || []).some((label) => String(label).trim().toLowerCase() === 'verified')
   const detailExpiry = detail ? getExpiryLabel(detail) : ''
