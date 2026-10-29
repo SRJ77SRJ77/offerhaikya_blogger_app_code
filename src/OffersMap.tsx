@@ -28,6 +28,10 @@ function buildPopup(post, onOpen) {
 
   const metadata = document.createElement('div')
   metadata.className = 'ohk-map-popup-meta'
+  metadata.style.display = 'flex'
+  metadata.style.alignItems = 'center'
+  metadata.style.justifyContent = 'space-between'
+  metadata.style.gap = '8px'
   const label = document.createElement('small')
   const displayLabels = allLabels.filter((item) => !/^verified$/i.test(item))
     const impLabels = displayLabels
