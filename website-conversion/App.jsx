@@ -918,7 +918,7 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
   const expiry = getExpiryLabel(post)
   const offerPercent = getOfferPercent(post)
   const cardLabel = getPostCardLabel(post)
-  const locationTag = String(post.bloggerLocation || post.location || '').trim()
+  const locationTag = String(post.bloggerLocation || post.location || post.locationName || '').trim()
   const cardDistanceKm = Number.isFinite(post.nearbyDistanceKm)
     ? post.nearbyDistanceKm
     : (userLocation && post.coordinates ? distanceKm(userLocation, post.coordinates) : null)
@@ -1002,10 +1002,10 @@ function OfferCard({ post, saved, onSave, onOpen, onOpenDistance, onShare, onMap
               </span>
             ) : null}
           </div>
-          {locationTag ? (
+          {locationTag || Number.isFinite(cardDistanceKm) ? (
             <div className="ohk-card-location-row">
-              <span className="ohk-card-location">{locationTag}</span>
-              {Number.isFinite(cardDistanceKm) ? <span className="ohk-card-location-distance">· {formatDistance(cardDistanceKm)}</span> : null}
+              {locationTag ? <span className="ohk-card-location">{locationTag}</span> : null}
+              {Number.isFinite(cardDistanceKm) ? <span className="ohk-card-location-distance">{locationTag ? '· ' : ''}{formatDistance(cardDistanceKm)}</span> : null}
             </div>
           ) : null}
           <h2>{post.title}</h2>
