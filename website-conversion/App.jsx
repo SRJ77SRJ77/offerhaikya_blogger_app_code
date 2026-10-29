@@ -2409,25 +2409,18 @@ const getSitePage = (type) => {
     : []
   const detailAddress = detail ? extractPostAddress(detail.rawContent || '') : ''
   const detailMapLocations = detail ? (() => {
-    const locations = []
-    const addLocation = (label, value) => {
-      const cleanValue = String(value || '').trim()
-      if (!cleanValue || locations.some((location) => location.value === cleanValue)) return
-      locations.push({ label, value: cleanValue })
-    }
-    // Blogger's geo coordinates are the primary location whenever supplied.
-    if (detail.coordinates) addLocation('Main location', detail.coordinates.latitude + ', ' + detail.coordinates.longitude)
-    else if (detailOhk.map) addLocation('Main location', detailOhk.map)
-    else if (detailAddress) addLocation('Main location', detailAddress)
-    else if (detail.bloggerLocation) addLocation('Main location', detail.bloggerLocation)
-    else if (detailMapLinks[0]?.url) addLocation('Main location', detailMapLinks[0].url)
-    // Additional locations are read from googlelocation1, googlelocation2, etc.
-    ;(detailOhk.locations || []).forEach((location) => addLocation(location.label, location.value))
-    // Preserve any other map links on legacy Blogger posts as extra pins.
-    detailMapLinks.forEach((mapLink) => {
-      if (mapLink.url !== detailOhk.map) addLocation(mapLink.label || 'Additional location ' + (locations.length + 1), mapLink.url)
-    })
-    return locations
+    const location = detail.coordinates
+      ? { label: 'Main location', value: detail.coordinates.latitude + ', ' + detail.coordinates.longitude }
+      : detailOhk.map
+        ? { label: 'Main location', value: detailOhk.map }
+        : detailAddress
+          ? { label: 'Main location', value: detailAddress }
+          : detail.bloggerLocation
+            ? { label: 'Main location', value: detail.bloggerLocation }
+            : detailMapLinks[0]?.url
+              ? { label: 'Main location', value: detailMapLinks[0].url }
+              : null
+    return location ? [location] : []
   })() : []
   const detailMedia = [...detailImages.map((url) => ({ type: 'image', url })), ...detailVideos.map((video) => ({ type: 'video', url: video.url, videoType: video.type }))]
   const selectedDetailMedia = detailMedia[detailImageIndex] || detailMedia[0] || null
@@ -2892,7 +2885,7 @@ const getSitePage = (type) => {
               {detailMapLocations.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-map-title">
                   <h2 id="ohk-dp-map-title" className="ohk-dp-heading">Map</h2>
-                  <OfferLocationsMap locations={detailMapLocations.slice(0, 5)} />
+                  <OfferLocationsMap locations={detailMapLocations} />
                 </section>
               ) : null}
                 
