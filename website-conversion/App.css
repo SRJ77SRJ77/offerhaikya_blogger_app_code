@@ -2893,7 +2893,7 @@ a.ohk-card-click,
 .ohk-dp-contacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
 .ohk-dp-contacts-single { grid-template-columns: max-content; }
 .ohk-dp-contacts-single .ohk-dp-contact { max-width: 100%; box-sizing: border-box; }
-.ohk-dp-contact { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: #fff5ef; border: 1px solid #ffe0cf; border-radius: 12px; color: #271812; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; overflow-x: auto; }
+.ohk-dp-contact { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: #fff5ef; border: 1px solid #ffe0cf; border-radius: 12px; color: #271812; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .ohk-dp-contact:hover { border-color: #ff5b01; }
 .ohk-dark .ohk-dp-product { background: #1d1d1d; border-color: #2e2e2e; }
 .ohk-dark .ohk-dp-product-body h3, .ohk-dark .ohk-dp-product-price strong, .ohk-dark .ohk-dp-contact { color: #ffffff; }
