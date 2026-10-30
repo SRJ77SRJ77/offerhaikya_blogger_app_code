@@ -1262,6 +1262,34 @@ function App() {
     return () => window.removeEventListener('resize', updateWidth)
   }, [])
 
+  // Measure the widest detail/contact box and use that shared width for every column.
+  useEffect(() => {
+    const updateDetailBoxWidths = () => {
+      document.querySelectorAll('.ohk-dp-tiles, .ohk-dp-contacts').forEach((container) => {
+        const items = Array.from(container.children)
+        if (!items.length) return
+        let widest = 0
+        items.forEach((item) => {
+          const previousWidth = item.style.width
+          const previousMaxWidth = item.style.maxWidth
+          item.style.width = 'max-content'
+          item.style.maxWidth = 'none'
+          widest = Math.max(widest, item.getBoundingClientRect().width)
+          item.style.width = previousWidth
+          item.style.maxWidth = previousMaxWidth
+        })
+        const available = container.clientWidth
+        if (available > 0 && widest > 0) {
+          const sharedWidth = Math.min(Math.ceil(widest), available)
+          container.style.gridTemplateColumns = `repeat(auto-fit, minmax(${sharedWidth}px, 1fr))`
+        }
+      })
+    }
+    updateDetailBoxWidths()
+    window.addEventListener('resize', updateDetailBoxWidths)
+    return () => window.removeEventListener('resize', updateDetailBoxWidths)
+  })
+
   const [isPhoneAdLayout, setIsPhoneAdLayout] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)')
