@@ -2719,7 +2719,7 @@ const getSitePage = (type) => {
               {(detailOhk.has ? detailOhk.tiles.length > 0 : detailFacts.length > 0) ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-facts-title">
                   <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer Details</h2>
-                  <div className="ohk-dp-tiles">
+                  <div className={`ohk-dp-tiles${(detailOhk.has ? detailOhk.tiles.length : detailFacts.length) === 1 ? ' ohk-dp-tiles-single' : ''}`}>
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
                           <div className="ohk-dp-tile" key={index}>
@@ -2857,7 +2857,7 @@ const getSitePage = (type) => {
                             {detailOhk.has && detailOhk.contacts.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-contact-title">
                   <h2 id="ohk-dp-contact-title" className="ohk-dp-heading">Contact &amp; Social Details</h2>
-                  <div className="ohk-dp-contacts">
+                  <div className={`ohk-dp-contacts${detailOhk.contacts.length === 1 ? ' ohk-dp-contacts-single' : ''}`}>
                     {detailOhk.contacts.map((contact, index) => (
                       <a
                         className="ohk-dp-contact"
