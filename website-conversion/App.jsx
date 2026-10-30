@@ -9,7 +9,7 @@ import logoImage from './assets/logo.webp'
 import darkLogoImage from './assets/logo_dm.webp'
 import preloaderGif from './assets/Offer.gif'
 import bgImage from './assets/bg.webp'
-const OffersMap = lazy(() => import('./OffersMap.tsx'))
+const OffersMap = lazy(() => import('./OffersMap.jsx'))
 import { parseOhk, extractOhkBlocks, ohkPlainText } from './ohkBlocks.js'
 
 const BLOG_URL = 'https://offerhaikya.blogspot.com'
@@ -2719,7 +2719,7 @@ const getSitePage = (type) => {
               {(detailOhk.has ? detailOhk.tiles.length > 0 : detailFacts.length > 0) ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-facts-title">
                   <h2 id="ohk-dp-facts-title" className="ohk-dp-heading">Offer Details</h2>
-                  <div className={`ohk-dp-tiles${(detailOhk.has ? detailOhk.tiles.length : detailFacts.length) === 1 ? " ohk-dp-tiles-single" : ""}`}>
+                  <div className="ohk-dp-tiles">
                     {detailOhk.has
                       ? detailOhk.tiles.map((tile, index) => (
                           <div className="ohk-dp-tile" key={index}>
@@ -2857,7 +2857,7 @@ const getSitePage = (type) => {
                             {detailOhk.has && detailOhk.contacts.length > 0 ? (
                 <section className="ohk-dp-card" aria-labelledby="ohk-dp-contact-title">
                   <h2 id="ohk-dp-contact-title" className="ohk-dp-heading">Contact &amp; Social Details</h2>
-                  <div className={`ohk-dp-contacts${detailOhk.contacts.length === 1 ? " ohk-dp-contacts-single" : ""}`}>
+                  <div className="ohk-dp-contacts">
                     {detailOhk.contacts.map((contact, index) => (
                       <a
                         className="ohk-dp-contact"
